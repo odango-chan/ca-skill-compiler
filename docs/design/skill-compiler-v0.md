@@ -71,15 +71,14 @@ project/
 | Studio 用来支持 YAML 诊断的 Meta-Schema | 语言规范/Compiler | 否 | 内置编译器/Studio，不进入 Skill 包 |
 | Qualification/Profile/Release/Runtime 状态 | 外部相应 Owner | 否 | 不纳入 v0 |
 
-### 3.1 Python Script Schema 生成的真实限制
+### 3.1 Script-to-Schema 的权威规约
 
-当前 `select_establishment_configuration.py` 的头部只有 `inputSchema: EstablishmentSelectionInput` / `outputSchema: EstablishmentSelection`，类体是 `class EstablishmentSelectionInput(dict): pass`。这种声明**不能**自动产生 `required`、`enum`、正则或深层属性约束。
+**新规范：[Script Contract v0](script-contract-v0.md)（ACCEPTED DESIGN / NOT IMPLEMENTED）。** 现有脚本的 `# /// connectionagent-tool` 头部保持不变；新增两个互斥 Schema 来源模式。
 
-- 首版支持现有独立 Script Schema，不因重写而制造不兼容。
-- 引入**声明式** Script I/O 类型（如受限 `TypedDict` 或元数据中的声明），在**静态解析**下生成简单 JSON Schema；不导入/执行 Python 来读类型。
-- 无法表达的约束继续以显式作者 Schema 为准，或给出“未覆盖/需要声明”的诊断，不自动补假字段。
-- 如 Script 输出唯一交给 Tool Input，Tool Input Schema 是该边界的唯一权威；Script 仍可有类型投影，但不得复制一份可修改的完整 Tool 契约。
-- 生成位置及命名由单一 Compiler 规则决定，不能在 Studio 自行生成第二套 Schema。
+- `schemaMode: external`（缺省）：现有 5 个真实 Script 原样兼容，以单独 `schemas/*.schema.yaml` 为权威；禁止从空的 `class Input(dict): pass` 推断字段。
+- `schemaMode: embedded`（新作者推荐）：在脚本头部声明 `interface.input` 与 `interface.output` 的 JSON Schema 结构，编译器静态提取，在 `output/skills/<skill>/schemas/generated/` 中生成只读 JSON Schema。
+- 不执行 Python，不自动推断函数体；未来如确有必要再另行评审 TypedDict 受限静态推断，不作为 v0 的第二套必备输入格式。
+- Tool Schema 的权威仍在外部 `lib/`，不得由 Script 生成的 Schema 替代。
 
 ## 4. Library v0：先文件导入，后 MCP
 
