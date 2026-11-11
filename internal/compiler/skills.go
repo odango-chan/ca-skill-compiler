@@ -462,14 +462,15 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 						call := scalar(child(step, "call"))
 						verify := scalar(child(step, "verify"))
 						count := 0
-						if script != "" {
+						for _, action := range []string{"script", "call", "verify"} {
+							value := child(step, action)
+							if value == nil {
+								continue
+							}
 							count++
-						}
-						if call != "" {
-							count++
-						}
-						if verify != "" {
-							count++
+							if value.Kind != yaml.ScalarNode || value.Tag != "!!str" || value.Value == "" {
+								a.errorAt(s.procedure, value.Line, "PROCEDURE_UNSUPPORTED", "nested "+action+" action must be a nonempty string")
+							}
 						}
 						if id == "" || count != 1 {
 							a.errorAt(s.procedure, step.Line, "PROCEDURE_UNSUPPORTED", "step requires name and exactly one script or call action")
@@ -481,6 +482,9 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 						seenSteps[id] = true
 						if script != "" && !validSkillScriptPath(script) {
 							a.errorAt(s.procedure, child(step, "script").Line, "PROCEDURE_UNSUPPORTED", "Script reference must be a normalized scripts/*.py path: "+script)
+						}
+						if verify != "" && child(step, "with") != nil {
+							a.errorAt(s.procedure, child(step, "with").Line, "PROCEDURE_UNSUPPORTED", "with is only valid for nested call or script steps")
 						}
 						for _, field := range mapKeys(step) {
 							switch field {

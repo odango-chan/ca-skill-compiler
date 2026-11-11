@@ -823,6 +823,45 @@ func TestMalformedProcedureContainerShapesAreDiagnosed(t *testing.T) {
 	}
 }
 
+func TestNestedVerifyStepRejectsUnresolvedBindings(t *testing.T) {
+	files := source("nested-verify", "run", `procedures:
+  run:
+    start: done
+    nodes:
+      done:
+        preconditions:
+          steps:
+            - name: verify-ready
+              verify: ready
+              with: {value: {from: context.request.value}}
+        terminal: SUCCEEDED
+`)
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
+		t.Fatalf("verify step with unresolved bindings was accepted: %#v", got.Diagnostics)
+	}
+}
+
+func TestNestedStepRejectsEmptyExtraActionField(t *testing.T) {
+	files := source("nested-action", "run", `procedures:
+  run:
+    start: done
+    nodes:
+      done:
+        preconditions:
+          steps:
+            - name: read
+              call: demo.read
+              script: ""
+        terminal: SUCCEEDED
+`)
+	files = append(files, toolCatalog())
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
+		t.Fatalf("nested step with an empty extra action field was accepted: %#v", got.Diagnostics)
+	}
+}
+
 func TestPreAndPostconditionStepsHaveDistinctOutputScopes(t *testing.T) {
 	files := source("scopes", "run", `procedures:
   run:
