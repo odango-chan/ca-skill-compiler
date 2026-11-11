@@ -35,7 +35,9 @@ MCP `tools/list` support is a separate importer to the **same internal Library m
 
 ~~~bash
 GOOS=js GOARCH=wasm go build -o web/skillc.wasm ./cmd/skillc-wasm
-cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" web/wasm_exec.js
+WASM_EXEC="$(go env GOROOT)/lib/wasm/wasm_exec.js"
+if [ ! -f "$WASM_EXEC" ]; then WASM_EXEC="$(go env GOROOT)/misc/wasm/wasm_exec.js"; fi
+cp "$WASM_EXEC" web/wasm_exec.js
 ~~~
 
 Host those two files together with `web/skillc-worker.js`. It uses the Go runtime, not Node or a native backend. Production Pages/Chromium tests are **NOT_RUN** until the actual Skill Studio integration is attempted.
