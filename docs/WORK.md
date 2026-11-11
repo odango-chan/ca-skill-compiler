@@ -10,6 +10,7 @@ Updated: 2026-11-11
 | Native CLI | PARTIAL | NOT_RUN |
 | Browser WASM callback/Worker | PARTIAL | NOT_RUN |
 | Focused Go test sources | IMPLEMENTED | NOT_RUN |
+| Script Contract v0 source-of-truth design | ACCEPTED | spec created; code NOT_IMPLEMENTED; PY-01..PY-10 NOT_RUN |
 | Full Script I/O Schema generation | NOT_STARTED | NOT_RUN |
 | Correct Procedure, Predicate and transitive Skill dependency linking | PARTIAL | NOT_RUN; known nested procedure walker false-positive |
 | Read-only Library inspection/Studio schema projection | NOT_STARTED | NOT_RUN |
