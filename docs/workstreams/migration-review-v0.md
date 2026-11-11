@@ -4,11 +4,11 @@ Updated: 2026-11-11. These checks use the pinned, unmodified `examples/ca-agent-
 
 ## `establish-pdu-session`
 
-Observed: **103 errors**.
+Observed: **124 errors**.
 
 | Diagnostic | Count | Migration evidence |
 | --- | ---: | --- |
-| `EXTERNAL_SCHEMA_MISSING` | 62 | Owner Schemas for `context.subject` (24 references) and `context.facts` (38 references) are not included. The request Schema is present and Skill-owned. |
+| `EXTERNAL_SCHEMA_MISSING` | 83 | Owner Schemas for `context.subject` and `context.facts` are not included. This includes direct Procedure input sources, which are now checked even when no node consumes the input. The request Schema is present and Skill-owned. |
 | `PROCEDURE_UNSUPPORTED` | 18 | Legacy nested steps do not satisfy the v0 named-step/action shape. |
 | `STEP_SCOPE_UNKNOWN` | 9 | Six references use unresolved nested step scope `nudm-sdm-subscribe.preconditions.select-subscription-configuration`; three other references use local step names absent from the parsed v0 scope. |
 | `BINDING_TYPE_MISMATCH` | 9 | Existing Procedure input declarations and Tool consumer fields disagree in names or declared types (`request-type`/`requestType`, `slice`/`sNssai` or `snssai`, and `dnn`). |
@@ -18,11 +18,11 @@ Observed: **103 errors**.
 
 ## `establish-pdu-session-mas`
 
-Observed: **82 errors**.
+Observed: **85 errors**.
 
 | Diagnostic | Count | Migration evidence |
 | --- | ---: | --- |
-| `EXTERNAL_SCHEMA_MISSING` | 48 | Owner Schemas for `context.subject` (16 references) and `context.facts` (32 references) are not included. The request Schema is present and Skill-owned. |
+| `EXTERNAL_SCHEMA_MISSING` | 51 | Owner Schemas for `context.subject` and `context.facts` are not included. This includes direct Procedure input sources, which are now checked even when no node consumes the input. The request Schema is present and Skill-owned. |
 | `BINDING_TYPE_MISMATCH` | 18 | Existing bindings disagree with the proposed Tool schemas' declared types, including `ue_addr`, `session_keys`, `policy_assoc_id`, `n4_seid`, and `up_anchor` outputs. |
 | `PROCEDURE_UNSUPPORTED` | 16 | Reconcile steps target proposed Operations without declared `reconcileOutputSchema`; the Compiler cannot derive their result contract. |
 
