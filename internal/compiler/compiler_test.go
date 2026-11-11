@@ -321,6 +321,13 @@ func TestSchemaShapeValidatesDraft2020ConstraintTypes(t *testing.T) {
 			t.Errorf("invalid Schema accepted: %#v", candidate)
 		}
 	}
+	var document yaml.Node
+	if err := yaml.Unmarshal([]byte("type: number\nminimum: 9007199254740993\nmaximum: 9007199254740994\nmultipleOf: 1e-400\n"), &document); err != nil {
+		t.Fatal(err)
+	}
+	if err := validateSchemaShape(document.Content[0]); err != nil {
+		t.Fatalf("exact large bounds and small positive multipleOf were rejected: %v", err)
+	}
 }
 
 func TestMissingBuildTargetIsDiagnosed(t *testing.T) {
@@ -665,6 +672,8 @@ func TestNumericLiteralConstraintsAreEnforced(t *testing.T) {
 		{"multipleOf rejects nonmultiple", 7, map[string]any{"type": "number", "multipleOf": 2}, false},
 		{"decimal multiple is exact", 0.3, map[string]any{"type": "number", "multipleOf": 0.1}, true},
 		{"near decimal multiple is rejected", 0.30000000001, map[string]any{"type": "number", "multipleOf": 0.1}, false},
+		{"large integer below minimum is rejected exactly", int64(9007199254740992), map[string]any{"type": "number", "minimum": int64(9007199254740993)}, false},
+		{"large integer at minimum is accepted exactly", int64(9007199254740993), map[string]any{"type": "number", "minimum": int64(9007199254740993)}, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if got := literalMatchesSchema(schemaNode(tc.value), schemaNode(tc.schema)); got != tc.want {
@@ -693,6 +702,7 @@ func TestProducerNumericConstraintsMustSatisfyConsumer(t *testing.T) {
 		{"strong exclusive maximum satisfies regular maximum", map[string]any{"maximum": 10, "exclusiveMaximum": 4}, map[string]any{"maximum": 5}, true},
 		{"producer multiple is also consumer multiple", map[string]any{"multipleOf": 6}, map[string]any{"multipleOf": 2}, true},
 		{"producer multiple does not imply consumer multiple", map[string]any{"multipleOf": 2}, map[string]any{"multipleOf": 3}, false},
+		{"large integer bound below consumer bound", map[string]any{"minimum": int64(9007199254740992)}, map[string]any{"minimum": int64(9007199254740993)}, false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

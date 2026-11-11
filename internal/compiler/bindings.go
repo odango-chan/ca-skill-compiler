@@ -389,10 +389,10 @@ func schemaConstraintsCompatible(source, target *yaml.Node, typ string) bool {
 	for _, key := range lowerKeys {
 		if t := schemaNumber(target, key); t != nil {
 			s := schemaNumber(source, key)
-			weaker := s == nil || *s < *t
+			weaker := s == nil || s.Cmp(t) < 0
 			if typ == "integer" || typ == "number" {
 				exclusive := schemaNumber(source, "exclusiveMinimum")
-				weaker = weaker && (exclusive == nil || *exclusive < *t)
+				weaker = weaker && (exclusive == nil || exclusive.Cmp(t) < 0)
 			}
 			if weaker {
 				return false
@@ -402,10 +402,10 @@ func schemaConstraintsCompatible(source, target *yaml.Node, typ string) bool {
 	for _, key := range upperKeys {
 		if t := schemaNumber(target, key); t != nil {
 			s := schemaNumber(source, key)
-			weaker := s == nil || *s > *t
+			weaker := s == nil || s.Cmp(t) > 0
 			if typ == "integer" || typ == "number" {
 				exclusive := schemaNumber(source, "exclusiveMaximum")
-				weaker = weaker && (exclusive == nil || *exclusive > *t)
+				weaker = weaker && (exclusive == nil || exclusive.Cmp(t) > 0)
 			}
 			if weaker {
 				return false
@@ -415,13 +415,13 @@ func schemaConstraintsCompatible(source, target *yaml.Node, typ string) bool {
 	if typ == "integer" || typ == "number" {
 		if t := schemaNumber(target, "exclusiveMinimum"); t != nil {
 			minimum, exclusive := schemaNumber(source, "minimum"), schemaNumber(source, "exclusiveMinimum")
-			if (minimum == nil || *minimum <= *t) && (exclusive == nil || *exclusive < *t) {
+			if (minimum == nil || minimum.Cmp(t) <= 0) && (exclusive == nil || exclusive.Cmp(t) < 0) {
 				return false
 			}
 		}
 		if t := schemaNumber(target, "exclusiveMaximum"); t != nil {
 			maximum, exclusive := schemaNumber(source, "maximum"), schemaNumber(source, "exclusiveMaximum")
-			if (maximum == nil || *maximum >= *t) && (exclusive == nil || *exclusive > *t) {
+			if (maximum == nil || maximum.Cmp(t) >= 0) && (exclusive == nil || exclusive.Cmp(t) > 0) {
 				return false
 			}
 		}
@@ -470,16 +470,16 @@ func schemaConstraintsCompatible(source, target *yaml.Node, typ string) bool {
 	return true
 }
 
-func schemaNumber(schema *yaml.Node, key string) *float64 {
+func schemaNumber(schema *yaml.Node, key string) *big.Rat {
 	n := child(schema, key)
 	if n == nil {
 		return nil
 	}
-	v, err := strconv.ParseFloat(scalar(n), 64)
-	if err != nil {
+	v, ok := exactRational(scalar(n))
+	if !ok {
 		return nil
 	}
-	return &v
+	return v
 }
 
 func literalMatchesSchema(value, schema *yaml.Node) bool {
@@ -540,10 +540,10 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 				return false
 			}
 		}
-		if n, ok := numberValue(child(schema, "minProperties")); ok && float64(len(value.Content)/2) < n {
+		if n, ok := numberValue(child(schema, "minProperties")); ok && new(big.Rat).SetInt64(int64(len(value.Content)/2)).Cmp(n) < 0 {
 			return false
 		}
-		if n, ok := numberValue(child(schema, "maxProperties")); ok && float64(len(value.Content)/2) > n {
+		if n, ok := numberValue(child(schema, "maxProperties")); ok && new(big.Rat).SetInt64(int64(len(value.Content)/2)).Cmp(n) > 0 {
 			return false
 		}
 	case "array":
@@ -551,10 +551,10 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 		if items == nil || value.Kind != yaml.SequenceNode {
 			return false
 		}
-		if n, ok := numberValue(child(schema, "minItems")); ok && float64(len(value.Content)) < n {
+		if n, ok := numberValue(child(schema, "minItems")); ok && new(big.Rat).SetInt64(int64(len(value.Content))).Cmp(n) < 0 {
 			return false
 		}
-		if n, ok := numberValue(child(schema, "maxItems")); ok && float64(len(value.Content)) > n {
+		if n, ok := numberValue(child(schema, "maxItems")); ok && new(big.Rat).SetInt64(int64(len(value.Content))).Cmp(n) > 0 {
 			return false
 		}
 		if scalar(child(schema, "uniqueItems")) == "true" {
@@ -574,10 +574,10 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 		}
 	case "string":
 		text := value.Value
-		if n, ok := numberValue(child(schema, "minLength")); ok && float64(len([]rune(text))) < n {
+		if n, ok := numberValue(child(schema, "minLength")); ok && new(big.Rat).SetInt64(int64(len([]rune(text)))).Cmp(n) < 0 {
 			return false
 		}
-		if n, ok := numberValue(child(schema, "maxLength")); ok && float64(len([]rune(text))) > n {
+		if n, ok := numberValue(child(schema, "maxLength")); ok && new(big.Rat).SetInt64(int64(len([]rune(text)))).Cmp(n) > 0 {
 			return false
 		}
 		if pattern := scalar(child(schema, "pattern")); pattern != "" {
@@ -587,20 +587,20 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 			}
 		}
 	case "integer", "number":
-		n, err := strconv.ParseFloat(value.Value, 64)
-		if err != nil {
+		n, ok := exactRational(value.Value)
+		if !ok {
 			return false
 		}
-		if bound, ok := numberValue(child(schema, "minimum")); ok && n < bound {
+		if bound, ok := numberValue(child(schema, "minimum")); ok && n.Cmp(bound) < 0 {
 			return false
 		}
-		if bound, ok := numberValue(child(schema, "maximum")); ok && n > bound {
+		if bound, ok := numberValue(child(schema, "maximum")); ok && n.Cmp(bound) > 0 {
 			return false
 		}
-		if bound, ok := numberValue(child(schema, "exclusiveMinimum")); ok && n <= bound {
+		if bound, ok := numberValue(child(schema, "exclusiveMinimum")); ok && n.Cmp(bound) <= 0 {
 			return false
 		}
-		if bound, ok := numberValue(child(schema, "exclusiveMaximum")); ok && n >= bound {
+		if bound, ok := numberValue(child(schema, "exclusiveMaximum")); ok && n.Cmp(bound) >= 0 {
 			return false
 		}
 		if divisor := child(schema, "multipleOf"); divisor != nil && !isIntegerMultiple(value.Value, scalar(divisor)) {
@@ -672,15 +672,11 @@ func exactRational(raw string) (*big.Rat, bool) {
 	return new(big.Rat).SetFrac(numerator, denominator), true
 }
 
-func numberValue(n *yaml.Node) (float64, bool) {
+func numberValue(n *yaml.Node) (*big.Rat, bool) {
 	if n == nil {
-		return 0, false
+		return nil, false
 	}
-	v, err := strconv.ParseFloat(scalar(n), 64)
-	if err != nil {
-		return 0, false
-	}
-	return v, true
+	return exactRational(scalar(n))
 }
 func containsScalar(nodes []*yaml.Node, value string) bool {
 	for _, n := range nodes {

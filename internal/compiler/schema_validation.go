@@ -3,9 +3,8 @@ package compiler
 import (
 	"encoding/json"
 	"fmt"
-	"math"
+	"math/big"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -133,16 +132,16 @@ func validateSchemaShape(schema *yaml.Node) error {
 	for _, key := range []string{"minLength", "maxLength", "minItems", "maxItems", "minProperties", "maxProperties", "minContains", "maxContains", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf"} {
 		if value := child(schema, key); value != nil {
 			n, err := schemaNumericValue(value)
-			if err != nil || math.IsNaN(n) || math.IsInf(n, 0) || (strings.HasPrefix(key, "min") || strings.HasPrefix(key, "max")) && n < 0 || key == "multipleOf" && n <= 0 {
+			if err != nil || (strings.HasPrefix(key, "min") || strings.HasPrefix(key, "max")) && n.Sign() < 0 || key == "multipleOf" && n.Sign() <= 0 {
 				return fmt.Errorf("invalid numeric constraint %s", key)
 			}
-			if schemaCountConstraint(key) && n != math.Trunc(n) {
+			if schemaCountConstraint(key) && !n.IsInt() {
 				return fmt.Errorf("%s must be an integer", key)
 			}
 		}
 	}
 	for _, pair := range [][2]string{{"minLength", "maxLength"}, {"minItems", "maxItems"}, {"minProperties", "maxProperties"}, {"minContains", "maxContains"}} {
-		if min, max := schemaNumber(schema, pair[0]), schemaNumber(schema, pair[1]); min != nil && max != nil && *min > *max {
+		if min, max := schemaNumber(schema, pair[0]), schemaNumber(schema, pair[1]); min != nil && max != nil && min.Cmp(max) > 0 {
 			return fmt.Errorf("%s exceeds %s", pair[0], pair[1])
 		}
 	}
@@ -229,12 +228,16 @@ func validateSchemaShape(schema *yaml.Node) error {
 	return nil
 }
 
-func schemaNumericValue(value *yaml.Node) (float64, error) {
+func schemaNumericValue(value *yaml.Node) (*big.Rat, error) {
 	value = unalias(value)
 	if value == nil || value.Kind != yaml.ScalarNode || (value.Tag != "!!int" && value.Tag != "!!float") {
-		return 0, fmt.Errorf("not a numeric scalar")
+		return nil, fmt.Errorf("not a numeric scalar")
 	}
-	return strconv.ParseFloat(value.Value, 64)
+	parsed, ok := exactRational(value.Value)
+	if !ok {
+		return nil, fmt.Errorf("not a finite decimal number")
+	}
+	return parsed, nil
 }
 
 func schemaCountConstraint(key string) bool {
