@@ -13,6 +13,44 @@ import (
 
 func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.Node, path string) {
 	parsedProcedure := s.procedureASTFor(proc)
+	outputs, stepOutputs := a.procedureProducerSchemas(s, proc, nodes, parsedProcedure)
+	for _, nodeID := range mapKeys(nodes) {
+		n := child(nodes, nodeID)
+		parsedNode := ProcedureNodeAST{}
+		if parsedProcedure != nil {
+			parsedNode = parsedProcedure.Nodes[nodeID]
+		}
+		expected := (*yaml.Node)(nil)
+		procedureInputs := false
+		if parsedNode.Action == ActionCall {
+			op := parsedNode.Reference
+			expected = a.tools[op].inputNode
+		} else if parsedNode.Action == ActionProcedure {
+			ref := child(n, "procedure")
+			if target := a.calledProcedure(s, ref); target != nil {
+				expected = procedureInputSchema(target, a.procedureInputSchemas[target])
+				procedureInputs = true
+			}
+		} else if parsedNode.Action == ActionVerify && child(n, "with") != nil {
+			expected = a.contextConsumerSchema(s, "subject", path, child(n, "with").Line)
+		}
+		a.checkBindings(s, proc, path, child(n, "with"), expected, nodeID, "main", -1, outputs, stepOutputs[nodeID], stepOutputs, procedureInputs)
+		for _, scope := range []string{"preconditions", "postconditions"} {
+			for stepIndex, step := range sequence(child(child(n, scope), "steps")) {
+				op := scalar(child(step, "call"))
+				var target *yaml.Node
+				if op != "" {
+					target = a.tools[op].inputNode
+				} else if child(step, "verify") != nil && child(step, "with") != nil {
+					target = a.contextConsumerSchema(s, "subject", path, child(step, "with").Line)
+				}
+				a.checkBindings(s, proc, path, child(step, "with"), target, nodeID, scope, stepIndex, outputs, stepOutputs[nodeID], stepOutputs, false)
+			}
+		}
+	}
+}
+
+func (a *analysis) procedureProducerSchemas(s *skillEntry, proc, nodes *yaml.Node, parsedProcedure *ProcedureAST) (map[string]*yaml.Node, map[string]map[string]*yaml.Node) {
 	outputs := map[string]*yaml.Node{}
 	stepOutputs := map[string]map[string]*yaml.Node{}
 	for _, nodeID := range mapKeys(nodes) {
@@ -64,55 +102,35 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 			}
 		}
 	}
-	// Procedure inputs are producer aliases in their own right. Validate every
-	// declaration here so an unused input cannot hide a missing field or a
-	// declared type that disagrees with its producer.
-	if parsedProcedure != nil {
-		for _, name := range sortedStringMapKeys(parsedProcedure.Inputs) {
-			input := parsedProcedure.Inputs[name]
-			if input.From == "" || !validProcedureInputType(input.Type) {
-				continue // Procedure AST validation reports malformed declarations.
-			}
-			producer := a.resolveSource(s, proc, input.From, path, input.Span.Line, "", outputs, nil, stepOutputs)
-			if producer != nil && scalar(child(producer, "type")) != input.Type && !(scalar(child(producer, "type")) == "integer" && input.Type == "number") {
-				a.errorAt(path, input.Span.Line, "BINDING_TYPE_MISMATCH", "Procedure input source type does not match declared type: "+name)
-			}
+	return outputs, stepOutputs
+}
+
+func (a *analysis) prepareProcedureInputSchemas(s *skillEntry, proc *yaml.Node) {
+	parsedProcedure := s.procedureASTFor(proc)
+	if parsedProcedure == nil {
+		return
+	}
+	nodes := child(proc, "nodes")
+	outputs, stepOutputs := a.procedureProducerSchemas(s, proc, nodes, parsedProcedure)
+	resolved := make(map[string]*yaml.Node, len(parsedProcedure.Inputs))
+	for _, name := range sortedStringMapKeys(parsedProcedure.Inputs) {
+		input := parsedProcedure.Inputs[name]
+		if input.From == "" || input.Type != "" && !validProcedureInputType(input.Type) {
+			continue
+		}
+		producer := a.resolveSource(s, proc, input.From, s.procedure, input.Span.Line, "", outputs, nil, stepOutputs)
+		resolved[name] = producer
+		if producer == nil || input.Type == "" {
+			continue
+		}
+		types, ok := schemaTypeNames(child(producer, "type"))
+		if !ok {
+			a.errorAt(s.procedure, input.Span.Line, "BINDING_UNSUPPORTED", "Procedure input type assertion cannot be checked against an untyped Producer Schema: "+name)
+		} else if !schemaTypeSetsCompatible(types, []string{input.Type}) {
+			a.errorAt(s.procedure, input.Span.Line, "BINDING_TYPE_MISMATCH", "Procedure input source type does not match declared type: "+name)
 		}
 	}
-	for _, nodeID := range mapKeys(nodes) {
-		n := child(nodes, nodeID)
-		parsedNode := ProcedureNodeAST{}
-		if parsedProcedure != nil {
-			parsedNode = parsedProcedure.Nodes[nodeID]
-		}
-		expected := (*yaml.Node)(nil)
-		procedureInputs := false
-		if parsedNode.Action == ActionCall {
-			op := parsedNode.Reference
-			expected = a.tools[op].inputNode
-		} else if parsedNode.Action == ActionProcedure {
-			ref := child(n, "procedure")
-			if target := a.calledProcedure(s, ref); target != nil {
-				expected = procedureInputSchema(target)
-				procedureInputs = true
-			}
-		} else if parsedNode.Action == ActionVerify && child(n, "with") != nil {
-			expected = a.contextConsumerSchema(s, "subject", path, child(n, "with").Line)
-		}
-		a.checkBindings(s, proc, path, child(n, "with"), expected, nodeID, "main", -1, outputs, stepOutputs[nodeID], stepOutputs, procedureInputs)
-		for _, scope := range []string{"preconditions", "postconditions"} {
-			for stepIndex, step := range sequence(child(child(n, scope), "steps")) {
-				op := scalar(child(step, "call"))
-				var target *yaml.Node
-				if op != "" {
-					target = a.tools[op].inputNode
-				} else if child(step, "verify") != nil && child(step, "with") != nil {
-					target = a.contextConsumerSchema(s, "subject", path, child(step, "with").Line)
-				}
-				a.checkBindings(s, proc, path, child(step, "with"), target, nodeID, scope, stepIndex, outputs, stepOutputs[nodeID], stepOutputs, false)
-			}
-		}
-	}
+	a.procedureInputSchemas[proc] = resolved
 }
 
 func (a *analysis) contextConsumerSchema(s *skillEntry, category, diagnosticPath string, line int) *yaml.Node {
@@ -406,19 +424,32 @@ func (a *analysis) calledProcedure(caller *skillEntry, ref *yaml.Node) *yaml.Nod
 	return child(child(callee.procedureAST, "procedures"), procedure)
 }
 
-func procedureInputSchema(proc *yaml.Node) *yaml.Node {
+func procedureInputSchema(proc *yaml.Node, sources map[string]*yaml.Node) *yaml.Node {
 	inputs := child(proc, "inputs")
-	props := make(map[string]any)
-	required := make([]any, 0)
+	root := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
+	root.Content = append(root.Content, stringNode("type"), stringNode("object"))
+	properties := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
+	required := &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq"}
 	for _, name := range mapKeys(inputs) {
-		typ := scalar(child(child(inputs, name), "type"))
-		if !validProcedureInputType(typ) {
-			continue
+		input := child(inputs, name)
+		producer := sources[name]
+		if producer == nil {
+			typ := scalar(child(input, "type"))
+			if validProcedureInputType(typ) {
+				producer = schemaNode(map[string]any{"type": typ})
+			} else {
+				producer = schemaNode(map[string]any{})
+			}
 		}
-		props[name] = map[string]any{"type": typ}
-		required = append(required, name)
+		properties.Content = append(properties.Content, stringNode(name), producer)
+		required.Content = append(required.Content, stringNode(name))
 	}
-	return schemaNode(map[string]any{"type": "object", "properties": props, "required": required})
+	root.Content = append(root.Content, stringNode("properties"), properties, stringNode("required"), required)
+	return root
+}
+
+func stringNode(value string) *yaml.Node {
+	return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: value}
 }
 
 func declaredTypeCompatible(source, target *yaml.Node) bool {

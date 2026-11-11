@@ -90,7 +90,7 @@ Updated: 2026-11-11. Implementation branch: `feat/compiler-v01-implementation-20
 | G0 Go baseline | PASS | `GOWORK=off go test ./... -count=1` and `GOWORK=off go vet ./...` pass after all current changes. |
 | G1 ToolCatalog and Schema | PARTIAL | Tests cover the approved 12-operation catalog, aliases, local refs, ToolCatalog string limits and structural constraints; broad keyword compatibility remains. |
 | G2 Skill and Procedure graph | PARTIAL | Official PDU/MAS artifacts parse without syntax diagnostics; complete outcome domain and nested-scope analysis remains. |
-| G3 Producer bindings | PARTIAL | Explicit schemas, dominance over phase and main edges, named phase-step ordering, nullable JSON Schema type unions and exact integer-to-number compatibility are checked; nested Procedure input aliases and full schema compatibility remain. |
+| G3 Producer bindings | PARTIAL | Explicit schemas, dominance over phase and main edges, named phase-step ordering, nullable JSON Schema type unions and exact integer-to-number compatibility are checked. Procedure inputs now use their resolved Producer Schemas directly; the optional `type` assertion cannot replace a missing Schema. Complete recursive/cross-scope alias coverage and full schema compatibility remain. |
 | G4 Script | PARTIAL | Strict output TypedDict parsing, functional `5qi` wire-key form, generated schemas and predicate path identity are covered; exhaustive negative syntax/constraint coverage remains. |
 | G5 package output | PASS (synthetic) | Native all-target and `--skill normalize` builds each emitted seven files. |
 | G6 native/WASM byte parity | PASS (synthetic) | Chromium Worker paths/order and every byte matched Native package files. Six check diagnostics and duplicate-operation inspect diagnostics matched shared Native goldens. |
@@ -109,3 +109,7 @@ Read-only upstream refs were refreshed on 2026-11-11. `ca-skills/main` is `6742d
 ### Nullable binding coverage
 
 Added static Producer/Consumer and literal validation for Draft 2020-12 `type` unions, including nullable values. Regression coverage verifies safe subset assignment (`integer|null` to `number|null`), an end-to-end routed Tool Output binding into nullable Tool input, rejection when that consumer is nonnullable, and null/string/numeric literal handling. The full Go tests and vet pass; Native and WASM builds pass; headless Chromium reran check/build/inspect and all existing diagnostic goldens with seven-file Native/WASM byte parity (`data-test=pass`). The pinned v0.2 PDU/MAS diagnostic counts remain 115/133 after this change.
+
+### Procedure input schema linking
+
+Aligned Procedure input declarations to the v0.2 contract: `from` is required, while `type` is an optional assertion. The compiler resolves every declared input's actual Producer Schema before checking call sites, uses that Schema as the called Procedure's input contract, and checks an optional type assertion against it. Synthetic regressions cover omitted type assertions, successful cross-Skill binding using the real source Schema, and fail-closed missing Producer fields. Full Go tests pass; the pinned official diagnostic counts remain 115/133.

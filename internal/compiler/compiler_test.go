@@ -812,6 +812,49 @@ spec:
 	if got := Build(Request{Files: typeMismatch}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
 		t.Fatalf("Procedure input type mismatch was not diagnosed: %#v", got.Diagnostics)
 	}
+
+	untyped := append([]File(nil), files...)
+	for i := range untyped {
+		if untyped[i].Path == "skills/child/assurance/procedure.yaml" {
+			untyped[i].Bytes = []byte(strings.Replace(string(untyped[i].Bytes), "value: {type: string, from: context.request.name}", "value: {from: context.request.name}", 1))
+		}
+	}
+	if got := Build(Request{Files: untyped}); !got.Success {
+		t.Fatalf("Procedure input without optional type assertion should use its Producer Schema: %#v", got.Diagnostics)
+	}
+}
+
+func TestProcedureInputTypeAssertionIsOptionalButProducerSchemaIsRequired(t *testing.T) {
+	files := source("optional-input", "run", `procedures:
+  run:
+    inputs:
+      value: {from: context.request.name}
+    start: read
+    nodes:
+      read:
+        call: demo.read
+        with: {ref: {from: input.value}}
+`)
+	for i := range files {
+		if files[i].Path == "skills/optional-input/assurance/contract.yaml" {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "entryProcedure: run\n", "entryProcedure: run\n  inputs:\n    requestSchema: schemas/request.yaml\n", 1))
+		}
+	}
+	files = append(files,
+		File{Path: "skills/optional-input/schemas/request.yaml", Bytes: []byte("type: object\nproperties:\n  name: {type: string, minLength: 1}\n")},
+		toolCatalog(),
+	)
+	if got := Build(Request{Files: files}); !got.Success {
+		t.Fatalf("Procedure input without type must resolve its real Producer Schema: %#v", got.Diagnostics)
+	}
+	for i := range files {
+		if files[i].Path == "skills/optional-input/assurance/procedure.yaml" {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "from: context.request.name", "from: context.request.missing", 1))
+		}
+	}
+	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "SOURCE_FIELD_UNKNOWN") {
+		t.Fatalf("optional type must not replace the authoritative Producer Schema: %#v", got.Diagnostics)
+	}
 }
 
 func TestProcedureNodeOutputWithoutDeclaredSchemaIsUnresolved(t *testing.T) {

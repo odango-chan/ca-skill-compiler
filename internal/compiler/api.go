@@ -73,14 +73,15 @@ func InspectLibraries(req Request) LibraryResult {
 }
 
 type analysis struct {
-	files               map[string][]byte
-	tools               map[string]toolEntry
-	skills              map[string]*skillEntry
-	diagnostics         []Diagnostic
-	generated           map[string][]File
-	ambiguousOperations map[string]bool
-	operationSources    map[string]string
-	schemaRefs          map[string]map[string]bool
+	files                 map[string][]byte
+	tools                 map[string]toolEntry
+	skills                map[string]*skillEntry
+	diagnostics           []Diagnostic
+	generated             map[string][]File
+	ambiguousOperations   map[string]bool
+	operationSources      map[string]string
+	schemaRefs            map[string]map[string]bool
+	procedureInputSchemas map[*yaml.Node]map[string]*yaml.Node
 }
 
 func Check(req Request) []Diagnostic {
@@ -200,7 +201,7 @@ func (a *analysis) filterUnselectedSkillDiagnostics(selected map[string]bool) {
 }
 
 func newAnalysis(req Request) *analysis {
-	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry), generated: make(map[string][]File), ambiguousOperations: make(map[string]bool), operationSources: make(map[string]string), schemaRefs: make(map[string]map[string]bool)}
+	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry), generated: make(map[string][]File), ambiguousOperations: make(map[string]bool), operationSources: make(map[string]string), schemaRefs: make(map[string]map[string]bool), procedureInputSchemas: make(map[*yaml.Node]map[string]*yaml.Node)}
 	if len(req.Files) == 0 {
 		a.errorAt("", 0, "REQUEST_INVALID", "BuildRequest.files must contain at least one file")
 	}

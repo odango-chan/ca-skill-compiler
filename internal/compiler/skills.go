@@ -89,6 +89,16 @@ func (a *analysis) parseSkills() {
 		}
 		for _, pname := range mapKeys(child(s.procedureAST, "procedures")) {
 			proc := child(child(s.procedureAST, "procedures"), pname)
+			a.prepareProcedureInputSchemas(s, proc)
+		}
+	}
+	for _, name := range sorted {
+		s := a.skills[name]
+		if s == nil || s.procedureAST == nil {
+			continue
+		}
+		for _, pname := range mapKeys(child(s.procedureAST, "procedures")) {
+			proc := child(child(s.procedureAST, "procedures"), pname)
 			a.validateProcedureBindings(s, proc, child(proc, "nodes"), s.procedure)
 		}
 	}
@@ -578,7 +588,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 				for _, inputName := range mapKeys(inputs) {
 					input := child(inputs, inputName)
 					if unalias(input).Kind != yaml.MappingNode {
-						a.errorAt(s.procedure, input.Line, "PROCEDURE_UNSUPPORTED", "Procedure input must declare type and from: "+inputName)
+						a.errorAt(s.procedure, input.Line, "PROCEDURE_UNSUPPORTED", "Procedure input must declare a from source: "+inputName)
 						continue
 					}
 					for _, field := range mapKeys(input) {
@@ -588,8 +598,11 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 					}
 					typNode, fromNode := child(input, "type"), child(input, "from")
 					typ := scalar(typNode)
-					if !validProcedureInputType(typ) || fromNode == nil || unalias(fromNode).Kind != yaml.ScalarNode || unalias(fromNode).Tag != "!!str" || scalar(fromNode) == "" {
-						a.errorAt(s.procedure, input.Line, "PROCEDURE_UNSUPPORTED", "Procedure input requires a supported type and from source: "+inputName)
+					if typNode != nil && (!validProcedureInputType(typ) || unalias(typNode).Kind != yaml.ScalarNode || unalias(typNode).Tag != "!!str") {
+						a.errorAt(s.procedure, typNode.Line, "PROCEDURE_UNSUPPORTED", "Procedure input type assertion must be a supported string: "+inputName)
+					}
+					if fromNode == nil || unalias(fromNode).Kind != yaml.ScalarNode || unalias(fromNode).Tag != "!!str" || scalar(fromNode) == "" {
+						a.errorAt(s.procedure, input.Line, "PROCEDURE_UNSUPPORTED", "Procedure input requires a nonempty from source: "+inputName)
 					}
 				}
 			}
