@@ -5,3 +5,8 @@ metadata:
 spec:
   skillType: executable
   entryProcedure: normalize
+  inputs:
+    requestSchema: schemas/normalize-request.schema.yaml
+  allowedResources:
+    capabilities:
+      - demo.read

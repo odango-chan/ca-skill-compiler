@@ -1,12 +1,9 @@
-# Strict TypedDict Script Contract fixture
+# Synthetic producer-owned input / Script-owned output fixture
 
-[Script Contract v0](../../docs/design/script-contract-v0.md) is the authority. This is a **compile-only**, synthetic test source: no old YAML script header, no external I/O Schema, no Pydantic runtime dependency.
+- `lib/tools/demo.tool.yaml` is an exact, read-only copy of the synthetic ToolCatalog in `examples/minimal-project/lib/tools/demo.tool.yaml`.
+- `skills/normalize/schemas/normalize-request.schema.yaml` is the Skill-owned input contract.
+- Procedure binds `demo.read.outputSchema.properties.value` via `with.value.from: read.output.value` into the Script.
+- Script uses `main(input: dict) -> NormalizeOutput`: input is the derived argument envelope; **only Script's newly computed output is locally typed**.
+- Compiler target output is `output/skills/normalize/schemas/generated/normalize.output.schema.json` with all declared strict constraints; do not generate an independently authored duplicate Input Schema.
 
-`skills/normalize/scripts/normalize.py` defines fully typed nested `TypedDict` input/output and static `Annotated` constraints. A correct compiler generates:
-
-- `skills/normalize/schemas/generated/normalize.input.schema.json`
-- `skills/normalize/schemas/generated/normalize.output.schema.json`
-
-Required keys, `NotRequired`, literal values, bounds, pattern and `additionalProperties: false` must be preserved. The Compiler must never run Python or silently replace nested types with unconstrained `dict`/object. **This is an expected future test, not currently PASS.**
-
-The real five older Python scripts live unchanged under `examples/ca-agent-demo-project/`; their external Schema remains the authority until explicitly migrated and proven equivalent.
+This is a new **test fixture**, not proof that current Compiler implements link typing or passes tests. See [Script Contract v0](../../docs/design/script-contract-v0.md).

@@ -1,12 +1,21 @@
 procedures:
   normalize:
-    start: normalize-step
+    start: read
     nodes:
+      read:
+        call: demo.read
+        with:
+          key: {from: input.dnn}
+        'on':
+          SUCCEEDED: normalize-step
+          FAILED: failed
       normalize-step:
         preconditions:
           steps:
-            - name: normalize-dnn
+            - name: normalize-value
               script: scripts/normalize.py
               with:
-                dnn: {from: input.dnn}
+                value: {from: read.output.value}
         terminal: SUCCEEDED
+      failed:
+        terminal: FAILED
