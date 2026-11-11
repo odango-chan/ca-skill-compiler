@@ -63,7 +63,7 @@ If old comments and examples disagree with these documents, **these v0 documents
 
 ## 6. WP3 — link external input + generate Script-owned Output
 
-- Resolve `context.request.*` against explicitly linked request Schema, `context.subject/facts/observations.*` against real imported Owner schema, `input.*` against Procedure inputs, `<node>.output.*` against source Output Schema, and nested preconditions step paths per [Procedure Link v0](../design/procedure-link-v0.md).
+- Resolve `context.request.*` via `spec.inputs.requestSchema`, and `context.subject/facts/observations.*` via explicit `spec.context.schemas.subject/facts/observations` paths from the real Owner, `input.*` against Procedure inputs, `<node>.output.*` against source Output Schema, and nested preconditions step paths per [Procedure Link v0](../design/procedure-link-v0.md).
 - For each Script `with:` resolve every `from:` and concrete literal into a **per-site input projection**. Do not make the author retype Tool/Host interface as Script Input TypedDict.
 - Accept exactly new Script contract `main(input: dict) -> NonEmptyOutputTypedDict`; generate **only** Script's new Output JSON Schema at `skills/<skill>/schemas/generated/<script-relative>.output.schema.json` in outputFiles.
 - Never accept a broad output type, dynamic annotation, empty class or missing upstream Producer by downgrading it to loose object. Do not use Python interpreter/subprocess or runtime reflection. Annotated constraints must be checked.

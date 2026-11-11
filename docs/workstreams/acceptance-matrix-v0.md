@@ -30,7 +30,7 @@
 1. 单 Skill、双 Skill、根 Skill 的传递依赖、缺依赖、跨 Skill Procedure。
 2. 同名 Operation 由两份库重复声明 → ERROR，不随机挑一份。
 3. 上游 Tool output 的 `value: string` 通过 `with.value.from` 绑定 Script，新 Output Schema 只有 Script 自身的结果。
-4. `context.facts.unknown` 没有外部 Host Schema → `EXTERNAL_SCHEMA_MISSING`，不允许 PASS。
+4. `context.facts.unknown` 没有 `spec.context.schemas.facts` 或指向未导入 Host 文件 → `EXTERNAL_SCHEMA_MISSING`，不允许 PASS；`requiredFacts` 不能代替 Schema。
 5. Tool Schema `type: object` 但没有 properties，`someTool.output.missingField` → `SOURCE_FIELD_UNKNOWN`。
 6. `preconditions.<step>.output` 和 `<node>.preconditions.<step>.output` 区分本地/远端 node 作用域。
 7. 旧 Script `# /// connectionagent-tool`、`main(input: OldDict) -> OldDict` 没有明确 Output 类型 → 新 v0 必须拒绝，而非运行兼容解析器。

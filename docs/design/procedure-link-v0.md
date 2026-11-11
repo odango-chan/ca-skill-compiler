@@ -31,6 +31,29 @@ v0 遇到未列出的动态 selector / 复杂 Runtime 表达式必须报 `BINDIN
 
 **最长作用域优先**：在识别 `<nodeId>.preconditions.<stepId>.output` 之后再解析其子字段；不可把 `preconditions` 误认成根 node。`'on'` 必须按 outcome → nextNode 解析，不能当作 Script/Tool output 字段。
 
+### 2.1 外部 Owner Schema 的显式导入位置（唯一规则）
+
+新 v0 contract 使用以下**显式路径**，供 Compiler 绑定 `context.*`；这是新语言要求，不是兼容字段：
+
+~~~yaml
+spec:
+  inputs:
+    requestSchema: schemas/establishment-request.schema.yaml
+    # 也可直接指向 lib/host/... 中 Owner 的 request Schema
+  context:
+    schemas:
+      subject: lib/host/subject.schema.yaml
+      facts: lib/host/facts.schema.yaml
+      observations: lib/observations/context-observations.schema.yaml
+~~~
+
+- `requestSchema` 仅此一个权威，可以指向当前 Skill 的 `schemas/...`（由 Skill 自己拥有的业务接口），也可以指向 Project `lib/...`（由真实外部 Owner 提供）。**没有隐式同名搜索**。
+- `spec.context.schemas.subject/facts/observations` 是可选映射，**但在出现对应 `context.subject/context.facts/context.observations` 引用时变为必填**；必须指向本次输入中的相应 `lib/host/...` 或 `lib/observations/...` 权威 Schema，不能指向 Root Routing Profile。
+- 每个导入文件须为可以静态解析的 JSON Schema object。若路径缺失/未导入/指向无权威数据的配置文件，报 `EXTERNAL_SCHEMA_MISSING` 或 `LIB_SCHEMA_INVALID`；不猜测、自动生成或寻找替代品。
+- `context.request.*` 必须使用 `spec.inputs.requestSchema`；`spec.context.requiredFacts` 只是名称集合**不是**字段级 Schema，不能拿它证明 `facts.createdsession_ingress` 的类型。
+- 源端字段和 node/step 名称区分大小写，允许短横线（如 `ue-ref`、`nudm-sdm-get`），不能只用正则 `\w+` 接受一半名称。`context/inputs/nodes/steps` 的 Namespace 优先级按 §2 固定。
+- 为让弱模型完成测试，`examples/script-contract-project` 只引用自己的 requestSchema 和 imported Tool，因此不需要虚构 Host schemas 作为正例；真实两个 5GC 迁移工程引用 subject/facts 时必须先导入真正 Owner 文件。
+
 ## 3. Schema path 校验
 
 - Source path、lib path 均来自本次 `Request.Files`，全部相对于 Project 根，拒绝绝对路径、`..`、重复文件名/身份、目录逃逸、远程 `$ref`、无法解析的引用循环。

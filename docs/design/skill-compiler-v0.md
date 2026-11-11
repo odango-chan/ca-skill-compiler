@@ -84,6 +84,8 @@ project/
 - `examples/ca-agent-demo-project` 是迁移前 reference，**不要求原样 PASS**；真实 Host/Observation Schema 暂未确认齐全，不能发明一个替代品。
 - 任何未知字段、缺失数据 Owner、无法静态解析的输出类型都必须诊断；不能因为方便 Demo 就忽略错误。
 
+**外部 Host Schema 绑定位置**：新 contract 明确使用 `spec.inputs.requestSchema` 和 `spec.context.schemas.subject/facts/observations`，具体路径/缺失规则以 [Procedure Link v0 §2.1](procedure-link-v0.md) 为唯一权威；不允许靠 `requiredFacts` 名称推断数据字段。
+
 ## 4. Library v0：先文件导入，后 MCP
 
 ### 4.1 第一版导入文件
