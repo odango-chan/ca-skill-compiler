@@ -1,4 +1,4 @@
-> **v0 implementation baseline — superseded for the next breaking iteration.** The frozen [plugin-managed Project/Dependency/BuildRequest contract v0.1](plugin-managed-project-v0.1.md) removes mandatory physical `lib/` and `output/` and introduces logical dependency references. Current Go/WASM code and existing v0 tests still implement the old layout. This note is NOT a claim that v0.1 is implemented.
+> **Current v0 implementation baseline.** The narrowed Compiler-only v0.1 target is [here](compiler-contract-v0.1.md). It keeps the small in-memory `{files, targets}` API and existing ToolCatalog input; it does not introduce dependency acquisition, locking or package management. v0.1 remains design-only until separately implemented and tested.
 
 # Skill Compiler v0 · 多 Skill 工程、Library 链接与浏览器编译
 

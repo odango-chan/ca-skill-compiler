@@ -9,12 +9,12 @@
 ~~~text
 project/
   skills/   # author editable, multiple Skills
-  lib/      # imported read-only Tool/Host/Observation contracts (+ optional lib/manifest.yaml)
-  output/   # generated only; must NEVER feed back into compiler input
+  lib/**    # logical Compiler input namespace; Studio may supply imported contracts in memory
+  outputFiles  # virtual BuildResult output; no physical output/ directory required
 ~~~
 
-- Studio 管理 Explorer、Source Editor、导入/删除/重新导入库、文件授权、Problems、ZIP/文件夹导出；Compiler 管理唯一的 Parse/Link/Schema Generator。
-- Browser/Pages 中全部源码+Library 通过 in-memory 文件字节传入 Go/WASM Worker；不需要服务器端编译服务/数据库/代理。
+- Studio 管理 Explorer、Source Editor、导入/删除/重新导入库、文件授权、Problems、ZIP/文件夹导出；Compiler 管理唯一的 Parse/Link/Schema Generator。来源发现、持久化、刷新、缓存、配置和导出均由 Studio/调用方负责，Compiler 只接收准备好的文件字节。
+- Browser/Pages 中全部源码+Library 通过 in-memory 文件字节传入 Go/WASM Worker；不需要服务器端编译服务/数据库/代理。`lib/**` 是 Compiler 输入命名空间，不要求用户工作空间存在物理 `lib/` 目录。
 - Studio 不得把 `output/` 文件作为 Source 提交，不允许编辑 imported Tool Schema 或生成文件本体。重新导入 Library 是替换 imported snapshot，不是改源脚本。
 
 ## 2. Core API（实现时冻结 Go/TS 对齐）

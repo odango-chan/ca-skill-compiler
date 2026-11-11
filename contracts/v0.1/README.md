@@ -1,15 +1,15 @@
 # Skill Compiler v0.1 machine contracts
 
-**Design frozen for implementation, runtime not yet migrated.** These JSON Schemas validate structural shapes (Draft 2020-12), not all semantic conditions (e.g. unique aliases across arrays, digest verification, source/lock equality, trusted Effect provenance).
+**Compiler-only contract.** No project settings, dependency resolver, package manager, source acquisition, lockfile, snapshot store or cache API is defined here.
 
-- [project-settings.schema.json](project-settings.schema.json) — normalized Workspace extension settings and lock.
-- [tool-contract.schema.json](tool-contract.schema.json) — tool-catalog normalization target. MCP effect always UNKNOWN/UNVERIFIED.
-- [build-request.schema.json](build-request.schema.json) — host-independent native/WASM BuildRequest wire shape.
-- [resolver-result.schema.json](resolver-result.schema.json) — Resolver state, diagnostics, candidate lock and resolved snapshots.
-- [project-context.schema.json](project-context.schema.json) — source/dependency snapshot envelope shared by LSP and Compiler.
+- [build-request.schema.json](build-request.schema.json) — in-memory input: `files` and optional `targets`.
+- [build-result.schema.json](build-result.schema.json) — deterministic diagnostics and generated file tree.
+- [tool-catalog.schema.json](tool-catalog.schema.json) — existing imported ToolCatalog YAML data model (`ca-agent-demo.tool/v1`).
+- [library-manifest.schema.json](library-manifest.schema.json) — optional declared/proposed/unspecified inspection metadata only.
+- [library-inspection.schema.json](library-inspection.schema.json) — read-only ToolCatalog inspection result.
 
-Normative behavior, hash algorithm, logical Procedure syntax, security and migration gates: [Plugin-managed contract v0.1](../../docs/design/plugin-managed-project-v0.1.md).
+Normative responsibilities and boundaries: [Skill Compiler Language & Linking Contract v0.1](../../docs/design/compiler-contract-v0.1.md).
 
-Do **not** pass this v0.1 request to current Compiler v0 Go/WASM; those still consume `{files,targets}` with physical `skills/` and `lib/` inputs.
+The `lib/**` prefix is a **logical Compiler input namespace**. Studio/callers may assemble these files in memory from any source; no physical `lib/` workspace folder is required. `outputFiles` are BuildResult values; no physical `output/` folder is required.
 
-- [snapshot-vectors.json](snapshot-vectors.json) — exact digest golden vector, with an independent test-only Go reference algorithm; does not qualify the pre-v0.1 compiler binary.
+The current Go/WASM v0 implementation still exposes `{files,targets}`; this v0.1 contract freezes that small input shape and clarifies its semantics. This PR is design-only and does not claim the implementation has been migrated or fully accepted.

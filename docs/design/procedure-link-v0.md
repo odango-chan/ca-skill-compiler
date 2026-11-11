@@ -1,4 +1,4 @@
-> **v0 implementation baseline — superseded for the next breaking iteration.** The frozen [plugin-managed Project/Dependency/BuildRequest contract v0.1](plugin-managed-project-v0.1.md) removes mandatory physical `lib/` and `output/` and introduces logical dependency references. Current Go/WASM code and existing v0 tests still implement the old layout. This note is NOT a claim that v0.1 is implemented.
+> **Current v0 implementation baseline.** The narrowed Compiler-only v0.1 target is [here](compiler-contract-v0.1.md). Existing scalar `call: <operationId>` and project-relative Schema references remain the baseline; no `dependency:` wrapper or package namespace is introduced.
 
 # Procedure / Binding / Library Link Contract v0
 
