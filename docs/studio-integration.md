@@ -1,6 +1,6 @@
 # Skill Studio ↔ Skill Compiler v0 · Browser ABI
 
-状态：**DESIGN ACCEPTED / API PARTIAL IMPLEMENTATION / REAL TEST NOT_RUN**。适用 **breaking-only v0**；不对接旧 Toolchain / legacy Script Parser。
+状态：**DESIGN ACCEPTED / API PARTIAL IMPLEMENTATION / BROWSER SMOKE PASS**。适用 **breaking-only v0**；不对接旧 Toolchain / legacy Script Parser。
 
 ## 1. Project 与读写职责
 
@@ -55,10 +55,10 @@ Go `encoding/json` 会把 `[]byte` 作为 base64 string；**Worker 边界**使�
 }
 ~~~
 
-Go Core 当前只实现了 `Check/Build` 的原型。目标 WASM 回调名字：
+Go Core exposes `Check/Build/InspectLibraries`; matching WASM callbacks are:
 - `skillcCheck(jsonRequestString): jsonResultString`
 - `skillcBuild(jsonRequestString): jsonResultString`
-- `skillcInspectLibraries(jsonRequestString): jsonResultString`（**尚未实现**）
+- `skillcInspectLibraries(jsonRequestString): jsonResultString`
 
 Worker request/response:
 
@@ -82,7 +82,22 @@ cp "$WASM_EXEC" dist/wasm_exec.js
 cp web/skillc-worker.js dist/skillc-worker.js
 ~~~
 
-静态资源应与 Go/WASM runtime **版本匹配**。旧 scaffold worker 仅支持 check/build 并且路径是相对于 Worker 解析的；实现 inspect 时将其扩充，随后在真实 Chromium 静态页面里调用。**目前未运行 Chromium/Pages 端到端验收**。
+静态资源应与 Go/WASM runtime **版本匹配**。Worker 的资源路径相对于 Worker 文件解析。`web/skillc-browser-test.html` 是可执行 smoke page；它加载 `minimal-project` 与一份由 Native CLI 生成的 golden 输出，并调用 Worker 的三个 API 与负例。
+
+从仓库根目录准备静态目录：
+
+~~~bash
+mkdir -p dist
+GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm
+cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" dist/wasm_exec.js
+cp web/skillc-worker.js dist/skillc-worker.js
+cp web/skillc-browser-test.html dist/index.html
+cp -R examples/minimal-project dist/project
+GOWORK=off go run ./cmd/skillc build ./examples/minimal-project --out dist/native-output
+python3 -m http.server 8000 --directory dist
+~~~
+
+Open `/` in Chromium; the page marks `data-test="pass"` only after check/build/inspect, missing-target diagnostics, stable file order, and every WASM output byte match the Native golden files. This smoke page passed in the local Chromium run. It is not a full Native/WASM diagnostic parity suite or Pages deployment test.
 
 最低通过项：同样的 project 文件集合（包括 Tool YAML/Manifest）在 Native Go 与 JS/WASM 返回一样的诊断码、source path、output file path 和字节；两份真实 5GC pinned 快照只用于迁移缺口说明，**不要求未经迁移的旧源码 PASS**。
 

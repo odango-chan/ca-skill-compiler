@@ -3,15 +3,55 @@ package compiler
 import (
 	"sort"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
 type toolEntry struct {
-	source string
-	line   int
-	effect string
+	source     string
+	line       int
+	effect     string
+	tool       LibraryTool
+	inputNode  *yaml.Node
+	outputNode *yaml.Node
+}
+
+func nodeValue(n *yaml.Node) any {
+	n = unalias(n)
+	if n == nil {
+		return nil
+	}
+	var value any
+	if n.Decode(&value) != nil {
+		return nil
+	}
+	return value
 }
 
 func (a *analysis) importLibraries() {
+	statuses := map[string]string{}
+	if a.files["lib/manifest.yaml"] != nil {
+		manifest := a.parseYAML("lib/manifest.yaml")
+		for _, item := range sequence(child(manifest, "libraries")) {
+			p, status := scalar(child(item, "path")), scalar(child(item, "status"))
+			if p == "" || !validLibraryPath(p) {
+				a.errorAt("lib/manifest.yaml", item.Line, "LIB_MANIFEST_PATH", "manifest library path must be a normalized lib/ path")
+				continue
+			}
+			if status == "" {
+				status = "unspecified"
+			}
+			if status != "declared" && status != "proposed" && status != "unspecified" {
+				a.errorAt("lib/manifest.yaml", item.Line, "LIB_MANIFEST_STATUS", "status must be declared, proposed, or unspecified")
+				continue
+			}
+			if _, ok := statuses[p]; ok {
+				a.errorAt("lib/manifest.yaml", item.Line, "LIB_MANIFEST_DUPLICATE", "library path declared more than once: "+p)
+				continue
+			}
+			statuses[p] = status
+		}
+	}
 	names := make([]string, 0, len(a.files))
 	for filename := range a.files {
 		if strings.HasPrefix(filename, "lib/tools/") && (strings.HasSuffix(filename, ".yaml") || strings.HasSuffix(filename, ".yml")) {
@@ -21,7 +61,9 @@ func (a *analysis) importLibraries() {
 	sort.Strings(names)
 	for _, filename := range names {
 		root := a.parseYAML(filename)
-		if root == nil { continue }
+		if root == nil {
+			continue
+		}
 		if scalar(child(root, "kind")) != "ToolCatalog" {
 			a.errorAt(filename, root.Line, "LIB_KIND", "expected ca-agent-demo ToolCatalog")
 			continue
@@ -41,14 +83,44 @@ func (a *analysis) importLibraries() {
 				a.errorAt(filename, item.Line, "LIB_DUPLICATE_OPERATION", "operation "+id+" already declared in "+prev.source)
 				continue
 			}
-			if child(item, "inputSchema") == nil {
+			input := child(item, "inputSchema")
+			if input == nil {
 				a.errorAt(filename, item.Line, "LIB_INPUT_SCHEMA", "operation "+id+" has no inputSchema")
 			}
 			effect := scalar(child(item, "effect"))
 			if effect != "READ" && effect != "MUTATION" {
 				a.errorAt(filename, item.Line, "LIB_EFFECT", "operation "+id+" has unsupported/missing Effect")
 			}
-			a.tools[id] = toolEntry{source: filename, line: item.Line, effect: effect}
+			if input != nil && unalias(input).Kind != yaml.MappingNode {
+				a.errorAt(filename, input.Line, "LIB_SCHEMA_INVALID", "inputSchema must be an object")
+			}
+			status := statuses[filename]
+			if status == "" {
+				status = "unspecified"
+			}
+			tool := LibraryTool{OperationID: id, SourcePath: filename, SourceStatus: status, DeclaredEffect: effect,
+				Description: scalar(child(item, "description")), InputSchema: nodeValue(input), OutputSchema: nodeValue(child(item, "outputSchema")), ReconcileOutputSchema: nodeValue(child(item, "reconcileOutputSchema"))}
+			a.tools[id] = toolEntry{source: filename, line: item.Line, effect: effect, tool: tool, inputNode: unalias(input), outputNode: unalias(child(item, "outputSchema"))}
 		}
 	}
+	for p := range statuses {
+		if a.files[p] == nil {
+			a.errorAt("lib/manifest.yaml", 0, "LIB_MANIFEST_PATH", "manifest references a library file that was not imported: "+p)
+		}
+	}
+}
+
+func validLibraryPath(p string) bool { return strings.HasPrefix(p, "lib/") && validPath(p) }
+
+func (a *analysis) libraryTools() []LibraryTool {
+	ids := make([]string, 0, len(a.tools))
+	for id := range a.tools {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	result := make([]LibraryTool, 0, len(ids))
+	for _, id := range ids {
+		result = append(result, a.tools[id].tool)
+	}
+	return result
 }

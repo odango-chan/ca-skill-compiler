@@ -28,15 +28,23 @@ func (a *analysis) parseYAML(filename string) *yaml.Node {
 }
 
 func boundedYAML(n *yaml.Node, seen map[*yaml.Node]bool, count *int, depth int) bool {
-	if n == nil { return true }
-	if depth > 64 || *count > 20000 || seen[n] { return false }
+	if n == nil {
+		return true
+	}
+	if depth > 64 || *count > 20000 || seen[n] {
+		return false
+	}
 	seen[n] = true
 	*count++
 	if n.Kind == yaml.AliasNode && n.Alias != nil {
-		if !boundedYAML(n.Alias, seen, count, depth + 1) { return false }
+		if !boundedYAML(n.Alias, seen, count, depth+1) {
+			return false
+		}
 	}
 	for _, node := range n.Content {
-		if !boundedYAML(node, seen, count, depth + 1) { return false }
+		if !boundedYAML(node, seen, count, depth+1) {
+			return false
+		}
 	}
 	delete(seen, n)
 	return *count <= 20000
@@ -47,22 +55,32 @@ func boundedYAML(n *yaml.Node, seen map[*yaml.Node]bool, count *int, depth int) 
 func duplicateYAMLKey(root *yaml.Node) (int, string) {
 	var inspect func(*yaml.Node, map[*yaml.Node]bool) (int, string)
 	inspect = func(n *yaml.Node, active map[*yaml.Node]bool) (int, string) {
-		if n == nil || active[n] { return 0, "" }
+		if n == nil || active[n] {
+			return 0, ""
+		}
 		active[n] = true
 		defer delete(active, n)
-		if n.Kind == yaml.AliasNode { return inspect(n.Alias, active) }
+		if n.Kind == yaml.AliasNode {
+			return inspect(n.Alias, active)
+		}
 		if n.Kind == yaml.MappingNode {
 			keys := make(map[string]bool)
 			for i := 0; i+1 < len(n.Content); i += 2 {
 				key := n.Content[i].Value
-				if keys[key] { return n.Content[i].Line, key }
+				if keys[key] {
+					return n.Content[i].Line, key
+				}
 				keys[key] = true
-				if line, dup := inspect(n.Content[i+1], active); dup != "" { return line, dup }
+				if line, dup := inspect(n.Content[i+1], active); dup != "" {
+					return line, dup
+				}
 			}
 			return 0, ""
 		}
 		for _, child := range n.Content {
-			if line, dup := inspect(child, active); dup != "" { return line, dup }
+			if line, dup := inspect(child, active); dup != "" {
+				return line, dup
+			}
 		}
 		return 0, ""
 	}
@@ -78,36 +96,50 @@ func unalias(n *yaml.Node) *yaml.Node {
 
 func child(n *yaml.Node, key string) *yaml.Node {
 	n = unalias(n)
-	if n == nil || n.Kind != yaml.MappingNode { return nil }
+	if n == nil || n.Kind != yaml.MappingNode {
+		return nil
+	}
 	for i := 0; i+1 < len(n.Content); i += 2 {
-		if n.Content[i].Value == key { return unalias(n.Content[i+1]) }
+		if n.Content[i].Value == key {
+			return unalias(n.Content[i+1])
+		}
 	}
 	return nil
 }
 
 func scalar(n *yaml.Node) string {
 	n = unalias(n)
-	if n == nil || n.Kind != yaml.ScalarNode { return "" }
+	if n == nil || n.Kind != yaml.ScalarNode {
+		return ""
+	}
 	return n.Value
 }
 
 func sequence(n *yaml.Node) []*yaml.Node {
 	n = unalias(n)
-	if n == nil || n.Kind != yaml.SequenceNode { return nil }
+	if n == nil || n.Kind != yaml.SequenceNode {
+		return nil
+	}
 	return n.Content
 }
 
 func mapKeys(n *yaml.Node) []string {
 	n = unalias(n)
-	if n == nil || n.Kind != yaml.MappingNode { return nil }
+	if n == nil || n.Kind != yaml.MappingNode {
+		return nil
+	}
 	keys := make([]string, 0, len(n.Content)/2)
-	for i := 0; i+1 < len(n.Content); i += 2 { keys = append(keys, n.Content[i].Value) }
+	for i := 0; i+1 < len(n.Content); i += 2 {
+		keys = append(keys, n.Content[i].Value)
+	}
 	return keys
 }
 
 func inspectMapping(n *yaml.Node, visit func(key string, value *yaml.Node)) {
 	n = unalias(n)
-	if n == nil { return }
+	if n == nil {
+		return
+	}
 	switch n.Kind {
 	case yaml.MappingNode:
 		for i := 0; i+1 < len(n.Content); i += 2 {
@@ -116,6 +148,8 @@ func inspectMapping(n *yaml.Node, visit func(key string, value *yaml.Node)) {
 			inspectMapping(value, visit)
 		}
 	case yaml.SequenceNode:
-		for _, item := range n.Content { inspectMapping(item, visit) }
+		for _, item := range n.Content {
+			inspectMapping(item, visit)
+		}
 	}
 }

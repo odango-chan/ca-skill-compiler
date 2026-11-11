@@ -1,21 +1,53 @@
-# Skill Compiler v0 status
+# Skill Compiler v0 implementation status
 
-Updated: 2026-11-11. **Scope frozen: breaking-only new Script/Procedure/Library contracts.**
+Updated: 2026-11-11. Implementation branch: `feat/compiler-v0-complete`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`. This report records observed local evidence; it does not claim a complete Compiler v0.
 
-| Item | Design | Implementation | Acceptance |
-| --- | --- | --- | --- |
-| New repo, project `skills/lib/output` and Studio ABI | ACCEPTED | bootstrap source present | NOT_RUN (real compiler integration) |
-| Dual real ca-agent-demo Skills & original Catalog | PINNED | 80 original Git blobs copied byte-identically; MAS proposed lib copy | source-copy PASS; compiler NOT_RUN |
-| Script Contract: external Producer input, strict own Output | ACCEPTED ([spec](design/script-contract-v0.md)) | NOT_IMPLEMENTED | ST-01..07 NOT_RUN |
-| Procedure binding, nested step scope & diagnostics | ACCEPTED ([spec](design/procedure-link-v0.md)) | PARTIAL prototype generic scan | G2/G3 NOT_RUN |
-| Library manifest + inspect API | ACCEPTED | Tool YAML importer PARTIAL, manifest NOT_IMPLEMENTED | G1 NOT_RUN |
-| Go Core, Native CLI, source path safety | ACCEPTED | prototype PARTIAL | G0/G5 NOT_RUN |
-| Native/WASM parity, Chromium Pages | ACCEPTED | WASM/Worker stub present | G6/G7 NOT_RUN |
-| Raw real Skill v0 migration (no compatibility) | ACCEPTED | NOT_STARTED | G8 NOT_RUN |
-| Consumer Host/Runtime adapter to new output | Out of Compiler repo | NOT_STARTED | NOT_RUN |
+## Work packages
 
-**Critical source facts**: existing Core misidentifies nested `procedure` references; current path validator rejects valid `lib/manifest.yaml`; existing Go tests/build have not been run in this session. The actual ca-agent-demo ToolCatalog has 12 Operations and MAS proposed has 16; no Library demonstrates Runtime READY. The full authoritative Host Context/Observation schema is not yet present and must not be invented.
+| WP | Status | Evidence / remaining work |
+| --- | --- | --- |
+| WP0 Go build and base tests | IMPLEMENTED | `go mod tidy`, `GOWORK=off go test ./... -count=1`, and `GOWORK=off go vet ./...` pass. `validPath` accepts `lib/manifest.yaml`; duplicate YAML keys and bounded alias traversal are checked. The enclosing `/home/z00587616/go.work` references absent sibling repos, so Go commands in this environment require `GOWORK=off`. |
+| WP1 Procedure parser and linker | PARTIAL | Parses procedure/node action positions rather than recursively scanning YAML keys; checks entry/start/branch targets, dependency closure/cycles, local and cross-Skill Procedure references, nested step action shape, Predicate IDs, and a subset of source scopes. Reconcile/pre/postcondition semantics and all legal step/node forms still need coverage. |
+| WP2 Tool Library | IMPLEMENTED | Imports both pinned YAML catalogs, including aliases: 12 traditional + 16 MAS candidate Operations. Parses `lib/manifest.yaml`; `InspectLibraries` exposes schemas/effect/source maturity. MAS remains `proposed`. Duplicate-operation and read-only inspection tests pass. More malformed/unknown schema cases remain. |
+| WP3 Producer binding and Script output | PARTIAL | Resolves request, explicit Host/Observation references, Tool/node output, and supported nested step sources; rejects missing Host contracts and unknown producer fields. Generates Draft 2020-12 schemas for statically parsed nonempty TypedDict outputs with primitive, Literal, list, NotRequired, Annotated, and nested TypedDict fields. No Python runs. Full JSON Schema `$ref` resolution, all constraint range/type checks, exhaustive dataflow/type compatibility, and invocation projection reporting remain. |
+| WP4 Package and Native CLI | PARTIAL | `check`, whole-project `build`, `--skill`, dependency closure, deterministic file ordering, imported ToolCatalog inclusion, and generated Output schemas work. A real synthetic build wrote a 7-file tree. Additional path/symlink/collision and schema validation cases remain. |
+| WP5 WASM and browser interface | PARTIAL | WASM exposes `check`, `build`, and `inspectLibraries`; Worker handles all three. Chromium ran valid check/build/inspect plus a `TARGET_NOT_FOUND` case. For the shared `minimal-project` input, browser output paths/order and every output byte matched a fresh Native CLI output directory. A wider set of success/failure parity vectors is still missing. |
+| WP6 Real Skill migration review | PARTIAL | Pinned sources were not edited. Targeted strict checks report 94 diagnostics for PDU and 65 for MAS. Both lack authoritative `context.subject` and `context.facts` Owner schemas; PDU's five legacy Scripts need migration, its old procedure step forms need rewriting, and MAS contracts remain `proposed`. A separate migrated project was not created. |
+| WP7 Final acceptance and PR | PARTIAL | Local test/build/browser evidence and this status report are present. Implementation branch has not yet been pushed and its PR has not yet been created. |
 
-**No old Script compatibility required**: the frozen ca-agent-demo source is *migration input*, not a legacy build PASS target. The positive v0 synthetic sample is `examples/script-contract-project` and the multi-Skill basic sample is `examples/minimal-project`.
+## Acceptance gates
 
-Next: implement [WP0–WP7](workstreams/local-implementation-goal.md) and verify [G0–G9](workstreams/acceptance-matrix-v0.md) using real local logs. [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2) stays Draft; never claim build/Runtime PASS before executing tests.
+| Gate | Result | Observed evidence |
+| --- | --- | --- |
+| G0 Base startup | PASS | `GOWORK=off go mod tidy`; `GOWORK=off go test ./... -count=1`; `GOWORK=off go vet ./...`; Native build all pass. |
+| G1 Library | PASS | Go test imports the pinned 12 + 16 catalogs and checks the 16 proposed status labels; YAML anchors/aliases and manifest status are covered. |
+| G2 Graph | PARTIAL | Positive cross-Skill dependency closure, targeted builds, missing target/dependency, and dependency cycle handling exist. Full legal grammar and node/step edge coverage remains. |
+| G3 Binding | PARTIAL | Synthetic Tool output to Script binding passes; negative tests reject unknown producer field and missing Host schema. Complete owner schemas and all Procedure input scopes are not available/implemented. |
+| G4 Script | PARTIAL | Strict Output generation and rejection of broad `dict` are tested; comprehensive type/constraint and unsupported syntax tests remain. |
+| G5 Package | PARTIAL | Native CLI emitted source, imported Tool contract, and generated schema into a fresh 7-file tree. More hostile path and collision cases remain. |
+| G6 Native/WASM parity | PARTIAL | Browser and Native CLI processed the same `minimal-project`; output paths, order, and bytes matched. The negative target code is covered by Native Go tests and returned in-browser, but automated equality across broader diagnostic vectors remains. |
+| G7 Browser | PASS | Chromium loaded `wasm_exec.js`, `skillc.wasm`, and Worker; check/build/inspect succeeded and a missing-target diagnostic returned in-band. |
+| G8 Real migration | PARTIAL | PDU: 94 expected migration/owner diagnostics (62 `EXTERNAL_SCHEMA_MISSING`, 19 `PROCEDURE_UNSUPPORTED`, 9 `STEP_SCOPE_UNKNOWN`, 3 `SCRIPT_TYPE_UNSUPPORTED`, 1 `SOURCE_FIELD_UNKNOWN`). MAS: 65 (48 `EXTERNAL_SCHEMA_MISSING`, 17 `PREDICATE_NOT_FOUND`). No original snapshot changed. |
+| G9 Handoff | PARTIAL | Docs and implementation branch are ready for review; push and PR creation are pending. |
+
+## Commands observed
+
+All Go module commands below used `GOWORK=off` because the parent workspace references three absent sibling repositories.
+
+~~~text
+GOWORK=off go mod tidy                                            PASS
+GOWORK=off go test ./... -count=1                                PASS
+GOWORK=off go vet ./...                                          PASS
+GOWORK=off go build -o dist/skillc ./cmd/skillc                  PASS
+GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ...   PASS
+GOWORK=off go run ./cmd/skillc check ./examples/minimal-project  PASS
+GOWORK=off go run ./cmd/skillc check ./examples/script-contract-project PASS
+GOWORK=off go run ./cmd/skillc build ./examples/script-contract-project --out /tmp/skillc-synthetic-output PASS (7 files)
+Chromium static Worker smoke test                                 PASS
+  (Native `dist/native-output` golden paths/order/bytes matched)
+git diff --check                                                  PASS
+~~~
+
+Raw-source checks intentionally return nonzero. They do not establish runtime/5GC readiness. Missing authoritative Owner Schema inputs are: `context.subject`, `context.facts`, and any referenced Observation schema. Do not substitute deployment routing configuration or infer these contracts from `requiredFacts`.
+
+The final result remains **PARTIAL** until the remaining parser/linker and binding coverage, Native/WASM parity audit, and PR closeout are complete.

@@ -1,0 +1,62 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>skillc WASM smoke test</title>
+<pre id="result">RUNNING</pre>
+<script>
+const output = document.querySelector('#result');
+const worker = new Worker('./skillc-worker.js');
+worker.onerror = event => { output.textContent = `WORKER ERROR: ${event.message}`; document.documentElement.dataset.test = 'fail'; };
+worker.onmessageerror = () => { output.textContent = 'WORKER MESSAGE ERROR'; document.documentElement.dataset.test = 'fail'; };
+const paths = [
+  'skills/reader/SKILL.md', 'skills/reader/assurance/contract.yaml', 'skills/reader/assurance/procedure.yaml',
+  'skills/writer/SKILL.md', 'skills/writer/assurance/contract.yaml', 'skills/writer/assurance/procedure.yaml',
+  'lib/tools/demo.tool.yaml'
+];
+async function loadFiles() { return Promise.all(paths.map(async path => {
+  const response = await fetch(`./project/${path}`);
+  if (!response.ok) throw new Error(`Unable to fetch ${path}`);
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+  return {path, bytes:btoa(binary)};
+})); }
+let nextId = 0;
+function send(command, request) {
+  const id = `r${++nextId}`;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${command} timed out`)), 45000);
+    const listener = event => {
+      if (event.data?.id !== id) return;
+      clearTimeout(timer); worker.removeEventListener('message', listener);
+      if (event.data.error) reject(new Error(event.data.error)); else resolve(event.data.result);
+    };
+    worker.addEventListener('message', listener);
+    worker.postMessage({id, command, request});
+  });
+}
+(async () => {
+  const files = await loadFiles();
+  const request = {files};
+  const check = await send('check', request);
+  const build = await send('build', request);
+  const inspect = await send('inspect', request);
+  const invalid = await send('check', {files, targets:['missing']});
+  if (!check.success || !build.success || build.outputFiles.length !== 7) throw new Error('valid build/check failed');
+  const expectedPaths = ['lib/tools/demo.tool.yaml', ...paths.filter(p=>p.startsWith('skills/')).sort()];
+  if (JSON.stringify(build.outputFiles.map(f=>f.path)) !== JSON.stringify(expectedPaths)) throw new Error('output paths/order differ from native fixture expectation');
+  for (const file of build.outputFiles) {
+    const response = await fetch(`./native-output/${file.path}`);
+    if (!response.ok) throw new Error(`Native golden output is missing: ${file.path}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+    if (btoa(binary) !== file.bytes) throw new Error(`WASM output bytes differ from Native: ${file.path}`);
+  }
+  if (check.diagnostics.length !== 0) throw new Error('valid project returned diagnostics');
+  if (!Array.isArray(inspect.tools) || inspect.tools.length !== 1 || inspect.tools[0].operationId !== 'demo.read') throw new Error('inspectLibraries response malformed');
+  if (invalid.success || !invalid.diagnostics.some(d => d.code === 'TARGET_NOT_FOUND')) throw new Error('compiler diagnostics were not returned');
+  output.textContent = JSON.stringify({status:'PASS', check, build:build.outputFiles.map(f=>f.path), inspect, invalid:invalid.diagnostics}, null, 2);
+  document.documentElement.dataset.test = 'pass';
+})().catch(error => {
+  output.textContent = `FAIL: ${error.stack || error}`;
+  document.documentElement.dataset.test = 'fail';
+});
+</script>

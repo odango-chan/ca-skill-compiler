@@ -38,8 +38,31 @@ type Diagnostic struct {
 
 type Result struct {
 	Success     bool         `json:"success"`
-	Diagnostics  []Diagnostic `json:"diagnostics"`
-	OutputFiles  []File       `json:"outputFiles"`
+	Diagnostics []Diagnostic `json:"diagnostics"`
+	OutputFiles []File       `json:"outputFiles"`
+}
+
+type LibraryTool struct {
+	OperationID           string `json:"operationId"`
+	SourcePath            string `json:"sourcePath"`
+	SourceStatus          string `json:"sourceStatus"`
+	DeclaredEffect        string `json:"declaredEffect,omitempty"`
+	Description           string `json:"description,omitempty"`
+	InputSchema           any    `json:"inputSchema"`
+	OutputSchema          any    `json:"outputSchema,omitempty"`
+	ReconcileOutputSchema any    `json:"reconcileOutputSchema,omitempty"`
+}
+
+type LibraryResult struct {
+	Diagnostics []Diagnostic  `json:"diagnostics"`
+	Tools       []LibraryTool `json:"tools"`
+}
+
+// InspectLibraries parses only imported, read-only ToolCatalog files and their optional manifest.
+func InspectLibraries(req Request) LibraryResult {
+	a := newAnalysis(req)
+	a.importLibraries()
+	return LibraryResult{Diagnostics: a.sortedDiagnostics(), Tools: a.libraryTools()}
 }
 
 type analysis struct {
@@ -47,6 +70,7 @@ type analysis struct {
 	tools       map[string]toolEntry
 	skills      map[string]*skillEntry
 	diagnostics []Diagnostic
+	generated   map[string][]File
 }
 
 func Check(req Request) []Diagnostic {
@@ -59,7 +83,73 @@ func Build(req Request) Result {
 }
 
 func analyze(req Request, materialize bool) Result {
-	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry)}
+	a := newAnalysis(req)
+	if len(a.diagnostics) > 0 {
+		return a.result(nil)
+	}
+	a.importLibraries()
+	a.parseSkills()
+	var selected map[string]bool
+	if len(req.Targets) == 0 {
+		selected = make(map[string]bool)
+		for name := range a.skills {
+			selected[name] = true
+		}
+	} else {
+		selected = a.selectSkills(req.Targets)
+	}
+	a.validateSkills(selected)
+	a.filterUnselectedSkillDiagnostics(selected)
+	a.compileScripts(selected)
+	if !materialize || a.hasErrors() {
+		return a.result(nil)
+	}
+	outputs := make([]File, 0, len(a.files))
+	usedLibs := make(map[string]bool)
+	for name := range selected {
+		prefix := "skills/" + name + "/"
+		for filename, content := range a.files {
+			if strings.HasPrefix(filename, prefix) {
+				outputs = append(outputs, File{Path: filename, Bytes: bytes.Clone(content)})
+			}
+		}
+		if skill := a.skills[name]; skill != nil {
+			outputs = append(outputs, a.generated[name]...)
+			for filename := range skill.libraryFiles {
+				if a.files[filename] != nil {
+					usedLibs[filename] = true
+				}
+			}
+			for op := range skill.calls {
+				if tool, exists := a.tools[op]; exists {
+					usedLibs[tool.source] = true
+				}
+			}
+		}
+	}
+	for filename := range usedLibs {
+		outputs = append(outputs, File{Path: filename, Bytes: bytes.Clone(a.files[filename])})
+	}
+	sort.Slice(outputs, func(i, j int) bool { return outputs[i].Path < outputs[j].Path })
+	return a.result(outputs)
+}
+
+func (a *analysis) filterUnselectedSkillDiagnostics(selected map[string]bool) {
+	kept := a.diagnostics[:0]
+	for _, d := range a.diagnostics {
+		if strings.HasPrefix(d.Path, "skills/") {
+			parts := strings.SplitN(d.Path, "/", 3)
+			if len(parts) > 1 && a.skills[parts[1]] != nil && !selected[parts[1]] {
+				continue
+			}
+		}
+		kept = append(kept, d)
+	}
+	a.diagnostics = kept
+}
+
+func newAnalysis(req Request) *analysis {
+	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry), generated: make(map[string][]File)}
 	total := 0
 	if len(req.Files) > maxFiles {
 		a.errorAt("", 0, "INPUT_LIMIT", "too many project files")
@@ -83,64 +173,42 @@ func analyze(req Request, materialize bool) Result {
 	if total > maxTotal {
 		a.errorAt("", 0, "INPUT_LIMIT", "project exceeds maximum bytes")
 	}
-	if len(a.diagnostics) > 0 {
-		return a.result(nil)
-	}
-	a.importLibraries()
-	a.parseSkills()
-	var selected map[string]bool
-	if len(req.Targets) == 0 {
-		selected = make(map[string]bool)
-		for name := range a.skills {
-			selected[name] = true
-		}
-	} else {
-		selected = a.selectSkills(req.Targets)
-	}
-	a.validateSkills(selected)
-	if !materialize || a.hasErrors() {
-		return a.result(nil)
-	}
-	outputs := make([]File, 0, len(a.files))
-	usedLibs := make(map[string]bool)
-	for name := range selected {
-		prefix := "skills/" + name + "/"
-		for filename, content := range a.files {
-			if strings.HasPrefix(filename, prefix) {
-				outputs = append(outputs, File{Path: filename, Bytes: bytes.Clone(content)})
-			}
-		}
-		if skill := a.skills[name]; skill != nil {
-			for op := range skill.calls {
-				if tool, exists := a.tools[op]; exists {
-					usedLibs[tool.source] = true
-				}
-			}
-		}
-	}
-	for filename := range usedLibs {
-		outputs = append(outputs, File{Path: filename, Bytes: bytes.Clone(a.files[filename])})
-	}
-	sort.Slice(outputs, func(i, j int) bool { return outputs[i].Path < outputs[j].Path })
-	return a.result(outputs)
+	return a
 }
 
 func (a *analysis) result(output []File) Result {
+	a.sortedDiagnostics()
+	if output == nil {
+		output = []File{}
+	}
+	return Result{Success: !a.hasErrors(), Diagnostics: a.diagnostics, OutputFiles: output}
+}
+
+func (a *analysis) sortedDiagnostics() []Diagnostic {
 	sort.Slice(a.diagnostics, func(i, j int) bool {
 		x, y := a.diagnostics[i], a.diagnostics[j]
-		if x.Path != y.Path { return x.Path < y.Path }
-		if x.Line != y.Line { return x.Line < y.Line }
-		if x.Column != y.Column { return x.Column < y.Column }
+		if x.Path != y.Path {
+			return x.Path < y.Path
+		}
+		if x.Line != y.Line {
+			return x.Line < y.Line
+		}
+		if x.Column != y.Column {
+			return x.Column < y.Column
+		}
 		return x.Code < y.Code
 	})
-	if output == nil { output = []File{} }
-	if a.diagnostics == nil { a.diagnostics = []Diagnostic{} }
-	return Result{Success: !a.hasErrors(), Diagnostics: a.diagnostics, OutputFiles: output}
+	if a.diagnostics == nil {
+		a.diagnostics = []Diagnostic{}
+	}
+	return a.diagnostics
 }
 
 func (a *analysis) hasErrors() bool {
 	for _, d := range a.diagnostics {
-		if d.Severity == "error" { return true }
+		if d.Severity == "error" {
+			return true
+		}
 	}
 	return false
 }
@@ -158,10 +226,14 @@ func validPath(p string) bool {
 		strings.ContainsAny(p, "\\:\x00") || strings.Contains(p, "//") {
 		return false
 	}
-	if !strings.HasPrefix(p, "skills/") && !strings.HasPrefix(p, "lib/") { return false }
+	if !strings.HasPrefix(p, "skills/") && !strings.HasPrefix(p, "lib/") {
+		return false
+	}
 	parts := strings.Split(p, "/")
 	for _, part := range parts {
-		if part == "." || part == ".." || part == "" { return false }
+		if part == "." || part == ".." || part == "" {
+			return false
+		}
 	}
-	return len(parts) >= 3
+	return len(parts) >= 2
 }

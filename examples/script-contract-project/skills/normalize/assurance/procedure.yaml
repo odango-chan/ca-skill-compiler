@@ -5,7 +5,7 @@ procedures:
       read:
         call: demo.read
         with:
-          key: {from: input.dnn}
+          key: {from: context.request.dnn}
         'on':
           SUCCEEDED: normalize-step
           FAILED: failed

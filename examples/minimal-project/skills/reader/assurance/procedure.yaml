@@ -4,7 +4,8 @@ procedures:
     nodes:
       fetch:
         call: demo.read
-        with: {}
+        with:
+          key: {value: sample}
       child:
         procedure:
           skill: writer

@@ -9,17 +9,18 @@ project/
   output/            # generated result (not compiler input)
 ~~~
 
-## Getting started (target commands, Go 1.23+)
+## Local verification (Go 1.23+)
 
 ~~~bash
-go mod tidy
-go test ./... -count=1
-go run ./cmd/skillc check ./examples/minimal-project
-go run ./cmd/skillc check ./examples/script-contract-project
-go run ./cmd/skillc build ./examples/script-contract-project --out ./dist/script-contract
+GOWORK=off go mod tidy
+GOWORK=off go test ./... -count=1
+GOWORK=off go vet ./...
+GOWORK=off go run ./cmd/skillc check ./examples/minimal-project
+GOWORK=off go run ./cmd/skillc check ./examples/script-contract-project
+GOWORK=off go run ./cmd/skillc build ./examples/script-contract-project --out ./dist/script-contract
 ~~~
 
-**Status caution**: Current Core is a prototype. These commands are verification goals, **not yet confirmed PASS**. The compiler may not yet recognize v0 strict Script Output types, Procedure scopes or `lib/manifest.yaml`.
+In this environment, `GOWORK=off` avoids a parent `go.work` that refers to three absent sibling repositories. See [WORK status](docs/WORK.md) for observed results and known partial areas. Core remains an incomplete v0 implementation; a passing sample does not imply every Procedure or Schema feature is complete.
 
 ## Real 5GC examples are migration inputs, NOT legacy success fixtures
 
@@ -38,6 +39,6 @@ A separate synthetic `examples/script-contract-project` is the intended **positi
 - [Skill Studio/WASM ABI](docs/studio-integration.md)
 - [WORK status](docs/WORK.md)
 
-Current work: [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2), tracking [Issue #1](https://github.com/odango-chan/ca-skill-compiler/issues/1). Do not merge main without actual Go, WASM and fixture verification.
+The original bootstrap remains [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2). Implementation work is on `feat/compiler-v0-complete`, targeting `feat/compiler-v0-bootstrap`; its PR closeout is tracked in [WORK status](docs/WORK.md). Issue [#1](https://github.com/odango-chan/ca-skill-compiler/issues/1) tracks the design.
 
 Historical [ca-skill-toolchain](https://github.com/odango-chan/ca-skill-toolchain) is background only, not a code dependency.
