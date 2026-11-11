@@ -3,13 +3,15 @@
 你在本地仓库 `odango-chan/ca-skill-compiler` 执行实现任务，不是做审计/设计交接。**一次执行尽量完成 WP0–WP7**。必须先完整阅读：
 - `docs/workstreams/local-implementation-goal.md`（唯一执行任务书）
 - `docs/design/skill-compiler-v0.md`（架构约束）
-- `docs/studio-integration.md`
-- `docs/design/script-contract-v0.md`（Studio/WASM 消费接口）
+- `docs/studio-integration.md`（Studio/WASM 消费接口）
+- `docs/design/script-contract-v0.md`（严格 TypedDict / Annotated 规约）
 - `docs/WORK.md`（事实状态）
 - `examples/ca-agent-demo-project/README.md`（真实样例与 MAS 非 READY 边界）
 - `AGENTS.md`
 
 基线要求：从最新远端 `origin/feat/compiler-v0-bootstrap` 开始；在该 commit 上创建新实现分支，不从当前 `main`（仅有初始 README）开始，也不把旧 `ca-skill-toolchain` 复制过来。先运行 go test/go build 记录初始错误，修复。然后完成两个真实 Skill 的静态构建、ToolCatalog 导入、Schema/依赖/Procedure 校验、CLI 与 WASM，提供有实际结果的测试证据。脚本不得执行、Tool/MCP 不得调用。MAS 候选 ToolCatalog 只用于静态链接，不能声称 READY。
+
+WP3 强制采用严格 TypedDict 方案：新 Script 的输入/输出及每层嵌套字段必须有完整静态类型。禁止在接口里使用泛化 `dict`、`Any`、`object`、空 TypedDict；`Annotated` 显式提供范围和正则约束。不得实现已撤回的 `schemaMode: embedded` YAML 注释方案；旧 5GC Script 继续引用完整外部 Schema，绝不以简化 Schema 代替复杂校验。
 
 开发原则：重构是允许的，优先小而清晰的 Go Core。凡已发现缺陷，先补失败测试再修代码；不可修改真实 Skill 快照或放宽校验以得到绿色。Native 和 WASM 共享 Core。尽量实现完成的功能，别新增 DB/Qualification/Release/HTTP Server/复杂 Artifact 系统/泛化插件框架。
 
