@@ -862,6 +862,46 @@ func TestNestedStepRejectsEmptyExtraActionField(t *testing.T) {
 	}
 }
 
+func TestProcedureIdentifiersAndActionsRequireStrings(t *testing.T) {
+	cases := []struct {
+		name      string
+		procedure string
+	}{
+		{"procedure key", "procedures:\n  7:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n"},
+		{"input key", "procedures:\n  run:\n    inputs:\n      7: {type: string, from: context.request.name}\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n"},
+		{"node key", "procedures:\n  run:\n    start: 7\n    nodes:\n      7: {terminal: SUCCEEDED}\n"},
+		{"non-string node action", "procedures:\n  run:\n    start: done\n    nodes: {done: {terminal: true}}\n"},
+		{"non-string nested step name", "procedures:\n  run:\n    start: done\n    nodes:\n      done:\n        preconditions:\n          steps: [{name: 7, script: scripts/run.py}]\n        terminal: SUCCEEDED\n"},
+		{"incomplete explicit Procedure reference", "procedures:\n  run:\n    start: invoke\n    nodes:\n      invoke: {procedure: {procedure: helper}}\n  helper:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			files := source("string-identifiers", "run", tc.procedure)
+			got := Build(Request{Files: files})
+			if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
+				t.Fatalf("non-string or incomplete Procedure syntax was accepted: %#v", got.Diagnostics)
+			}
+		})
+	}
+}
+
+func TestBindingFieldNamesMustBeStrings(t *testing.T) {
+	files := source("numeric-binding-key", "run", `procedures:
+  run:
+    start: read
+    nodes:
+      read:
+        call: demo.read
+        with:
+          7: {value: sample}
+`)
+	files = append(files, toolCatalog())
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
+		t.Fatalf("non-string binding field name was accepted: %#v", got.Diagnostics)
+	}
+}
+
 func TestPreAndPostconditionStepsHaveDistinctOutputScopes(t *testing.T) {
 	files := source("scopes", "run", `procedures:
   run:

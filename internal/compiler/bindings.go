@@ -104,7 +104,13 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 		return
 	}
 	for i := 0; i+1 < len(with.Content); i += 2 {
-		key, val := with.Content[i].Value, unalias(with.Content[i+1])
+		keyNode := unalias(with.Content[i])
+		key := keyNode.Value
+		val := unalias(with.Content[i+1])
+		if keyNode.Kind != yaml.ScalarNode || keyNode.Tag != "!!str" || key == "" {
+			a.errorAt(path, keyNode.Line, "BINDING_UNSUPPORTED", "with binding field names must be nonempty strings")
+			continue
+		}
 		line := val.Line
 		for _, field := range mapKeys(val) {
 			if field != "from" && field != "value" {

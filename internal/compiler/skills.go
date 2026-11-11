@@ -105,6 +105,7 @@ func (a *analysis) parsePredicates(s *skillEntry, filename string) {
 		a.errorAt(filename, root.Line, "PREDICATE_SOURCE_INCOMPLETE", "PredicateSet requires a predicates mapping")
 		return
 	}
+	a.validateStringMappingKeys(filename, predicates, "Predicate IDs", "PREDICATE_SOURCE_INCOMPLETE")
 	for _, id := range mapKeys(predicates) {
 		predicate := child(predicates, id)
 		s.preds[id] = 1
@@ -177,7 +178,8 @@ func (a *analysis) parseContract(s *skillEntry) {
 		return
 	}
 	entry := scalar(child(spec, "entryProcedure"))
-	if entry == "" {
+	entryNode := child(spec, "entryProcedure")
+	if entryNode == nil || entryNode.Kind != yaml.ScalarNode || entryNode.Tag != "!!str" || entry == "" {
 		a.errorAt(s.contract, spec.Line, "SKILL_ENTRY_MISSING", "missing spec.entryProcedure")
 	}
 	s.entry = entry
@@ -255,6 +257,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 		a.errorAt(s.procedure, line, "PROCEDURES_MISSING", "procedures must be a nonempty mapping")
 		return
 	}
+	a.validateStringMappingKeys(s.procedure, procedures, "Procedure names", "PROCEDURE_UNSUPPORTED")
 	for _, name := range mapKeys(procedures) {
 		s.procedures[name] = true
 	}
@@ -282,6 +285,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 			if unalias(inputs).Kind != yaml.MappingNode {
 				a.errorAt(s.procedure, inputs.Line, "PROCEDURE_UNSUPPORTED", "Procedure inputs must be a mapping")
 			} else {
+				a.validateStringMappingKeys(s.procedure, inputs, "Procedure input names", "PROCEDURE_UNSUPPORTED")
 				for _, inputName := range mapKeys(inputs) {
 					input := child(inputs, inputName)
 					if unalias(input).Kind != yaml.MappingNode {
@@ -313,6 +317,9 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 			if predicates != nil && unalias(predicates).Kind != yaml.MappingNode {
 				a.errorAt(s.procedure, predicates.Line, "PROCEDURE_UNSUPPORTED", "applicability.predicates must be a mapping")
 			}
+			if predicates != nil && unalias(predicates).Kind == yaml.MappingNode {
+				a.validateStringMappingKeys(s.procedure, predicates, "Predicate references", "PROCEDURE_UNSUPPORTED")
+			}
 			for _, id := range mapKeys(predicates) {
 				if s.preds[id] == 0 {
 					a.errorAt(s.procedure, child(predicates, id).Line, "PREDICATE_NOT_FOUND", "unknown applicability Predicate: "+id)
@@ -320,6 +327,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 			}
 		}
 		start := scalar(child(proc, "start"))
+		startNode := child(proc, "start")
 		nodes := child(proc, "nodes")
 		if nodes == nil || unalias(nodes).Kind != yaml.MappingNode || len(mapKeys(nodes)) == 0 {
 			line := proc.Line
@@ -329,7 +337,8 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 			a.errorAt(s.procedure, line, "PROCEDURE_UNSUPPORTED", "Procedure nodes must be a nonempty mapping")
 			continue
 		}
-		if start == "" || child(nodes, start) == nil {
+		a.validateStringMappingKeys(s.procedure, nodes, "Node names", "PROCEDURE_UNSUPPORTED")
+		if startNode == nil || startNode.Kind != yaml.ScalarNode || startNode.Tag != "!!str" || start == "" || child(nodes, start) == nil {
 			a.errorAt(s.procedure, proc.Line, "NODE_TARGET_UNKNOWN", "procedure start must name a node: "+start)
 		}
 		names := mapKeys(nodes)
@@ -354,12 +363,17 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 				a.errorAt(s.procedure, node.Line, "PROCEDURE_UNSUPPORTED", "each node must have exactly one supported action")
 			}
 			for _, action := range []string{"call", "script", "verify", "reconcile", "terminal"} {
-				if value := child(node, action); value != nil && scalar(value) == "" {
-					a.errorAt(s.procedure, value.Line, "PROCEDURE_UNSUPPORTED", action+" action must be a nonempty scalar")
+				if value := child(node, action); value != nil && (value.Kind != yaml.ScalarNode || value.Tag != "!!str" || value.Value == "") {
+					a.errorAt(s.procedure, value.Line, "PROCEDURE_UNSUPPORTED", action+" action must be a nonempty string")
 				}
 			}
-			if ref := child(node, "procedure"); ref != nil && scalar(ref) == "" {
-				if unalias(ref).Kind != yaml.MappingNode || scalar(child(ref, "procedure")) == "" {
+			if ref := child(node, "procedure"); ref != nil {
+				if ref.Kind == yaml.MappingNode {
+					skillRef, procedureRef := child(ref, "skill"), child(ref, "procedure")
+					if skillRef == nil || skillRef.Kind != yaml.ScalarNode || skillRef.Tag != "!!str" || skillRef.Value == "" || procedureRef == nil || procedureRef.Kind != yaml.ScalarNode || procedureRef.Tag != "!!str" || procedureRef.Value == "" {
+						a.errorAt(s.procedure, ref.Line, "PROCEDURE_UNSUPPORTED", "explicit Procedure reference requires nonempty string skill and procedure fields")
+					}
+				} else if ref.Kind != yaml.ScalarNode || ref.Tag != "!!str" || ref.Value == "" {
 					a.errorAt(s.procedure, ref.Line, "PROCEDURE_UNSUPPORTED", "procedure action must be a local name or {skill, procedure} reference")
 				}
 			}
@@ -457,7 +471,8 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 					}
 					seenSteps := map[string]bool{}
 					for _, step := range sequence(steps) {
-						id := scalar(child(step, "name"))
+						stepName := child(step, "name")
+						id := scalar(stepName)
 						script := scalar(child(step, "script"))
 						call := scalar(child(step, "call"))
 						verify := scalar(child(step, "verify"))
@@ -472,7 +487,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 								a.errorAt(s.procedure, value.Line, "PROCEDURE_UNSUPPORTED", "nested "+action+" action must be a nonempty string")
 							}
 						}
-						if id == "" || count != 1 {
+						if stepName == nil || stepName.Kind != yaml.ScalarNode || stepName.Tag != "!!str" || id == "" || count != 1 {
 							a.errorAt(s.procedure, step.Line, "PROCEDURE_UNSUPPORTED", "step requires name and exactly one script or call action")
 							continue
 						}
@@ -547,6 +562,19 @@ func validProcedureInputType(typ string) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func (a *analysis) validateStringMappingKeys(filename string, mapping *yaml.Node, label, code string) {
+	mapping = unalias(mapping)
+	if mapping == nil || mapping.Kind != yaml.MappingNode {
+		return
+	}
+	for i := 0; i+1 < len(mapping.Content); i += 2 {
+		key := unalias(mapping.Content[i])
+		if key.Kind != yaml.ScalarNode || key.Tag != "!!str" || key.Value == "" {
+			a.errorAt(filename, key.Line, code, label+" must be nonempty strings")
+		}
 	}
 }
 
