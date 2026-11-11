@@ -247,8 +247,12 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 		}
 	}
 	procedures := child(root, "procedures")
-	if procedures == nil {
-		a.errorAt(s.procedure, root.Line, "PROCEDURES_MISSING", "missing procedures map")
+	if procedures == nil || unalias(procedures).Kind != yaml.MappingNode || len(mapKeys(procedures)) == 0 {
+		line := root.Line
+		if procedures != nil {
+			line = procedures.Line
+		}
+		a.errorAt(s.procedure, line, "PROCEDURES_MISSING", "procedures must be a nonempty mapping")
 		return
 	}
 	for _, name := range mapKeys(procedures) {
@@ -259,6 +263,14 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 	}
 	for _, pname := range mapKeys(procedures) {
 		proc := child(procedures, pname)
+		if proc == nil || unalias(proc).Kind != yaml.MappingNode {
+			line := procedures.Line
+			if proc != nil {
+				line = proc.Line
+			}
+			a.errorAt(s.procedure, line, "PROCEDURE_UNSUPPORTED", "Procedure definition must be a mapping: "+pname)
+			continue
+		}
 		for _, field := range mapKeys(proc) {
 			switch field {
 			case "inputs", "start", "nodes", "applicability":
@@ -309,6 +321,14 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 		}
 		start := scalar(child(proc, "start"))
 		nodes := child(proc, "nodes")
+		if nodes == nil || unalias(nodes).Kind != yaml.MappingNode || len(mapKeys(nodes)) == 0 {
+			line := proc.Line
+			if nodes != nil {
+				line = nodes.Line
+			}
+			a.errorAt(s.procedure, line, "PROCEDURE_UNSUPPORTED", "Procedure nodes must be a nonempty mapping")
+			continue
+		}
 		if start == "" || child(nodes, start) == nil {
 			a.errorAt(s.procedure, proc.Line, "NODE_TARGET_UNKNOWN", "procedure start must name a node: "+start)
 		}
@@ -320,6 +340,10 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 		prior := make(map[string]bool)
 		for _, n := range names {
 			node := child(nodes, n)
+			if n == "" {
+				a.errorAt(s.procedure, node.Line, "PROCEDURE_UNSUPPORTED", "node names must be nonempty strings")
+				continue
+			}
 			actions := 0
 			for _, action := range []string{"call", "script", "procedure", "verify", "reconcile", "terminal"} {
 				if child(node, action) != nil {

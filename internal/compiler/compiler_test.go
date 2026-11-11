@@ -628,6 +628,28 @@ func TestMalformedActionShapeFailsClosed(t *testing.T) {
 	}
 }
 
+func TestMalformedProcedureContainerShapesAreDiagnosed(t *testing.T) {
+	cases := []struct {
+		name      string
+		procedure string
+		code      string
+	}{
+		{"procedures must be a mapping", "procedures: []\n", "PROCEDURES_MISSING"},
+		{"procedure definition must be a mapping", "procedures:\n  run: invalid\n", "PROCEDURE_UNSUPPORTED"},
+		{"nodes must be a mapping", "procedures:\n  run:\n    start: done\n    nodes: []\n", "PROCEDURE_UNSUPPORTED"},
+		{"node names must not be empty", "procedures:\n  run:\n    start: \"\"\n    nodes:\n      \"\": {terminal: SUCCEEDED}\n", "PROCEDURE_UNSUPPORTED"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			files := source("shape", "run", tc.procedure)
+			got := Build(Request{Files: files})
+			if got.Success || !findDiagnostic(got.Diagnostics, tc.code) {
+				t.Fatalf("malformed Procedure shape was accepted or misdiagnosed: %#v", got.Diagnostics)
+			}
+		})
+	}
+}
+
 func TestPreAndPostconditionStepsHaveDistinctOutputScopes(t *testing.T) {
 	files := source("scopes", "run", `procedures:
   run:
