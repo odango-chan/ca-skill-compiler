@@ -21,7 +21,6 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 			parsedNode = parsedProcedure.Nodes[nodeID]
 		}
 		expected := (*yaml.Node)(nil)
-		procedureInputs := false
 		if parsedNode.Action == ActionCall {
 			op := parsedNode.Reference
 			expected = a.tools[op].inputNode
@@ -29,12 +28,11 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 			ref := child(n, "procedure")
 			if target := a.calledProcedure(s, ref); target != nil {
 				expected = procedureInputSchema(target, a.procedureInputSchemas[target])
-				procedureInputs = true
 			}
 		} else if parsedNode.Action == ActionVerify && child(n, "with") != nil {
 			expected = a.contextConsumerSchema(s, "subject", path, child(n, "with").Line)
 		}
-		a.checkBindings(s, proc, path, child(n, "with"), expected, nodeID, "main", -1, outputs, stepOutputs[nodeID], stepOutputs, procedureInputs)
+		a.checkBindings(s, proc, path, child(n, "with"), expected, nodeID, "main", -1, outputs, stepOutputs[nodeID], stepOutputs)
 		for _, scope := range []string{"preconditions", "postconditions"} {
 			for stepIndex, step := range sequence(child(child(n, scope), "steps")) {
 				op := scalar(child(step, "call"))
@@ -44,7 +42,7 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 				} else if child(step, "verify") != nil && child(step, "with") != nil {
 					target = a.contextConsumerSchema(s, "subject", path, child(step, "with").Line)
 				}
-				a.checkBindings(s, proc, path, child(step, "with"), target, nodeID, scope, stepIndex, outputs, stepOutputs[nodeID], stepOutputs, false)
+				a.checkBindings(s, proc, path, child(step, "with"), target, nodeID, scope, stepIndex, outputs, stepOutputs[nodeID], stepOutputs)
 			}
 		}
 	}
@@ -163,7 +161,7 @@ func (a *analysis) contextConsumerSchema(s *skillEntry, category, diagnosticPath
 	return expanded
 }
 
-func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, with, expected *yaml.Node, nodeID, phase string, stepIndex int, outputs map[string]*yaml.Node, steps map[string]*yaml.Node, allSteps map[string]map[string]*yaml.Node, procedureInputs bool) {
+func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, with, expected *yaml.Node, nodeID, phase string, stepIndex int, outputs map[string]*yaml.Node, steps map[string]*yaml.Node, allSteps map[string]map[string]*yaml.Node) {
 	if with == nil {
 		if expected != nil {
 			for _, required := range sequence(child(expected, "required")) {
@@ -204,7 +202,7 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 				continue
 			}
 			source = a.resolveSource(s, proc, scalar(from), path, from.Line, nodeID, outputs, steps, allSteps)
-			if source != nil && !procedureInputs {
+			if source != nil {
 				if available, reason := bindingSourceAvailable(proc, scalar(from), nodeID, phase, stepIndex); !available {
 					a.errorAt(path, from.Line, "BINDING_SOURCE_UNAVAILABLE", reason)
 					source = nil
@@ -226,15 +224,11 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 				continue
 			}
 			if from != nil && source != nil {
-				if !procedureInputs && (!projectionSchemaSupported(source) || !projectionSchemaSupported(target)) {
+				if !projectionSchemaSupported(source) || !projectionSchemaSupported(target) {
 					a.errorAt(path, line, "BINDING_UNSUPPORTED", "Producer or consumer Schema uses constraints unsupported by static binding validation: "+scalar(from))
 					continue
 				}
-				compatible := schemasCompatible(source, target)
-				if procedureInputs {
-					compatible = declaredTypeCompatible(source, target)
-				}
-				if !compatible {
+				if !schemasCompatible(source, target) {
 					a.errorAt(path, line, "BINDING_TYPE_MISMATCH", fmt.Sprintf("Producer schema %s is not compatible with input %s", scalar(from), key))
 				}
 			} else if literal != nil {
@@ -450,11 +444,6 @@ func procedureInputSchema(proc *yaml.Node, sources map[string]*yaml.Node) *yaml.
 
 func stringNode(value string) *yaml.Node {
 	return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: value}
-}
-
-func declaredTypeCompatible(source, target *yaml.Node) bool {
-	sourceType, targetType := scalar(child(source, "type")), scalar(child(target, "type"))
-	return schemaTypeCompatible(sourceType, targetType)
 }
 
 func schemaTypeCompatible(source, target string) bool {

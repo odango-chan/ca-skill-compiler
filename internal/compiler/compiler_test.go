@@ -822,6 +822,68 @@ spec:
 	if got := Build(Request{Files: untyped}); !got.Success {
 		t.Fatalf("Procedure input without optional type assertion should use its Producer Schema: %#v", got.Diagnostics)
 	}
+
+	constrained := append([]File(nil), files...)
+	for i := range constrained {
+		if constrained[i].Path == "skills/child/schemas/request.yaml" {
+			constrained[i].Bytes = []byte(strings.Replace(string(constrained[i].Bytes), "name: {type: string}", "name: {type: string, minLength: 5}", 1))
+		}
+	}
+	if got := Build(Request{Files: constrained}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
+		t.Fatalf("cross-Skill Procedure call must honor the callee's full Producer Schema: %#v", got.Diagnostics)
+	}
+}
+
+func TestProcedureCallBindingsMustDominateTheCallNode(t *testing.T) {
+	root := source("root", "run", `procedures:
+  run:
+    start: route
+    nodes:
+      route:
+        call: demo.read
+        with: {ref: {value: sample}}
+        'on': {SUCCEEDED: source, FAILED: invoke}
+      source:
+        call: demo.read
+        with: {ref: {value: sample}}
+        'on': {SUCCEEDED: invoke, FAILED: invoke}
+      invoke:
+        procedure: {skill: child, procedure: write}
+        with:
+          value: {from: source.output.result}
+        'on': {SUCCEEDED: done, FAILED: done}
+      done:
+        terminal: SUCCEEDED
+`)
+	child := source("child", "write", `procedures:
+  write:
+    inputs:
+      value: {type: string, from: context.request.name}
+    start: done
+    nodes:
+      done: {terminal: SUCCEEDED}
+`)
+	for i := range child {
+		if child[i].Path == "skills/child/assurance/contract.yaml" {
+			child[i].Bytes = []byte(strings.Replace(string(child[i].Bytes), "entryProcedure: write\n", "entryProcedure: write\n  inputs:\n    requestSchema: schemas/request.yaml\n", 1))
+		}
+	}
+	catalog := File{Path: "lib/tools/demo.yaml", Bytes: []byte(`apiVersion: ca-agent-demo.tool/v1
+kind: ToolCatalog
+metadata: {name: test, owner: tests}
+spec:
+  contracts:
+  - operation: demo.read
+    effect: READ
+    inputSchema: {type: object, required: [ref], properties: {ref: {type: string}}}
+    outputSchema: {type: object, required: [result], properties: {result: {type: string}}}
+`)}
+	request := File{Path: "skills/child/schemas/request.yaml", Bytes: []byte("type: object\nproperties:\n  name: {type: string}\n")}
+	files := append(append(append(root, child...), catalog), request)
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_SOURCE_UNAVAILABLE") {
+		t.Fatalf("Procedure call accepted a Producer from only one incoming branch: %#v", got.Diagnostics)
+	}
 }
 
 func TestProcedureInputTypeAssertionIsOptionalButProducerSchemaIsRequired(t *testing.T) {
