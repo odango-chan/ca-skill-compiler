@@ -908,6 +908,74 @@ func TestNullableSchemaBindingsRespectEveryAllowedType(t *testing.T) {
 	}
 }
 
+func TestNullableProducerOutputBindsOnlyToNullableConsumer(t *testing.T) {
+	files := source("nullable-flow", "run", `procedures:
+  run:
+    start: read
+    nodes:
+      read:
+        call: demo.read
+        'on': {SUCCEEDED: write}
+      write:
+        call: demo.write
+        with:
+          value: {from: read.output.value}
+        'on': {SUCCEEDED: done}
+      done:
+        terminal: SUCCEEDED
+`)
+	for i := range files {
+		if files[i].Path == "skills/nullable-flow/assurance/contract.yaml" {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "capabilities: [demo.read]", "capabilities: [demo.read, demo.write]", 1))
+		}
+	}
+	catalog := `apiVersion: ca-agent-demo.tool/v1
+kind: ToolCatalog
+metadata: {name: nullable-test, owner: tests}
+spec:
+  contracts:
+    - operation: demo.read
+      effect: READ
+      inputSchema: {type: object}
+      outputSchema:
+        type: object
+        required: [value]
+        properties:
+          value: {type: [string, "null"]}
+    - operation: demo.write
+      effect: MUTATION
+      inputSchema:
+        type: object
+        required: [value]
+        properties:
+          value: {type: [string, "null"]}
+`
+	files = append(files, File{Path: "lib/tools/nullable.yaml", Bytes: []byte(catalog)})
+	if got := Build(Request{Files: files}); !got.Success {
+		t.Fatalf("nullable Producer output should bind to nullable Tool input: %#v", got.Diagnostics)
+	}
+	narrowConsumer := strings.Replace(catalog, `operation: demo.write
+      effect: MUTATION
+      inputSchema:
+        type: object
+        required: [value]
+        properties:
+          value: {type: [string, "null"]}`, `operation: demo.write
+      effect: MUTATION
+      inputSchema:
+        type: object
+        required: [value]
+        properties:
+          value: {type: string}`, 1)
+	if narrowConsumer == catalog {
+		t.Fatal("test mutation did not narrow the consumer Schema")
+	}
+	files[len(files)-1].Bytes = []byte(narrowConsumer)
+	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
+		t.Fatalf("nullable Producer output must not bind to a nonnullable Tool input: %#v", got.Diagnostics)
+	}
+}
+
 func TestIntegerLiteralSatisfiesNumberInput(t *testing.T) {
 	number := schemaNode(map[string]any{"type": "number"})
 	integer := schemaNode(map[string]any{"type": "integer"})
