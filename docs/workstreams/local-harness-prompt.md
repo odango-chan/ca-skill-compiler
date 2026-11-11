@@ -3,7 +3,8 @@
 你在本地仓库 `odango-chan/ca-skill-compiler` 执行实现任务，不是做审计/设计交接。**一次执行尽量完成 WP0–WP7**。必须先完整阅读：
 - `docs/workstreams/local-implementation-goal.md`（唯一执行任务书）
 - `docs/design/skill-compiler-v0.md`（架构约束）
-- `docs/studio-integration.md`（Studio/WASM 消费接口）
+- `docs/studio-integration.md`
+- `docs/design/script-contract-v0.md`（Studio/WASM 消费接口）
 - `docs/WORK.md`（事实状态）
 - `examples/ca-agent-demo-project/README.md`（真实样例与 MAS 非 READY 边界）
 - `AGENTS.md`
