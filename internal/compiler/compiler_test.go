@@ -56,8 +56,11 @@ func loadProjectFilesForTest(t *testing.T, root string) []File {
 func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "script-contract-project"))
 	var golden struct {
-		TargetNotFound []Diagnostic `json:"targetNotFound"`
-		InvalidBinding []Diagnostic `json:"invalidBinding"`
+		TargetNotFound      []Diagnostic `json:"targetNotFound"`
+		InvalidBinding      []Diagnostic `json:"invalidBinding"`
+		BindingTypeMismatch []Diagnostic `json:"bindingTypeMismatch"`
+		UnknownOperation    []Diagnostic `json:"unknownOperation"`
+		InvalidScriptOutput []Diagnostic `json:"invalidScriptOutput"`
 	}
 	data, err := os.ReadFile(filepath.Join("..", "..", "web", "diagnostics-golden.json"))
 	if err != nil {
@@ -82,6 +85,39 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	if got := Check(Request{Files: invalidBinding}); !reflect.DeepEqual(got, golden.InvalidBinding) {
 		t.Fatalf("Native invalid-binding diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.InvalidBinding)
 	}
+	typeMismatch := mutateProjectFile(t, files, "skills/normalize/schemas/normalize-request.schema.yaml", "dnn: {type: string, minLength: 1}", "dnn: {type: integer}")
+	if got := Check(Request{Files: typeMismatch}); !reflect.DeepEqual(got, golden.BindingTypeMismatch) {
+		t.Fatalf("Native binding type diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.BindingTypeMismatch)
+	}
+	unknownOperation := mutateProjectFile(t, files, "skills/normalize/assurance/procedure.yaml", "call: demo.read", "call: demo.missing")
+	if got := Check(Request{Files: unknownOperation}); !reflect.DeepEqual(got, golden.UnknownOperation) {
+		t.Fatalf("Native unknown-operation diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.UnknownOperation)
+	}
+	invalidOutput := mutateProjectFile(t, files, "skills/normalize/scripts/normalize.py", "normalized: Annotated[str, {\"minLength\": 1, \"pattern\": r\"^[a-z0-9.-]+$\"}]", "normalized: Any")
+	if got := Check(Request{Files: invalidOutput}); !reflect.DeepEqual(got, golden.InvalidScriptOutput) {
+		t.Fatalf("Native invalid-Script diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.InvalidScriptOutput)
+	}
+}
+
+func mutateProjectFile(t *testing.T, files []File, path, before, after string) []File {
+	t.Helper()
+	mutated := make([]File, len(files))
+	changed := false
+	for i, file := range files {
+		mutated[i] = File{Path: file.Path, Bytes: bytes.Clone(file.Bytes)}
+		if file.Path == path {
+			text := strings.Replace(string(file.Bytes), before, after, 1)
+			if text == string(file.Bytes) {
+				t.Fatalf("test mutation did not apply to %s", path)
+			}
+			mutated[i].Bytes = []byte(text)
+			changed = true
+		}
+	}
+	if !changed {
+		t.Fatalf("test file missing: %s", path)
+	}
+	return mutated
 }
 
 func toolCatalog() File {

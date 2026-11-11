@@ -22,5 +22,46 @@
       "line": 8,
       "message": "consumer input field is not declared: unexpected"
     }
+  ],
+  "bindingTypeMismatch": [
+    {
+      "severity": "error",
+      "code": "BINDING_TYPE_MISMATCH",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 8,
+      "message": "Producer schema context.request.dnn is not compatible with input key"
+    }
+  ],
+  "unknownOperation": [
+    {
+      "severity": "error",
+      "code": "LIB_OPERATION_UNKNOWN",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 6,
+      "message": "Tool operation not imported: demo.missing"
+    },
+    {
+      "severity": "error",
+      "code": "TOOL_NOT_DECLARED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 6,
+      "message": "Tool operation is not in allowedResources: demo.missing"
+    },
+    {
+      "severity": "error",
+      "code": "BINDING_UNRESOLVED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 18,
+      "message": "unknown node output Producer: read"
+    }
+  ],
+  "invalidScriptOutput": [
+    {
+      "severity": "error",
+      "code": "SCRIPT_TYPE_UNSUPPORTED",
+      "path": "skills/normalize/scripts/normalize.py",
+      "line": 16,
+      "message": "field normalized: broad output type Any is forbidden"
+    }
   ]
 }
