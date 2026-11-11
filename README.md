@@ -16,23 +16,32 @@ The repository deliberately contains **no database, Workspace server, Qualificat
 ## Quick start (Go 1.23+)
 
 ~~~bash
-go run ./cmd/skillc check ./project
-go run ./cmd/skillc build ./project --out ./project/output
-go run ./cmd/skillc build ./project --skill establish-pdu-session --out ./dist
+go run ./cmd/skillc check ./examples/minimal-project
+go run ./cmd/skillc check ./examples/ca-agent-demo-project
+go run ./cmd/skillc build ./examples/ca-agent-demo-project --skill establish-pdu-session --out ./dist/establish
+go run ./cmd/skillc build ./examples/ca-agent-demo-project --skill establish-pdu-session-mas --out ./dist/mas
 ~~~
 
-`--out` must point to an empty or nonexistent directory so stale build output cannot masquerade as current artifacts. Imported libraries can be placed under `lib/tools/*.yaml`. For the first integration use `ca-agent-demo/tools/contracts/createdsession.tool.yaml`.
+`--out` must be empty/nonexistent; a compiler static check does not imply Runtime READY.
 
-**This is an early bootstrap**, not a production-complete compiler: current static checks include root/entry presence, YAML syntax, local Script references, cross-Skill dependencies, ToolCatalog links and basic Operation admission. Full Script Schema generation, advanced Procedure validation/lowering, Native vs WASM parity and real Agent Host acceptance remain open.
+## Real integration samples
+
+[`examples/ca-agent-demo-project`](examples/ca-agent-demo-project/README.md) contains **both original Skills copied exactly from ca-agent-demo** and their imported Agent ToolCatalogs. The MAS ToolCatalog is explicitly **NOT_READY**, suitable only for static linking. The compiler should diagnose unsupported syntax accurately instead of modifying the reference Skill files.
 
 ## Browser
 
-The same Core exports `skillcCheck` and `skillcBuild` with a Go/WASM main, bridged through `web/skillc-worker.js`. It accepts a JSON request with base64 encoded file contents. See [Skill Studio integration](docs/studio-integration.md). There is no HTTP backend.
+The same Core exports `skillcCheck` and `skillcBuild` with Go/WASM, bridged by `web/skillc-worker.js`. It accepts JSON with base64 file bytes. See [Skill Studio integration](docs/studio-integration.md).
 
-## Documentation
+## Local weak-model handoff
 
-- [Canonical compiler v0 design](docs/design/skill-compiler-v0.md)
-- [Studio handoff / WASM contract](docs/studio-integration.md)
+- [One-shot implementation Goal (WP0–WP7)](docs/workstreams/local-implementation-goal.md)
+- [Copyable local Harness prompt](docs/workstreams/local-harness-prompt.md)
+
+**Development state**: Draft PR [#2](https://github.com/odango-chan/ca-skill-compiler/pull/2); Go, WASM, real consumer acceptance NOT_RUN until verified locally.
+
+## Other docs
+
+- [Canonical compiler design](docs/design/skill-compiler-v0.md)
 - [Implementation status](docs/WORK.md)
-- [Bootstrap / acceptance Issue #1](https://github.com/odango-chan/ca-skill-compiler/issues/1)
+- [Issue #1](https://github.com/odango-chan/ca-skill-compiler/issues/1)
 - [Old Toolchain history](https://github.com/odango-chan/ca-skill-toolchain) (not a dependency)
