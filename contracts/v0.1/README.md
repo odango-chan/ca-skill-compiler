@@ -5,6 +5,8 @@
 - [project-settings.schema.json](project-settings.schema.json) — normalized Workspace extension settings and lock.
 - [tool-contract.schema.json](tool-contract.schema.json) — tool-catalog normalization target. MCP effect always UNKNOWN/UNVERIFIED.
 - [build-request.schema.json](build-request.schema.json) — host-independent native/WASM BuildRequest wire shape.
+- [resolver-result.schema.json](resolver-result.schema.json) — Resolver state, diagnostics, candidate lock and resolved snapshots.
+- [project-context.schema.json](project-context.schema.json) — source/dependency snapshot envelope shared by LSP and Compiler.
 
 Normative behavior, hash algorithm, logical Procedure syntax, security and migration gates: [Plugin-managed contract v0.1](../../docs/design/plugin-managed-project-v0.1.md).
 

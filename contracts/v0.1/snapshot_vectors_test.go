@@ -80,7 +80,7 @@ func TestSnapshotGoldenVectors(t *testing.T){
 }
 
 func TestContractSchemasParse(t *testing.T){
- for _,file:=range []string{"project-settings.schema.json","tool-contract.schema.json","build-request.schema.json"}{
+ for _,file:=range []string{"project-settings.schema.json","tool-contract.schema.json","build-request.schema.json","resolver-result.schema.json","project-context.schema.json"}{
   raw,err:=os.ReadFile(file)
   if err!=nil{t.Fatal(err)}
   var v map[string]any

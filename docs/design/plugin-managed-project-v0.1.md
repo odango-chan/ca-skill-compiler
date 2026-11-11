@@ -75,6 +75,12 @@ Use the same `call: {dependency,operation}` in every governed call position. A l
 
 The Studio Host assembles `ProjectContext={workspaceRoot,configurationRevision,sourceFiles,resolvedDependencies,snapshotIdentity}`, with `snapshotIdentity` derived from stable source revision and dependency snapshot IDs/digests. LSP and Compiler consume the **same** locked bytes; LSP does not independently fetch MCP/Git or invent authority. Editing a Source buffer invalidates that buffer's analysis revision; Update Lock invalidates all dependency-derived diagnostics/completion/definition/reference caches. An LSP Editor hint is not a Compiler PASS.
 
+### ProjectContext snapshotIdentity framing
+
+For deterministic LSP/Compiler cache keys, sort `sourceFiles` by UTF-8 path bytes and `resolvedDependencies` by dependency ID; within each snapshot sort `files` by UTF-8 path bytes. Use the same base64 encoding for wire `bytes` and RFC 8785 JCS serialization of `{sourceFiles,resolvedDependencies}` (no workspace URI, configurationRevision, timestamps or UI selection). Then `snapshotIdentity = "sha256:" + lowerhex(SHA256(UTF8("skillc/context/v1") || 0x00 || UTF8(JCS(payload))))`. The context ID changes on any source/dependency byte change, while `configurationRevision` is a host-local monotonic freshness guard. `workspaceRoot` is a display/lookup URI only, not compiler identity.
+
+Machine envelopes: [resolver-result.schema.json](../../contracts/v0.1/resolver-result.schema.json) and [project-context.schema.json](../../contracts/v0.1/project-context.schema.json). Resolver `READY` means all requested declarations have lock-matching, verified snapshots; `BLOCKED` and `ERROR` cannot be passed as successful Build input. `candidateLock` is proposed new metadata, never an implicit applied write. Semantic checks for full coverage, exact equality and hash verification are required in addition to structural Schema validation.
+
 ## Migration and gates
 
 - Current Compiler PR #2/#3, Studio main and the `lib/output` protection PR are **pre-v0.1 implementations**. Treat this document as a **target design contract**, not a release note or compatibility claim; migrate with explicit breaking changes and replace old positive tests.
