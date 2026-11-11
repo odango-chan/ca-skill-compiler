@@ -126,6 +126,14 @@ func TestVerifyResolvesPredicateDeclaredInSameSkill(t *testing.T) {
 	}
 }
 
+func TestLocalProcedureInvocationCycleFails(t *testing.T) {
+	files := source("cycle", "a", "procedures:\n  a:\n    start: call-b\n    nodes:\n      call-b: {procedure: b}\n  b:\n    start: call-a\n    nodes:\n      call-a: {procedure: a}\n")
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_CYCLE") {
+		t.Fatalf("recursive Procedure graph accepted: %#v", got.Diagnostics)
+	}
+}
+
 func TestDuplicateOperationFails(t *testing.T) {
 	files := testProject()
 	two := toolCatalog()
@@ -134,6 +142,12 @@ func TestDuplicateOperationFails(t *testing.T) {
 	d := Check(Request{Files: files})
 	if !findDiagnostic(d, "LIB_DUPLICATE_OPERATION") {
 		t.Fatalf("missing duplicate diagnostic: %#v", d)
+	}
+	inspected := InspectLibraries(Request{Files: files})
+	for _, tool := range inspected.Tools {
+		if tool.OperationID == "demo.read" {
+			t.Fatal("ambiguous Operation was selected for inspection")
+		}
 	}
 }
 
@@ -258,6 +272,18 @@ func TestTypedDictMustHaveTypingImport(t *testing.T) {
 	src := "class Output(TypedDict):\n    value: str\ndef main(input: dict) -> Output:\n    return {}\n"
 	if _, err := parseScriptOutput(src); err == nil {
 		t.Fatal("undefined TypedDict annotation accepted")
+	}
+}
+
+func TestNestedProcedureBindingsAreCheckedAgainstSchemas(t *testing.T) {
+	target := schemaNode(map[string]any{"type": "object", "required": []any{"count"}, "additionalProperties": false, "properties": map[string]any{"count": map[string]any{"type": "integer", "minimum": 1}}})
+	valid := schemaNode(map[string]any{"type": "object", "required": []any{"count"}, "additionalProperties": false, "properties": map[string]any{"count": map[string]any{"type": "integer", "minimum": 1}}})
+	wrong := schemaNode(map[string]any{"type": "object", "required": []any{"count"}, "additionalProperties": false, "properties": map[string]any{"count": map[string]any{"type": "string"}}})
+	if !schemasCompatible(valid, target) || schemasCompatible(wrong, target) {
+		t.Fatal("nested producer schema compatibility was not checked")
+	}
+	if !literalMatchesSchema(schemaNode(map[string]any{"count": 2}), target) || literalMatchesSchema(schemaNode(map[string]any{"count": "two"}), target) || literalMatchesSchema(schemaNode(map[string]any{}), target) {
+		t.Fatal("nested literal validation was not strict")
 	}
 }
 

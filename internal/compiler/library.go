@@ -79,8 +79,13 @@ func (a *analysis) importLibraries() {
 				a.errorAt(filename, item.Line, "LIB_OPERATION", "Tool contract has no operation ID")
 				continue
 			}
+			if a.ambiguousOperations[id] {
+				continue
+			}
 			if prev, exists := a.tools[id]; exists {
 				a.errorAt(filename, item.Line, "LIB_DUPLICATE_OPERATION", "operation "+id+" already declared in "+prev.source)
+				delete(a.tools, id)
+				a.ambiguousOperations[id] = true
 				continue
 			}
 			input := child(item, "inputSchema")

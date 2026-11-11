@@ -24,6 +24,7 @@ type skillEntry struct {
 	procedureRefs  map[string]map[string]int
 	libraryFiles   map[string]bool
 	deps           map[string]int
+	procedureCalls map[string]map[string]int
 }
 
 func (a *analysis) parseSkills() {
@@ -45,7 +46,7 @@ func (a *analysis) parseSkills() {
 	for _, name := range sorted {
 		base := "skills/" + name + "/"
 		s := &skillEntry{name: name, contract: base + "assurance/contract.yaml", procedure: base + "assurance/procedure.yaml",
-			calls: make(map[string]int), scripts: make(map[string]int), deps: make(map[string]int), preds: make(map[string]int),
+			calls: make(map[string]int), scripts: make(map[string]int), deps: make(map[string]int), preds: make(map[string]int), procedureCalls: make(map[string]map[string]int),
 			procedures: make(map[string]bool), allowed: make(map[string]bool), nodes: make(map[string]map[string]*yaml.Node), procedureRefs: make(map[string]map[string]int), libraryFiles: make(map[string]bool)}
 		a.skills[name] = s
 		if _, ok := a.files[base+"SKILL.md"]; !ok {
@@ -131,22 +132,36 @@ func (a *analysis) parseContract(s *skillEntry) {
 	if schema := scalar(child(child(spec, "inputs"), "requestSchema")); schema != "" {
 		s.requestSchema = schema
 		filename := schema
-		if !strings.HasPrefix(schema, "lib/") {
-			filename = "skills/" + s.name + "/" + schema
+		if strings.HasPrefix(schema, "lib/") {
+			if !validLibraryPath(schema) {
+				a.errorAt(s.contract, spec.Line, "LIB_SCHEMA_INVALID", "requestSchema has an unsafe Library path")
+			} else {
+				s.libraryFiles[filename] = true
+			}
 		} else {
-			s.libraryFiles[filename] = true
+			if !strings.HasPrefix(schema, "schemas/") || !validPath("skills/"+s.name+"/"+schema) {
+				a.errorAt(s.contract, spec.Line, "REQUEST_SCHEMA_MISSING", "requestSchema must be a Skill schemas/ path or imported lib/ path")
+			} else {
+				filename = "skills/" + s.name + "/" + schema
+			}
 		}
-		if a.files[filename] == nil {
+		if filename != "" && a.files[filename] == nil {
 			a.errorAt(s.contract, spec.Line, "REQUEST_SCHEMA_MISSING", "requestSchema not found: "+schema)
 		}
 	}
 	s.contextSchemas = map[string]string{}
 	for _, key := range []string{"subject", "facts", "observations"} {
 		if p := scalar(child(child(child(spec, "context"), "schemas"), key)); p != "" {
-			s.contextSchemas[key] = p
-			if strings.HasPrefix(p, "lib/") {
-				s.libraryFiles[p] = true
+			if !strings.HasPrefix(p, "lib/host/") && !strings.HasPrefix(p, "lib/observations/") {
+				a.errorAt(s.contract, spec.Line, "EXTERNAL_SCHEMA_MISSING", "context schema must be imported from lib/host/ or lib/observations/: "+p)
+				continue
 			}
+			if !validLibraryPath(p) {
+				a.errorAt(s.contract, spec.Line, "LIB_SCHEMA_INVALID", "context schema has an unsafe Library path: "+p)
+				continue
+			}
+			s.contextSchemas[key] = p
+			s.libraryFiles[p] = true
 		}
 	}
 }
@@ -209,6 +224,12 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 			if actions != 1 {
 				a.errorAt(s.procedure, node.Line, "PROCEDURE_UNSUPPORTED", "each node must have exactly one supported action")
 			}
+			if child(node, "with") != nil && child(node, "call") == nil && child(node, "script") == nil && child(node, "procedure") == nil {
+				a.errorAt(s.procedure, child(node, "with").Line, "PROCEDURE_UNSUPPORTED", "with is only valid for call, script, or procedure actions")
+			}
+			if child(node, "on") != nil && child(node, "terminal") != nil {
+				a.errorAt(s.procedure, child(node, "on").Line, "PROCEDURE_UNSUPPORTED", "terminal nodes cannot declare outcome branches")
+			}
 			for _, key := range mapKeys(node) {
 				switch key {
 				case "call", "script", "procedure", "verify", "reconcile", "terminal", "with", "on", "preconditions", "postconditions":
@@ -241,6 +262,11 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 					target = scalar(ref)
 					if target == "" || !s.procedures[target] {
 						a.errorAt(s.procedure, ref.Line, "PROCEDURE_NOT_FOUND", "missing local Procedure: "+target)
+					} else {
+						if s.procedureCalls[pname] == nil {
+							s.procedureCalls[pname] = map[string]int{}
+						}
+						s.procedureCalls[pname][target] = ref.Line
 					}
 				} else if skill != s.name {
 					s.deps[skill] = ref.Line
@@ -287,7 +313,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 						}
 						for _, field := range mapKeys(step) {
 							switch field {
-							case "name", "script", "call", "verify", "with", "on":
+							case "name", "script", "call", "verify", "with":
 							default:
 								a.errorAt(s.procedure, child(step, field).Line, "PROCEDURE_UNSUPPORTED", "unknown nested step field: "+field)
 							}
@@ -306,6 +332,33 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 			}
 		}
 		a.validateProcedureBindings(s, proc, nodes, s.procedure)
+	}
+	a.validateLocalProcedureCycles(s)
+}
+
+func (a *analysis) validateLocalProcedureCycles(s *skillEntry) {
+	state := map[string]int{}
+	var visit func(string)
+	visit = func(name string) {
+		if state[name] == 1 {
+			a.errorAt(s.procedure, s.procedureCalls[name][name], "PROCEDURE_CYCLE", "local Procedure invocation cycle includes "+name)
+			return
+		}
+		if state[name] == 2 {
+			return
+		}
+		state[name] = 1
+		for target, line := range s.procedureCalls[name] {
+			if state[target] == 1 {
+				a.errorAt(s.procedure, line, "PROCEDURE_CYCLE", "local Procedure invocation cycle: "+name+" -> "+target)
+			} else {
+				visit(target)
+			}
+		}
+		state[name] = 2
+	}
+	for name := range s.procedures {
+		visit(name)
 	}
 }
 

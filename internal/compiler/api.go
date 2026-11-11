@@ -66,11 +66,12 @@ func InspectLibraries(req Request) LibraryResult {
 }
 
 type analysis struct {
-	files       map[string][]byte
-	tools       map[string]toolEntry
-	skills      map[string]*skillEntry
-	diagnostics []Diagnostic
-	generated   map[string][]File
+	files               map[string][]byte
+	tools               map[string]toolEntry
+	skills              map[string]*skillEntry
+	diagnostics         []Diagnostic
+	generated           map[string][]File
+	ambiguousOperations map[string]bool
 }
 
 func Check(req Request) []Diagnostic {
@@ -149,7 +150,7 @@ func (a *analysis) filterUnselectedSkillDiagnostics(selected map[string]bool) {
 }
 
 func newAnalysis(req Request) *analysis {
-	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry), generated: make(map[string][]File)}
+	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry), generated: make(map[string][]File), ambiguousOperations: make(map[string]bool)}
 	total := 0
 	if len(req.Files) > maxFiles {
 		a.errorAt("", 0, "INPUT_LIMIT", "too many project files")
