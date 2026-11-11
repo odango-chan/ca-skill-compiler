@@ -197,7 +197,13 @@ func (a *analysis) sortedDiagnostics() []Diagnostic {
 		if x.Column != y.Column {
 			return x.Column < y.Column
 		}
-		return x.Code < y.Code
+		if x.Code != y.Code {
+			return x.Code < y.Code
+		}
+		if x.Severity != y.Severity {
+			return x.Severity < y.Severity
+		}
+		return x.Message < y.Message
 	})
 	if a.diagnostics == nil {
 		a.diagnostics = []Diagnostic{}

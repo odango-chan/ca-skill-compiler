@@ -27,6 +27,15 @@ type skillEntry struct {
 	procedureCalls map[string]map[string]int
 }
 
+func sortedStringMapKeys[V any](m map[string]V) []string {
+	keys := make([]string, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 func (a *analysis) parseSkills() {
 	names := make(map[string]bool)
 	for filename := range a.files {
@@ -348,7 +357,8 @@ func (a *analysis) validateLocalProcedureCycles(s *skillEntry) {
 			return
 		}
 		state[name] = 1
-		for target, line := range s.procedureCalls[name] {
+		for _, target := range sortedStringMapKeys(s.procedureCalls[name]) {
+			line := s.procedureCalls[name][target]
 			if state[target] == 1 {
 				a.errorAt(s.procedure, line, "PROCEDURE_CYCLE", "local Procedure invocation cycle: "+name+" -> "+target)
 			} else {
@@ -357,7 +367,7 @@ func (a *analysis) validateLocalProcedureCycles(s *skillEntry) {
 		}
 		state[name] = 2
 	}
-	for name := range s.procedures {
+	for _, name := range sortedStringMapKeys(s.procedures) {
 		visit(name)
 	}
 }
@@ -379,7 +389,7 @@ func (a *analysis) selectSkills(targets []string) map[string]bool {
 			return
 		}
 		selected[name] = true
-		for dep := range s.deps {
+		for _, dep := range sortedStringMapKeys(s.deps) {
 			visit(dep, true)
 		}
 	}
@@ -400,23 +410,27 @@ func (a *analysis) validateSkills(selected map[string]bool) {
 		if s == nil {
 			continue
 		}
-		for dep, line := range s.deps {
+		for _, dep := range sortedStringMapKeys(s.deps) {
+			line := s.deps[dep]
 			if a.skills[dep] == nil {
 				a.errorAt(s.procedure, line, "DEPENDENCY_NOT_FOUND", "referenced Skill is missing: "+dep)
 			} else {
-				for procedure, refLine := range s.procedureRefs[dep] {
+				for _, procedure := range sortedStringMapKeys(s.procedureRefs[dep]) {
+					refLine := s.procedureRefs[dep][procedure]
 					if !a.skills[dep].procedures[procedure] {
 						a.errorAt(s.procedure, refLine, "PROCEDURE_NOT_FOUND", "referenced cross-Skill Procedure is missing: "+dep+"/"+procedure)
 					}
 				}
 			}
 		}
-		for script, line := range s.scripts {
+		for _, script := range sortedStringMapKeys(s.scripts) {
+			line := s.scripts[script]
 			if a.files["skills/"+name+"/"+script] == nil {
 				a.errorAt(s.procedure, line, "SCRIPT_NOT_FOUND", "Script missing: "+script)
 			}
 		}
-		for op, line := range s.calls {
+		for _, op := range sortedStringMapKeys(s.calls) {
+			line := s.calls[op]
 			if _, ok := a.tools[op]; !ok {
 				a.errorAt(s.procedure, line, "TOOL_NOT_FOUND", "Tool operation not imported: "+op)
 			}
@@ -437,7 +451,7 @@ func (a *analysis) validateSkills(selected map[string]bool) {
 		}
 		state[name] = 1
 		if s := a.skills[name]; s != nil {
-			for dep := range s.deps {
+			for _, dep := range sortedStringMapKeys(s.deps) {
 				if selected[dep] {
 					visit(dep)
 				}

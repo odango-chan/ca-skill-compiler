@@ -134,6 +134,22 @@ func TestLocalProcedureInvocationCycleFails(t *testing.T) {
 	}
 }
 
+func TestSkillDependencyCycleFails(t *testing.T) {
+	files := append(source("root", "start", "procedures:\n  start:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n"), source("child", "run", "procedures:\n  run:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n")...)
+	for i := range files {
+		switch files[i].Path {
+		case "skills/root/assurance/contract.yaml":
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "  entryProcedure: start\n", "  entryProcedure: start\n  dependencies: [{skill: child}]\n", 1))
+		case "skills/child/assurance/contract.yaml":
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "  entryProcedure: run\n", "  entryProcedure: run\n  dependencies: [{skill: root}]\n", 1))
+		}
+	}
+	got := Build(Request{Files: files, Targets: []string{"root"}})
+	if got.Success || !findDiagnostic(got.Diagnostics, "DEPENDENCY_CYCLE") {
+		t.Fatalf("Skill dependency cycle accepted: %#v", got.Diagnostics)
+	}
+}
+
 func TestDuplicateOperationFails(t *testing.T) {
 	files := testProject()
 	two := toolCatalog()
@@ -220,6 +236,31 @@ func TestDeterminismAndJSONWire(t *testing.T) {
 	}
 }
 
+func TestFileInputOrderDoesNotChangeDiagnosticsOrOutputs(t *testing.T) {
+	files := testProject()
+	reversed := append([]File(nil), files...)
+	for left, right := 0, len(reversed)-1; left < right; left, right = left+1, right-1 {
+		reversed[left], reversed[right] = reversed[right], reversed[left]
+	}
+	one, two := Build(Request{Files: files}), Build(Request{Files: reversed})
+	if !reflect.DeepEqual(one, two) {
+		t.Fatalf("file ordering changed compiler result:\n%#v\n%#v", one, two)
+	}
+	bad := append([]File(nil), files...)
+	for i := range bad {
+		if bad[i].Path == "skills/root/assurance/procedure.yaml" {
+			bad[i].Bytes = []byte("procedures: [invalid")
+		}
+	}
+	badReverse := append([]File(nil), bad...)
+	for left, right := 0, len(badReverse)-1; left < right; left, right = left+1, right-1 {
+		badReverse[left], badReverse[right] = badReverse[right], badReverse[left]
+	}
+	if !reflect.DeepEqual(Check(Request{Files: bad}), Check(Request{Files: badReverse})) {
+		t.Fatal("file ordering changed diagnostics")
+	}
+}
+
 func TestManifestAndReadonlyLibraryInspection(t *testing.T) {
 	files := []File{toolCatalog(), {Path: "lib/manifest.yaml", Bytes: []byte("libraries:\n  - path: lib/tools/demo.yaml\n    status: proposed\n")}}
 	got := InspectLibraries(Request{Files: files})
@@ -272,6 +313,19 @@ func TestTypedDictMustHaveTypingImport(t *testing.T) {
 	src := "class Output(TypedDict):\n    value: str\ndef main(input: dict) -> Output:\n    return {}\n"
 	if _, err := parseScriptOutput(src); err == nil {
 		t.Fatal("undefined TypedDict annotation accepted")
+	}
+}
+
+func TestScriptDeclarationsRejectAmbiguityAndInvalidLiterals(t *testing.T) {
+	cases := []string{
+		"from typing import TypedDict\nclass Output(TypedDict):\n    value: str\ndef main(input: dict) -> Output:\n    return {}\ndef main(input: dict) -> Output:\n    return {}\n",
+		"from typing import TypedDict\nclass Output(TypedDict):\n    value: str\n    value: int\ndef main(input: dict) -> Output:\n    return {}\n",
+		"from typing import TypedDict, Literal\nclass Output(TypedDict):\n    value: Literal[None]\ndef main(input: dict) -> Output:\n    return {}\n",
+	}
+	for _, src := range cases {
+		if _, err := parseScriptOutput(src); err == nil {
+			t.Fatal("ambiguous or invalid Script declaration accepted")
+		}
 	}
 }
 

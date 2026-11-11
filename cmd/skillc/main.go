@@ -10,6 +10,12 @@ import (
 	"github.com/odango-chan/ca-skill-compiler/internal/compiler"
 )
 
+const (
+	maxCLIFileSize  = 2 << 20
+	maxCLITotalSize = 16 << 20
+	maxCLIFileCount = 512
+)
+
 func main() { os.Exit(run(os.Args[1:])) }
 
 func run(args []string) int {
@@ -96,6 +102,7 @@ func run(args []string) int {
 // skills/; imported libraries are an optional sibling lib/ directory.
 func readProject(root string) ([]compiler.File, error) {
 	var files []compiler.File
+	totalSize := int64(0)
 	for _, dir := range []string{"skills", "lib"} {
 		base := filepath.Join(root, dir)
 		info, err := os.Lstat(base)
@@ -124,6 +131,20 @@ func readProject(root string) ([]compiler.File, error) {
 			rel, err := filepath.Rel(root, filename)
 			if err != nil {
 				return err
+			}
+			info, err := entry.Info()
+			if err != nil {
+				return err
+			}
+			if info.Size() > maxCLIFileSize {
+				return fmt.Errorf("file exceeds %d byte limit: %s", maxCLIFileSize, filename)
+			}
+			totalSize += info.Size()
+			if totalSize > maxCLITotalSize {
+				return fmt.Errorf("project exceeds %d byte limit", maxCLITotalSize)
+			}
+			if len(files) >= maxCLIFileCount {
+				return fmt.Errorf("project exceeds %d file limit", maxCLIFileCount)
 			}
 			b, err := os.ReadFile(filename)
 			if err != nil {

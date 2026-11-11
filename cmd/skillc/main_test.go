@@ -59,3 +59,24 @@ func TestReadProjectRejectsSymlinks(t *testing.T) {
 		t.Fatal("symlink input accepted")
 	}
 }
+
+func TestReadProjectChecksSizeBeforeAllocating(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, "skills", "big")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	f, err := os.Create(filepath.Join(dir, "large.bin"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = f.Truncate(maxCLIFileSize + 1); err != nil {
+		t.Fatal(err)
+	}
+	if err = f.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := readProject(root); err == nil {
+		t.Fatal("oversized source file was read")
+	}
+}

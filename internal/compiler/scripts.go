@@ -9,21 +9,23 @@ import (
 )
 
 var (
-	classRE = regexp.MustCompile(`^class ([A-Za-z_][A-Za-z0-9_]*)\(TypedDict\):\s*$`)
-	fieldRE = regexp.MustCompile(`^\s+([A-Za-z_][A-Za-z0-9_]*):\s*(.+?)\s*(#.*)?$`)
-	mainRE  = regexp.MustCompile(`(?m)^def main\(input:\s*dict\)\s*->\s*([A-Za-z_][A-Za-z0-9_]*):`)
+	classRE    = regexp.MustCompile(`^class ([A-Za-z_][A-Za-z0-9_]*)\(TypedDict\):\s*$`)
+	fieldRE    = regexp.MustCompile(`^\s+([A-Za-z_][A-Za-z0-9_]*):\s*(.+?)\s*(#.*)?$`)
+	mainRE     = regexp.MustCompile(`(?m)^def main\(input:\s*dict\)\s*->\s*([A-Za-z_][A-Za-z0-9_]*):`)
+	mainDeclRE = regexp.MustCompile(`(?m)^(?:async\s+)?def main\b`)
 )
 
 type pyField struct{ name, typ string }
 type pyClass struct{ fields []pyField }
 
 func (a *analysis) compileScripts(selected map[string]bool) {
-	for skill := range selected {
+	for _, skill := range sortedStringMapKeys(selected) {
 		s := a.skills[skill]
 		if s == nil {
 			continue
 		}
-		for rel, line := range s.scripts {
+		for _, rel := range sortedStringMapKeys(s.scripts) {
+			line := s.scripts[rel]
 			path := "skills/" + skill + "/" + rel
 			data, ok := a.files[path]
 			if !ok {
@@ -63,7 +65,7 @@ func (a *analysis) compileScripts(selected map[string]bool) {
 
 func parseScriptOutput(src string) (map[string]any, error) {
 	matches := mainRE.FindAllStringSubmatch(src, -1)
-	if len(matches) != 1 {
+	if len(matches) != 1 || len(mainDeclRE.FindAllString(src, -1)) != 1 {
 		return nil, fmt.Errorf("expected main(input: dict) -> nonempty TypedDict output; legacy metadata is not an interface")
 	}
 	match := matches[0]
@@ -83,11 +85,18 @@ func parseScriptOutput(src string) (map[string]any, error) {
 		return nil, fmt.Errorf("Output declarations must import TypedDict from typing")
 	}
 	classes := map[string]pyClass{}
+	classSeen := map[string]bool{}
+	fieldSeen := map[string]map[string]bool{}
 	current := ""
 	for _, line := range strings.Split(src, "\n") {
 		trim := strings.TrimSpace(line)
 		if m := classRE.FindStringSubmatch(line); m != nil {
 			current = m[1]
+			if classSeen[current] {
+				return nil, fmt.Errorf("duplicate TypedDict declaration %s", current)
+			}
+			classSeen[current] = true
+			fieldSeen[current] = map[string]bool{}
 			classes[current] = pyClass{}
 			continue
 		}
@@ -104,6 +113,10 @@ func parseScriptOutput(src string) (map[string]any, error) {
 				current = ""
 				continue
 			}
+			if fieldSeen[current][f[1]] {
+				return nil, fmt.Errorf("duplicate TypedDict field %s.%s", current, f[1])
+			}
+			fieldSeen[current][f[1]] = true
 			classes[current] = pyClass{fields: append(classes[current].fields, pyField{f[1], f[2]})}
 			for _, name := range []string{"Literal", "Annotated", "NotRequired"} {
 				if strings.Contains(f[2], name+"[") && !imports[name] {
@@ -201,6 +214,9 @@ func typeSchema(expr string, classes map[string]pyClass, active map[string]bool)
 				return nil, e
 			}
 			t := jsonType(x)
+			if t == "" {
+				return nil, fmt.Errorf("Literal constant %s is unsupported", v)
+			}
 			if typ != "" && typ != t {
 				return nil, fmt.Errorf("mixed Literal types are unsupported")
 			}
