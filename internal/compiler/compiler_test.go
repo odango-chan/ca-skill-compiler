@@ -109,6 +109,23 @@ func TestMissingBuildTargetIsDiagnosed(t *testing.T) {
 	}
 }
 
+func TestVerifyResolvesPredicateDeclaredInSameSkill(t *testing.T) {
+	files := source("pred", "check", "procedures:\n  check:\n    start: v\n    nodes:\n      v:\n        verify: allowed\n")
+	files = append(files, File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte("predicates:\n  allowed: {evaluator: {type: cel, expression: 'true'}}\n")})
+	got := Build(Request{Files: files})
+	if !got.Success {
+		t.Fatalf("valid Predicate reference failed: %#v", got.Diagnostics)
+	}
+	for i := range files {
+		if files[i].Path == "skills/pred/assurance/procedure.yaml" {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "verify: allowed", "verify: absent", 1))
+		}
+	}
+	if d := Check(Request{Files: files}); !findDiagnostic(d, "PREDICATE_NOT_FOUND") {
+		t.Fatalf("missing Predicate was not diagnosed: %#v", d)
+	}
+}
+
 func TestDuplicateOperationFails(t *testing.T) {
 	files := testProject()
 	two := toolCatalog()
@@ -234,6 +251,13 @@ func TestAnnotatedOutputConstraintsAreStrict(t *testing.T) {
 		if _, err := parseScriptOutput(src); err == nil {
 			t.Errorf("invalid constraint %s was accepted", constraint)
 		}
+	}
+}
+
+func TestTypedDictMustHaveTypingImport(t *testing.T) {
+	src := "class Output(TypedDict):\n    value: str\ndef main(input: dict) -> Output:\n    return {}\n"
+	if _, err := parseScriptOutput(src); err == nil {
+		t.Fatal("undefined TypedDict annotation accepted")
 	}
 }
 

@@ -10,6 +10,7 @@ import (
 type skillEntry struct {
 	name           string
 	contract       string
+	contractAST    *yaml.Node
 	procedure      string
 	calls          map[string]int
 	scripts        map[string]int
@@ -58,18 +59,38 @@ func (a *analysis) parseSkills() {
 		if _, ok := a.files[s.contract]; ok {
 			a.parseContract(s)
 		}
-		if _, ok := a.files[s.procedure]; ok {
-			a.parseProcedure(s)
-		}
 		if filename := base + "assurance/predicates.yaml"; a.files[filename] != nil {
 			root := a.parseYAML(filename)
 			for _, pred := range mapKeys(child(root, "predicates")) {
 				s.preds[pred] = 1
 			}
 		}
+		if _, ok := a.files[s.procedure]; ok {
+			a.parseProcedure(s)
+		}
+		a.validateContractPredicates(s)
 	}
 	if len(a.skills) == 0 {
 		a.errorAt("skills/", 0, "NO_SKILLS", "project contains no Skill")
+	}
+}
+
+func (a *analysis) validateContractPredicates(s *skillEntry) {
+	spec := child(s.contractAST, "spec")
+	if spec == nil {
+		return
+	}
+	for _, group := range []string{"preconditions", "postconditions", "applicability"} {
+		n := child(spec, group)
+		if n == nil {
+			continue
+		}
+		for _, item := range sequence(n) {
+			id := scalar(child(item, "predicate"))
+			if id != "" && s.preds[id] == 0 {
+				a.errorAt(s.contract, item.Line, "PREDICATE_NOT_FOUND", "unknown contract Predicate: "+id)
+			}
+		}
 	}
 }
 
@@ -78,6 +99,7 @@ func (a *analysis) parseContract(s *skillEntry) {
 	if root == nil {
 		return
 	}
+	s.contractAST = root
 	metadata := child(root, "metadata")
 	if got := scalar(child(metadata, "name")); got != "" && got != s.name {
 		a.errorAt(s.contract, metadata.Line, "SKILL_NAME_MISMATCH", "metadata.name must match skills/ directory")
@@ -134,6 +156,11 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 	if root == nil {
 		return
 	}
+	for _, field := range mapKeys(root) {
+		if field != "procedures" {
+			a.errorAt(s.procedure, child(root, field).Line, "PROCEDURE_UNSUPPORTED", "unknown Procedure document field: "+field)
+		}
+	}
 	procedures := child(root, "procedures")
 	if procedures == nil {
 		a.errorAt(s.procedure, root.Line, "PROCEDURES_MISSING", "missing procedures map")
@@ -149,9 +176,16 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 		proc := child(procedures, pname)
 		for _, field := range mapKeys(proc) {
 			switch field {
-			case "inputs", "start", "nodes":
+			case "inputs", "start", "nodes", "applicability":
 			default:
 				a.errorAt(s.procedure, child(proc, field).Line, "PROCEDURE_UNSUPPORTED", "unknown Procedure field: "+field)
+			}
+		}
+		if applicability := child(proc, "applicability"); applicability != nil {
+			for _, id := range mapKeys(child(applicability, "predicates")) {
+				if s.preds[id] == 0 {
+					a.errorAt(s.procedure, child(child(applicability, "predicates"), id).Line, "PREDICATE_NOT_FOUND", "unknown applicability Predicate: "+id)
+				}
 			}
 		}
 		start := scalar(child(proc, "start"))

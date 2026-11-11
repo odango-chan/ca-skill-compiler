@@ -62,9 +62,25 @@ func (a *analysis) compileScripts(selected map[string]bool) {
 }
 
 func parseScriptOutput(src string) (map[string]any, error) {
-	match := mainRE.FindStringSubmatch(src)
-	if match == nil {
+	matches := mainRE.FindAllStringSubmatch(src, -1)
+	if len(matches) != 1 {
 		return nil, fmt.Errorf("expected main(input: dict) -> nonempty TypedDict output; legacy metadata is not an interface")
+	}
+	match := matches[0]
+	imports := map[string]bool{}
+	for _, line := range strings.Split(src, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "from typing import ") {
+			for _, name := range strings.Split(strings.TrimPrefix(line, "from typing import "), ",") {
+				name = strings.TrimSpace(strings.Split(name, " as ")[0])
+				if name != "" {
+					imports[name] = true
+				}
+			}
+		}
+	}
+	if !imports["TypedDict"] {
+		return nil, fmt.Errorf("Output declarations must import TypedDict from typing")
 	}
 	classes := map[string]pyClass{}
 	current := ""
@@ -89,6 +105,11 @@ func parseScriptOutput(src string) (map[string]any, error) {
 				continue
 			}
 			classes[current] = pyClass{fields: append(classes[current].fields, pyField{f[1], f[2]})}
+			for _, name := range []string{"Literal", "Annotated", "NotRequired"} {
+				if strings.Contains(f[2], name+"[") && !imports[name] {
+					return nil, fmt.Errorf("%s must be imported from typing", name)
+				}
+			}
 		}
 	}
 	name := match[1]
