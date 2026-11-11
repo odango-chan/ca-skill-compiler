@@ -25,6 +25,10 @@ Result: `{success, diagnostics:[{severity,code,path,line?,column?,message}], out
 
 The initial implementation checks Skill folder identity, entry Procedure, file references, local scripts, cross-Skill dependency presence, ToolCatalog Operation declarations, and YAML syntax. It **does not** yet implement full Procedure semantic lowering, comprehensive Schema validation, or Script I/O Schema generation. These are later compiler tasks; do not display "fully validated" or "runtime READY" on an initial build.
 
+## Script interface / generated schemas
+
+Use the canonical [Script Contract v0](design/script-contract-v0.md). Existing `# /// connectionagent-tool` headers use `schemaMode: external` implicitly and retain authored `schemas/` files. New authors may use `schemaMode: embedded` with `interface.input/output` as a YAML JSON Schema declaration inside the Python comment header. Compiler returns generated `schemas/generated/**` files only through `outputFiles`; Studio must not edit or independently infer them. An inspector can present two read-only views: "External Schema" and "Generated Schema" and navigate diagnostics to the Python metadata line. This feature is **NOT IMPLEMENTED** in the current compiler Core.
+
 ## Library format v0
 
 Use a copy of `ca-agent-demo/tools/contracts/createdsession.tool.yaml` under `lib/tools/`. It defines 12 Agent-facing Operations and Schema/Effect; YAML anchors/aliases are allowed. Do not import `tools/registrations/default.yaml` as a Tool schema library: it is a deployment mapping. Do not treat a declared Tool as installed, ready or authorized.
