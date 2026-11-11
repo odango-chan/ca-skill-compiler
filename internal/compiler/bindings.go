@@ -237,16 +237,30 @@ func schemasCompatible(source, target *yaml.Node) bool {
 	switch st {
 	case "object":
 		sp, tp := child(source, "properties"), child(target, "properties")
-		if sp == nil || tp == nil {
+		sourceAdditional := child(source, "additionalProperties")
+		targetAdditional := child(target, "additionalProperties")
+		targetForbidsExtras := schemaBoolean(targetAdditional, false)
+		sourceForbidsExtras := schemaBoolean(sourceAdditional, false)
+		sourceHasAdditionalSchema := unalias(sourceAdditional) != nil && unalias(sourceAdditional).Kind == yaml.MappingNode
+		targetHasAdditionalSchema := unalias(targetAdditional) != nil && unalias(targetAdditional).Kind == yaml.MappingNode
+		if targetForbidsExtras && !sourceForbidsExtras {
 			return false
 		}
-		if scalar(child(target, "additionalProperties")) == "false" && scalar(child(source, "additionalProperties")) != "false" {
-			return false
+		if targetHasAdditionalSchema {
+			if !sourceForbidsExtras && (!sourceHasAdditionalSchema || !schemasCompatible(sourceAdditional, targetAdditional)) {
+				return false
+			}
 		}
 		for _, name := range mapKeys(tp) {
 			sprop, tprop := child(sp, name), child(tp, name)
 			if sprop == nil {
 				if containsScalar(sequence(child(target, "required")), name) {
+					return false
+				}
+				if sourceForbidsExtras {
+					continue
+				}
+				if !sourceHasAdditionalSchema || !schemasCompatible(sourceAdditional, tprop) {
 					return false
 				}
 				continue
@@ -256,8 +270,13 @@ func schemasCompatible(source, target *yaml.Node) bool {
 			}
 		}
 		for _, name := range mapKeys(sp) {
-			if child(tp, name) == nil && scalar(child(target, "additionalProperties")) == "false" {
-				return false
+			if child(tp, name) == nil {
+				if targetForbidsExtras {
+					return false
+				}
+				if targetHasAdditionalSchema && !schemasCompatible(child(sp, name), targetAdditional) {
+					return false
+				}
 			}
 		}
 		for _, req := range sequence(child(target, "required")) {
@@ -270,6 +289,11 @@ func schemasCompatible(source, target *yaml.Node) bool {
 		return schemasCompatible(child(source, "items"), child(target, "items"))
 	}
 	return true
+}
+
+func schemaBoolean(schema *yaml.Node, value bool) bool {
+	schema = unalias(schema)
+	return schema != nil && schema.Kind == yaml.ScalarNode && schema.Tag == "!!bool" && scalar(schema) == strconv.FormatBool(value)
 }
 
 func projectionSchemaSupported(schema *yaml.Node) bool {
@@ -316,7 +340,7 @@ func projectionSchemaSupported(schema *yaml.Node) bool {
 }
 
 func schemaConstraintsCompatible(source, target *yaml.Node) bool {
-	for _, key := range []string{"minLength", "minItems", "minimum"} {
+	for _, key := range []string{"minLength", "minItems", "minProperties", "minimum"} {
 		if t := schemaNumber(target, key); t != nil {
 			s := schemaNumber(source, key)
 			if s == nil || *s < *t {
@@ -324,7 +348,7 @@ func schemaConstraintsCompatible(source, target *yaml.Node) bool {
 			}
 		}
 	}
-	for _, key := range []string{"maxLength", "maxItems", "maximum"} {
+	for _, key := range []string{"maxLength", "maxItems", "maxProperties", "maximum"} {
 		if t := schemaNumber(target, key); t != nil {
 			s := schemaNumber(source, key)
 			if s == nil || *s > *t {
@@ -382,7 +406,13 @@ func schemaNumber(schema *yaml.Node, key string) *float64 {
 
 func literalMatchesSchema(value, schema *yaml.Node) bool {
 	value, schema = unalias(value), unalias(schema)
-	if value == nil || schema == nil || !supportedStaticSchema(schema) {
+	if value == nil || schema == nil || !validJSONLiteral(value) {
+		return false
+	}
+	if schema.Kind == yaml.ScalarNode && schema.Tag == "!!bool" {
+		return scalar(schema) == "true"
+	}
+	if !projectionSchemaSupported(schema) {
 		return false
 	}
 	typ := scalar(child(schema, "type"))
@@ -406,7 +436,7 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 	switch typ {
 	case "object":
 		props := child(schema, "properties")
-		if props == nil || value.Kind != yaml.MappingNode {
+		if value.Kind != yaml.MappingNode {
 			return false
 		}
 		seen := map[string]bool{}
@@ -414,17 +444,29 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 			key, v := value.Content[i].Value, unalias(value.Content[i+1])
 			target := child(props, key)
 			if target == nil {
+				additional := child(schema, "additionalProperties")
+				if additional == nil || unalias(additional).Kind == yaml.ScalarNode && scalar(additional) == "true" {
+					if !validJSONLiteral(v) {
+						return false
+					}
+				} else if !literalMatchesSchema(v, additional) {
+					return false
+				}
+			} else if !literalMatchesSchema(v, target) {
 				return false
 			}
 			seen[key] = true
-			if !literalMatchesSchema(v, target) {
-				return false
-			}
 		}
 		for _, req := range sequence(child(schema, "required")) {
 			if !seen[scalar(req)] {
 				return false
 			}
+		}
+		if n, ok := numberValue(child(schema, "minProperties")); ok && float64(len(value.Content)/2) < n {
+			return false
+		}
+		if n, ok := numberValue(child(schema, "maxProperties")); ok && float64(len(value.Content)/2) > n {
+			return false
 		}
 	case "array":
 		items := child(schema, "items")
@@ -505,7 +547,7 @@ func supportedStaticSchema(schema *yaml.Node) bool {
 	if schema == nil || schema.Kind != yaml.MappingNode {
 		return false
 	}
-	known := map[string]bool{"$schema": true, "$id": true, "$ref": true, "title": true, "description": true, "type": true, "properties": true, "required": true, "additionalProperties": true, "items": true, "minLength": true, "maxLength": true, "pattern": true, "minimum": true, "maximum": true, "minItems": true, "maxItems": true, "uniqueItems": true, "const": true, "enum": true}
+	known := map[string]bool{"$schema": true, "$id": true, "$ref": true, "title": true, "description": true, "type": true, "properties": true, "required": true, "additionalProperties": true, "items": true, "minLength": true, "maxLength": true, "pattern": true, "minimum": true, "maximum": true, "minItems": true, "maxItems": true, "minProperties": true, "maxProperties": true, "uniqueItems": true, "const": true, "enum": true}
 	for _, key := range mapKeys(schema) {
 		if !known[key] || key == "$ref" {
 			return false

@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 )
 
 func source(name, entry, procedure string) []File {
@@ -486,6 +488,69 @@ func TestIntegerProducerSatisfiesNumberInput(t *testing.T) {
 	}
 	if schemasCompatible(number, integer) {
 		t.Fatal("number Producer must not satisfy an integer consumer")
+	}
+}
+
+func TestObjectSchemaCompatibilityHonorsAdditionalProperties(t *testing.T) {
+	object := func(properties map[string]any, additional any) *yaml.Node {
+		value := map[string]any{"type": "object", "properties": properties}
+		if additional != nil {
+			value["additionalProperties"] = additional
+		}
+		return schemaNode(value)
+	}
+	stringSchema := map[string]any{"type": "string"}
+	numberSchema := map[string]any{"type": "number"}
+	cases := []struct {
+		name   string
+		source *yaml.Node
+		target *yaml.Node
+		want   bool
+	}{
+		{"unrestricted producer cannot meet typed additional properties", object(map[string]any{}, true), object(map[string]any{}, stringSchema), false},
+		{"matching additional property schemas", object(map[string]any{}, stringSchema), object(map[string]any{}, stringSchema), true},
+		{"closed producer meets typed additional properties", object(map[string]any{}, false), object(map[string]any{}, stringSchema), true},
+		{"declared extra field checked against target additional schema", object(map[string]any{"extra": stringSchema}, false), object(map[string]any{}, stringSchema), true},
+		{"declared incompatible extra field rejected", object(map[string]any{"extra": numberSchema}, false), object(map[string]any{}, stringSchema), false},
+		{"unrestricted producer cannot meet closed consumer", object(map[string]any{}, nil), object(map[string]any{}, false), false},
+		{"closed producer meets closed consumer", object(map[string]any{"key": stringSchema}, false), object(map[string]any{"key": stringSchema}, false), true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := schemasCompatible(tc.source, tc.target); got != tc.want {
+				t.Fatalf("schemasCompatible() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestObjectLiteralBindingsHonorAdditionalProperties(t *testing.T) {
+	value := func(extra any) *yaml.Node { return schemaNode(map[string]any{"key": "value", "extra": extra}) }
+	base := map[string]any{"type": "object", "properties": map[string]any{"key": map[string]any{"type": "string"}}, "required": []string{"key"}}
+	cases := []struct {
+		name  string
+		value *yaml.Node
+		extra any
+		want  bool
+	}{
+		{"default additional properties accept JSON values", value(1), nil, true},
+		{"false rejects unlisted fields", value(1), false, false},
+		{"schema checks unlisted fields", value("ok"), map[string]any{"type": "string"}, true},
+		{"schema rejects incompatible unlisted fields", value(1), map[string]any{"type": "string"}, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			schema := make(map[string]any, len(base)+1)
+			for key, item := range base {
+				schema[key] = item
+			}
+			if tc.extra != nil {
+				schema["additionalProperties"] = tc.extra
+			}
+			if got := literalMatchesSchema(tc.value, schemaNode(schema)); got != tc.want {
+				t.Fatalf("literalMatchesSchema() = %v, want %v", got, tc.want)
+			}
+		})
 	}
 }
 

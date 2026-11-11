@@ -8,8 +8,8 @@ const worker = new Worker('./skillc-worker.js');
 worker.onerror = event => { output.textContent = `WORKER ERROR: ${event.message}`; document.documentElement.dataset.test = 'fail'; };
 worker.onmessageerror = () => { output.textContent = 'WORKER MESSAGE ERROR'; document.documentElement.dataset.test = 'fail'; };
 const paths = [
-  'skills/reader/SKILL.md', 'skills/reader/assurance/contract.yaml', 'skills/reader/assurance/procedure.yaml',
-  'skills/writer/SKILL.md', 'skills/writer/assurance/contract.yaml', 'skills/writer/assurance/procedure.yaml',
+  'skills/normalize/SKILL.md', 'skills/normalize/assurance/contract.yaml', 'skills/normalize/assurance/procedure.yaml',
+  'skills/normalize/schemas/normalize-request.schema.yaml', 'skills/normalize/scripts/normalize.py',
   'lib/tools/demo.tool.yaml'
 ];
 async function loadFiles() { return Promise.all(paths.map(async path => {
@@ -46,15 +46,23 @@ function send(command, request) {
   const inspect = await send('inspect', request);
   const invalid = await send('check', {files, targets:['missing']});
   const badBindingFiles = files.map(file => ({...file}));
-  const procedure = badBindingFiles.find(file => file.path === 'skills/reader/assurance/procedure.yaml');
+  const procedure = badBindingFiles.find(file => file.path === 'skills/normalize/assurance/procedure.yaml');
   const procedureBytes = Uint8Array.from(atob(procedure.bytes), ch => ch.charCodeAt(0));
   let procedureText = new TextDecoder().decode(procedureBytes);
-  procedureText = procedureText.replace('          key: {value: sample}', '          unexpected: {value: sample}');
+  procedureText = procedureText.replace('          key: {from: context.request.dnn}', '          unexpected: {value: sample}');
   if (procedureText === new TextDecoder().decode(procedureBytes)) throw new Error('negative binding fixture mutation failed');
   procedure.bytes = encodeUTF8(procedureText);
   const invalidBinding = await send('check', {files:badBindingFiles});
   if (!check.success || !build.success || build.outputFiles.length !== 7) throw new Error('valid build/check failed');
-  const expectedPaths = ['lib/tools/demo.tool.yaml', ...paths.filter(p=>p.startsWith('skills/')).sort()];
+  const expectedPaths = [
+    'lib/tools/demo.tool.yaml',
+    'skills/normalize/SKILL.md',
+    'skills/normalize/assurance/contract.yaml',
+    'skills/normalize/assurance/procedure.yaml',
+    'skills/normalize/schemas/generated/normalize.output.schema.json',
+    'skills/normalize/schemas/normalize-request.schema.yaml',
+    'skills/normalize/scripts/normalize.py'
+  ];
   if (JSON.stringify(build.outputFiles.map(f=>f.path)) !== JSON.stringify(expectedPaths)) throw new Error('output paths/order differ from native fixture expectation');
   for (const file of build.outputFiles) {
     const response = await fetch(`./native-output/${file.path}`);
@@ -68,8 +76,8 @@ function send(command, request) {
   const expectedInvalid = [{severity:'error', code:'TARGET_NOT_FOUND', path:'skills/missing', message:'Skill is missing: missing'}];
   if (invalid.success || JSON.stringify(invalid.diagnostics) !== JSON.stringify(expectedInvalid)) throw new Error(`WASM diagnostics differ from Native TARGET_NOT_FOUND golden: ${JSON.stringify(invalid.diagnostics)}`);
   const expectedBinding = [
-    {severity:'error', code:'BINDING_UNRESOLVED', path:'skills/reader/assurance/procedure.yaml', line:8, message:'required consumer input is not bound: key'},
-    {severity:'error', code:'SOURCE_FIELD_UNKNOWN', path:'skills/reader/assurance/procedure.yaml', line:8, message:'consumer input field is not declared: unexpected'}
+    {severity:'error', code:'BINDING_UNRESOLVED', path:'skills/normalize/assurance/procedure.yaml', line:8, message:'required consumer input is not bound: key'},
+    {severity:'error', code:'SOURCE_FIELD_UNKNOWN', path:'skills/normalize/assurance/procedure.yaml', line:8, message:'consumer input field is not declared: unexpected'}
   ];
   if (invalidBinding.success || JSON.stringify(invalidBinding.diagnostics) !== JSON.stringify(expectedBinding)) throw new Error(`WASM diagnostics differ from Native binding golden: ${JSON.stringify(invalidBinding.diagnostics)}`);
   output.textContent = JSON.stringify({status:'PASS', check, build:build.outputFiles.map(f=>f.path), inspect, invalid:invalid.diagnostics, invalidBinding:invalidBinding.diagnostics}, null, 2);
