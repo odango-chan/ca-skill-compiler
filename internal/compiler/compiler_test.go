@@ -439,6 +439,11 @@ func TestCrossSkillProcedureInputsAreLinkedFromProducerSchemas(t *testing.T) {
     nodes:
       done: {terminal: SUCCEEDED}
 `)
+	for i := range child {
+		if child[i].Path == "skills/child/assurance/contract.yaml" {
+			child[i].Bytes = []byte(strings.Replace(string(child[i].Bytes), "entryProcedure: write\n", "entryProcedure: write\n  inputs:\n    requestSchema: schemas/request.yaml\n", 1))
+		}
+	}
 	catalog := toolCatalog()
 	catalog.Bytes = []byte(`apiVersion: ca-agent-demo.tool/v1
 kind: ToolCatalog
@@ -449,7 +454,8 @@ spec:
     inputSchema: {type: object, required: [ref], properties: {ref: {type: string}}}
     outputSchema: {type: object, required: [result], properties: {result: {type: string}}}
 `)
-	files := append(append(root, child...), catalog)
+	requestSchema := File{Path: "skills/child/schemas/request.yaml", Bytes: []byte("type: object\nproperties:\n  name: {type: string}\n")}
+	files := append(append(append(root, child...), catalog), requestSchema)
 	if got := Build(Request{Files: files}); !got.Success {
 		t.Fatalf("valid cross-Skill Procedure input rejected: %#v", got.Diagnostics)
 	}
@@ -565,6 +571,49 @@ func TestScriptInputProjectionRejectsUnsupportedNestedSchemas(t *testing.T) {
 	incompleteArray := schemaNode(map[string]any{"type": "array"})
 	if projectionSchemaSupported(incompleteArray) {
 		t.Fatal("array with no item Schema was accepted in a Script input projection")
+	}
+}
+
+func TestUnusedProcedureInputsAreLinkedAgainstTheirProducer(t *testing.T) {
+	root := source("root", "run", `procedures:
+  run:
+    start: call
+    nodes:
+      call:
+        procedure: {skill: child, procedure: write}
+`)
+	child := source("child", "write", `procedures:
+  write:
+    inputs:
+      unused: {type: string, from: context.request.missing}
+    start: done
+    nodes:
+      done: {terminal: SUCCEEDED}
+`)
+	for i := range child {
+		if child[i].Path == "skills/child/assurance/contract.yaml" {
+			child[i].Bytes = []byte(strings.Replace(string(child[i].Bytes), "entryProcedure: write\n", "entryProcedure: write\n  inputs:\n    requestSchema: schemas/request.yaml\n", 1))
+		}
+	}
+	requestSchema := File{Path: "skills/child/schemas/request.yaml", Bytes: []byte(`type: object
+properties:
+  name: {type: string}
+`)}
+	files := append(append(root, child...), requestSchema)
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "SOURCE_FIELD_UNKNOWN") {
+		t.Fatalf("unused Procedure input with an unknown producer field was accepted: %#v", got.Diagnostics)
+	}
+
+	wrongType := append([]File(nil), files...)
+	for i := range wrongType {
+		if wrongType[i].Path == "skills/child/assurance/procedure.yaml" {
+			wrongType[i].Bytes = []byte(strings.Replace(string(wrongType[i].Bytes), "type: string, from: context.request.missing", "type: integer, from: context.request.name", 1))
+		}
+	}
+	got = Build(Request{Files: wrongType})
+	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
+		t.Fatalf("unused Procedure input with a mismatched declared type was accepted: %#v", got.Diagnostics)
 	}
 }
 

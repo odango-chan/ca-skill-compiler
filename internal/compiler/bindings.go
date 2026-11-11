@@ -42,6 +42,22 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 			}
 		}
 	}
+	// Procedure inputs are producer aliases in their own right. Validate every
+	// declaration here so an unused input cannot hide a missing field or a
+	// declared type that disagrees with its producer.
+	inputs := child(proc, "inputs")
+	for _, name := range mapKeys(inputs) {
+		input := child(inputs, name)
+		from := scalar(child(input, "from"))
+		typ := scalar(child(input, "type"))
+		if from == "" || !validProcedureInputType(typ) {
+			continue // parseProcedure reports malformed declarations.
+		}
+		producer := a.resolveSource(s, proc, from, path, child(input, "from").Line, "", outputs, nil, stepOutputs)
+		if producer != nil && scalar(child(producer, "type")) != typ && !(scalar(child(producer, "type")) == "integer" && typ == "number") {
+			a.errorAt(path, input.Line, "BINDING_TYPE_MISMATCH", "Procedure input source type does not match declared type: "+name)
+		}
+	}
 	for _, nodeID := range mapKeys(nodes) {
 		n := child(nodes, nodeID)
 		expected := (*yaml.Node)(nil)
@@ -628,11 +644,6 @@ func (a *analysis) resolveSourceWithInputStack(s *skillEntry, proc *yaml.Node, r
 			resolvingInputs[parts[1]] = true
 			base := a.resolveSourceWithInputStack(s, proc, scalar(from), path, line, nodeID, outputs, steps, allSteps, resolvingInputs)
 			delete(resolvingInputs, parts[1])
-			declared := scalar(child(field, "type"))
-			if base != nil && declared != "" && scalar(child(base, "type")) != declared && !(scalar(child(base, "type")) == "integer" && declared == "number") {
-				a.errorAt(path, line, "BINDING_TYPE_MISMATCH", "Procedure input source type does not match declared type: "+parts[1])
-				return nil
-			}
 			for _, nested := range parts[2:] {
 				base = schemaProperty(base, nested)
 				if base == nil {
