@@ -996,6 +996,61 @@ func TestBindingSourcesMustBeStrings(t *testing.T) {
 	}
 }
 
+func TestUnsupportedBindingSchemasAreNotReportedAsTypeMismatches(t *testing.T) {
+	cases := []struct {
+		name, path, before, after string
+	}{
+		{
+			name:   "consumer format constraint on producer binding",
+			path:   "lib/tools/demo.tool.yaml",
+			before: "          key: *text",
+			after:  "          key: {type: string, format: email}",
+		},
+		{
+			name:   "producer format constraint",
+			path:   "skills/normalize/schemas/normalize-request.schema.yaml",
+			before: "  dnn: {type: string, minLength: 1}",
+			after:  "  dnn: {type: string, format: email}",
+		},
+		{
+			name:   "consumer format constraint on literal binding",
+			path:   "lib/tools/demo.tool.yaml",
+			before: "          key: *text",
+			after:  "          key: {type: string, format: email}",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "script-contract-project"))
+			if tc.name == "consumer format constraint on literal binding" {
+				for i := range files {
+					if files[i].Path == "skills/normalize/assurance/procedure.yaml" {
+						files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "key: {from: context.request.dnn}", "key: {value: sample}", 1))
+					}
+				}
+			}
+			changed := false
+			for i := range files {
+				if files[i].Path == tc.path {
+					text := strings.Replace(string(files[i].Bytes), tc.before, tc.after, 1)
+					changed = text != string(files[i].Bytes)
+					files[i].Bytes = []byte(text)
+				}
+			}
+			if !changed {
+				t.Fatal("test mutation did not apply")
+			}
+			got := Build(Request{Files: files})
+			if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
+				t.Fatalf("unsupported binding Schema was not reported explicitly: %#v", got.Diagnostics)
+			}
+			if findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
+				t.Fatalf("unsupported Schema was mislabeled as a type mismatch: %#v", got.Diagnostics)
+			}
+		})
+	}
+}
+
 func TestPreAndPostconditionStepsHaveDistinctOutputScopes(t *testing.T) {
 	files := source("scopes", "run", `procedures:
   run:

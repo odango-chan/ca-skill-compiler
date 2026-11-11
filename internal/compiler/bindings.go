@@ -146,6 +146,10 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 				continue
 			}
 			if from != nil && source != nil {
+				if !procedureInputs && (!projectionSchemaSupported(source) || !projectionSchemaSupported(target)) {
+					a.errorAt(path, line, "BINDING_UNSUPPORTED", "Producer or consumer Schema uses constraints unsupported by static binding validation: "+scalar(from))
+					continue
+				}
 				compatible := schemasCompatible(source, target)
 				if procedureInputs {
 					compatible = declaredTypeCompatible(source, target)
@@ -154,6 +158,10 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 					a.errorAt(path, line, "BINDING_TYPE_MISMATCH", fmt.Sprintf("Producer schema %s is not compatible with input %s", scalar(from), key))
 				}
 			} else if literal != nil {
+				if !projectionSchemaSupported(target) {
+					a.errorAt(path, line, "BINDING_UNSUPPORTED", "consumer Schema uses constraints unsupported by static literal validation: "+key)
+					continue
+				}
 				if !literalMatchesSchema(literal, target) {
 					a.errorAt(path, line, "BINDING_TYPE_MISMATCH", "literal binding does not satisfy input field "+key)
 				}
