@@ -3,6 +3,7 @@ package compiler
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -359,7 +360,8 @@ func schemaConstraintsCompatible(source, target *yaml.Node) bool {
 	for _, key := range []string{"minLength", "minItems", "minProperties", "minimum"} {
 		if t := schemaNumber(target, key); t != nil {
 			s := schemaNumber(source, key)
-			if s == nil || *s < *t {
+			exclusive := schemaNumber(source, "exclusiveMinimum")
+			if s == nil && (exclusive == nil || *exclusive < *t) || s != nil && *s < *t {
 				return false
 			}
 		}
@@ -367,9 +369,28 @@ func schemaConstraintsCompatible(source, target *yaml.Node) bool {
 	for _, key := range []string{"maxLength", "maxItems", "maxProperties", "maximum"} {
 		if t := schemaNumber(target, key); t != nil {
 			s := schemaNumber(source, key)
-			if s == nil || *s > *t {
+			exclusive := schemaNumber(source, "exclusiveMaximum")
+			if s == nil && (exclusive == nil || *exclusive > *t) || s != nil && *s > *t {
 				return false
 			}
+		}
+	}
+	if t := schemaNumber(target, "exclusiveMinimum"); t != nil {
+		minimum, exclusive := schemaNumber(source, "minimum"), schemaNumber(source, "exclusiveMinimum")
+		if minimum == nil && exclusive == nil || minimum != nil && *minimum <= *t || exclusive != nil && *exclusive <= *t {
+			return false
+		}
+	}
+	if t := schemaNumber(target, "exclusiveMaximum"); t != nil {
+		maximum, exclusive := schemaNumber(source, "maximum"), schemaNumber(source, "exclusiveMaximum")
+		if maximum == nil && exclusive == nil || maximum != nil && *maximum >= *t || exclusive != nil && *exclusive >= *t {
+			return false
+		}
+	}
+	if child(target, "multipleOf") != nil {
+		s := schemaNumber(source, "multipleOf")
+		if s == nil || !isIntegerMultiple(scalar(child(source, "multipleOf")), scalar(child(target, "multipleOf"))) {
+			return false
 		}
 	}
 	if p := scalar(child(target, "pattern")); p != "" && scalar(child(source, "pattern")) != p {
@@ -432,7 +453,7 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 		return false
 	}
 	typ := scalar(child(schema, "type"))
-	if typ == "" || literalType(value) != typ {
+	if typ == "" || !schemaTypeCompatible(literalType(value), typ) {
 		return false
 	}
 	if c := child(schema, "const"); c != nil && !reflect.DeepEqual(nodeValue(c), nodeValue(value)) {
@@ -535,8 +556,79 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 		if bound, ok := numberValue(child(schema, "maximum")); ok && n > bound {
 			return false
 		}
+		if bound, ok := numberValue(child(schema, "exclusiveMinimum")); ok && n <= bound {
+			return false
+		}
+		if bound, ok := numberValue(child(schema, "exclusiveMaximum")); ok && n >= bound {
+			return false
+		}
+		if divisor := child(schema, "multipleOf"); divisor != nil && !isIntegerMultiple(value.Value, scalar(divisor)) {
+			return false
+		}
 	}
 	return true
+}
+
+func isIntegerMultiple(value, divisor string) bool {
+	valueRat, valueOK := exactRational(value)
+	divisorRat, divisorOK := exactRational(divisor)
+	if !valueOK || !divisorOK || divisorRat.Sign() <= 0 {
+		return false
+	}
+	quotient := new(big.Rat).Quo(valueRat, divisorRat)
+	return quotient.IsInt()
+}
+
+func exactRational(raw string) (*big.Rat, bool) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil, false
+	}
+	exponent := 0
+	if i := strings.IndexAny(raw, "eE"); i >= 0 {
+		parsed, err := strconv.Atoi(raw[i+1:])
+		if err != nil || parsed < -10000 || parsed > 10000 {
+			return nil, false
+		}
+		exponent, raw = parsed, raw[:i]
+	}
+	sign := ""
+	if raw[0] == '-' || raw[0] == '+' {
+		sign, raw = raw[:1], raw[1:]
+	}
+	parts := strings.Split(raw, ".")
+	if len(parts) > 2 {
+		return nil, false
+	}
+	whole, fraction := parts[0], ""
+	if len(parts) == 2 {
+		fraction = parts[1]
+	}
+	digits := whole + fraction
+	scale := len(fraction) - exponent
+	if digits == "" || len(digits) > 1024 || scale < -1024 || scale > 1024 {
+		return nil, false
+	}
+	for _, r := range digits {
+		if r < '0' || r > '9' {
+			return nil, false
+		}
+	}
+	numerator, ok := new(big.Int).SetString(digits, 10)
+	if !ok {
+		return nil, false
+	}
+	if sign == "-" {
+		numerator.Neg(numerator)
+	}
+	denominator := big.NewInt(1)
+	ten := big.NewInt(10)
+	if scale > 0 {
+		denominator.Exp(ten, big.NewInt(int64(scale)), nil)
+	} else if scale < 0 {
+		numerator.Mul(numerator, new(big.Int).Exp(ten, big.NewInt(int64(-scale)), nil))
+	}
+	return new(big.Rat).SetFrac(numerator, denominator), true
 }
 
 func numberValue(n *yaml.Node) (float64, bool) {
@@ -563,7 +655,7 @@ func supportedStaticSchema(schema *yaml.Node) bool {
 	if schema == nil || schema.Kind != yaml.MappingNode {
 		return false
 	}
-	known := map[string]bool{"$schema": true, "$id": true, "$ref": true, "title": true, "description": true, "type": true, "properties": true, "required": true, "additionalProperties": true, "items": true, "minLength": true, "maxLength": true, "pattern": true, "minimum": true, "maximum": true, "minItems": true, "maxItems": true, "minProperties": true, "maxProperties": true, "uniqueItems": true, "const": true, "enum": true}
+	known := map[string]bool{"$schema": true, "$id": true, "$ref": true, "title": true, "description": true, "type": true, "properties": true, "required": true, "additionalProperties": true, "items": true, "minLength": true, "maxLength": true, "pattern": true, "minimum": true, "maximum": true, "exclusiveMinimum": true, "exclusiveMaximum": true, "multipleOf": true, "minItems": true, "maxItems": true, "minProperties": true, "maxProperties": true, "uniqueItems": true, "const": true, "enum": true}
 	for _, key := range mapKeys(schema) {
 		if !known[key] || key == "$ref" {
 			return false

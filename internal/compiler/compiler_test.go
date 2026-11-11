@@ -497,6 +497,66 @@ func TestIntegerProducerSatisfiesNumberInput(t *testing.T) {
 	}
 }
 
+func TestIntegerLiteralSatisfiesNumberInput(t *testing.T) {
+	number := schemaNode(map[string]any{"type": "number"})
+	integer := schemaNode(map[string]any{"type": "integer"})
+	if !literalMatchesSchema(schemaNode(7), number) {
+		t.Fatal("integer literal should satisfy a JSON Schema number consumer")
+	}
+	if literalMatchesSchema(schemaNode(7.5), integer) {
+		t.Fatal("fractional literal must not satisfy an integer consumer")
+	}
+}
+
+func TestNumericLiteralConstraintsAreEnforced(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		value  any
+		schema map[string]any
+		want   bool
+	}{
+		{"exclusive minimum accepts larger value", 2, map[string]any{"type": "number", "exclusiveMinimum": 1}, true},
+		{"exclusive minimum rejects boundary", 1, map[string]any{"type": "number", "exclusiveMinimum": 1}, false},
+		{"exclusive maximum accepts smaller value", 1, map[string]any{"type": "number", "exclusiveMaximum": 2}, true},
+		{"exclusive maximum rejects boundary", 2, map[string]any{"type": "number", "exclusiveMaximum": 2}, false},
+		{"multipleOf accepts multiple", 6, map[string]any{"type": "number", "multipleOf": 2}, true},
+		{"multipleOf rejects nonmultiple", 7, map[string]any{"type": "number", "multipleOf": 2}, false},
+		{"decimal multiple is exact", 0.3, map[string]any{"type": "number", "multipleOf": 0.1}, true},
+		{"near decimal multiple is rejected", 0.30000000001, map[string]any{"type": "number", "multipleOf": 0.1}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := literalMatchesSchema(schemaNode(tc.value), schemaNode(tc.schema)); got != tc.want {
+				t.Fatalf("literalMatchesSchema() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestProducerNumericConstraintsMustSatisfyConsumer(t *testing.T) {
+	source := func(values map[string]any) *yaml.Node {
+		values["type"] = "number"
+		return schemaNode(values)
+	}
+	cases := []struct {
+		name string
+		from map[string]any
+		to   map[string]any
+		want bool
+	}{
+		{"stronger exclusive lower bound", map[string]any{"minimum": 5}, map[string]any{"exclusiveMinimum": 4}, true},
+		{"equal minimum does not satisfy exclusive lower bound", map[string]any{"minimum": 5}, map[string]any{"exclusiveMinimum": 5}, false},
+		{"producer multiple is also consumer multiple", map[string]any{"multipleOf": 6}, map[string]any{"multipleOf": 2}, true},
+		{"producer multiple does not imply consumer multiple", map[string]any{"multipleOf": 2}, map[string]any{"multipleOf": 3}, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := schemasCompatible(source(tc.from), source(tc.to)); got != tc.want {
+				t.Fatalf("schemasCompatible() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestObjectSchemaCompatibilityHonorsAdditionalProperties(t *testing.T) {
 	object := func(properties map[string]any, additional any) *yaml.Node {
 		value := map[string]any{"type": "object", "properties": properties}
