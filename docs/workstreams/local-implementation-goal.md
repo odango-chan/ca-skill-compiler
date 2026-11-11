@@ -55,16 +55,18 @@ No unattended modifications to Tool contract truths: an imported Tool contract d
 - Make a **real input fixture test**: 12 conventional and 16 MAS declared Operations are discoverable. The effect contract is only a claim from the imported file; no READY test.
 - MCP `tools/list` JSON import is an optional later adapter; do not connect to live MCP or add a network dependency to compiler Core.
 
-### WP3 · Strict Script Contract v0 (normative)
+### WP3 · Producer-owned Script Contract v0
 
-Read [Script Contract v0](../design/script-contract-v0.md) first. **Do not implement the superseded long YAML comment `schemaMode: embedded` design.** The single recommended new-script mode is type-first: Python standard-library `TypedDict` + `main(input: In) -> Out` + `Annotated` static JSON Schema constraints. Input/output types and all nested object fields must be explicit; reject `dict`, `dict[str,T]`, `Any`, `object`, empty `TypedDict`, unsupported unions, unknown metadata and untyped values, never degrade to loose object.
+**Before coding read [Script Contract v0](../design/script-contract-v0.md).** The new rule is **producer-owned external inputs / script-owned computed outputs**. This supersedes the earlier requirement for strict input TypedDict and the embedded YAML Script-comment mode.
 
-- Implement a bounded **static** parser for the supported annotation syntax; no Python import/execution, cgo-only dependency, remote ref resolution or unconstrained default. Use `Annotated[T, {"minLength":...}]` and a documented whitelist, preserving all constraints; `NotRequired` controls optional keys. Make each `TypedDict` a closed object in the emitted Schema as specified.
-- Legacy mode: existing `# /// connectionagent-tool` header with external `inputSchema/outputSchema` continues to use the existing author-owned YAML Schema. **All five real scripts must remain byte-identical**. Do not infer missing types from their empty dict subclasses, or rewrite/remove complex `allOf/if/then` constraints.
-- Reject typed/external double authority, unsupported annotation constructs and superseded `schemaMode: embedded`; include precise file/line diagnostics.
-- Output generated schemas under `output/skills/<skill>/schemas/generated/<script-relative>.input.schema.json` and matching output; never write back into source. Do not let Studio implement separate type inference.
-- Validate that a proposed future migration from an existing complex external schema doesn't lose fields or constraints. When strict typed subset cannot express it, keep the external Schema instead of weakening semantics.
-- Add all ST-01..ST-11 cases from the new canonical Script Contract; native/WASM bytes and diagnostics must match. Runtime/Host still owns actual execution, validation and sandboxing.
+- Import actual read-only Library files first. Real `examples/ca-agent-demo-project/lib/tools/createdsession.tool.yaml` has 12 contract Operations; `mas-proposed.tool.yaml` has 16 declared Operations but is **PROPOSED / NOT_READY**.
+- Resolve Procedure `with:` bindings to actual Producer Schema paths: imported Tool Output, Skill-owned requestSchema, earlier Script Output, or separately imported Host/Observation contracts. Output an **input projection per call site**; do NOT demand that each Script duplicates the Tool/Host Schema as a Python Input TypedDict.
+- For newly computed Script results, require a complete static TypedDict / allowed Annotated type and generate a strict **output-only** Schema. The Python signature may be `main(input: dict) -> OwnOutput`, because the input envelope is typed by Producer bindings. No new interface may use generic dict/Any/object/empty TypedDict as **its own output Schema**.
+- Missing producer type/field, broad undifferentiated object, conflicting binding or incomplete Host/Observation Schema must produce precise diagnostic. No guessed fields, no fake green pass.
+- The actual Host input/context/observation producer contracts are **not yet confirmed as present**. Do not copy Root Routing Profile as their substitute; do not invent Host schemas just to make real Skill checks pass.
+- Preserve frozen original 5 Python Script files and their author-owned external Schema exactly. Do not delete or weaken existing allOf/if/then rules.
+- Update `examples/script-contract-project` using imported `lib/tools/demo.tool.yaml` and require Tool Output -> Procedure with -> Script Input -> generated strict Script Output. Add SO-01..SO-10 positive/negative tests from the canonical spec.
+- Compiler does not execute Python, external Tool or MCP; Runtime/Host owns real sandbox, execution and admission. Native/WASM share the same Core and must produce byte-identical output/diagnostics.
 
 ### WP4 · Deterministic package and Native CLI
 
