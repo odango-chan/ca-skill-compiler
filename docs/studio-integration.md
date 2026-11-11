@@ -27,11 +27,13 @@ The initial implementation checks Skill folder identity, entry Procedure, file r
 
 ## Script interface / generated schemas
 
-Canonical [Script Contract v0](design/script-contract-v0.md): a new Script uses complete, strict `TypedDict` input/output annotation types at `main(input: In) -> Out`. Nested object fields must be typed; `Literal`, `NotRequired` and static `Annotated` constraints are supported by the target format. Generic `dict`, `Any`, `object` and empty classes are **not admissible as typed interface contracts**. Plain dicts in the Python function body remain legal. Older `# /// connectionagent-tool` scripts keep their existing separately-authored external Schema in a compatibility mode.
+The canonical [Script Contract v0](design/script-contract-v0.md) is **producer-owned external input / script-owned computed output**. Procedure `with:` fields must resolve to actual Tool Library Output, Skill-owned Request, previous Script Output or authoritative Host Context Schema; Compiler derives each Script call's input projection without asking authors to retype external Tool contracts. Unknown fields or missing producer contracts are not a successful type check.
 
-The previously proposed YAML comment-header `schemaMode: embedded` design is **withdrawn** and must not be implemented. Compiler is the sole generator; it emits `skills/<skill>/schemas/generated/*.input.schema.json` / `*.output.schema.json` only in `outputFiles`. Studio shows these outputs as read-only and offers navigation from Script declarations. Neither Studio nor a browser-side second implementation should infer Schema from Python body.
+For a new Script, `main(input: dict) -> StrictOutputTypedDict` is valid **only if every effective input binding has a concrete producer schema**. Compiler generates the Script's own Output Schema from strict annotations (not an independently authoritative input Schema). Existing Script files with external input/output Schemas remain supported. The earlier long YAML comment `schemaMode: embedded` and requirement that every Script Input be an authored TypedDict are **withdrawn**.
 
-**Implementation: NOT_STARTED; browser proof: NOT_RUN.**
+Studio displays editable `skills/`, read-only imported `lib/` and read-only generated `output/`. It must not reimplement the Compiler's schema generator, claim unknown Producer types are validated, or equate static compile success with runtime READY. Imported MAS ToolCatalog remains PROPOSED / NOT_READY; complete Host Context/Observation Schema is not present in the two ToolCatalog files.
+
+**Implementation: NOT_STARTED; parity/Chromium acceptance: NOT_RUN.**
 
 ## Library format v0
 
