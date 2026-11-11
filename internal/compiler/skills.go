@@ -222,6 +222,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 		for _, n := range names {
 			known[n] = true
 		}
+		prior := make(map[string]bool)
 		for _, n := range names {
 			node := child(nodes, n)
 			actions := 0
@@ -252,8 +253,17 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 			if pred := scalar(child(node, "verify")); pred != "" && s.preds[pred] == 0 {
 				a.errorAt(s.procedure, child(node, "verify").Line, "PREDICATE_NOT_FOUND", "unknown Predicate: "+pred)
 			}
-			if reconcile := scalar(child(node, "reconcile")); reconcile != "" && !known[reconcile] {
-				a.errorAt(s.procedure, child(node, "reconcile").Line, "NODE_TARGET_UNKNOWN", "reconcile target is not a node: "+reconcile)
+			if reconcile := scalar(child(node, "reconcile")); reconcile != "" {
+				r := child(node, "reconcile")
+				if !known[reconcile] {
+					a.errorAt(s.procedure, r.Line, "NODE_TARGET_UNKNOWN", "reconcile target is not a node: "+reconcile)
+				} else if !prior[reconcile] {
+					a.errorAt(s.procedure, r.Line, "NODE_TARGET_UNKNOWN", "reconcile target must be declared before the reconcile node: "+reconcile)
+				} else if operation := scalar(child(child(nodes, reconcile), "call")); operation == "" {
+					a.errorAt(s.procedure, r.Line, "PROCEDURE_UNSUPPORTED", "reconcile target must be a Tool call node: "+reconcile)
+				} else if tool, ok := a.tools[operation]; !ok || tool.tool.ReconcileOutputSchema == nil {
+					a.errorAt(s.procedure, r.Line, "PROCEDURE_UNSUPPORTED", "reconcile target Tool has no declared reconcileOutputSchema: "+operation)
+				}
 			}
 			if script := scalar(child(node, "script")); script != "" {
 				s.scripts[script] = child(node, "script").Line
@@ -339,6 +349,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 					}
 				}
 			}
+			prior[n] = true
 		}
 		a.validateProcedureBindings(s, proc, nodes, s.procedure)
 	}

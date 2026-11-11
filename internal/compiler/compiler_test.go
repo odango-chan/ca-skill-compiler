@@ -189,6 +189,51 @@ func TestMissingEntryProcedureFails(t *testing.T) {
 	}
 }
 
+func TestReconcileRequiresEarlierToolNodeWithDeclaredSchema(t *testing.T) {
+	files := source("reconcile", "run", `procedures:
+  run:
+    start: create
+    nodes:
+      create:
+        call: demo.read
+        with: {ref: {value: sample}}
+      recover:
+        reconcile: create
+`)
+	files = append(files, toolCatalog())
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
+		t.Fatalf("reconcile without Tool reconcileOutputSchema should fail: %#v", got.Diagnostics)
+	}
+
+	for i := range files {
+		if files[i].Path == "lib/tools/demo.yaml" {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "outputSchema: {type: object}", "outputSchema: {type: object}\n    reconcileOutputSchema: {type: object}", 1))
+		}
+	}
+	got = Build(Request{Files: files})
+	if !got.Success {
+		t.Fatalf("valid earlier reconcile target rejected: %#v", got.Diagnostics)
+	}
+}
+
+func TestReconcileCannotReferenceLaterNode(t *testing.T) {
+	files := source("reconcile", "run", `procedures:
+  run:
+    start: recover
+    nodes:
+      recover:
+        reconcile: create
+      create:
+        call: demo.read
+`)
+	files = append(files, toolCatalog())
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "NODE_TARGET_UNKNOWN") {
+		t.Fatalf("reconcile target declared later should fail: %#v", got.Diagnostics)
+	}
+}
+
 func TestInvalidYAMLFails(t *testing.T) {
 	files := testProject()
 	for i := range files {
