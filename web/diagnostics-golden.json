@@ -63,5 +63,14 @@
       "line": 16,
       "message": "field normalized: broad output type Any is forbidden"
     }
+  ],
+  "duplicateLibrary": [
+    {
+      "severity": "error",
+      "code": "LIB_OPERATION_DUPLICATE",
+      "path": "lib/tools/duplicate.tool.yaml",
+      "line": 7,
+      "message": "operation demo.read already declared in lib/tools/demo.tool.yaml"
+    }
   ]
 }

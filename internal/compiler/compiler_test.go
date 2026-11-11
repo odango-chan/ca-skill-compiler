@@ -61,6 +61,7 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 		BindingTypeMismatch []Diagnostic `json:"bindingTypeMismatch"`
 		UnknownOperation    []Diagnostic `json:"unknownOperation"`
 		InvalidScriptOutput []Diagnostic `json:"invalidScriptOutput"`
+		DuplicateLibrary    []Diagnostic `json:"duplicateLibrary"`
 	}
 	data, err := os.ReadFile(filepath.Join("..", "..", "web", "diagnostics-golden.json"))
 	if err != nil {
@@ -96,6 +97,12 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	invalidOutput := mutateProjectFile(t, files, "skills/normalize/scripts/normalize.py", "normalized: Annotated[str, {\"minLength\": 1, \"pattern\": r\"^[a-z0-9.-]+$\"}]", "normalized: Any")
 	if got := Check(Request{Files: invalidOutput}); !reflect.DeepEqual(got, golden.InvalidScriptOutput) {
 		t.Fatalf("Native invalid-Script diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.InvalidScriptOutput)
+	}
+	duplicate := toolCatalog()
+	duplicate.Path = "lib/tools/duplicate.tool.yaml"
+	duplicateResult := InspectLibraries(Request{Files: append(append([]File(nil), files...), duplicate)})
+	if !reflect.DeepEqual(duplicateResult.Diagnostics, golden.DuplicateLibrary) {
+		t.Fatalf("Native InspectLibraries duplicate-operation diagnostics differ from browser golden:\ngot  %#v\nwant %#v", duplicateResult.Diagnostics, golden.DuplicateLibrary)
 	}
 }
 

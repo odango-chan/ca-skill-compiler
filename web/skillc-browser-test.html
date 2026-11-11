@@ -61,6 +61,8 @@ function send(command, request) {
   const check = await send('check', request);
   const build = await send('build', request);
   const inspect = await send('inspect', request);
+  const duplicateCatalog = 'apiVersion: ca-agent-demo.tool/v1\nkind: ToolCatalog\nx-common:\n  ref: &ref {type: string, minLength: 1}\nspec:\n  contracts:\n  - operation: demo.read\n    effect: READ\n    inputSchema: {type: object, required: [ref], properties: {ref: *ref}}\n    outputSchema: {type: object}\n';
+  const duplicateLibrary = await send('inspect', {files:files.concat([{path:'lib/tools/duplicate.tool.yaml', bytes:encodeUTF8(duplicateCatalog)}])});
   const invalid = await send('check', {files, targets:['missing']});
   const invalidBinding = await send('check', {files:mutateFile(files, 'skills/normalize/assurance/procedure.yaml', '          key: {from: context.request.dnn}', '          unexpected: {value: sample}')});
   const bindingTypeMismatch = await send('check', {files:mutateFile(files, 'skills/normalize/schemas/normalize-request.schema.yaml', 'dnn: {type: string, minLength: 1}', 'dnn: {type: integer}')});
@@ -86,12 +88,13 @@ function send(command, request) {
   }
   if (check.diagnostics.length !== 0) throw new Error('valid project returned diagnostics');
   if (!Array.isArray(inspect.tools) || inspect.tools.length !== 1 || inspect.tools[0].operationId !== 'demo.read') throw new Error('inspectLibraries response malformed');
+  if (JSON.stringify(duplicateLibrary.diagnostics) !== JSON.stringify(diagnosticGolden.duplicateLibrary)) throw new Error(`WASM inspectLibraries diagnostics differ from Native duplicate-operation golden: ${JSON.stringify(duplicateLibrary.diagnostics)}`);
   if (invalid.success || JSON.stringify(invalid.diagnostics) !== JSON.stringify(diagnosticGolden.targetNotFound)) throw new Error(`WASM diagnostics differ from Native TARGET_NOT_FOUND golden: ${JSON.stringify(invalid.diagnostics)}`);
   if (invalidBinding.success || JSON.stringify(invalidBinding.diagnostics) !== JSON.stringify(diagnosticGolden.invalidBinding)) throw new Error(`WASM diagnostics differ from Native binding golden: ${JSON.stringify(invalidBinding.diagnostics)}`);
   if (bindingTypeMismatch.success || JSON.stringify(bindingTypeMismatch.diagnostics) !== JSON.stringify(diagnosticGolden.bindingTypeMismatch)) throw new Error(`WASM diagnostics differ from Native type mismatch golden: ${JSON.stringify(bindingTypeMismatch.diagnostics)}`);
   if (unknownOperation.success || JSON.stringify(unknownOperation.diagnostics) !== JSON.stringify(diagnosticGolden.unknownOperation)) throw new Error(`WASM diagnostics differ from Native unknown-operation golden: ${JSON.stringify(unknownOperation.diagnostics)}`);
   if (invalidScriptOutput.success || JSON.stringify(invalidScriptOutput.diagnostics) !== JSON.stringify(diagnosticGolden.invalidScriptOutput)) throw new Error(`WASM diagnostics differ from Native Script-output golden: ${JSON.stringify(invalidScriptOutput.diagnostics)}`);
-  output.textContent = JSON.stringify({status:'PASS', check, build:build.outputFiles.map(f=>f.path), inspect, invalid:invalid.diagnostics, invalidBinding:invalidBinding.diagnostics, bindingTypeMismatch:bindingTypeMismatch.diagnostics, unknownOperation:unknownOperation.diagnostics, invalidScriptOutput:invalidScriptOutput.diagnostics}, null, 2);
+  output.textContent = JSON.stringify({status:'PASS', check, build:build.outputFiles.map(f=>f.path), inspect, duplicateLibrary:duplicateLibrary.diagnostics, invalid:invalid.diagnostics, invalidBinding:invalidBinding.diagnostics, bindingTypeMismatch:bindingTypeMismatch.diagnostics, unknownOperation:unknownOperation.diagnostics, invalidScriptOutput:invalidScriptOutput.diagnostics}, null, 2);
   document.documentElement.dataset.test = 'pass';
 })().catch(error => {
   output.textContent = `FAIL: ${error.stack || error}`;
