@@ -1,6 +1,6 @@
 # Skill Compiler v0 implementation status
 
-Updated: 2026-11-11. Implementation branch: `feat/compiler-v0-complete`, implementation HEAD `5ad3daf6c590cb2b7ff261c12f1fa392cae50a1b`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`. Draft [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3) targets `feat/compiler-v0-bootstrap`. This report records observed local evidence; it does not claim a complete Compiler v0.
+Updated: 2026-11-11. Implementation branch: `feat/compiler-v0-complete`; Go/native/WASM checks ran against code commit `e36dd68aec4eb0570b37436b914f81293ce41a30`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`. Draft [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3) targets `feat/compiler-v0-bootstrap`. This report records observed local evidence; it does not claim a complete Compiler v0.
 
 ## Work packages
 
