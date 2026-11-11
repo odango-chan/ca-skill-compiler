@@ -1,3 +1,5 @@
+> **v0 implementation baseline — superseded for the next breaking iteration.** The frozen [plugin-managed Project/Dependency/BuildRequest contract v0.1](plugin-managed-project-v0.1.md) removes mandatory physical `lib/` and `output/` and introduces logical dependency references. Current Go/WASM code and existing v0 tests still implement the old layout. This note is NOT a claim that v0.1 is implemented.
+
 # Skill Compiler v0 · 多 Skill 工程、Library 链接与浏览器编译
 
 - **设计状态**：ACCEPTED（2026-11-11 用户确认产品范围与目录）；实现状态：PARTIAL（首批 Core/CLI/WASM 源码）；验收：NOT_RUN

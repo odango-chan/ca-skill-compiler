@@ -1,3 +1,5 @@
+> **Current v0 wire implementation only.** The frozen successor design is [Plugin-managed Skill Project v0.1](design/plugin-managed-project-v0.1.md), with [machine schemas](../contracts/v0.1/README.md). v0.1 is NOT available in current native/Go/WASM binaries; do not send its requests to the v0 Worker.
+
 # Skill Studio ↔ Skill Compiler v0 · Browser ABI
 
 状态：**DESIGN ACCEPTED / API PARTIAL IMPLEMENTATION / BROWSER SMOKE PASS**。适用 **breaking-only v0**；不对接旧 Toolchain / legacy Script Parser。

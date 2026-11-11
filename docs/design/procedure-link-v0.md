@@ -1,3 +1,5 @@
+> **v0 implementation baseline — superseded for the next breaking iteration.** The frozen [plugin-managed Project/Dependency/BuildRequest contract v0.1](plugin-managed-project-v0.1.md) removes mandatory physical `lib/` and `output/` and introduces logical dependency references. Current Go/WASM code and existing v0 tests still implement the old layout. This note is NOT a claim that v0.1 is implemented.
+
 # Procedure / Binding / Library Link Contract v0
 
 状态：**设计冻结 / 编译器实现部分完成、尚未验收**，与 [Script Contract v0](script-contract-v0.md) 同级权威。本文件用于消除弱模型对 YAML 递归扫描和 `from:` 的猜测。
