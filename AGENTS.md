@@ -5,8 +5,9 @@ This is a new, minimal, stateless compiler repository. **Do not follow old ca-sk
 Authority and order:
 1. [Local Implementation Goal](docs/workstreams/local-implementation-goal.md)
 2. [Compiler v0 design](docs/design/skill-compiler-v0.md)
-3. [Skill Studio ABI](docs/studio-integration.md)
-4. [Status](docs/WORK.md)
+3. [Script Contract v0](docs/design/script-contract-v0.md) — sole Script Schema contract
+4. [Skill Studio ABI](docs/studio-integration.md)
+5. [Status](docs/WORK.md)
 
 Do not add database, API service, Qualification/Release, Runtime executor, Tool execution, hidden global registry or mandatory digest lifecycle. Compiler: in-memory files → parse/link/minimal checks → output files + diagnostics. Use the same Go Core for native and WASM. Scripts must not execute during build.
 
