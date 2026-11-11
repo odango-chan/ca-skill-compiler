@@ -354,6 +354,32 @@ func TestPredicateDefinitionsRequireStaticSourceShape(t *testing.T) {
 	}
 }
 
+func TestPredicateEvaluatorAndObservationContractsAreStrict(t *testing.T) {
+	cases := []struct {
+		name       string
+		predicates string
+	}{
+		{"CEL expression must be string", "predicates:\n  ready:\n    evaluator: {type: cel, expression: true}\n"},
+		{"unsupported CEL field", "predicates:\n  ready:\n    evaluator: {type: cel, expression: 'true', ref: skill.check}\n"},
+		{"unsupported script field", "predicates:\n  ready:\n    evaluator: {type: script, ref: skill.check, expression: 'true'}\n"},
+		{"observation ref must be string", "predicates:\n  ready:\n    observations: {state: {ref: true}}\n    evaluator: {type: cel, expression: 'true'}\n"},
+		{"observation scope must be string", "predicates:\n  ready:\n    observations: {state: {ref: state.read, scope: true}}\n    evaluator: {type: cel, expression: 'true'}\n"},
+		{"observation freshness must be string", "predicates:\n  ready:\n    observations: {state: {ref: state.read, freshness: 5}}\n    evaluator: {type: cel, expression: 'true'}\n"},
+		{"unknown observation field", "predicates:\n  ready:\n    observations: {state: {ref: state.read, runtime: active}}\n    evaluator: {type: cel, expression: 'true'}\n"},
+		{"unknown Predicate field", "predicates:\n  ready:\n    customRuntime: enabled\n    evaluator: {type: cel, expression: 'true'}\n"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			files := source("strict-predicate", "run", "procedures:\n  run:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n")
+			files = append(files, File{Path: "skills/strict-predicate/assurance/predicates.yaml", Bytes: []byte(tc.predicates)})
+			got := Build(Request{Files: files})
+			if got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") {
+				t.Fatalf("unsupported Predicate declaration was accepted: %#v", got.Diagnostics)
+			}
+		})
+	}
+}
+
 func TestScriptPredicateEvaluatorUsesStaticReferenceShape(t *testing.T) {
 	files := source("pred", "check", "procedures:\n  check:\n    start: v\n    nodes:\n      v:\n        verify: allowed\n")
 	predicates := File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte("predicates:\n  allowed:\n    evaluator: {type: script, ref: skill.evaluate-allowed}\n")}
@@ -380,6 +406,7 @@ func TestContractPredicateGroupsAndEntriesAreValidated(t *testing.T) {
 		{"entry must be a mapping", "postconditions: [ready]"},
 		{"predicate ID must be a string", "preconditions: [{predicate: 7}]"},
 		{"expectation must be a string", "postconditions: [{predicate: ready, expect: 1}]"},
+		{"unknown condition field", "postconditions: [{predicate: ready, dynamic: true}]"},
 		{"applicability must be a sequence", "applicability: {predicate: ready}"},
 	}
 	for _, tc := range cases {

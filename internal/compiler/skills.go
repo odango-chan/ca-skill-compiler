@@ -113,15 +113,38 @@ func (a *analysis) parsePredicates(s *skillEntry, filename string) {
 			a.errorAt(filename, predicate.Line, "PREDICATE_SOURCE_INCOMPLETE", "Predicate definition must be a mapping: "+id)
 			continue
 		}
+		for _, field := range mapKeys(predicate) {
+			if field != "evaluator" && field != "observations" {
+				a.errorAt(filename, child(predicate, field).Line, "PREDICATE_SOURCE_INCOMPLETE", "unsupported Predicate field: "+field)
+			}
+		}
 		evaluator := child(predicate, "evaluator")
-		evaluatorType := scalar(child(evaluator, "type"))
+		evaluatorTypeNode := child(evaluator, "type")
+		evaluatorType := scalar(evaluatorTypeNode)
 		complete := false
 		if evaluator != nil && unalias(evaluator).Kind == yaml.MappingNode {
+			for _, field := range mapKeys(evaluator) {
+				allowed := field == "type"
+				switch evaluatorType {
+				case "cel":
+					allowed = allowed || field == "expression"
+				case "script":
+					allowed = allowed || field == "ref"
+				}
+				if !allowed {
+					a.errorAt(filename, child(evaluator, field).Line, "PREDICATE_SOURCE_INCOMPLETE", "unsupported "+evaluatorType+" evaluator field: "+field)
+				}
+			}
+			if evaluatorTypeNode == nil || evaluatorTypeNode.Kind != yaml.ScalarNode || evaluatorTypeNode.Tag != "!!str" {
+				a.errorAt(filename, evaluator.Line, "PREDICATE_SOURCE_INCOMPLETE", "Predicate evaluator type must be a string")
+			}
 			switch evaluatorType {
 			case "cel":
-				complete = scalar(child(evaluator, "expression")) != ""
+				expression := child(evaluator, "expression")
+				complete = expression != nil && expression.Kind == yaml.ScalarNode && expression.Tag == "!!str" && expression.Value != ""
 			case "script":
-				complete = scalar(child(evaluator, "ref")) != ""
+				ref := child(evaluator, "ref")
+				complete = ref != nil && ref.Kind == yaml.ScalarNode && ref.Tag == "!!str" && ref.Value != ""
 			}
 		}
 		if !complete {
@@ -133,10 +156,27 @@ func (a *analysis) parsePredicates(s *skillEntry, filename string) {
 				a.errorAt(filename, observations.Line, "PREDICATE_SOURCE_INCOMPLETE", "Predicate observations must be a mapping: "+id)
 				continue
 			}
+			a.validateStringMappingKeys(filename, observations, "Predicate observation names", "PREDICATE_SOURCE_INCOMPLETE")
 			for _, name := range mapKeys(observations) {
 				observation := child(observations, name)
-				if unalias(observation).Kind != yaml.MappingNode || scalar(child(observation, "ref")) == "" {
+				if unalias(observation).Kind != yaml.MappingNode {
 					a.errorAt(filename, observation.Line, "PREDICATE_SOURCE_INCOMPLETE", "Predicate observation requires a reference: "+id+"/"+name)
+					continue
+				}
+				for _, field := range mapKeys(observation) {
+					if field != "ref" && field != "scope" && field != "freshness" {
+						a.errorAt(filename, child(observation, field).Line, "PREDICATE_SOURCE_INCOMPLETE", "unsupported Predicate observation field: "+field)
+					}
+				}
+				ref := child(observation, "ref")
+				if ref == nil || ref.Kind != yaml.ScalarNode || ref.Tag != "!!str" || ref.Value == "" {
+					a.errorAt(filename, observation.Line, "PREDICATE_SOURCE_INCOMPLETE", "Predicate observation ref must be a nonempty string: "+id+"/"+name)
+				}
+				for _, field := range []string{"scope", "freshness"} {
+					value := child(observation, field)
+					if value != nil && (value.Kind != yaml.ScalarNode || value.Tag != "!!str" || value.Value == "") {
+						a.errorAt(filename, value.Line, "PREDICATE_SOURCE_INCOMPLETE", "Predicate observation "+field+" must be a nonempty string: "+id+"/"+name)
+					}
 				}
 			}
 		}
@@ -161,6 +201,11 @@ func (a *analysis) validateContractPredicates(s *skillEntry) {
 			if unalias(item).Kind != yaml.MappingNode {
 				a.errorAt(s.contract, item.Line, "PREDICATE_SOURCE_INCOMPLETE", "contract "+group+" entry must be a mapping with a Predicate ID")
 				continue
+			}
+			for _, field := range mapKeys(item) {
+				if field != "predicate" && field != "expect" {
+					a.errorAt(s.contract, child(item, field).Line, "PREDICATE_SOURCE_INCOMPLETE", "unsupported contract "+group+" field: "+field)
+				}
 			}
 			predicate := child(item, "predicate")
 			id := scalar(predicate)
