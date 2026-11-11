@@ -1,20 +1,21 @@
-# 本地弱模型执行提示词 · ca-skill-compiler v0
+# DeepSeek / OpenCode Harness · ca-skill-compiler (breaking-only)
 
-你在本地仓库 `odango-chan/ca-skill-compiler` 执行实现任务，不是做审计/设计交接。**一次执行尽量完成 WP0–WP7**。必须先完整阅读：
-- `docs/workstreams/local-implementation-goal.md`（唯一执行任务书）
-- `docs/design/skill-compiler-v0.md`（架构约束）
-- `docs/studio-integration.md`（Studio/WASM 消费接口）
-- `docs/design/script-contract-v0.md`（严格 TypedDict / Annotated 规约）
-- `docs/WORK.md`（事实状态）
-- `examples/ca-agent-demo-project/README.md`（真实样例与 MAS 非 READY 边界）
-- `AGENTS.md`
+你需要**直接实现代码并验收**，不是继续整理架构文档。仓库：`odango-chan/ca-skill-compiler`。从最新 `origin/feat/compiler-v0-bootstrap` 创建独立实现分支；**不要从 main 或旧 ca-skill-toolchain 开始**。
 
-基线要求：从最新远端 `origin/feat/compiler-v0-bootstrap` 开始；在该 commit 上创建新实现分支，不从当前 `main`（仅有初始 README）开始，也不把旧 `ca-skill-toolchain` 复制过来。先运行 go test/go build 记录初始错误，修复。然后完成两个真实 Skill 的静态构建、ToolCatalog 导入、Schema/依赖/Procedure 校验、CLI 与 WASM，提供有实际结果的测试证据。脚本不得执行、Tool/MCP 不得调用。MAS 候选 ToolCatalog 只用于静态链接，不能声称 READY。
+依次阅读：
+1. `AGENTS.md`
+2. `docs/design/skill-compiler-v0.md`
+3. `docs/design/script-contract-v0.md`
+4. `docs/design/procedure-link-v0.md`
+5. `docs/workstreams/acceptance-matrix-v0.md`
+6. `docs/workstreams/local-implementation-goal.md`（WP0–WP7）
+7. `docs/studio-integration.md`
+8. `docs/WORK.md`
 
-WP3 强制采用最新 `docs/design/script-contract-v0.md`：外部输入由 `lib/` 或 Skill/Host 的真实 Producer Schema 提供，Procedure `with:` 推导脚本入参，不要求 Script 再定义一份 Input TypedDict。Script 自己计算的 Output 必须严格完整，Compiler 生成 Output Schema；`main(input: dict) -> OwnOutput` 合法的前提是所有 `with` 都有可解析的 Producer 类型。真实样例已导入 ToolCatalog，但 Host Context/Observation 尚无确认的完整权威 Schema；不要伪造它们以获得 PASS。旧 5GC Scripts 保留 external Schema。不要执行 Python、不要实现已撤回的 embedded YAML 和强制 Script Input TypedDict 方案。
+关键纠偏：**无需兼容旧格式**。两套 ca-agent-demo 真实 Skill 是迁移前参考，必须原样保留以做差异/诊断，**不要求旧脚本原样编译 PASS**。不要实现旧 `connectionagent-tool` Script 头部兼容分支、旧 external/embedded SchemaMode、Release/Qualification/DB、历史 Runtime Artifact；不得通过放宽校验或捏造 Host/Observation Schema 让测试变绿。
 
-开发原则：重构是允许的，优先小而清晰的 Go Core。凡已发现缺陷，先补失败测试再修代码；不可修改真实 Skill 快照或放宽校验以得到绿色。Native 和 WASM 共享 Core。尽量实现完成的功能，别新增 DB/Qualification/Release/HTTP Server/复杂 Artifact 系统/泛化插件框架。
+唯一新规则：从 `lib/` 导入 Tool/Host/Observation 的**真实 Producer Schema**；Procedure 的 `with:` 将外部输入绑定到 Script，按调用点解析类型；Script 只声明自己计算得到的严格 Output TypedDict 并生成 Output Schema。不要在 Script 中重复定义 Tool Input TypedDict。缺少权威外部契约必须有明确错误，不可默认 object。
 
-权限：可以在新仓新分支内自主编辑、执行本地测试、提交、推送、创建 PR（目标分支为 feat/compiler-v0-bootstrap）；不 force push，不对其他仓库写入，不启动真实 5GC，不触发 GitHub Actions，不在测试失败时合并 main。
+优先推进：WP0 Go 编译 + 测试 → WP1 AST/Scope/Graph → WP2 ToolCatalog + manifest/Inspector API → WP3 Binding + Script Output Schema → WP4 CLI package → WP5 WASM/Chromium → WP6 真实 Skill 迁移报告（可在隔离目录转换，不改原快照）→ WP7 实际验收与 PR。
 
-最终必须输出：分支+SHA+PR、WP0–WP7 状态、Go test/build/wasm 的真实结果、两个真实 Skill 的诊断、未闭合项，并同步 docs/WORK.md。不要只给后续规划或让另一个模型接手。
+允许自动提交/推送、创建 **目标分支为 feat/compiler-v0-bootstrap** 的 PR；不能强推、不能在测试失败时合并 main、不能写其他仓或运行真实 5GC。按 G0–G9 回报真实测试证据，未跑就标 NOT_RUN，Owner 缺 Schema 就标 BLOCKED，更新 docs/WORK.md。不要停止于计划或再次交接。

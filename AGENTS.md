@@ -1,16 +1,20 @@
-# ca-skill-compiler · Local implementation instructions
+# ca-skill-compiler · Harness rules
 
-This is a new, minimal, stateless compiler repository. **Do not follow old ca-skill-toolchain/Platform AGENTS.md.**
+This is a clean, stateless Compiler repo; **breaking-only v0, NO legacy compatibility layer.**
 
-Authority and order:
-1. [Local Implementation Goal](docs/workstreams/local-implementation-goal.md)
-2. [Compiler v0 design](docs/design/skill-compiler-v0.md)
-3. [Script Contract v0](docs/design/script-contract-v0.md) — producer-owned external inputs resolved from lib/Procedure with; strict Script-owned computed outputs; do not duplicate Tool schemas
-4. [Skill Studio ABI](docs/studio-integration.md)
-5. [Status](docs/WORK.md)
+Read authoritative specs in this order:
+1. [Script Contract](docs/design/script-contract-v0.md)
+2. [Procedure & Binding](docs/design/procedure-link-v0.md)
+3. [Project Compiler Design](docs/design/skill-compiler-v0.md)
+4. [Acceptance Matrix](docs/workstreams/acceptance-matrix-v0.md)
+5. [Implementation Goal](docs/workstreams/local-implementation-goal.md)
+6. [Studio/WASM ABI](docs/studio-integration.md)
+7. [WORK status](docs/WORK.md)
 
-Do not add database, API service, Qualification/Release, Runtime executor, Tool execution, hidden global registry or mandatory digest lifecycle. Compiler: in-memory files → parse/link/minimal checks → output files + diagnostics. Use the same Go Core for native and WASM. Scripts must not execute during build.
+Implementation must be a pure Go, in-memory, stateless Core: input project files -> static parse/link/diagnostics -> output files. No Python execution, MCP call, live 5GC, SQLite, Release, Qualification, Runtime Admission or HTTP server. Native and WebAssembly share exactly this Core; Studio owns UI and ZIP.
 
-The real integration fixture `examples/ca-agent-demo-project` is a fixed snapshot from ca-agent-demo at `8ab5145b992f74ee793e0d35a4ec96e6b26500a3`. Traditional 12-operation ToolCatalog is an existing Agent-facing contract; MAS 16-operation catalog is explicitly PROPOSED / NOT_READY. Do not alter these test sources to hide compiler failures or claim Runtime/Tool readiness.
+**External Producer owns Input Schema**: import real Tool/Host/Observation contracts in lib/, bind via Procedure with:. Script declares **only its newly computed Output type** as a strict nonempty TypedDict (main(input: dict) -> Output). No repeated Script Input TypedDict, no old script-header schemaMode/external fallback, no acceptance via guessed object fields. Missing authoritative external contract must diagnose.
 
-Start from `origin/feat/compiler-v0-bootstrap` until Draft PR #2 merges. Make new implementation branch and PR against that branch. Run real local Go tests/build and JS/WASM/Chromium verification as available. Do not claim PASS for NOT_RUN. Do not touch other repositories or real 5GC. Keep the implementation small and the future Skill Studio interface stable.
+Pinned `examples/ca-agent-demo-project` is a **pre-migration reference**: 79 source Skill blobs + one ToolCatalog match upstream at `8ab5145b992f74ee793e0d35a4ec96e6b26500a3`; MAS candidate lib is a separate matching copy. Preserve these originals unmodified. Raw old scripts do not need to compile under v0; their migration errors are evidence. If migrating examples, do so in a separate v0 directory. MAS Tools are PROPOSED/NOT_READY.
+
+Work on a new branch based on latest origin/feat/compiler-v0-bootstrap and open PR targeting that branch. Run real Go tests, native/WASM and browser tests where available; report PASS/FAIL/BLOCKED/NOT_RUN honestly. Do not modify other repositories, force-push or merge failing code into main.

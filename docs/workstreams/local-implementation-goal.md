@@ -1,132 +1,120 @@
-# Local Harness Goal · Finish Skill Compiler v0 (one-shot)
+# Local Harness Goal · Implement Skill Compiler v0 (BREAKING ONLY)
 
-- **Status**: implementation Goal; not an assertion of completion
-- **Owner repository**: `odango-chan/ca-skill-compiler`
-- **Start point**: `origin/feat/compiler-v0-bootstrap`, the head of [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2), **not `main`**
-- **Issue**: [#1](https://github.com/odango-chan/ca-skill-compiler/issues/1)
-- **Target API**: [Studio integration](../studio-integration.md)
-- **Accepted scope**: [Compiler v0 design](../design/skill-compiler-v0.md)
-- **Real sample**: [ca-agent-demo-project](../../examples/ca-agent-demo-project/README.md)
+- Repo: `odango-chan/ca-skill-compiler`
+- Start from the **latest** `origin/feat/compiler-v0-bootstrap` (Draft [PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2)), not the bare `main` and not the old `ca-skill-toolchain`.
+- Issue: [#1](https://github.com/odango-chan/ca-skill-compiler/issues/1)
+- Status at handoff: design frozen, prototype exists, **compiler Go/WASM and browser checks NOT_RUN**.
+- Goal: implement one clear v0 contract, test it, push a scoped implementation PR back to the bootstrap branch. **No legacy compatibility adapters.**
 
-## 0. Non-negotiable boundaries
+## 0. Read in this order
 
-This project is a stateless, GCC-like compiler, **not** a platform. Keep these out of the new repository: SQLite/DB, HTTP service, Qualification, Release, Registry server, managed Workspace, Scenario/Planning/Mock runner, Runtime execution/Admission, mandatory digest/identity release lifecycle, tool implementation or MCP server invocation. No copying whole legacy Toolchain packages. Do not edit `ca-agent-demo`, `ca-runtime`, `ca-skill-studio-demo` or `connectionagent` in this Goal.
+1. [AGENTS.md](../../AGENTS.md)
+2. [Skill Compiler v0 overall design](../design/skill-compiler-v0.md)
+3. [Script Contract v0](../design/script-contract-v0.md) — **producer-owned input / strict self-computed output**.
+4. [Procedure / Binding Link Contract v0](../design/procedure-link-v0.md) — grammar and source scopes.
+5. [Single acceptance matrix](acceptance-matrix-v0.md) — positive/negative gates.
+6. [Studio API / WASM wire](../studio-integration.md)
+7. [Current WORK status](../WORK.md)
+8. [Real upstream migration fixture](../../examples/ca-agent-demo-project/README.md)
 
-Authoring project consists of three logical roots: editable `skills/` (multiple Skills), imported **read-only** `lib/` and generated `output/`. Compiler only transforms input byte maps to diagnostics/output byte maps. CLI owns filesystem access, Studio owns editor, export ZIP and file-save permissions. Native and WASM MUST use the **same** Go compiler Core.
+If old comments and examples disagree with these documents, **these v0 documents take precedence**. Document the conflict and correct the implementation/old test, not the contract.
 
-No unattended modifications to Tool contract truths: an imported Tool contract describes an interface, not installation, READY, authorization or successful execution. Never execute Python/Tool/MCP operations during compilation.
+## 1. Invariants
 
-## 1. Current baseline (audit before coding)
+- **Breaking-only**: NO support for legacy `# /// connectionagent-tool` as an alternative Script input/output Schema source; NO `schemaMode: external/embedded` switch; NO old Release/Qualification/DB/API or legacy SkillBuildArtifact.
+- Project layout: `skills/` editable authored source, `lib/` imported read-only snapshots, `output/` derived artifact. WASM and Native use the exact same Go Core.
+- **External input is imported, not retyped.** Tool inputs/outputs come from `lib/tools/`; Host/Observation facts from real Owner-provided library files; Skill-defined public request from explicit Skill contract. Procedure `with:` derives Script per-call input projections.
+- A Script's own *new* Output Schema is generated from fully declared `TypedDict / Literal / Annotated / NotRequired`; Python `main(input: dict) -> OutputType` is allowed, but input must resolve to exact Producer fields. **No output `dict/Any/object`**, no field guessing or unsupported-annotation downgrade.
+- Compilation **never runs** Python, MCP, Tool implementation, Host, network, CEL evaluator or 5GC; declaration of a Tool does not prove readiness. No new dependencies on a server, DB, Node, Pydantic or live MCP.
+- Unresolved owner, unknown field, ambiguous operation, invalid source syntax, output collision, unsupported runtime-dependent binding => **ERROR**, not a passing build.
+- Paths/size/alias protection, reproducible output bytes, negative tests and accurate source locations are essential and should not be called a Qualification product.
 
-- [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2) includes initial `internal/compiler`, native `cmd/skillc`, `cmd/skillc-wasm`, Worker bridge, tests and docs. **Static code only: Go test/build and Chrome/WASM acceptance are NOT_RUN**.
-- Early Core's `skills.go` scans generic keys and may report **spurious `PROCEDURE_NOT_FOUND`** for a cross-Skill node `procedure: {skill: child, procedure: run}`: the recursive walker sees the nested `procedure: run` again as a local call. Fix by typed/position-aware traversal, not by hiding the diagnostic.
-- `go.mod` currently references `gopkg.in/yaml.v3`; check whether `go.sum` is absent. Run `go mod tidy` in a network-enabled environment, commit lockfile. No hand-rolled YAML parser.
-- `Check/Build` currently do not provide a Library inspection API, comprehensive Schema validation, Script I/O generation, exact Procedure resolution, true target closure semantics or real consumer validation. Do not describe them as implemented.
-- Synthetic `examples/minimal-project` is NOT the real example.
-- **Real sample NOW PRESENT** in `examples/ca-agent-demo-project`: exact 2 Skill directory snapshots (79 files) + one Agent ToolCatalog file; source commit `8ab5145b992f74ee793e0d35a4ec96e6b26500a3`. All 80 original file Git blob IDs matched byte-for-byte against the copied paths. Another identical copy of the MAS proposed ToolCatalog appears in `lib/tools/mas-proposed.tool.yaml`. Source snapshots are intentionally not edited for passing tests.
-- MAS lib is from `establish-pdu-session-mas/design/tool-contract.yaml` and is explicitly **NOT_READY** (external adapters, independent Effects, reconcile and resource owner proofs unimplemented). Its 16 Operation declarations support static-link experiments only. Conventional Agent ToolCatalog declares 12 operations and is not an MCP server.
-- `ca-agent-demo/tools/registrations/default.yaml` is deployment Operation → Implementation binding, **not a Tool Schema library**.
+## 2. What is already there (fix rather than assuming pass)
 
-## 2. Execution sequence (finish in order; do not stop at a design-only handoff)
+- `internal/compiler` implements an **incomplete** file-map core; `cmd/skillc`, `cmd/skillc-wasm` and `web/skillc-worker.js` are unverified scaffolding.
+- `go.mod` references `gopkg.in/yaml.v3`, check whether `go.sum` needs generation. Run real tests; do not claim PASS from source inspection.
+- Existing recursive YAML `inspectMapping` treats nested `procedure: run` as a local Procedure reference; fix with typed node AST traversal.
+- Existing `validPath` rejects valid two-segment `lib/manifest.yaml`; fix while keeping unsafe-path rejection.
+- Existing `parseSkills` / `validateSkills` and unit tests do not validate dataflow/source schemas, nested steps, predicate references, generated output contracts, real local / WASM parity.
+- `lib/manifest.yaml` in the real fixture labels imported contract maturity `declared` / `proposed`. Both are **interface only**; neither equals Runtime READY. If absent, default status `unspecified`.
+- Frozen upstream source fixture: `examples/ca-agent-demo-project/` contains both original PDU Session Skills, 79 unaltered Skill files plus real conventional Tool Catalog; MAS lib is another faithful copy. This is a **pre-migration reference**, NOT a build-PASS expected fixture.
+- Missing authoritative Host context/Observation schemas are **real external dependencies**. Do not import `root-routing-profile-v0.5.schema.json` as a substitute; that is a deployment settings Schema.
 
-### WP0 · Make existing Go bootstrap compile and tests run
+## 3. WP0 — compile, test, pin baseline
 
-- Start from exact branch above; inspect the existing code and `docs/WORK.md`, reproduce failures.
-- `go mod tidy`; `gofmt -w` Go source; `go test ./...`; `go vet ./...`.
-- Correct Go syntax/runtime issues, parser panics, and tests. Add tests first for repros.
-- **Known P0**: make synthetic cross-Skill procedure test PASS by fixing the recursive `procedure` token misclassification. Parse AST/nodes by meaningful contexts.
-- **Known P0**: ensure duplicate YAML keys, malformed aliases, oversized inputs, duplicate Tool IDs, path traversal, parent-path escape and bad data never crash/panic or silently choose one source.
-- Avoid migrating old platform's parser wholesale.
-- Goal exits only with real local logs of tests/build, not a claim inferred from code review.
+- Fetch latest branch, create an implementation branch `feat/v0-implementation-<topic>`. Record HEAD and actual current errors.
+- Run: `go mod tidy`, `gofmt -w` on actual Go files, `go test ./... -count=1`, `go vet ./...`, then `go build -o ./dist/skillc ./cmd/skillc`.
+- Repair initial syntax/runtime issues and write regression tests for `lib/manifest.yaml`, YAML duplicate keys/aliases, bad input and cross-Skill nested refs.
+- Commit reproducible Go module lockfile and update status with actual PASS/FAIL; no invented logs.
 
-### WP1 · Implement static Skill source analysis and dependency resolution
+## 4. WP1 — canonical Procedure AST + Skill graph
 
-- Read all Skill roots under `skills/<name>/`. Derive identity from real manifest/contract; match authored name to directory. Validate entry Procedure exists.
-- Analyze Procedure graph: step/node references, Script path refs, tool `call` refs, local child references, explicit cross-Skill refs, required Predicate refs. Avoid generic text search and accidental nested-key handling.
-- Build a deterministic Skill-to-Skill graph; detect missing dependency, duplicate/ambiguous identity and cycles explicitly. With `targets=[]` build whole project; with a target, build its **transitive closure only**. Invalid unrelated Skill must not block a valid selected target unless it changes shared/global namespace or input safety.
-- Preserve original authored Skill files; no silent deletion, rewriting or weakening of unknown construct. Unsupported features must produce clear warning/error where they impact semantics.
-- No run-time graph execution, no business-specific `CreatedSession` cases.
+- Parse `procedures:<name>: {inputs,start,nodes}` and the exact v0 action grammar in [Procedure Link v0](../design/procedure-link-v0.md). Reject unknown semantic constructs with `PROCEDURE_UNSUPPORTED` instead of silently ignoring.
+- Validate entry Procedure, start node, node outcome targets, nested pre/postconditions step names, Script references, Predicate IDs, local/cross-Skill Procedure names and reconcile refs.
+- Implement proper lexical binding scopes; never string-search keys to infer a Procedure action. Test real historic references as **migration samples**, without accepting every old construct.
+- Target selection builds transitive Skill dependencies only. Missing/cyclic/ambiguous identity must fail; one bad unrelated Skill must not block a targeted root except for shared/global namespace problems.
 
-### WP2 · Library import and inspection API
+## 5. WP2 — import Library with ownership and provenance
 
-- Read `lib/tools/*.yaml` as **ToolCatalog**. Support the real `createdsession.tool.yaml` including YAML anchor/alias. Read `mas-proposed.tool.yaml` as a design-state fixture with explicit NOT_READY info; do not turn it into a validated runtime Tool.
-- Validate Operation IDs, declared Effect, input/output Schema presence/shape, source location and duplicate/conflicting IDs; return precise diagnostics, no auto-winner.
-- Add a read-only Tool Library projection/API for Skill Studio: name/ID, description (if present), I/O Schema, optional reconcile Schema, declared Effect + origin, and status/unknowns. Do not make Studio implement a second catalog parser.
-- Make a **real input fixture test**: 12 conventional and 16 MAS declared Operations are discoverable. The effect contract is only a claim from the imported file; no READY test.
-- MCP `tools/list` JSON import is an optional later adapter; do not connect to live MCP or add a network dependency to compiler Core.
+- Parse real `lib/tools/createdsession.tool.yaml` (12 Operations), `mas-proposed.tool.yaml` (16 proposed Operations) including YAML anchor/alias; reject duplicate Operation IDs, malformed schemas and conflicting declarations.
+- Parse optional `lib/manifest.yaml`: each imported catalog has relative path and `status: declared|proposed|unspecified`. This is contract maturity only; **no Runtime READY state can be returned**.
+- Provide read-only, inspectable Library data for Studio via single Core API (as specified in [Studio API](../studio-integration.md)): operation ID, source path, interface schemas, declared Effect, provenance/status. Do not invent a second Studio parser.
+- The absence of a Host/Observation schema must be reflected in diagnostics when a Procedure binds its fields. Not everything in `context.*` belongs to ToolCatalog.
 
-### WP3 · Producer-owned Script Contract v0
+## 6. WP3 — link external input + generate Script-owned Output
 
-**Before coding read [Script Contract v0](../design/script-contract-v0.md).** The new rule is **producer-owned external inputs / script-owned computed outputs**. This supersedes the earlier requirement for strict input TypedDict and the embedded YAML Script-comment mode.
+- Resolve `context.request.*` against explicitly linked request Schema, `context.subject/facts/observations.*` against real imported Owner schema, `input.*` against Procedure inputs, `<node>.output.*` against source Output Schema, and nested preconditions step paths per [Procedure Link v0](../design/procedure-link-v0.md).
+- For each Script `with:` resolve every `from:` and concrete literal into a **per-site input projection**. Do not make the author retype Tool/Host interface as Script Input TypedDict.
+- Accept exactly new Script contract `main(input: dict) -> NonEmptyOutputTypedDict`; generate **only** Script's new Output JSON Schema at `skills/<skill>/schemas/generated/<script-relative>.output.schema.json` in outputFiles.
+- Never accept a broad output type, dynamic annotation, empty class or missing upstream Producer by downgrading it to loose object. Do not use Python interpreter/subprocess or runtime reflection. Annotated constraints must be checked.
+- **No legacy fallback** from historical Script metadata / old external Input+Output Schema. Instead, produce migration diagnostics for raw ca-agent-demo samples.
+- Synthetic `examples/script-contract-project` is the positive demonstration: request field → Tool call → Tool Output → Script with → typed Script Output; use its real read-only ToolCatalog fixture.
 
-- Import actual read-only Library files first. Real `examples/ca-agent-demo-project/lib/tools/createdsession.tool.yaml` has 12 contract Operations; `mas-proposed.tool.yaml` has 16 declared Operations but is **PROPOSED / NOT_READY**.
-- Resolve Procedure `with:` bindings to actual Producer Schema paths: imported Tool Output, Skill-owned requestSchema, earlier Script Output, or separately imported Host/Observation contracts. Output an **input projection per call site**; do NOT demand that each Script duplicates the Tool/Host Schema as a Python Input TypedDict.
-- For newly computed Script results, require a complete static TypedDict / allowed Annotated type and generate a strict **output-only** Schema. The Python signature may be `main(input: dict) -> OwnOutput`, because the input envelope is typed by Producer bindings. No new interface may use generic dict/Any/object/empty TypedDict as **its own output Schema**.
-- Missing producer type/field, broad undifferentiated object, conflicting binding or incomplete Host/Observation Schema must produce precise diagnostic. No guessed fields, no fake green pass.
-- The actual Host input/context/observation producer contracts are **not yet confirmed as present**. Do not copy Root Routing Profile as their substitute; do not invent Host schemas just to make real Skill checks pass.
-- Preserve frozen original 5 Python Script files and their author-owned external Schema exactly. Do not delete or weaken existing allOf/if/then rules.
-- Update `examples/script-contract-project` using imported `lib/tools/demo.tool.yaml` and require Tool Output -> Procedure with -> Script Input -> generated strict Script Output. Add SO-01..SO-10 positive/negative tests from the canonical spec.
-- Compiler does not execute Python, external Tool or MCP; Runtime/Host owns real sandbox, execution and admission. Native/WASM share the same Core and must produce byte-identical output/diagnostics.
+## 7. WP4 — deterministic materialization + Native CLI
 
-### WP4 · Deterministic package and Native CLI
+- Core API remains `Check/Build` from memory file bytes. Implement `InspectLibraries` (name/shape defined by Studio API). No new HTTP server.
+- Build whole project or root dependency closure and include only relevant imported catalog snapshots. Output relative paths deterministic and sorted, no run ID/release/digest. Never materialize intermediate Script input projections as editable Source files.
+- CLI supports `skillc check PROJECT` / `skillc build PROJECT --out FRESH_DIR` and `--skill NAME`; nonzero on compiler ERROR, reject symlinks/path traversal, never overwrite source/library or stale nonempty output.
 
-- Build selected Skills + transitive dependent Skills, necessary source files, generated schemas and used Tool library snapshots; preserve exact relative paths for copy/ZIP.
-- Output files sorted, deep byte-copy, no timestamps/run IDs/forced SHA digest. Output cannot become Source on a subsequent build.
-- Native CLI `skillc check PROJECT`, `skillc build PROJECT --out DIR`, optional `--skill NAME`; return nonzero for error.
-- Never follow symlinks or overwrite Source/Lib; reject unsafe output paths and stale nonempty output. Tests for both Windows-style and POSIX path traversal.
-- Keep ZIP creation in Studio, not the compiler Core.
+## 8. WP5 — WASM / Worker / Pages
 
-### WP5 · WASM + Pages + Studio handoff
+- Build the same Core for `GOOS=js GOARCH=wasm`. Bundle matching `wasm_exec.js`, worker script and static test harness; do not install a server API.
+- Compare Native and browser WASM diagnostics/outputFiles **content bytes and ordering** for both successful and failing fixtures. Document size/time and make worker error returns distinct from compiler errors.
+- A Go/WASM binary merely existing is NOT a passed browser test. Run actual Chromium static-site invocation if environment supports it; otherwise mark BLOCKED/NOT_RUN precisely.
 
-- Build `GOOS=js GOARCH=wasm` using same Core. Provide minimal Worker bridge (JSON base64 `[]byte` encoding) and a browser demo that actually invokes it, if useful.
-- Test same payload and verify diagnostics/output paths/bytes equal native Core (not just “WASM starts”).
-- Verify on real Chromium static-site serving (Pages-like), no server API/database, no remote tool execution, no user file upload.
-- Document observed size/time and limits, no need to build a custom UI. Keep [Studio integration doc](../studio-integration.md) up to date.
+## 9. WP6 — real 5GC source migration evidence (NO COMPAT)
 
-### WP6 · Real fixtures & compatibility acceptance
+- Read pinned real fixture without modifying originals. Run strict compiler against it; **expect actionable migration errors, not success by supporting old Python Script headers**.
+- If feasible, create a separate `examples/ca-agent-demo-v0/` containing migrated Source, preserving upstream snapshot untouched. Do not patch the upstream repository; do not invent Host/Observation contract or MAS implementation to make this green.
+- Give an explicit report for each real Skill: which Script Outputs require typed migration, which Procedure bindings/Predicate contracts are unsupported, which Tool/Host schema owners are still missing, which checks are demonstrably complete.
+- The MAS contract carries `status: proposed`; CLI/Compiler cannot claim MAS runtime READY.
+- Host consumer changes may be necessary by design. Record them for a separate Owner PR, do not implement a compatibility adapter to preserve old identity/artifact format.
 
-Tests must use these **unchanged** checked-in source snapshots:
-- `examples/ca-agent-demo-project/skills/establish-pdu-session/`
-- `examples/ca-agent-demo-project/skills/establish-pdu-session-mas/`
-- `examples/ca-agent-demo-project/lib/tools/createdsession.tool.yaml`
-- `examples/ca-agent-demo-project/lib/tools/mas-proposed.tool.yaml`
+## 10. WP7 — finish, verify, push, PR
 
-Run whole-project and both individual targets. Record actual diagnostics by code + source line. Fix compiler mistakes in compiler, not by modifying the imported Skill files or by weakening checks. If the MAS sample cannot pass because its Tool contracts are genuinely incomplete, report **expected NOT_READY / static-only**; do not synthesize production implementations. Keep a clear distinction between:
-1. \`Build.success\`: static source, required files, references and link checks accepted;
-2. \`READY\`: separately determined by Runtime/Host and real Tool owners (not Compiler).
+In a network-enabled local environment execute at least:
 
-Inspect ca-agent-demo's actual Skill loader/admission input requirements **read-only**, document whether copying `output/skills/*` alone works, or needs Host-local configuration. Do not modify that external owner in this workstream.
-
-### WP7 · Final verification, documentation and PR flow
-
-Run locally and record actual outputs:
 ~~~bash
 go mod tidy
-gofmt -w ./cmd ./internal
+gofmt -w $(git ls-files '*.go')
 go test ./... -count=1
 go vet ./...
-go build ./cmd/skillc
-GOOS=js GOARCH=wasm go build -o dist/skillc.wasm ./cmd/skillc-wasm
+mkdir -p dist
+go build -o ./dist/skillc ./cmd/skillc
+GOOS=js GOARCH=wasm go build -o ./dist/skillc.wasm ./cmd/skillc-wasm
 go run ./cmd/skillc check ./examples/minimal-project
+go run ./cmd/skillc check ./examples/script-contract-project
+# Strict checks on the raw 5GC references MUST report migration defects;
+# do NOT change validation to make the old source pass.
 go run ./cmd/skillc check ./examples/ca-agent-demo-project
-go run ./cmd/skillc build ./examples/ca-agent-demo-project --skill establish-pdu-session --out ./dist/pdu
-go run ./cmd/skillc build ./examples/ca-agent-demo-project --skill establish-pdu-session-mas --out ./dist/mas
 git diff --check
 ~~~
-Use a fresh `dist/` for every run; adapt shell paths as necessary, keep generated binaries ignored. A test failure must remain FAIL, not “blocked” unless environment truly prevents running it. Use source-backed diagnostic expectations for MAS / incomplete external contracts.
 
-Document precisely what passed, what did not run, and missing consumer/runtime proof in `docs/WORK.md` and a small acceptance report; do not declare Host/5GC E2E PASS.
+All outputs must be recorded as observed (Exit Code and diagnostic codes). The last command for raw 5GC is an **expected nonzero / migration-diagnostic** check when legacy constructs exist; do not gate this as “all commands exit 0”. For Windows adjust shell syntax, preserve identical semantics. For repeatable builds, clear dist/fresh output dirs explicitly.
 
-Create a new implementation branch from `origin/feat/compiler-v0-bootstrap`, commit and push changes, and open a PR **targeting `feat/compiler-v0-bootstrap`**. Do NOT target old Toolchain and do not force-push. Only after local checks and review of that PR should initial [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2) be marked ready and considered for merge to `main`. Do not merge to `main` with open real compiler failures. Do not create GitHub Actions just to get verification.
+- Update `docs/WORK.md` with IMPLEMENTED/PARTIAL/NOT_STARTED and PASS/FAIL/BLOCKED/NOT_RUN separately, add a concise acceptance report structured by [G0–G9](acceptance-matrix-v0.md).
+- Commit and push to **new implementation branch**, open PR **targeting `feat/compiler-v0-bootstrap`**, not main. Do not force-push, do not modify other repos, run GitHub Actions or real 5GC, and do not merge while compiler tests fail.
+- Work through as much as possible in one Harness execution; at most one implementation PR is preferred. If a genuine external owner or environment blocks a gate, finish the remaining independent gates and report precise blockers, rather than changing the spec.
+- Final response in same run: branch SHA/PR, G0–G9 matrix, native/wasm/browser test evidence, synthetic fixture results, raw 5GC migration diagnostics, pending Owner dependencies.
 
-## 3. Handoff / output requirements
-
-Return in the same local Harness execution:
-1. Implementation branch, HEAD SHA, PR URL;
-2. completed WP0–WP7 matrix with IMPLEMENTED/PARTIAL/NOT_STARTED and PASS/FAIL/BLOCKED/NOT_RUN separately;
-3. precise static results for the traditional and MAS Skills, including unmet Tool contracts;
-4. native CLI and WASM build verification, and browser/Chrome check if performed;
-5. exact independent consumer questions that remain, without expanding into other repositories;
-6. final diff summary (do not edit source snapshots without explicit justification).
-
-**This is a one-shot implementation Goal, not a request for another report or handoff.** Work through stages sequentially, run tests, fix errors, commit/push and create PR; do not stop after merely designing the solution. If a step truly cannot be completed, leave a precise error, tests and remaining work, then complete all nonblocked steps.
+**Scope is Compiler v0 implementation only; not a new Skill Studio project or tool management platform.**
