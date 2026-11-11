@@ -355,7 +355,7 @@ func TestSchemaShapeValidatesDraft2020ConstraintTypes(t *testing.T) {
 	valid := schemaNode(map[string]any{
 		"type": "array", "items": map[string]any{"type": "object"},
 		"minItems": 1, "maxItems": 4, "contains": map[string]any{"type": "string"},
-		"minContains": 1, "maxContains": 2,
+		"minContains": 1, "maxContains": 2, "unevaluatedItems": false,
 	})
 	if err := validateSchemaShape(valid); err != nil {
 		t.Fatalf("valid Draft 2020 constraints rejected: %v", err)
@@ -369,6 +369,16 @@ func TestSchemaShapeValidatesDraft2020ConstraintTypes(t *testing.T) {
 		{"type": "array", "contains": map[string]any{}, "minContains": 3, "maxContains": 2},
 		{"type": "string", "enum": []any{"same", "same"}},
 		{"type": "number", "enum": []any{1, 1.0}},
+		{"type": "array", "unevaluatedItems": "false"},
+	}
+	for _, source := range []string{"type: object\ntrue: {type: string}\n", "type: object\nproperties:\n  true: {type: string}\n", "type: object\ndependentRequired:\n  true: [value]\n"} {
+		var document yaml.Node
+		if err := yaml.Unmarshal([]byte(source), &document); err != nil {
+			t.Fatal(err)
+		}
+		if err := validateSchemaShape(document.Content[0]); err == nil {
+			t.Errorf("non-string JSON object key was accepted: %q", source)
+		}
 	}
 	for _, candidate := range invalid {
 		if err := validateSchemaShape(schemaNode(candidate)); err == nil {

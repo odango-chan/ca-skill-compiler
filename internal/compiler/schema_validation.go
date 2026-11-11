@@ -15,6 +15,9 @@ func validateSchemaShape(schema *yaml.Node) error {
 	if schema == nil || schema.Kind != yaml.MappingNode {
 		return fmt.Errorf("Schema must be an object")
 	}
+	if err := validateSchemaObjectKeys(schema); err != nil {
+		return err
+	}
 	known := map[string]bool{
 		"$schema": true, "$id": true, "$ref": true, "$defs": true, "definitions": true,
 		"title": true, "description": true, "default": true, "examples": true,
@@ -69,6 +72,9 @@ func validateSchemaShape(schema *yaml.Node) error {
 		if unalias(mapping).Kind != yaml.MappingNode {
 			return fmt.Errorf("%s must be an object", key)
 		}
+		if err := validateSchemaObjectKeys(mapping); err != nil {
+			return fmt.Errorf("%s: %w", key, err)
+		}
 		for _, name := range mapKeys(mapping) {
 			if key == "patternProperties" {
 				if _, err := regexp.Compile(name); err != nil {
@@ -88,7 +94,7 @@ func validateSchemaShape(schema *yaml.Node) error {
 			return fmt.Errorf("items: %w", err)
 		}
 	}
-	for _, key := range []string{"additionalProperties", "unevaluatedProperties", "contains", "not", "if", "then", "else", "propertyNames", "contentSchema"} {
+	for _, key := range []string{"additionalProperties", "unevaluatedProperties", "unevaluatedItems", "contains", "not", "if", "then", "else", "propertyNames", "contentSchema"} {
 		value := child(schema, key)
 		if value == nil {
 			continue
@@ -164,6 +170,9 @@ func validateSchemaShape(schema *yaml.Node) error {
 		if unalias(dependent).Kind != yaml.MappingNode {
 			return fmt.Errorf("dependentRequired must be an object")
 		}
+		if err := validateSchemaObjectKeys(dependent); err != nil {
+			return fmt.Errorf("dependentRequired: %w", err)
+		}
 		for _, name := range mapKeys(dependent) {
 			list := child(dependent, name)
 			if unalias(list).Kind != yaml.SequenceNode {
@@ -224,6 +233,20 @@ func validateSchemaShape(schema *yaml.Node) error {
 	}
 	if unique := child(schema, "uniqueItems"); unique != nil && (unalias(unique).Kind != yaml.ScalarNode || unalias(unique).Tag != "!!bool") {
 		return fmt.Errorf("uniqueItems must be boolean")
+	}
+	return nil
+}
+
+func validateSchemaObjectKeys(object *yaml.Node) error {
+	object = unalias(object)
+	if object == nil || object.Kind != yaml.MappingNode {
+		return fmt.Errorf("must be an object")
+	}
+	for i := 0; i+1 < len(object.Content); i += 2 {
+		key := unalias(object.Content[i])
+		if key.Kind != yaml.ScalarNode || key.Tag != "!!str" {
+			return fmt.Errorf("object member names must be strings")
+		}
 	}
 	return nil
 }
