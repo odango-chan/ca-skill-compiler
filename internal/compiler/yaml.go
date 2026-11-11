@@ -20,21 +20,53 @@ func (a *analysis) parseYAML(filename string) *yaml.Node {
 		a.errorAt(filename, 1, "YAML_LIMIT", "YAML aliases, nesting, or node count exceed safe bounds")
 		return nil
 	}
+	if line, key := duplicateYAMLKey(&doc); key != "" {
+		a.errorAt(filename, line, "YAML_DUPLICATE_KEY", "duplicate YAML mapping key: "+key)
+		return nil
+	}
 	return doc.Content[0]
 }
 
 func boundedYAML(n *yaml.Node, seen map[*yaml.Node]bool, count *int, depth int) bool {
-	if n == nil || depth > 64 || *count > 20000 || seen[n] { return !seen[n] && depth <= 64 && *count <= 20000 }
+	if n == nil { return true }
+	if depth > 64 || *count > 20000 || seen[n] { return false }
 	seen[n] = true
 	*count++
 	if n.Kind == yaml.AliasNode && n.Alias != nil {
 		if !boundedYAML(n.Alias, seen, count, depth + 1) { return false }
 	}
-	for _, child := range n.Content {
-		if !boundedYAML(child, seen, count, depth + 1) { return false }
+	for _, node := range n.Content {
+		if !boundedYAML(node, seen, count, depth + 1) { return false }
 	}
 	delete(seen, n)
 	return *count <= 20000
+}
+
+// Duplicate YAML keys are rejected even when parsing into yaml.Node (which
+// otherwise preserves the duplicate rather than validating it).
+func duplicateYAMLKey(root *yaml.Node) (int, string) {
+	var inspect func(*yaml.Node, map[*yaml.Node]bool) (int, string)
+	inspect = func(n *yaml.Node, active map[*yaml.Node]bool) (int, string) {
+		if n == nil || active[n] { return 0, "" }
+		active[n] = true
+		defer delete(active, n)
+		if n.Kind == yaml.AliasNode { return inspect(n.Alias, active) }
+		if n.Kind == yaml.MappingNode {
+			keys := make(map[string]bool)
+			for i := 0; i+1 < len(n.Content); i += 2 {
+				key := n.Content[i].Value
+				if keys[key] { return n.Content[i].Line, key }
+				keys[key] = true
+				if line, dup := inspect(n.Content[i+1], active); dup != "" { return line, dup }
+			}
+			return 0, ""
+		}
+		for _, child := range n.Content {
+			if line, dup := inspect(child, active); dup != "" { return line, dup }
+		}
+		return 0, ""
+	}
+	return inspect(root, make(map[*yaml.Node]bool))
 }
 
 func unalias(n *yaml.Node) *yaml.Node {
