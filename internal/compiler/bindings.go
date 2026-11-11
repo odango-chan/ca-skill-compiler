@@ -25,6 +25,10 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 					outputs[nodeID] = schemaNode(schema)
 				}
 			}
+		} else if targetID := scalar(child(n, "reconcile")); targetID != "" {
+			if operation := scalar(child(child(nodes, targetID), "call")); operation != "" {
+				outputs[nodeID] = a.tools[operation].reconcileOutputNode
+			}
 		}
 		stepOutputs[nodeID] = map[string]*yaml.Node{}
 		for _, scope := range []string{"preconditions", "postconditions"} {

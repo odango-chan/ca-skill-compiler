@@ -8,12 +8,13 @@ import (
 )
 
 type toolEntry struct {
-	source     string
-	line       int
-	effect     string
-	tool       LibraryTool
-	inputNode  *yaml.Node
-	outputNode *yaml.Node
+	source              string
+	line                int
+	effect              string
+	tool                LibraryTool
+	inputNode           *yaml.Node
+	outputNode          *yaml.Node
+	reconcileOutputNode *yaml.Node
 }
 
 func nodeValue(n *yaml.Node) any {
@@ -132,16 +133,19 @@ func (a *analysis) importLibraries() {
 					}
 				}
 			}
+			reconcileNode := (*yaml.Node)(nil)
 			if reconcile != nil {
 				if expanded, err := a.expandSchemaRefs(filename, root, unalias(reconcile)); err != nil {
 					a.errorAt(filename, reconcile.Line, "LIB_SCHEMA_INVALID", "operation "+id+" reconcileOutputSchema: "+err.Error())
 				} else if err := validateSchemaShape(expanded); err != nil {
 					a.errorAt(filename, reconcile.Line, "LIB_SCHEMA_INVALID", "operation "+id+" reconcileOutputSchema: "+err.Error())
+				} else {
+					reconcileNode = expanded
 				}
 			}
 			tool := LibraryTool{OperationID: id, SourcePath: filename, SourceStatus: status, DeclaredEffect: effect,
 				Description: scalar(child(item, "description")), InputSchema: nodeValue(input), OutputSchema: nodeValue(output), ReconcileOutputSchema: nodeValue(reconcile)}
-			a.tools[id] = toolEntry{source: filename, line: item.Line, effect: effect, tool: tool, inputNode: inputNode, outputNode: outputNode}
+			a.tools[id] = toolEntry{source: filename, line: item.Line, effect: effect, tool: tool, inputNode: inputNode, outputNode: outputNode, reconcileOutputNode: reconcileNode}
 		}
 	}
 	for p := range statuses {

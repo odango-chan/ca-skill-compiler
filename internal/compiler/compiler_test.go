@@ -383,6 +383,9 @@ func TestReconcileRequiresEarlierToolNodeWithDeclaredSchema(t *testing.T) {
         with: {ref: {value: sample}}
       recover:
         reconcile: create
+      consume:
+        call: demo.read
+        with: {ref: {from: recover.output.state}}
 `)
 	files = append(files, toolCatalog())
 	got := Build(Request{Files: files})
@@ -392,7 +395,7 @@ func TestReconcileRequiresEarlierToolNodeWithDeclaredSchema(t *testing.T) {
 
 	for i := range files {
 		if files[i].Path == "lib/tools/demo.yaml" {
-			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "outputSchema: {type: object}", "outputSchema: {type: object}\n    reconcileOutputSchema: {type: object}", 1))
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "outputSchema: {type: object}", "outputSchema: {type: object}\n    reconcileOutputSchema: {type: object, required: [state], properties: {state: {type: string, minLength: 1}}}", 1))
 		}
 	}
 	got = Build(Request{Files: files})
