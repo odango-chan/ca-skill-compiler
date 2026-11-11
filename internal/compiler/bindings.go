@@ -12,34 +12,52 @@ import (
 )
 
 func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.Node, path string) {
+	parsedProcedure := s.procedureASTFor(proc)
 	outputs := map[string]*yaml.Node{}
 	stepOutputs := map[string]map[string]*yaml.Node{}
 	for _, nodeID := range mapKeys(nodes) {
-		n := child(nodes, nodeID)
-		if op := scalar(child(n, "call")); op != "" {
+		parsedNode := ProcedureNodeAST{}
+		if parsedProcedure != nil {
+			parsedNode = parsedProcedure.Nodes[nodeID]
+		}
+		switch parsedNode.Action {
+		case ActionCall:
+			op := parsedNode.Reference
 			outputs[nodeID] = a.tools[op].outputNode
-		} else if rel := scalar(child(n, "script")); rel != "" {
+		case ActionScript:
+			rel := parsedNode.Reference
 			if b := a.files["skills/"+s.name+"/"+rel]; b != nil {
 				if schema, err := parseScriptOutput(string(b)); err == nil {
 					outputs[nodeID] = schemaNode(schema)
 				}
 			}
-		} else if targetID := scalar(child(n, "reconcile")); targetID != "" {
+		case ActionReconcile:
+			targetID := parsedNode.Reference
 			if operation := scalar(child(child(nodes, targetID), "call")); operation != "" {
 				outputs[nodeID] = a.tools[operation].reconcileOutputNode
 			}
 		}
 		stepOutputs[nodeID] = map[string]*yaml.Node{}
-		for _, scope := range []string{"preconditions", "postconditions"} {
-			for _, step := range sequence(child(child(n, scope), "steps")) {
-				id := scalar(child(step, "name"))
-				stepKey := scope + "." + id
-				if op := scalar(child(step, "call")); op != "" {
-					stepOutputs[nodeID][stepKey] = a.tools[op].outputNode
-				} else if rel := scalar(child(step, "script")); rel != "" {
-					if b := a.files["skills/"+s.name+"/"+rel]; b != nil {
-						if schema, err := parseScriptOutput(string(b)); err == nil {
-							stepOutputs[nodeID][stepKey] = schemaNode(schema)
+		if parsedProcedure != nil {
+			for _, scope := range []struct {
+				name  string
+				steps []ProcedureStepAST
+			}{{"preconditions", parsedNode.Preconditions}, {"postconditions", parsedNode.Postconditions}} {
+				for _, step := range scope.steps {
+					id := step.Name
+					if id == "" {
+						continue
+					}
+					stepKey := scope.name + "." + id
+					if step.Action == ActionCall {
+						op := step.Reference
+						stepOutputs[nodeID][stepKey] = a.tools[op].outputNode
+					} else if step.Action == ActionScript {
+						rel := step.Reference
+						if b := a.files["skills/"+s.name+"/"+rel]; b != nil {
+							if schema, err := parseScriptOutput(string(b)); err == nil {
+								stepOutputs[nodeID][stepKey] = schemaNode(schema)
+							}
 						}
 					}
 				}
@@ -49,46 +67,57 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 	// Procedure inputs are producer aliases in their own right. Validate every
 	// declaration here so an unused input cannot hide a missing field or a
 	// declared type that disagrees with its producer.
-	inputs := child(proc, "inputs")
-	for _, name := range mapKeys(inputs) {
-		input := child(inputs, name)
-		from := scalar(child(input, "from"))
-		typ := scalar(child(input, "type"))
-		if from == "" || !validProcedureInputType(typ) {
-			continue // parseProcedure reports malformed declarations.
-		}
-		producer := a.resolveSource(s, proc, from, path, child(input, "from").Line, "", outputs, nil, stepOutputs)
-		if producer != nil && scalar(child(producer, "type")) != typ && !(scalar(child(producer, "type")) == "integer" && typ == "number") {
-			a.errorAt(path, input.Line, "BINDING_TYPE_MISMATCH", "Procedure input source type does not match declared type: "+name)
+	if parsedProcedure != nil {
+		for _, name := range sortedStringMapKeys(parsedProcedure.Inputs) {
+			input := parsedProcedure.Inputs[name]
+			if input.From == "" || !validProcedureInputType(input.Type) {
+				continue // Procedure AST validation reports malformed declarations.
+			}
+			producer := a.resolveSource(s, proc, input.From, path, input.Span.Line, "", outputs, nil, stepOutputs)
+			if producer != nil && scalar(child(producer, "type")) != input.Type && !(scalar(child(producer, "type")) == "integer" && input.Type == "number") {
+				a.errorAt(path, input.Span.Line, "BINDING_TYPE_MISMATCH", "Procedure input source type does not match declared type: "+name)
+			}
 		}
 	}
 	for _, nodeID := range mapKeys(nodes) {
 		n := child(nodes, nodeID)
+		parsedNode := ProcedureNodeAST{}
+		if parsedProcedure != nil {
+			parsedNode = parsedProcedure.Nodes[nodeID]
+		}
 		expected := (*yaml.Node)(nil)
 		procedureInputs := false
-		if op := scalar(child(n, "call")); op != "" {
+		if parsedNode.Action == ActionCall {
+			op := parsedNode.Reference
 			expected = a.tools[op].inputNode
-		} else if ref := child(n, "procedure"); ref != nil {
+		} else if parsedNode.Action == ActionProcedure {
+			ref := child(n, "procedure")
 			if target := a.calledProcedure(s, ref); target != nil {
 				expected = procedureInputSchema(target)
 				procedureInputs = true
 			}
 		}
-		a.checkBindings(s, proc, path, child(n, "with"), expected, nodeID, outputs, stepOutputs[nodeID], stepOutputs, procedureInputs)
+		a.checkBindings(s, proc, path, child(n, "with"), expected, nodeID, "main", -1, outputs, stepOutputs[nodeID], stepOutputs, procedureInputs)
+		if parsedProcedure != nil && parsedProcedure.Nodes[nodeID].Action == ActionVerify && child(n, "with") != nil {
+			a.errorAtNode(path, child(n, "with"), "EXTERNAL_SCHEMA_MISSING", "Predicate invocation has no declared consumer input Schema")
+		}
 		for _, scope := range []string{"preconditions", "postconditions"} {
-			for _, step := range sequence(child(child(n, scope), "steps")) {
+			for stepIndex, step := range sequence(child(child(n, scope), "steps")) {
 				op := scalar(child(step, "call"))
 				var target *yaml.Node
 				if op != "" {
 					target = a.tools[op].inputNode
 				}
-				a.checkBindings(s, proc, path, child(step, "with"), target, nodeID, outputs, stepOutputs[nodeID], stepOutputs, false)
+				a.checkBindings(s, proc, path, child(step, "with"), target, nodeID, scope, stepIndex, outputs, stepOutputs[nodeID], stepOutputs, false)
+				if parsedProcedure != nil && child(step, "verify") != nil && child(step, "with") != nil {
+					a.errorAtNode(path, child(step, "with"), "EXTERNAL_SCHEMA_MISSING", "Predicate invocation has no declared consumer input Schema")
+				}
 			}
 		}
 	}
 }
 
-func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, with, expected *yaml.Node, nodeID string, outputs map[string]*yaml.Node, steps map[string]*yaml.Node, allSteps map[string]map[string]*yaml.Node, procedureInputs bool) {
+func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, with, expected *yaml.Node, nodeID, phase string, stepIndex int, outputs map[string]*yaml.Node, steps map[string]*yaml.Node, allSteps map[string]map[string]*yaml.Node, procedureInputs bool) {
 	if with == nil {
 		if expected != nil {
 			for _, required := range sequence(child(expected, "required")) {
@@ -129,6 +158,12 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 				continue
 			}
 			source = a.resolveSource(s, proc, scalar(from), path, from.Line, nodeID, outputs, steps, allSteps)
+			if source != nil && !procedureInputs {
+				if available, reason := bindingSourceAvailable(proc, scalar(from), nodeID, phase, stepIndex); !available {
+					a.errorAt(path, from.Line, "BINDING_SOURCE_UNAVAILABLE", reason)
+					source = nil
+				}
+			}
 			if expected == nil && source != nil && !projectionSchemaSupported(source) {
 				a.errorAt(path, from.Line, "BINDING_UNSUPPORTED", "Producer Schema cannot be represented by the static input projection: "+scalar(from))
 				source = nil
@@ -179,6 +214,119 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 			}
 		}
 	}
+}
+
+// nodeOutputDominates reports whether every declared control-flow path from
+// Procedure.start to consumer visits producer first. Source map order is not
+// execution order; only explicit node outcome edges participate.
+func nodeOutputDominates(proc *yaml.Node, producer, consumer string) bool {
+	nodes := child(proc, "nodes")
+	if child(nodes, producer) == nil || child(nodes, consumer) == nil {
+		return false
+	}
+	start := scalar(child(proc, "start"))
+	if producer == start {
+		return true
+	}
+	if producer == consumer || start == "" {
+		return false
+	}
+	// Search for any path to consumer that avoids producer. A cycle-safe DFS
+	// is sufficient for this safety property and avoids relying on map order.
+	stack := []string{start}
+	visited := map[string]bool{}
+	for len(stack) > 0 {
+		current := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		if current == producer || visited[current] {
+			continue
+		}
+		if current == consumer {
+			return false
+		}
+		visited[current] = true
+		node := child(nodes, current)
+		on := child(node, "on")
+		if on != nil && unalias(on).Kind == yaml.MappingNode {
+			for i := 1; i < len(unalias(on).Content); i += 2 {
+				target := scalar(unalias(on).Content[i])
+				if target != "" && !visited[target] {
+					stack = append(stack, target)
+				}
+			}
+		}
+	}
+	// If consumer is unreachable even without excluding producer, do not claim
+	// a control-flow ordering. (Normally caught by the graph validator too.)
+	stack = []string{start}
+	visited = map[string]bool{}
+	for len(stack) > 0 {
+		current := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		if current == consumer {
+			return true
+		}
+		if visited[current] {
+			continue
+		}
+		visited[current] = true
+		on := child(child(nodes, current), "on")
+		if on != nil && unalias(on).Kind == yaml.MappingNode {
+			for i := 1; i < len(unalias(on).Content); i += 2 {
+				stack = append(stack, scalar(unalias(on).Content[i]))
+			}
+		}
+	}
+	return false
+}
+
+func bindingSourceAvailable(proc *yaml.Node, ref, consumerNode, consumerPhase string, consumerStep int) (bool, string) {
+	parts := strings.Split(ref, ".")
+	sourceNode, sourcePhase, sourceStep := "", "", -1
+	if len(parts) >= 2 && parts[1] == "output" {
+		sourceNode = parts[0]
+	} else if len(parts) >= 4 && (parts[1] == "preconditions" || parts[1] == "postconditions") && parts[3] == "output" {
+		sourceNode, sourcePhase = parts[0], parts[1]
+		sourceStep = namedStepIndex(proc, sourceNode, sourcePhase, parts[2])
+	} else if len(parts) >= 3 && (parts[0] == "preconditions" || parts[0] == "postconditions") && parts[2] == "output" {
+		sourceNode, sourcePhase = consumerNode, parts[0]
+		sourceStep = namedStepIndex(proc, sourceNode, sourcePhase, parts[1])
+	}
+	if sourceNode == "" || (sourcePhase != "" && sourceStep < 0) {
+		return true, "" // Other source errors are reported by the reference resolver.
+	}
+	if sourceNode != consumerNode {
+		if nodeOutputDominates(proc, sourceNode, consumerNode) {
+			return true, ""
+		}
+		return false, "producer node output is not available on every path to this consumer: " + sourceNode
+	}
+	if sourcePhase == "" {
+		if consumerPhase == "postconditions" {
+			return true, ""
+		}
+		return false, "a node output is available only after its main action, in postconditions or a later node"
+	}
+	if sourcePhase == "postconditions" {
+		if consumerPhase == "postconditions" && sourceStep < consumerStep {
+			return true, ""
+		}
+		return false, "postcondition step output is available only to later postcondition steps or later nodes"
+	}
+	if consumerPhase == "main" || consumerPhase == "postconditions" || (consumerPhase == "preconditions" && sourceStep < consumerStep) {
+		return true, ""
+	}
+	return false, "precondition step output is available only to later steps, the node action, postconditions, or later nodes"
+}
+
+func namedStepIndex(proc *yaml.Node, nodeID, phase, name string) int {
+	node := child(child(proc, "nodes"), nodeID)
+	for index, step := range sequence(child(child(node, phase), "steps")) {
+		if scalar(child(step, "name")) == name {
+			return index
+		}
+	}
+	return -1
 }
 
 func validJSONLiteral(node *yaml.Node) bool {
@@ -772,14 +920,22 @@ func (a *analysis) resolveSourceWithInputStack(s *skillEntry, proc *yaml.Node, r
 		}
 		category := parts[1]
 		rel := ""
+		contract := s.ast.Contract
+		if contract == nil {
+			a.errorAt(path, line, "EXTERNAL_SCHEMA_MISSING", "missing parsed SkillContract for context source")
+			return nil
+		}
 		if category == "request" {
-			rel = s.requestSchema
+			rel = contract.RequestSchema
 		} else if category == "subject" || category == "facts" || category == "observations" {
-			rel = s.contextSchemas[category]
+			rel = contract.ContextSchemas[category]
 			if rel == "" {
 				a.errorAt(path, line, "EXTERNAL_SCHEMA_MISSING", "missing explicit Owner schema for context."+category)
 				return nil
 			}
+		} else if category == "constraints" {
+			a.errorAt(path, line, "EXTERNAL_SCHEMA_MISSING", "no Skill Language Owner schema field is defined for context.constraints")
+			return nil
 		} else {
 			break
 		}

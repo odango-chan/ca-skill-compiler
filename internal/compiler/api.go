@@ -7,6 +7,8 @@ import (
 	"path"
 	"sort"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -139,6 +141,22 @@ func analyze(req Request, materialize bool) Result {
 		outputs = append(outputs, File{Path: filename, Bytes: bytes.Clone(a.files[filename])})
 	}
 	sort.Slice(outputs, func(i, j int) bool { return outputs[i].Path < outputs[j].Path })
+	if len(outputs) > maxFiles {
+		a.errorAt("", 0, "OUTPUT_LIMIT", "BuildResult.outputFiles exceeds 512 files")
+		return a.result(nil)
+	}
+	outputBytes := 0
+	for _, file := range outputs {
+		if !validPath(file.Path) || len(file.Bytes) > maxFileSize {
+			a.errorAt(file.Path, 0, "OUTPUT_LIMIT", "output path or file size exceeds the BuildResult contract")
+			return a.result(nil)
+		}
+		outputBytes += len(file.Bytes)
+	}
+	if outputBytes > maxTotal {
+		a.errorAt("", 0, "OUTPUT_LIMIT", "BuildResult.outputFiles exceeds the total byte limit")
+		return a.result(nil)
+	}
 	return a.result(outputs)
 }
 
@@ -177,6 +195,9 @@ func (a *analysis) filterUnselectedSkillDiagnostics(selected map[string]bool) {
 
 func newAnalysis(req Request) *analysis {
 	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry), generated: make(map[string][]File), ambiguousOperations: make(map[string]bool), schemaRefs: make(map[string]map[string]bool)}
+	if len(req.Files) == 0 {
+		a.errorAt("", 0, "REQUEST_INVALID", "BuildRequest.files must contain at least one file")
+	}
 	total := 0
 	if len(req.Files) > maxFiles {
 		a.errorAt("", 0, "INPUT_LIMIT", "too many project files")
@@ -199,6 +220,19 @@ func newAnalysis(req Request) *analysis {
 	}
 	if total > maxTotal {
 		a.errorAt("", 0, "INPUT_LIMIT", "project exceeds maximum bytes")
+	}
+	if len(req.Targets) > 256 {
+		a.errorAt("", 0, "REQUEST_INVALID", "BuildRequest.targets exceeds 256 entries")
+	}
+	seenTargets := make(map[string]bool, len(req.Targets))
+	for _, target := range req.Targets {
+		if target == "" || len(target) > 80 {
+			a.errorAt("", 0, "REQUEST_INVALID", "target names must contain 1 to 80 characters")
+		}
+		if seenTargets[target] {
+			a.errorAt("", 0, "REQUEST_INVALID", "BuildRequest.targets entries must be unique: "+target)
+		}
+		seenTargets[target] = true
 	}
 	return a
 }
@@ -248,6 +282,11 @@ func (a *analysis) hasErrors() bool {
 
 func (a *analysis) errorAt(filename string, line int, code, message string) {
 	a.diagnostics = append(a.diagnostics, Diagnostic{Severity: "error", Code: code, Path: filename, Line: line, Message: message})
+}
+
+func (a *analysis) errorAtNode(filename string, node *yaml.Node, code, message string) {
+	span := sourceSpan(filename, node)
+	a.diagnostics = append(a.diagnostics, Diagnostic{Severity: "error", Code: code, Path: filename, Line: span.Line, Column: span.Column, Message: message})
 }
 
 func (a *analysis) warningAt(filename string, line int, code, message string) {

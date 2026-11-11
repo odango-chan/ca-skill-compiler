@@ -1,6 +1,6 @@
 # Skill Compiler · skillc
 
-A **stateless, breaking-only v0** compiler/linker for multi-Skill projects. No database, Release, Qualification, managed Workspace, Runtime execution, live MCP call or legacy format compatibility adapters.
+A stateless, breaking-only Skill Compiler. The v0 Core is retained on [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3); the active implementation branch is migrating it to the narrower Compiler v0.1 Build API and current Skill Language contract. There is no legacy compatibility layer, Package Manager, Runtime execution, live MCP call, database, Release or Qualification subsystem.
 
 ~~~text
 project/
@@ -20,13 +20,13 @@ GOWORK=off go run ./cmd/skillc check ./examples/script-contract-project
 GOWORK=off go run ./cmd/skillc build ./examples/script-contract-project --out ./dist/script-contract
 ~~~
 
-In this environment, `GOWORK=off` avoids a parent `go.work` that refers to three absent sibling repositories. See [WORK status](docs/WORK.md) for observed results and known partial areas. Core remains an incomplete v0 implementation; a passing sample does not imply every Procedure or Schema feature is complete.
+In this environment, `GOWORK=off` avoids a parent `go.work` that refers to three absent sibling repositories. See [WORK status](docs/WORK.md) for the v0 closeout evidence and [v0.1 language alignment](docs/workstreams/language-alignment-v0.1.md) for current implementation status and open owner/spec issues. Passing synthetic examples do not imply complete Language conformance or real Skill acceptance.
 
 ## Real 5GC examples are migration inputs, NOT legacy success fixtures
 
-`examples/ca-agent-demo-project/` includes two complete, unmodified ca-agent-demo Skills at pinned upstream commit, plus two read-only ToolCatalog snapshots. It is an **old-source baseline** for v0 migration and will need Script/Procedure refactoring. Strict new Compiler **must not add compatibility code just to make the old source build green**. MAS proposed catalog still says NOT_READY. Real Host/Observation producer schemas are not fully available; missing owner data is an explicit dependency.
+`examples/ca-agent-demo-project/` is the preserved pre-migration reference. [Current business source snapshot](examples/ca-agent-demo-current-main/) pins the latest checked `ca-agent-demo/main` SHA and verifies the source-file hashes. Strict Compiler **must not add compatibility code just to make old Script declarations build green**. MAS's proposed catalog is not an approved Tool contract. Real Host/Observation producer schemas are not fully available; missing Owner data remains an explicit compile diagnostic.
 
-A separate synthetic `examples/script-contract-project` is the intended **positive v0** case: Tool Output imported from lib → Procedure with → Script own strict generated Output Schema.
+A separate synthetic `examples/script-contract-project` is a **positive contract fixture**: Tool Output imported from lib → Procedure `with` → Script strict generated Output Schema.
 
 ## Design and local implementation
 
@@ -37,8 +37,9 @@ A separate synthetic `examples/script-contract-project` is the intended **positi
 - [One-shot local Harness Goal WP0–WP7](docs/workstreams/local-implementation-goal.md)
 - [Copy/paste Harness prompt](docs/workstreams/local-harness-prompt.md)
 - [Skill Studio/WASM ABI](docs/studio-integration.md)
+- [v0.1 Language Alignment](docs/workstreams/language-alignment-v0.1.md)
 - [WORK status](docs/WORK.md)
 
-The original bootstrap remains [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2). Implementation work is on `feat/compiler-v0-complete`, targeting `feat/compiler-v0-bootstrap`; its PR closeout is tracked in [WORK status](docs/WORK.md). Issue [#1](https://github.com/odango-chan/ca-skill-compiler/issues/1) tracks the design.
+The original bootstrap is [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2). v0 implementation and closeout are on [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3), targeting `feat/compiler-v0-bootstrap`. The narrowed v0.1 contract is [Draft PR #4](https://github.com/odango-chan/ca-skill-compiler/pull/4); implementation work is kept in a separate dependent branch/PR. No PR is merged into `main` as part of these tasks.
 
 Historical [ca-skill-toolchain](https://github.com/odango-chan/ca-skill-toolchain) is background only, not a code dependency.

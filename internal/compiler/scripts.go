@@ -47,6 +47,10 @@ func (a *analysis) compileScripts(selected map[string]bool) {
 			b = append(b, '\n')
 			name := strings.TrimSuffix(strings.TrimPrefix(rel, "scripts/"), ".py")
 			out := "skills/" + skill + "/schemas/generated/" + name + ".output.schema.json"
+			if !validPath(out) {
+				a.errorAt(path, line, "OUTPUT_LIMIT", "generated Script Schema path exceeds the BuildResult contract: "+out)
+				continue
+			}
 			if sourcePath, collides := collidingPath(a.files, out); collides {
 				a.errorAt(path, line, "PROJECT_DUPLICATE_FILE", "generated Script schema path conflicts with source "+sourcePath+": "+out)
 				continue

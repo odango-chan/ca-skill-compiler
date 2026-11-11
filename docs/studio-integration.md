@@ -1,8 +1,8 @@
-> **Current v0 wire implementation only.** The successor v0.1 design is [Compiler Language & Linking Contract v0.1](design/compiler-contract-v0.1.md), aligned to the official ca-skills Skill Language v0.2. v0.1 is not yet available in the current native/Go/WASM binaries; do not send v0.1 requests to the v0 Worker.
+> **v0.1 implementation status: PARTIAL.** The design contract is [Compiler Language & Linking Contract v0.1](design/compiler-contract-v0.1.md), aligned to official ca-skills Skill Language v0.2. Synthetic Native/WASM/Chromium smoke passed on 2026-11-11; see [WORK status](WORK.md). This is not a full Language-conformance or Runtime-readiness claim.
 
-# Skill Studio ↔ Skill Compiler · Browser Integration
+# Skill Studio ↔ Skill Compiler v0.1 · Browser Integration
 
-状态：**v0 wire implementation exists / v0.1 design only**。新接口采用 breaking-only；不对接旧 Toolchain 或 legacy Script Parser。
+状态：**v0.1 API IMPLEMENTATION PARTIAL / SYNTHETIC BROWSER SMOKE PASS**。新接口采用 breaking-only；不对接旧 Toolchain 或 legacy Script Parser。
 
 ## 1. File and ownership boundary
 

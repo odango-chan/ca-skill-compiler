@@ -2,10 +2,13 @@ package compiler
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -15,7 +18,7 @@ import (
 func source(name, entry, procedure string) []File {
 	prefix := "skills/" + name + "/"
 	return []File{
-		{Path: prefix + "SKILL.md", Bytes: []byte("# " + name + "\n")},
+		{Path: prefix + "SKILL.md", Bytes: []byte("---\nname: " + name + "\ndescription: Test fixture for compiler validation.\n---\n\n# " + name + "\n")},
 		{Path: prefix + "assurance/contract.yaml", Bytes: []byte(
 			"apiVersion: connectionagent.io/v1alpha1\nkind: SkillContract\nmetadata:\n  name: " + name +
 				"\nspec:\n  skillType: executable\n  entryProcedure: " + entry + "\n  allowedResources:\n    capabilities: [demo.read]\n")},
@@ -140,7 +143,7 @@ func mutateProjectFile(t *testing.T, files []File, path, before, after string) [
 
 func toolCatalog() File {
 	return File{Path: "lib/tools/demo.yaml", Bytes: []byte(
-		"apiVersion: ca-agent-demo.tool/v1\nkind: ToolCatalog\nx-common:\n  ref: &ref {type: string, minLength: 1}\nspec:\n  contracts:\n  - operation: demo.read\n    effect: READ\n    inputSchema:\n      type: object\n      required: [ref]\n      properties:\n        ref: *ref\n    outputSchema: {type: object}\n")}
+		"apiVersion: ca-agent-demo.tool/v1\nkind: ToolCatalog\nmetadata: {name: test, owner: tests}\nx-common:\n  ref: &ref {type: string, minLength: 1}\nspec:\n  contracts:\n  - operation: demo.read\n    effect: READ\n    inputSchema:\n      type: object\n      required: [ref]\n      properties:\n        ref: *ref\n    outputSchema: {type: object}\n")}
 }
 
 func testProject() []File {
@@ -266,9 +269,10 @@ func TestProjectLocalSchemaRefsAreResolvedWithoutFilesystemOrNetwork(t *testing.
 `)
 	files = append(files, File{Path: "lib/tools/ref.yaml", Bytes: []byte(`apiVersion: ca-agent-demo.tool/v1
 kind: ToolCatalog
+x-common:
+  Ref: {$ref: '../schemas/fields.yaml#/definitions/Ref'}
+metadata: {name: test, owner: tests}
 spec:
-  definitions:
-    Ref: {$ref: '../schemas/fields.yaml#/definitions/Ref'}
   contracts:
   - operation: demo.read
     effect: READ
@@ -276,7 +280,7 @@ spec:
       type: object
       required: [definitions]
       properties:
-        definitions: {$ref: '#/spec/definitions/Ref'}
+        definitions: {$ref: '#/x-common/Ref'}
     outputSchema: {type: object}
 `)}, File{Path: "lib/schemas/fields.yaml", Bytes: []byte("definitions:\n  Ref: {type: string, minLength: 1}\n")})
 	got := Build(Request{Files: files})
@@ -295,7 +299,7 @@ spec:
 
 	for i := range files {
 		if files[i].Path == "lib/tools/ref.yaml" {
-			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "#/spec/definitions/Ref", "https://example.invalid/schema.json", 1))
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "#/x-common/Ref", "https://example.invalid/schema.json", 1))
 		}
 	}
 	got = Build(Request{Files: files})
@@ -313,9 +317,10 @@ func TestSchemaReferenceCyclesAreDiagnosed(t *testing.T) {
 `)
 	files = append(files, File{Path: "lib/tools/ref.yaml", Bytes: []byte(`apiVersion: ca-agent-demo.tool/v1
 kind: ToolCatalog
+metadata: {name: test, owner: tests}
+x-common:
+  Ref: {$ref: '#/x-common/Ref'}
 spec:
-  definitions:
-    Ref: {$ref: '#/spec/definitions/Ref'}
   contracts:
   - operation: demo.read
     effect: READ
@@ -323,7 +328,7 @@ spec:
       type: object
       required: [ref]
       properties:
-        ref: {$ref: '#/spec/definitions/Ref'}
+        ref: {$ref: '#/x-common/Ref'}
 `)})
 	got := Build(Request{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
@@ -335,6 +340,7 @@ func TestMalformedUnusedLibrarySchemaIsDiagnosed(t *testing.T) {
 	files := source("unused", "run", "procedures:\n  run:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n")
 	files = append(files, File{Path: "lib/tools/unused.yaml", Bytes: []byte(`apiVersion: ca-agent-demo.tool/v1
 kind: ToolCatalog
+metadata: {name: test, owner: tests}
 spec:
   contracts:
   - operation: demo.unused
@@ -403,7 +409,7 @@ func TestMissingBuildTargetIsDiagnosed(t *testing.T) {
 
 func TestVerifyResolvesPredicateDeclaredInSameSkill(t *testing.T) {
 	files := source("pred", "check", "procedures:\n  check:\n    start: v\n    nodes:\n      v:\n        verify: allowed\n")
-	files = append(files, File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte("predicates:\n  allowed: {evaluator: {type: cel, expression: 'true'}}\n")})
+	files = append(files, File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("pred", "predicates:\n  allowed: {evaluator: {type: cel, expression: 'true'}}\n"))})
 	got := Build(Request{Files: files})
 	if !got.Success {
 		t.Fatalf("valid Predicate reference failed: %#v", got.Diagnostics)
@@ -420,7 +426,7 @@ func TestVerifyResolvesPredicateDeclaredInSameSkill(t *testing.T) {
 
 func TestPredicateDefinitionsRequireStaticSourceShape(t *testing.T) {
 	files := source("pred", "check", "procedures:\n  check:\n    start: v\n    nodes:\n      v:\n        verify: allowed\n")
-	files = append(files, File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte("predicates:\n  allowed: {observations: []}\n")})
+	files = append(files, File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("pred", "predicates:\n  allowed: {observations: []}\n"))})
 	got := Build(Request{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") {
 		t.Fatalf("incomplete Predicate definition accepted: %#v", got.Diagnostics)
@@ -445,7 +451,7 @@ func TestPredicateEvaluatorAndObservationContractsAreStrict(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			files := source("strict-predicate", "run", "procedures:\n  run:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n")
-			files = append(files, File{Path: "skills/strict-predicate/assurance/predicates.yaml", Bytes: []byte(tc.predicates)})
+			files = append(files, File{Path: "skills/strict-predicate/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("strict-predicate", tc.predicates))})
 			got := Build(Request{Files: files})
 			if got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") {
 				t.Fatalf("unsupported Predicate declaration was accepted: %#v", got.Diagnostics)
@@ -456,7 +462,7 @@ func TestPredicateEvaluatorAndObservationContractsAreStrict(t *testing.T) {
 
 func TestPredicateSetAllowsStandardEnvelopeFields(t *testing.T) {
 	files := source("predicate-envelope", "run", "procedures:\n  run:\n    start: check\n    nodes:\n      check: {verify: ready}\n")
-	files = append(files, File{Path: "skills/predicate-envelope/assurance/predicates.yaml", Bytes: []byte("apiVersion: connectionagent.io/v1alpha1\nkind: PredicateSet\nmetadata: {name: predicate-envelope}\npredicates:\n  ready: {evaluator: {type: cel, expression: 'true'}}\n")})
+	files = append(files, File{Path: "skills/predicate-envelope/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("predicate-envelope", "predicates:\n  ready: {evaluator: {type: cel, expression: 'true'}}\n"))})
 	if got := Build(Request{Files: files}); !got.Success {
 		t.Fatalf("standard PredicateSet envelope was rejected: %#v", got.Diagnostics)
 	}
@@ -464,19 +470,28 @@ func TestPredicateSetAllowsStandardEnvelopeFields(t *testing.T) {
 
 func TestScriptPredicateEvaluatorUsesStaticReferenceShape(t *testing.T) {
 	files := source("pred", "check", "procedures:\n  check:\n    start: v\n    nodes:\n      v:\n        verify: allowed\n")
-	predicates := File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte("predicates:\n  allowed:\n    evaluator: {type: script, ref: skill.evaluate-allowed}\n")}
+	for i := range files {
+		if files[i].Path == "skills/pred/assurance/contract.yaml" {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "capabilities: [demo.read]", "capabilities: [demo.read]\n    localTools: [skill.evaluate-allowed]", 1))
+		}
+	}
+	predicates := File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("pred", "predicates:\n  allowed:\n    evaluator: {type: script, ref: skill.evaluate-allowed}\n"))}
 	files = append(files, predicates)
-	if got := Build(Request{Files: files}); !got.Success {
-		t.Fatalf("well-shaped script Predicate evaluator rejected: %#v", got.Diagnostics)
+	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "LOCAL_TOOL_RESOLUTION_UNSPECIFIED") {
+		t.Fatalf("unfrozen local Tool to Script mapping was silently accepted: %#v", got.Diagnostics)
 	}
 	for i := range files {
 		if files[i].Path == predicates.Path {
-			files[i].Bytes = []byte("predicates:\n  allowed:\n    evaluator: {type: script}\n")
+			files[i].Bytes = []byte(predicateSetSource("pred", "predicates:\n  allowed:\n    evaluator: {type: script}\n"))
 		}
 	}
 	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") {
 		t.Fatalf("script Predicate evaluator without ref accepted: %#v", got.Diagnostics)
 	}
+}
+
+func predicateSetSource(skill, body string) string {
+	return "apiVersion: connectionagent.io/v1alpha1\nkind: PredicateSet\nmetadata: {skill: " + skill + "}\n" + body
 }
 
 func TestContractPredicateGroupsAndEntriesAreValidated(t *testing.T) {
@@ -489,7 +504,7 @@ func TestContractPredicateGroupsAndEntriesAreValidated(t *testing.T) {
 		{"predicate ID must be a string", "preconditions: [{predicate: 7}]"},
 		{"expectation must be a string", "postconditions: [{predicate: ready, expect: 1}]"},
 		{"unknown condition field", "postconditions: [{predicate: ready, dynamic: true}]"},
-		{"applicability must be a sequence", "applicability: {predicate: ready}"},
+		{"unknown contract applicability field", "applicability: {predicate: ready}"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -500,7 +515,7 @@ func TestContractPredicateGroupsAndEntriesAreValidated(t *testing.T) {
 				}
 			}
 			got := Build(Request{Files: files})
-			if got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") {
+			if got.Success || (!findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") && !findDiagnostic(got.Diagnostics, "CONTRACT_SPEC")) {
 				t.Fatalf("malformed contract Predicate declaration was accepted: %#v", got.Diagnostics)
 			}
 		})
@@ -529,15 +544,7 @@ func TestLocalProcedureInvocationCycleFails(t *testing.T) {
 }
 
 func TestSkillDependencyCycleFails(t *testing.T) {
-	files := append(source("root", "start", "procedures:\n  start:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n"), source("child", "run", "procedures:\n  run:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n")...)
-	for i := range files {
-		switch files[i].Path {
-		case "skills/root/assurance/contract.yaml":
-			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "  entryProcedure: start\n", "  entryProcedure: start\n  dependencies: [{skill: child}]\n", 1))
-		case "skills/child/assurance/contract.yaml":
-			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "  entryProcedure: run\n", "  entryProcedure: run\n  dependencies: [{skill: root}]\n", 1))
-		}
-	}
+	files := append(source("root", "start", "procedures:\n  start:\n    start: invoke-child\n    nodes:\n      invoke-child: {procedure: {skill: child, procedure: run}}\n"), source("child", "run", "procedures:\n  run:\n    start: invoke-root\n    nodes:\n      invoke-root: {procedure: {skill: root, procedure: start}}\n")...)
 	got := Build(Request{Files: files, Targets: []string{"root"}})
 	if got.Success || !findDiagnostic(got.Diagnostics, "DEPENDENCY_CYCLE") {
 		t.Fatalf("Skill dependency cycle accepted: %#v", got.Diagnostics)
@@ -583,6 +590,67 @@ func TestMissingEntryProcedureFails(t *testing.T) {
 	}
 }
 
+func TestSkillMarkdownFrontmatterIsValidated(t *testing.T) {
+	cases := []struct {
+		name string
+		md   string
+		code string
+	}{
+		{"missing frontmatter", "# run\n", "SKILL_METADATA_INVALID"},
+		{"missing description", "---\nname: run\n---\n", "SKILL_METADATA_INVALID"},
+		{"directory mismatch", "---\nname: other\ndescription: A test Skill.\n---\n", "SKILL_NAME_MISMATCH"},
+		{"unknown field", "---\nname: run\ndescription: A test Skill.\nunsafeSemantic: true\n---\n", "SKILL_METADATA_UNSUPPORTED"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			files := source("run", "p", "procedures:\n  p:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n")
+			files[0].Bytes = []byte(tc.md)
+			if got := Check(Request{Files: files}); !findDiagnostic(got, tc.code) {
+				t.Fatalf("frontmatter error %s was not diagnosed: %#v", tc.code, got)
+			}
+		})
+	}
+}
+
+func TestBuildRequestTargetsAreUniqueAndBounded(t *testing.T) {
+	files := source("request", "run", "procedures:\n  run:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n")
+	for _, targets := range [][]string{{"request", "request"}, {strings.Repeat("x", 81)}} {
+		got := Build(Request{Files: files, Targets: targets})
+		if got.Success || !findDiagnostic(got.Diagnostics, "REQUEST_INVALID") || len(got.OutputFiles) != 0 {
+			t.Fatalf("invalid target vector accepted or yielded partial output: %#v", got)
+		}
+	}
+	if got := Build(Request{}); got.Success || !findDiagnostic(got.Diagnostics, "REQUEST_INVALID") {
+		t.Fatalf("empty file vector accepted: %#v", got)
+	}
+}
+
+func TestBuildResultFileLimitRejectsPartialPackage(t *testing.T) {
+	files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "script-contract-project"))
+	extra := maxFiles - len(files)
+	for i := 0; i < extra; i++ {
+		files = append(files, File{Path: filepath.ToSlash(filepath.Join("skills", "normalize", "references", "limit", strconv.Itoa(i)+".txt")), Bytes: []byte("fixture")})
+	}
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "OUTPUT_LIMIT") || len(got.OutputFiles) != 0 {
+		t.Fatalf("generated file beyond the v0.1 output limit was accepted or returned partially: success=%v outputs=%d diags=%#v", got.Success, len(got.OutputFiles), got.Diagnostics)
+	}
+}
+
+func TestToolCatalogRejectsUnknownFieldsAndRequiresMetadata(t *testing.T) {
+	catalog := toolCatalog()
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "metadata: {name: test, owner: tests}", "metadata: {name: test, owner: tests, version: latest}", 1))
+	got := InspectLibraries(Request{Files: []File{catalog}})
+	if !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
+		t.Fatalf("unknown ToolCatalog metadata field was silently accepted: %#v", got)
+	}
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "metadata: {name: test, owner: tests, version: latest}\n", "", 1))
+	got = InspectLibraries(Request{Files: []File{catalog}})
+	if !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
+		t.Fatalf("ToolCatalog without owner metadata was accepted: %#v", got)
+	}
+}
+
 func TestReconcileRequiresEarlierToolNodeWithDeclaredSchema(t *testing.T) {
 	files := source("reconcile", "run", `procedures:
   run:
@@ -591,11 +659,15 @@ func TestReconcileRequiresEarlierToolNodeWithDeclaredSchema(t *testing.T) {
       create:
         call: demo.read
         with: {ref: {value: sample}}
+        'on': {SUCCEEDED: recover}
       recover:
         reconcile: create
+        'on': {SUCCEEDED: consume}
       consume:
         call: demo.read
         with: {ref: {from: recover.output.state}}
+        'on': {SUCCEEDED: done}
+      done: {terminal: done}
 `)
 	files = append(files, toolCatalog())
 	got := Build(Request{Files: files})
@@ -660,6 +732,7 @@ func TestCrossSkillProcedureInputsAreLinkedFromProducerSchemas(t *testing.T) {
 	catalog := toolCatalog()
 	catalog.Bytes = []byte(`apiVersion: ca-agent-demo.tool/v1
 kind: ToolCatalog
+metadata: {name: test, owner: tests}
 spec:
   contracts:
   - operation: demo.read
@@ -1068,7 +1141,7 @@ func TestMalformedProcedureContainerShapesAreDiagnosed(t *testing.T) {
 	}
 }
 
-func TestNestedVerifyStepRejectsUnresolvedBindings(t *testing.T) {
+func TestNestedVerifyStepReportsMissingRequestSchemaForBindings(t *testing.T) {
 	files := source("nested-verify", "run", `procedures:
   run:
     start: done
@@ -1082,8 +1155,8 @@ func TestNestedVerifyStepRejectsUnresolvedBindings(t *testing.T) {
         terminal: SUCCEEDED
 `)
 	got := Build(Request{Files: files})
-	if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
-		t.Fatalf("verify step with unresolved bindings was accepted: %#v", got.Diagnostics)
+	if got.Success || !findDiagnostic(got.Diagnostics, "EXTERNAL_SCHEMA_MISSING") {
+		t.Fatalf("verify binding without a request Schema was not reported: %#v", got.Diagnostics)
 	}
 }
 
@@ -1262,6 +1335,7 @@ func TestPreAndPostconditionStepsHaveDistinctOutputScopes(t *testing.T) {
 	files[1].Bytes = []byte(strings.Replace(string(files[1].Bytes), "capabilities: [demo.read]", "capabilities: [demo.read, demo.integer]", 1))
 	files = append(files, File{Path: "lib/tools/scopes.yaml", Bytes: []byte(`apiVersion: ca-agent-demo.tool/v1
 kind: ToolCatalog
+metadata: {name: scopes, owner: tests}
 spec:
   contracts:
   - operation: demo.read
@@ -1280,8 +1354,8 @@ spec:
 
 func TestScriptBindingsRejectNonJSONValuesAndUnknownBindingFields(t *testing.T) {
 	files := []File{
-		{Path: "skills/s/assurance/contract.yaml", Bytes: []byte("metadata: {name: s}\nspec: {entryProcedure: p}\n")},
-		{Path: "skills/s/SKILL.md", Bytes: []byte("# s")},
+		{Path: "skills/s/assurance/contract.yaml", Bytes: []byte("apiVersion: connectionagent.io/v1alpha1\nkind: SkillContract\nmetadata: {name: s}\nspec: {entryProcedure: p}\n")},
+		{Path: "skills/s/SKILL.md", Bytes: []byte("---\nname: s\ndescription: Test fixture.\n---\n")},
 		{Path: "skills/s/assurance/procedure.yaml", Bytes: []byte(`procedures:
   p:
     start: n
@@ -1391,8 +1465,8 @@ func TestManifestAndReadonlyLibraryInspection(t *testing.T) {
 
 func TestGeneratedStrictScriptOutput(t *testing.T) {
 	files := []File{
-		{Path: "skills/s/assurance/contract.yaml", Bytes: []byte("metadata: {name: s}\nspec: {entryProcedure: p}\n")},
-		{Path: "skills/s/SKILL.md", Bytes: []byte("# s")},
+		{Path: "skills/s/assurance/contract.yaml", Bytes: []byte("apiVersion: connectionagent.io/v1alpha1\nkind: SkillContract\nmetadata: {name: s}\nspec: {entryProcedure: p}\n")},
+		{Path: "skills/s/SKILL.md", Bytes: []byte("---\nname: s\ndescription: Test fixture.\n---\n")},
 		{Path: "skills/s/assurance/procedure.yaml", Bytes: []byte("procedures:\n  p:\n    start: n\n    nodes:\n      n:\n        script: scripts/out.py\n        with: {}\n")},
 		{Path: "skills/s/scripts/out.py", Bytes: []byte("from typing import TypedDict, Literal, NotRequired, Annotated\nclass Child(TypedDict):\n    ok: Literal[True]\nclass Output(TypedDict):\n    label: Annotated[str, {\"minLength\": 1}]\n    child: Child\n    extra: NotRequired[int]\ndef main(input: dict) -> Output:\n    return {}\n")},
 	}
@@ -1413,8 +1487,8 @@ func TestGeneratedStrictScriptOutput(t *testing.T) {
 
 func TestGeneratedOutputPathRejectsFileDirectoryCollisions(t *testing.T) {
 	files := []File{
-		{Path: "skills/s/assurance/contract.yaml", Bytes: []byte("metadata: {name: s}\nspec: {entryProcedure: p}\n")},
-		{Path: "skills/s/SKILL.md", Bytes: []byte("# s")},
+		{Path: "skills/s/assurance/contract.yaml", Bytes: []byte("apiVersion: connectionagent.io/v1alpha1\nkind: SkillContract\nmetadata: {name: s}\nspec: {entryProcedure: p}\n")},
+		{Path: "skills/s/SKILL.md", Bytes: []byte("---\nname: s\ndescription: Test fixture.\n---\n")},
 		{Path: "skills/s/assurance/procedure.yaml", Bytes: []byte("procedures:\n  p:\n    start: n\n    nodes:\n      n:\n        script: scripts/out.py\n        with: {}\n")},
 		{Path: "skills/s/scripts/out.py", Bytes: []byte("from typing import TypedDict\nclass Output(TypedDict):\n    value: str\ndef main(input: dict) -> Output:\n    return {}\n")},
 		{Path: "skills/s/schemas/generated/out.output.schema.json/child.txt", Bytes: []byte("collision")},
@@ -1527,6 +1601,49 @@ func TestScriptDeclarationsRejectAmbiguityAndInvalidLiterals(t *testing.T) {
 	}
 }
 
+func TestNodeOutputMustDominateConsumer(t *testing.T) {
+	var doc yaml.Node
+	if err := yaml.Unmarshal([]byte("start: first\nnodes:\n  first: {on: {PASS: second, FAIL: failed}}\n  second: {on: {PASS: done}}\n  failed: {terminal: failed}\n  done: {terminal: done}\n"), &doc); err != nil {
+		t.Fatal(err)
+	}
+	proc := doc.Content[0]
+	if !nodeOutputDominates(proc, "first", "second") {
+		t.Fatal("first output should be available on every path to second")
+	}
+	if nodeOutputDominates(proc, "second", "first") {
+		t.Fatal("future node output must not be available to first")
+	}
+	if nodeOutputDominates(proc, "second", "failed") {
+		t.Fatal("branch-exclusive output must not be available to failed")
+	}
+}
+
+func TestPhaseStepOutputsRespectExecutionOrder(t *testing.T) {
+	var doc yaml.Node
+	if err := yaml.Unmarshal([]byte("start: first\nnodes:\n  first:\n    call: demo.read\n    preconditions:\n      steps:\n        - {name: prep1, call: demo.read}\n        - {name: prep2, call: demo.read}\n    postconditions:\n      steps:\n        - {name: post1, call: demo.read}\n        - {name: post2, call: demo.read}\n    'on': {PASS: second}\n  second: {terminal: done}\n"), &doc); err != nil {
+		t.Fatal(err)
+	}
+	proc := doc.Content[0]
+	for _, tc := range []struct {
+		ref, phase, consumer string
+		index                int
+		want                 bool
+	}{
+		{"preconditions.prep1.output.value", "preconditions", "first", 1, true},
+		{"preconditions.prep2.output.value", "preconditions", "first", 1, false},
+		{"preconditions.prep1.output.value", "main", "first", -1, true},
+		{"postconditions.post1.output.value", "main", "first", -1, false},
+		{"postconditions.post1.output.value", "postconditions", "first", 1, true},
+		{"postconditions.post2.output.value", "postconditions", "first", 0, false},
+		{"first.postconditions.post2.output.value", "main", "second", -1, true},
+	} {
+		got, _ := bindingSourceAvailable(proc, tc.ref, tc.consumer, tc.phase, tc.index)
+		if got != tc.want {
+			t.Errorf("bindingSourceAvailable(%q, %q, %q, %d) = %v, want %v", tc.ref, tc.consumer, tc.phase, tc.index, got, tc.want)
+		}
+	}
+}
+
 func TestNestedProcedureBindingsAreCheckedAgainstSchemas(t *testing.T) {
 	target := schemaNode(map[string]any{"type": "object", "required": []any{"count"}, "additionalProperties": false, "properties": map[string]any{"count": map[string]any{"type": "integer", "minimum": 1}}})
 	valid := schemaNode(map[string]any{"type": "object", "required": []any{"count"}, "additionalProperties": false, "properties": map[string]any{"count": map[string]any{"type": "integer", "minimum": 1}}})
@@ -1539,6 +1656,29 @@ func TestNestedProcedureBindingsAreCheckedAgainstSchemas(t *testing.T) {
 	}
 }
 
+func TestCurrentProcedureVerifyStepsMayBeUnnamedAndAcceptBindings(t *testing.T) {
+	files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "script-contract-project"))
+	files = append(files, File{Path: "skills/normalize/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("normalize", "predicates:\n  demo.result:\n    evaluator: {type: cel, expression: 'true'}\n"))})
+	for i := range files {
+		if files[i].Path == "skills/normalize/assurance/procedure.yaml" {
+			src := string(files[i].Bytes)
+			src = strings.Replace(src, "        'on':\n          SUCCEEDED: normalize-step", "        postconditions:\n          steps:\n            - verify: demo.result\n              with:\n                result: {from: read.output.value}\n          'on':\n            PASS: normalize-step\n            FAIL: failed\n            UNKNOWN: failed\n        'on':\n          SUCCEEDED: normalize-step", 1)
+			files[i].Bytes = []byte(src)
+		}
+	}
+	if got := Check(Request{Files: files}); !findDiagnostic(got, "EXTERNAL_SCHEMA_MISSING") || findDiagnostic(got, "PROCEDURE_UNSUPPORTED") {
+		t.Fatalf("current unnamed verify step should parse, while its missing consumer Schema stays explicit: %#v", got)
+	}
+	for i := range files {
+		if files[i].Path == "skills/normalize/assurance/procedure.yaml" {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "read.output.value", "read.output.unknown", 1))
+		}
+	}
+	if got := Check(Request{Files: files}); !findDiagnostic(got, "SOURCE_FIELD_UNKNOWN") {
+		t.Fatalf("verify binding must resolve against its producer schema: %#v", got)
+	}
+}
+
 func TestPinnedToolCatalogsInspectWithProvenance(t *testing.T) {
 	paths := []string{"../../examples/ca-agent-demo-project/lib/tools/createdsession.tool.yaml", "../../examples/ca-agent-demo-project/lib/tools/mas-proposed.tool.yaml", "../../examples/ca-agent-demo-project/lib/manifest.yaml"}
 	var files []File
@@ -1548,6 +1688,9 @@ func TestPinnedToolCatalogsInspectWithProvenance(t *testing.T) {
 			t.Fatal(err)
 		}
 		rel := strings.TrimPrefix(filepath.ToSlash(filepath.Clean(p)), "../../examples/ca-agent-demo-project/")
+		if rel == "lib/manifest.yaml" {
+			b = []byte("libraries:\n  - path: lib/tools/createdsession.tool.yaml\n    status: declared\n  - path: lib/tools/mas-proposed.tool.yaml\n    status: proposed\n")
+		}
 		files = append(files, File{Path: rel, Bytes: b})
 	}
 	got := InspectLibraries(Request{Files: files})
@@ -1568,6 +1711,52 @@ func TestPinnedToolCatalogsInspectWithProvenance(t *testing.T) {
 	}
 	if proposed != 16 {
 		t.Fatalf("wanted 16 proposed Operations, got %d", proposed)
+	}
+}
+
+func TestCurrentCaAgentDemoSnapshotParsesCurrentSourceAndKeepsOwnerGaps(t *testing.T) {
+	root := filepath.Join("..", "..", "examples", "ca-agent-demo-current-main")
+	checksums, err := os.ReadFile(filepath.Join(root, "UPSTREAM_SOURCE.sha256"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	verified := 0
+	for _, line := range strings.Split(strings.TrimSpace(string(checksums)), "\n") {
+		parts := strings.SplitN(line, "  ", 2)
+		if len(parts) != 2 {
+			t.Fatalf("invalid upstream checksum entry: %q", line)
+		}
+		content, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(parts[1])))
+		if err != nil {
+			t.Fatalf("read pinned source %s: %v", parts[1], err)
+		}
+		digest := sha256.Sum256(content)
+		if hex.EncodeToString(digest[:]) != parts[0] {
+			t.Fatalf("pinned upstream source changed: %s", parts[1])
+		}
+		verified++
+	}
+	if verified != 80 {
+		t.Fatalf("expected checksums for 79 Skill files and one ToolCatalog, got %d", verified)
+	}
+	files := loadProjectFilesForTest(t, root)
+	pdu := Build(Request{Files: files, Targets: []string{"establish-pdu-session"}})
+	if pdu.Success || !findDiagnostic(pdu.Diagnostics, "EXTERNAL_SCHEMA_MISSING") || !findDiagnostic(pdu.Diagnostics, "SCRIPT_TYPE_UNSUPPORTED") || !findDiagnostic(pdu.Diagnostics, "LOCAL_TOOL_RESOLUTION_UNSPECIFIED") {
+		t.Fatalf("current PDU source must retain explicit Owner/Script contract gaps: %#v", pdu.Diagnostics)
+	}
+	for _, unsupported := range []string{"SKILL_METADATA_INVALID", "CONTRACT_SPEC", "CASE_INVALID", "PREDICATE_SOURCE_INCOMPLETE", "PROCEDURE_UNSUPPORTED"} {
+		if findDiagnostic(pdu.Diagnostics, unsupported) {
+			t.Errorf("current PDU source form was not parsed according to the source Language (%s): %#v", unsupported, pdu.Diagnostics)
+		}
+	}
+	mas := Build(Request{Files: files, Targets: []string{"establish-pdu-session-mas"}})
+	if mas.Success || !findDiagnostic(mas.Diagnostics, "LIB_OPERATION_UNKNOWN") || !findDiagnostic(mas.Diagnostics, "EXTERNAL_SCHEMA_MISSING") {
+		t.Fatalf("MAS source must retain missing approved Tool/Owner contract diagnostics: %#v", mas.Diagnostics)
+	}
+	for _, unsupported := range []string{"SKILL_METADATA_INVALID", "CONTRACT_SPEC", "CASE_INVALID", "PREDICATE_SOURCE_INCOMPLETE"} {
+		if findDiagnostic(mas.Diagnostics, unsupported) {
+			t.Errorf("current MAS source form was not parsed according to the source Language (%s): %#v", unsupported, mas.Diagnostics)
+		}
 	}
 }
 

@@ -64,3 +64,40 @@ The core gates were rerun from the clean `feat/compiler-v0-complete` checkout af
 This closeout does not broaden v0 to cover the missing grammar, Schema, or parity areas below. The separate [Compiler v0.1 design PR #4](https://github.com/odango-chan/ca-skill-compiler/pull/4) remains design-only; it is not implemented by PR #3. The next implementation iteration must be a separate Goal that migrates the Core to the accepted v0.1 contract as a breaking change, without a compatibility layer.
 
 The final v0 result remains **PARTIAL**: Procedure result Schema syntax is absent from the frozen v0 grammar; broader parser/linker, binding, JSON Schema, and Native/WASM parity coverage remains; and authoritative Host/Observation contracts are unavailable. The pinned source migrations therefore remain diagnostic-only, with 124 PDU and 85 MAS findings. PR #3 contains the v0 Core and this closeout record, targeting `feat/compiler-v0-bootstrap`. The separate v0.1 design PR #4 is not implemented in this v0 branch; any v0.1 migration requires its own Goal and breaking contract transition.
+
+## Compiler v0.1 implementation status
+
+Updated: 2026-11-11. Implementation branch: `feat/compiler-v01-implementation-20261111`, based on design PR #4 head `159b5396135fecdf4675cf296325956c824a5279`. The v0.1 contract is being implemented as a separate full migration, with no v0 compatibility layer. This section records the current source state; PR, browser, and package checks are to be refreshed before handoff.
+
+### Current v0.1 evidence
+
+| Area | Status | Evidence / remaining work |
+|---|---|---|
+| Build API and input validation | PARTIAL | Shared Go Core accepts explicit `{files, targets?}`, applies request/output limits, validates names and paths, and returns no partial package on errors. Native/WASM wire parity still requires final rerun. |
+| Language parser and AST | PARTIAL | `SKILL.md`, SkillContract, Procedure, PredicateSet, Case and ToolCatalog forms are parsed; typed AST drives Procedure output and dependency linking. Unknown fields and malformed shapes are diagnosed. Outcome domains, full nested field constraints, and uncommon source forms remain. |
+| Library and Schema linking | PARTIAL | Strict imported ToolCatalog envelope, unique Operation IDs, local refs, aliases, and manifest inspection metadata are supported. Full Draft 2020-12 keyword coverage and comprehensive imported Schema cases remain. |
+| Binding and dataflow | PARTIAL | Explicit request/Host/Tool/Script/Procedure sources are resolved; producer fields and consumer inputs are checked. Node output availability uses declared `on` graph paths and requires dominance. Named phase-step outputs respect precondition/postcondition order. Nested Procedure input aliases and exhaustive branch-sensitive step-scope analysis remain. |
+| Script output contract | PARTIAL | Compiler statically recognizes a strict nonempty Script output TypedDict and emits JSON Schema without Python execution. The current upstream Language spec §3.8 still documents incompatible legacy Script I/O declarations; that source conflict is recorded in [language-alignment-v0.1.md](workstreams/language-alignment-v0.1.md). |
+| Native packaging | PASS (synthetic) | Native CLI checked both positive fixtures and emitted all-target and targeted 7-file packages from `script-contract-project`. |
+| WASM / browser parity | PASS (smoke scope) | Current Go/WASM build ran in Chromium. Check/build/inspect passed, all seven output paths/order and bytes matched Native output, and five diagnostic vectors matched Native goldens. Broader diagnostic parity remains. |
+| Current-source analysis | PARTIAL | Pinned snapshot is `ca-agent-demo` `origin/main` `4395982fa6efb97714b97901603b2dfb7018c4d0`: 79 Skill source files plus one approved ToolCatalog, verified against upstream blobs and a local SHA-256 manifest. PDU reports 122 migration/Owner/link diagnostics; MAS reports 126. Current counts and syntax coverage are in [language-alignment-v0.1.md](workstreams/language-alignment-v0.1.md). |
+| PR / handoff | IN_PROGRESS | Design PR #4 is the dependency. Implementation PR and stack ancestry still need to be prepared and opened. No merge is authorized. |
+
+### v0.1 acceptance gates
+
+| Gate | Current result | Remaining evidence |
+|---|---|---|
+| G0 Go baseline | PASS | Latest `GOWORK=off go test ./... -count=1` and `GOWORK=off go vet ./...` pass after the dataflow change. |
+| G1 ToolCatalog and Schema | PARTIAL | Unit coverage for strict catalogs, aliases, local refs and structural constraints; broad keyword compatibility remains. |
+| G2 Skill and Procedure graph | PARTIAL | AST and source forms parse; flow semantics and all nested scopes remain incomplete. |
+| G3 Producer bindings | PARTIAL | Explicit schemas, node dominance, and named phase-step temporal ordering are checked; nested Procedure input aliases, all branch-sensitive step scopes, and full schema compatibility remain. |
+| G4 Script | PARTIAL | Strict output-only TypedDict parsing and generated schema are tested; full type/constraint syntax and upstream §3.8 conflict remain. |
+| G5 package output | PASS (synthetic) | Native all-target and `--skill normalize` builds each emitted seven files. |
+| G6 native/WASM byte parity | PASS (synthetic) | Chromium Worker output paths/order and every byte matched Native package files. Five shared diagnostic vectors also matched. |
+| G7 browser | PASS (smoke scope) | Headless Chromium completed check, build, inspect, and five negative vectors with `data-test=pass`. This is not a hosted Pages test. |
+| G8 real-source review | PARTIAL | Pinned source analysis is reproducible; missing Owner schemas, legacy Scripts, unresolved localTool mapping and proposed MAS Operations remain errors. |
+| G9 handoff | IN_PROGRESS | Commit/push implementation and open a dependent review PR after all checks and docs are current. |
+
+### Current rerun notes
+
+After the final phase-step ordering addition, `GOWORK=off go test ./... -count=1`, `GOWORK=off go vet ./...`, Native build, WASM build, both positive checks, all-target and targeted CLI builds, and headless Chromium smoke passed. Chromium ran `web/skillc-browser-test.html` against WASM and compared every output byte to the Native CLI package. Focused current-source checks returned expected nonzero status: PDU 122 diagnostics (`93 EXTERNAL_SCHEMA_MISSING`, `9 STEP_SCOPE_UNKNOWN`, `7 BINDING_TYPE_MISMATCH`, `4 BINDING_SOURCE_UNAVAILABLE`, `3 SCRIPT_TYPE_UNSUPPORTED`, `3 BINDING_UNSUPPORTED`, `2 LOCAL_TOOL_RESOLUTION_UNSPECIFIED`, `1 SOURCE_FIELD_UNKNOWN`); MAS 126 (`51 EXTERNAL_SCHEMA_MISSING`, `43 BINDING_UNRESOLVED`, `16 LIB_OPERATION_UNKNOWN`, `16 PROCEDURE_UNSUPPORTED`). These are static migration/Owner-gap results, not execution, qualification, or live 5GC evidence.

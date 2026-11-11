@@ -5,8 +5,6 @@ metadata:
 spec:
   skillType: executable
   entryProcedure: read-and-store
-  dependencies:
-    - skill: writer
   allowedResources:
     capabilities:
       - demo.read
