@@ -1,57 +1,94 @@
-# Skill Studio ↔ Compiler v0
+# Skill Studio ↔ Skill Compiler v0 · Browser ABI
 
-Status: initial API implemented; Pages/real Skill compatibility not yet verified.
+状态：**DESIGN ACCEPTED / API PARTIAL IMPLEMENTATION / REAL TEST NOT_RUN**。适用 **breaking-only v0**；不对接旧 Toolchain / legacy Script Parser。
 
-## One shared project
+## 1. Project 与读写职责
 
-`skills/<name>/**` is editable authoring source, `lib/tools/*.yaml` is imported/read-only, `output/**` is derived. Studio sends a complete byte snapshot of `skills/` and `lib/` to Compiler. It must not send `output/` or allow generated files to be edited as source.
+~~~text
+project/
+  skills/   # author editable, multiple Skills
+  lib/      # imported read-only Tool/Host/Observation contracts (+ optional lib/manifest.yaml)
+  output/   # generated only; must NEVER feed back into compiler input
+~~~
 
-## Core API
+- Studio 管理 Explorer、Source Editor、导入/删除/重新导入库、文件授权、Problems、ZIP/文件夹导出；Compiler 管理唯一的 Parse/Link/Schema Generator。
+- Browser/Pages 中全部源码+Library 通过 in-memory 文件字节传入 Go/WASM Worker；不需要服务器端编译服务/数据库/代理。
+- Studio 不得把 `output/` 文件作为 Source 提交，不允许编辑 imported Tool Schema 或生成文件本体。重新导入 Library 是替换 imported snapshot，不是改源脚本。
 
-`compiler.Check(Request) []Diagnostic` and `compiler.Build(Request) Result` accept a Go slice of `File{Path string, Bytes []byte}`; `Result.OutputFiles` is a sorted, fresh byte snapshot relative to the output directory. Compiler does not read disk, run Python, call Tools, open sockets or create ZIPs.
+## 2. Core API（实现时冻结 Go/TS 对齐）
 
-The WASM bridge accepts and returns JSON strings through `skillcCheck` and `skillcBuild` exported to the Worker. Go's `encoding/json` encodes each `[]byte` as **base64**, not as a JS array:
+~~~typescript
+type File = {path: string, bytes: Uint8Array}; // absolute disallowed, project-relative only
+type Diagnostic = {severity: "error"|"warning"|"info", code: string, path: string,
+  line?: number, column?: number, message: string};
+type BuildRequest = {files: File[], targets?: string[]};
+type BuildResult = {success: boolean, diagnostics: Diagnostic[], outputFiles: File[]};
+type LibraryTool = {
+  operationId: string, sourcePath: string,
+  sourceStatus: "declared"|"proposed"|"unspecified",
+  declaredEffect?: "READ"|"MUTATION",
+  description?: string,
+  inputSchema: object, outputSchema?: object, reconcileOutputSchema?: object
+};
+type LibraryResult = {diagnostics: Diagnostic[], tools: LibraryTool[]};
+
+check(input: BuildRequest): Diagnostic[];
+build(input: BuildRequest): BuildResult;
+inspectLibraries(input: BuildRequest): LibraryResult;
+~~~
+
+- `check` 与 `build` 静态语义相同；`check` 不返回 output 文件。`build` 有 ERROR 时 `success=false` 且 outputFiles 为空。输出按稳定 path 排序。`inspectLibraries` 只读取 lib 的契约，展示来源与接口，不自行运行代码，不由 Studio 再造第二份 Parser。
+- Imported `lib/manifest.yaml` 与 `lib/tools/*.yaml` 同时作为请求文件。Manifest 的 `libraries[*].path` 相对 Project root，状态只有 `declared/proposed/unspecified`，**任何状态都不是 Runtime READY**；缺 Manifest 默认 unspecified。
+- V0 不为每个 Script 构造一个可编辑的 Input Schema；输入在 Procedure 的 `with:` 中通过真实 Producer Schema **逐调用点**派生。Script 自己计算出的结果要求严格 Output TypedDict；Compiler 仅输出其生成的 Output Schema。
+- 无真实 Host/Observation Owner schema 时，Compiler 报 `EXTERNAL_SCHEMA_MISSING`（即使 request 的其他输入字段能被检查），**不能声称完整静态类型检查通过**。
+
+## 3. JS ↔ Go/WASM wire
+
+Go `encoding/json` 会把 `[]byte` 作为 base64 string；**Worker 边界**使用该表现，Studio 可使用 Uint8Array：
 
 ~~~json
 {
   "files": [
-    { "path": "skills/example/SKILL.md", "bytes": "IyBFeGFtcGxlCg==" }
+    {"path": "skills/example/SKILL.md", "bytes": "IyBFeGFtcGxlCg=="}
   ],
   "targets": ["example"]
 }
 ~~~
 
-Result: `{success, diagnostics:[{severity,code,path,line?,column?,message}], outputFiles:[{path,bytes}]}`. Decode base64 at the Studio boundary. Project UI/Source Editor/Problems/ZIP remain Studio-owned.
+Go Core 当前只实现了 `Check/Build` 的原型。目标 WASM 回调名字：
+- `skillcCheck(jsonRequestString): jsonResultString`
+- `skillcBuild(jsonRequestString): jsonResultString`
+- `skillcInspectLibraries(jsonRequestString): jsonResultString`（**尚未实现**）
 
-The initial implementation checks Skill folder identity, entry Procedure, file references, local scripts, cross-Skill dependency presence, ToolCatalog Operation declarations, and YAML syntax. It **does not** yet implement full Procedure semantic lowering, comprehensive Schema validation, or Script I/O Schema generation. These are later compiler tasks; do not display "fully validated" or "runtime READY" on an initial build.
+Worker request/response:
 
-## Script interface / generated schemas
-
-The canonical [Script Contract v0](design/script-contract-v0.md) is **producer-owned external input / script-owned computed output**. Procedure `with:` fields must resolve to actual Tool Library Output, Skill-owned Request, previous Script Output or authoritative Host Context Schema; Compiler derives each Script call's input projection without asking authors to retype external Tool contracts. Unknown fields or missing producer contracts are not a successful type check.
-
-For a new Script, `main(input: dict) -> StrictOutputTypedDict` is valid **only if every effective input binding has a concrete producer schema**. Compiler generates the Script's own Output Schema from strict annotations (not an independently authoritative input Schema). Existing Script files with external input/output Schemas remain supported. The earlier long YAML comment `schemaMode: embedded` and requirement that every Script Input be an authored TypedDict are **withdrawn**.
-
-Studio displays editable `skills/`, read-only imported `lib/` and read-only generated `output/`. It must not reimplement the Compiler's schema generator, claim unknown Producer types are validated, or equate static compile success with runtime READY. Imported MAS ToolCatalog remains PROPOSED / NOT_READY; complete Host Context/Observation Schema is not present in the two ToolCatalog files.
-
-**Implementation: NOT_STARTED; parity/Chromium acceptance: NOT_RUN.**
-
-## Library format v0
-
-Use a copy of `ca-agent-demo/tools/contracts/createdsession.tool.yaml` under `lib/tools/`. It defines 12 Agent-facing Operations and Schema/Effect; YAML anchors/aliases are allowed. Do not import `tools/registrations/default.yaml` as a Tool schema library: it is a deployment mapping. Do not treat a declared Tool as installed, ready or authorized.
-
-MCP `tools/list` support is a separate importer to the **same internal Library model**, not a second compiler. Remote MCP connection, tool execution and credentials are not part of Pages Compiler.
-
-## How to build WASM assets (requires Go 1.23+)
-
-~~~bash
-GOOS=js GOARCH=wasm go build -o web/skillc.wasm ./cmd/skillc-wasm
-WASM_EXEC="$(go env GOROOT)/lib/wasm/wasm_exec.js"
-if [ ! -f "$WASM_EXEC" ]; then WASM_EXEC="$(go env GOROOT)/misc/wasm/wasm_exec.js"; fi
-cp "$WASM_EXEC" web/wasm_exec.js
+~~~typescript
+postMessage({id: "r1", command: "check"|"build"|"inspect", request: BuildRequestAsBase64});
+onmessage({data: {id: "r1", result?: BuildResult|LibraryResult, error?: string}});
 ~~~
 
-Host those two files together with `web/skillc-worker.js`. It uses the Go runtime, not Node or a native backend. Production Pages/Chromium tests are **NOT_RUN** until the actual Skill Studio integration is attempted.
+- `error` 表示 Worker/Go/WASM 宿主异常，**不是**普通 Compiler Diagnostic；Compiler 静态验证错误通过 `result.diagnostics` 返回。不要把二者混为一谈。
+- ToolCatalog 可能含 YAML anchors/aliases；由 Go Parser 消解，Studio 不承担 YAML Schema 的语义解析。
+- 不在 Worker 中携带 MCP 凭据、Server URL 或 Runtime admission token，不发生远程 Tools 调用。
 
-## Browser ownership boundary
+## 4. Browser 构建与验收
 
-Studio builds ZIP with its existing exporter from `outputFiles`; it may optionally save the output folder with explicit permission. The compiler does not own `fs`, database, persistent catalogue, run IDs, Release or Qualification. `output/skills` may need an additional Agent Host admission step before executable use.
+~~~bash
+mkdir -p dist
+GOOS=js GOARCH=wasm go build -o dist/skillc.wasm ./cmd/skillc-wasm
+WASM_EXEC="$(go env GOROOT)/lib/wasm/wasm_exec.js"
+if [ ! -f "$WASM_EXEC" ]; then WASM_EXEC="$(go env GOROOT)/misc/wasm/wasm_exec.js"; fi
+cp "$WASM_EXEC" dist/wasm_exec.js
+cp web/skillc-worker.js dist/skillc-worker.js
+~~~
+
+静态资源应与 Go/WASM runtime **版本匹配**。旧 scaffold worker 仅支持 check/build 并且路径是相对于 Worker 解析的；实现 inspect 时将其扩充，随后在真实 Chromium 静态页面里调用。**目前未运行 Chromium/Pages 端到端验收**。
+
+最低通过项：同样的 project 文件集合（包括 Tool YAML/Manifest）在 Native Go 与 JS/WASM 返回一样的诊断码、source path、output file path 和字节；两份真实 5GC pinned 快照只用于迁移缺口说明，**不要求未经迁移的旧源码 PASS**。
+
+## 5. 与 Host / MCP 的边界
+
+- Tool Library 是**被导入的接口文件**，不是 Tool Implementation、MCP Server 连接或部署注册。
+- 外部 Host request/context/observation 的 Schema 只能从真实 Owner 导入。当前 5GC 工程中这部分尚不完整；不可复制路由配置 Schema、不得自造以通过测试。
+- Host 对新构建包的加载可以**另立破坏性切换 PR**。不要为了兼容历史 Runtime Artifact/Release 把这些内容重新放进 Compiler。
+- Compiler Build.success 只表示新 DSL 的静态链接完成；不证明脚本执行、MCP 可用、MAS READY 或 5GC E2E。

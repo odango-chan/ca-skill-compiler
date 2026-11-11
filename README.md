@@ -1,48 +1,43 @@
 # Skill Compiler · skillc
 
-**A small stateless Skill project compiler/linker, not a Skill management platform.**
-
-Project roots:
+A **stateless, breaking-only v0** compiler/linker for multi-Skill projects. No database, Release, Qualification, managed Workspace, Runtime execution, live MCP call or legacy format compatibility adapters.
 
 ~~~text
 project/
-  skills/             # multiple editable SKILL source directories
-  lib/tools/          # imported, read-only Tool Catalog snapshots
-  output/             # generated (not editable source)
+  skills/            # editable multi-Skill authoring sources
+  lib/               # imported Tool/Host/Observation interface snapshots (read-only)
+  output/            # generated result (not compiler input)
 ~~~
 
-The repository deliberately contains **no database, Workspace server, Qualification, Release, Runtime or MCP tool execution**.
-
-## Quick start (Go 1.23+)
+## Getting started (target commands, Go 1.23+)
 
 ~~~bash
+go mod tidy
+go test ./... -count=1
 go run ./cmd/skillc check ./examples/minimal-project
-go run ./cmd/skillc check ./examples/ca-agent-demo-project
-go run ./cmd/skillc build ./examples/ca-agent-demo-project --skill establish-pdu-session --out ./dist/establish
-go run ./cmd/skillc build ./examples/ca-agent-demo-project --skill establish-pdu-session-mas --out ./dist/mas
+go run ./cmd/skillc check ./examples/script-contract-project
+go run ./cmd/skillc build ./examples/script-contract-project --out ./dist/script-contract
 ~~~
 
-`--out` must be empty/nonexistent; a compiler static check does not imply Runtime READY.
+**Status caution**: Current Core is a prototype. These commands are verification goals, **not yet confirmed PASS**. The compiler may not yet recognize v0 strict Script Output types, Procedure scopes or `lib/manifest.yaml`.
 
-## Real integration samples
+## Real 5GC examples are migration inputs, NOT legacy success fixtures
 
-[`examples/ca-agent-demo-project`](examples/ca-agent-demo-project/README.md) contains **both original Skills copied exactly from ca-agent-demo** and their imported Agent ToolCatalogs. The MAS ToolCatalog is explicitly **NOT_READY**, suitable only for static linking. The compiler should diagnose unsupported syntax accurately instead of modifying the reference Skill files.
+`examples/ca-agent-demo-project/` includes two complete, unmodified ca-agent-demo Skills at pinned upstream commit, plus two read-only ToolCatalog snapshots. It is an **old-source baseline** for v0 migration and will need Script/Procedure refactoring. Strict new Compiler **must not add compatibility code just to make the old source build green**. MAS proposed catalog still says NOT_READY. Real Host/Observation producer schemas are not fully available; missing owner data is an explicit dependency.
 
-## Browser
+A separate synthetic `examples/script-contract-project` is the intended **positive v0** case: Tool Output imported from lib → Procedure with → Script own strict generated Output Schema.
 
-The same Core exports `skillcCheck` and `skillcBuild` with Go/WASM, bridged by `web/skillc-worker.js`. It accepts JSON with base64 file bytes. See [Skill Studio integration](docs/studio-integration.md).
+## Design and local implementation
 
-## Local weak-model handoff
+- [Compiler v0 project contract](docs/design/skill-compiler-v0.md)
+- [Script Contract v0 (no compatibility)](docs/design/script-contract-v0.md)
+- [Procedure Link v0](docs/design/procedure-link-v0.md)
+- [Acceptance matrix G0–G9](docs/workstreams/acceptance-matrix-v0.md)
+- [One-shot local Harness Goal WP0–WP7](docs/workstreams/local-implementation-goal.md)
+- [Copy/paste Harness prompt](docs/workstreams/local-harness-prompt.md)
+- [Skill Studio/WASM ABI](docs/studio-integration.md)
+- [WORK status](docs/WORK.md)
 
-- [One-shot implementation Goal (WP0–WP7)](docs/workstreams/local-implementation-goal.md)
-- [Copyable local Harness prompt](docs/workstreams/local-harness-prompt.md)
+Current work: [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2), tracking [Issue #1](https://github.com/odango-chan/ca-skill-compiler/issues/1). Do not merge main without actual Go, WASM and fixture verification.
 
-**Development state**: Draft PR [#2](https://github.com/odango-chan/ca-skill-compiler/pull/2); Go, WASM, real consumer acceptance NOT_RUN until verified locally.
-
-## Other docs
-
-- [Canonical compiler design](docs/design/skill-compiler-v0.md)
-- [Script Contract v0: imported producer Schema for inputs, strict generated Script outputs](docs/design/script-contract-v0.md)
-- [Implementation status](docs/WORK.md)
-- [Issue #1](https://github.com/odango-chan/ca-skill-compiler/issues/1)
-- [Old Toolchain history](https://github.com/odango-chan/ca-skill-toolchain) (not a dependency)
+Historical [ca-skill-toolchain](https://github.com/odango-chan/ca-skill-toolchain) is background only, not a code dependency.

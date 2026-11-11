@@ -1,27 +1,38 @@
-# Real dual-Skill fixture from ca-agent-demo
+# ca-agent-demo real dual-Skill source snapshots · MIGRATION INPUT
 
-Two complete, **unaltered** Skill source directories are copied from
-[`odango-chan/ca-agent-demo`](https://github.com/odango-chan/ca-agent-demo/commit/8ab5145b992f74ee793e0d35a4ec96e6b26500a3)
-at commit `8ab5145b992f74ee793e0d35a4ec96e6b26500a3`:
+These are **pinned upstream source references**, not a legacy-compatibility test target. All **79 Skill source blobs plus one official ToolCatalog** match `ca-agent-demo@8ab5145b992f74ee793e0d35a4ec96e6b26500a3` byte-for-byte (based on Git blob identity).
 
-- `skills/establish-pdu-session/` — SKILL.md, assurance, scripts, schemas, references, cases, design;
-- `skills/establish-pdu-session-mas/` — SKILL.md, assurance, schema, cases, design.
-
-All **79 Skill files plus one ToolCatalog (80 original files)** were checked by Git blob ID against the source commit and matched byte-for-byte. The imported library `lib/tools/createdsession.tool.yaml` is exactly the source `tools/contracts/createdsession.tool.yaml` (12 Agent-facing Operations).
-
-`lib/tools/mas-proposed.tool.yaml` is a separate, byte-identical copy of MAS's own `design/tool-contract.yaml`. That document declares 16 candidate operations and explicitly says **NOT_READY**: external adapters, independent Effect contracts, reconcile and resource-owner proof remain missing. Treat it as a **design-state static linker fixture only**; never claim the MAS tool operations are available/executable/authorized just because the compiler can resolve their names.
-
-All files are checked-in **test examples**, not new authority for official Skill authors. Do not edit the 79 Skill sources or ToolCatalog snapshots just to make static checks green. Refresh them only by a separately reviewed sync from a pinned upstream commit. `ca-agent-demo/tools/registrations/default.yaml` is **not** copied because it is a deployment implementation map, not the Tool Schema library.
-
-## Intended local checks (not yet marked PASS)
-
-~~~bash
-go test ./... -count=1
-go run ./cmd/skillc check ./examples/ca-agent-demo-project
-go run ./cmd/skillc build ./examples/ca-agent-demo-project --skill establish-pdu-session --out ./dist/establish
-go run ./cmd/skillc build ./examples/ca-agent-demo-project --skill establish-pdu-session-mas --out ./dist/mas
+~~~text
+examples/ca-agent-demo-project/
+  skills/
+    establish-pdu-session/        # original Script metadata + Procedures/Predicates/Cases/References
+    establish-pdu-session-mas/    # original MAS Skill + proposal
+  lib/
+    tools/
+      createdsession.tool.yaml    # 12 existing Agent-facing operation interfaces
+      mas-proposed.tool.yaml     # 16 PROPOSED / NOT_READY interfaces
+    manifest.yaml                 # import source/status labels (added by compiler project)
 ~~~
 
-A copyable output directory still requires independent Agent Host/Runtime admission and deployment bindings to execute. Static build success is NOT READY and is not a live 5GC or MAS acceptance result.
+- `lib/tools/createdsession.tool.yaml` is the authoritative original ToolCatalog snapshot; `mas-proposed.tool.yaml` is byte-identical to MAS `design/tool-contract.yaml`.
+- `lib/manifest.yaml` is an added project-local **interface provenance/maturity** manifest, not an upstream file. `declared` / `proposed` do not mean Runtime READY or Tool authorization.
+- The two Skills' existing `schemas/establishment-request.schema.yaml` are authored Skill input schemas, not an invented Host context schema. Full external Host/Observation owner schemas are **not provided** by these ToolCatalogs.
+- The new v0 Compiler has **NO obligation to compile the old Script metadata as-is**. In v0 validation, these snapshots are expected to reveal which source changes and which external contracts are still needed.
+- Do not alter these pinned files to force PASS. If migrating, create a separate `examples/ca-agent-demo-v0/` with redesigned Script signatures, authoritative lib references and new Procedure grammar, then validate there.
+- Compiling the ZIP from these original files does not imply actual Agent Host acceptance, ready Tool implementations, or 5GC E2E.
 
-See [the local implementation Goal](../../docs/workstreams/local-implementation-goal.md).
+## Tests
+
+Positive v0 fixtures:
+- `examples/minimal-project` (two Skills and a synthetic ToolCatalog)
+- `examples/script-contract-project` (Tool library + Procedure binding + strict Script Output Schema)
+
+Raw pre-migration diagnostic probe (expected to report unsupported / missing Owner interface until migrated):
+
+~~~bash
+go run ./cmd/skillc check ./examples/ca-agent-demo-project
+~~~
+
+This command is **not** a universal zero-exit gate. A nonzero exit with accurate source-backed migration diagnostics can be correct under new strict semantics. Do not hide errors by falling back to old Script/Schema behavior.
+
+Implementation and fixture acceptance results: [WORK.md](../../docs/WORK.md) and [Acceptance Matrix](../../docs/workstreams/acceptance-matrix-v0.md).

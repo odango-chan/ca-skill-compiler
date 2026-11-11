@@ -1,6 +1,9 @@
-# Imported read-only Tool Catalogs
+# Imported (read-only) Library files
 
-- `tools/createdsession.tool.yaml`: 12 Agent-facing Operations, original ca-agent-demo ToolCatalog at pinned `8ab5145b`.
-- `tools/mas-proposed.tool.yaml`: 16 proposed MAS Operations, copied from its design contract, **NOT_READY**.
+- `tools/createdsession.tool.yaml`: exact imported Agent-facing ToolCatalog, 12 Operations.
+- `tools/mas-proposed.tool.yaml`: exact imported MAS proposal, 16 Operations, explicitly PROPOSED/NOT_READY.
+- `manifest.yaml`: **new local import metadata**. Its statuses `declared` / `proposed` / `unspecified` describe contract maturity, not running implementation/authorization/READY.
 
-These snapshots provide Tool interface schemas for **static** linking only; they do not prove running implementations or permission to execute. A full authoritative Host context/facts/observations schema is **not** included in these two files. Do not invent a replacement to obtain green tests. Skill-owned public request schemas remain under `skills/*/schemas/`.
+The original ToolCatalog files are unchanged; only the import metadata belongs to the compiler example project. Host/Ingress/Observation data contracts are **not included** because no confirmed authoritative snapshot has been identified. Never fabricate those schemas or mistake Root Routing Profile (deployment settings) for runtime data.
+
+See [Script Contract](../../../docs/design/script-contract-v0.md) and [Procedure Link Contract](../../../docs/design/procedure-link-v0.md).
