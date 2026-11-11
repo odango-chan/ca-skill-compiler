@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"regexp"
@@ -207,10 +208,19 @@ func validateSchemaShape(schema *yaml.Node) error {
 		return fmt.Errorf("const must be a JSON literal")
 	}
 	if enum := child(schema, "enum"); enum != nil {
+		seen := map[string]bool{}
 		for _, value := range sequence(enum) {
 			if !validJSONLiteral(value) {
 				return fmt.Errorf("enum values must be JSON literals")
 			}
+			encoded, err := json.Marshal(nodeValue(value))
+			if err != nil {
+				return fmt.Errorf("enum values must be JSON literals")
+			}
+			if seen[string(encoded)] {
+				return fmt.Errorf("enum values must be unique")
+			}
+			seen[string(encoded)] = true
 		}
 	}
 	if unique := child(schema, "uniqueItems"); unique != nil && (unalias(unique).Kind != yaml.ScalarNode || unalias(unique).Tag != "!!bool") {

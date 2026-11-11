@@ -313,6 +313,8 @@ func TestSchemaShapeValidatesDraft2020ConstraintTypes(t *testing.T) {
 		{"type": "object", "patternProperties": map[string]any{"[": map[string]any{"type": "string"}}},
 		{"type": "object", "additionalProperties": "true"},
 		{"type": "array", "contains": map[string]any{}, "minContains": 3, "maxContains": 2},
+		{"type": "string", "enum": []any{"same", "same"}},
+		{"type": "number", "enum": []any{1, 1.0}},
 	}
 	for _, candidate := range invalid {
 		if err := validateSchemaShape(schemaNode(candidate)); err == nil {
