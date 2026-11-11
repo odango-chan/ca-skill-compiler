@@ -676,6 +676,10 @@ func TestProducerNumericConstraintsMustSatisfyConsumer(t *testing.T) {
 	}{
 		{"stronger exclusive lower bound", map[string]any{"minimum": 5}, map[string]any{"exclusiveMinimum": 4}, true},
 		{"equal minimum does not satisfy exclusive lower bound", map[string]any{"minimum": 5}, map[string]any{"exclusiveMinimum": 5}, false},
+		{"strong minimum dominates weaker exclusive minimum", map[string]any{"minimum": 5, "exclusiveMinimum": 3}, map[string]any{"exclusiveMinimum": 4}, true},
+		{"strong exclusive minimum satisfies regular minimum", map[string]any{"minimum": 0, "exclusiveMinimum": 10}, map[string]any{"minimum": 5}, true},
+		{"strong maximum dominates weaker exclusive maximum", map[string]any{"maximum": 5, "exclusiveMaximum": 7}, map[string]any{"exclusiveMaximum": 6}, true},
+		{"strong exclusive maximum satisfies regular maximum", map[string]any{"maximum": 10, "exclusiveMaximum": 4}, map[string]any{"maximum": 5}, true},
 		{"producer multiple is also consumer multiple", map[string]any{"multipleOf": 6}, map[string]any{"multipleOf": 2}, true},
 		{"producer multiple does not imply consumer multiple", map[string]any{"multipleOf": 2}, map[string]any{"multipleOf": 3}, false},
 	}

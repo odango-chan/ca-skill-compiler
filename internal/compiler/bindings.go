@@ -371,7 +371,7 @@ func schemaConstraintsCompatible(source, target *yaml.Node) bool {
 		if t := schemaNumber(target, key); t != nil {
 			s := schemaNumber(source, key)
 			exclusive := schemaNumber(source, "exclusiveMinimum")
-			if s == nil && (exclusive == nil || *exclusive < *t) || s != nil && *s < *t {
+			if (s == nil || *s < *t) && (exclusive == nil || *exclusive < *t) {
 				return false
 			}
 		}
@@ -380,20 +380,20 @@ func schemaConstraintsCompatible(source, target *yaml.Node) bool {
 		if t := schemaNumber(target, key); t != nil {
 			s := schemaNumber(source, key)
 			exclusive := schemaNumber(source, "exclusiveMaximum")
-			if s == nil && (exclusive == nil || *exclusive > *t) || s != nil && *s > *t {
+			if (s == nil || *s > *t) && (exclusive == nil || *exclusive > *t) {
 				return false
 			}
 		}
 	}
 	if t := schemaNumber(target, "exclusiveMinimum"); t != nil {
 		minimum, exclusive := schemaNumber(source, "minimum"), schemaNumber(source, "exclusiveMinimum")
-		if minimum == nil && exclusive == nil || minimum != nil && *minimum <= *t || exclusive != nil && *exclusive <= *t {
+		if (minimum == nil || *minimum <= *t) && (exclusive == nil || *exclusive < *t) {
 			return false
 		}
 	}
 	if t := schemaNumber(target, "exclusiveMaximum"); t != nil {
 		maximum, exclusive := schemaNumber(source, "maximum"), schemaNumber(source, "exclusiveMaximum")
-		if maximum == nil && exclusive == nil || maximum != nil && *maximum >= *t || exclusive != nil && *exclusive >= *t {
+		if (maximum == nil || *maximum >= *t) && (exclusive == nil || *exclusive > *t) {
 			return false
 		}
 	}
