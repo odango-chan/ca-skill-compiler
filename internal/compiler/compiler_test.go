@@ -838,6 +838,34 @@ func TestSchemaCompatibilityIgnoresConstraintsForOtherTypes(t *testing.T) {
 	}
 }
 
+func TestJSONNumericValuesCompareMathematically(t *testing.T) {
+	parse := func(source string) *yaml.Node {
+		t.Helper()
+		var document yaml.Node
+		if err := yaml.Unmarshal([]byte(source), &document); err != nil {
+			t.Fatal(err)
+		}
+		return document.Content[0]
+	}
+	producer := parse("type: number\nenum: [1]\n")
+	consumer := parse("type: number\nenum: [1.0]\n")
+	if !schemasCompatible(producer, consumer) {
+		t.Fatal("JSON Schema numeric enum values 1 and 1.0 should be equal")
+	}
+	if !literalMatchesSchema(parse("1.0\n"), parse("type: number\nconst: 1\n")) {
+		t.Fatal("JSON number literal 1.0 did not satisfy const 1")
+	}
+	if literalMatchesSchema(parse("[1, 1.0]\n"), parse("type: array\nitems: {type: number}\nuniqueItems: true\n")) {
+		t.Fatal("uniqueItems accepted mathematically equal numeric values")
+	}
+	if err := validateSchemaShape(parse("type: number\nenum: [1, 1.0]\n")); err == nil {
+		t.Fatal("duplicate mathematical enum values were accepted")
+	}
+	if !jsonValuesEqual(parse("{nested: [1, {value: 2.00}]}\n"), parse("{nested: [1.0, {value: 2}]}\n")) {
+		t.Fatal("nested JSON values did not compare numeric members mathematically")
+	}
+}
+
 func TestObjectSchemaCompatibilityHonorsAdditionalProperties(t *testing.T) {
 	object := func(properties map[string]any, additional any) *yaml.Node {
 		value := map[string]any{"type": "object", "properties": properties}
