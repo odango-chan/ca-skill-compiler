@@ -5,7 +5,6 @@
 - [build-request.schema.json](build-request.schema.json) — in-memory input: `files` and optional `targets`.
 - [build-result.schema.json](build-result.schema.json) — deterministic diagnostics and generated file tree.
 - [tool-catalog.schema.json](tool-catalog.schema.json) — existing imported ToolCatalog YAML data model (`ca-agent-demo.tool/v1`).
-- [library-manifest.schema.json](library-manifest.schema.json) — optional declared/proposed/unspecified inspection metadata only.
 - [library-inspection.schema.json](library-inspection.schema.json) — read-only ToolCatalog inspection result.
 
 Normative responsibilities and boundaries: [Skill Compiler Language & Linking Contract v0.1](../../docs/design/compiler-contract-v0.1.md).

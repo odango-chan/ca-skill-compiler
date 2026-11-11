@@ -1,8 +1,10 @@
 package compiler
 
 import (
+	"fmt"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	"gopkg.in/yaml.v3"
 )
@@ -30,41 +32,6 @@ func nodeValue(n *yaml.Node) any {
 }
 
 func (a *analysis) importLibraries() {
-	statuses := map[string]string{}
-	if a.files["lib/manifest.yaml"] != nil {
-		manifest := a.parseYAML("lib/manifest.yaml")
-		if manifest != nil {
-			a.validateMappingFields("lib/manifest.yaml", manifest, "library manifest", "LIB_MANIFEST_PATH", "libraries")
-		}
-		libraries := child(manifest, "libraries")
-		if libraries != nil && unalias(libraries).Kind != yaml.SequenceNode {
-			a.errorAtNode("lib/manifest.yaml", libraries, "LIB_MANIFEST_PATH", "libraries must be an array")
-		}
-		for _, item := range sequence(libraries) {
-			if unalias(item).Kind != yaml.MappingNode {
-				a.errorAtNode("lib/manifest.yaml", item, "LIB_MANIFEST_PATH", "manifest library entry must be an object")
-				continue
-			}
-			a.validateMappingFields("lib/manifest.yaml", item, "manifest library entry", "LIB_MANIFEST_PATH", "path", "status")
-			p, status := scalar(child(item, "path")), scalar(child(item, "status"))
-			if !isNonemptyString(child(item, "path")) || !validLibraryPath(p) {
-				a.errorAt("lib/manifest.yaml", item.Line, "LIB_MANIFEST_PATH", "manifest library path must be a normalized lib/ path")
-				continue
-			}
-			if status == "" {
-				status = "unspecified"
-			}
-			if status != "declared" && status != "proposed" && status != "unspecified" {
-				a.errorAt("lib/manifest.yaml", item.Line, "LIB_MANIFEST_STATUS", "status must be declared, proposed, or unspecified")
-				continue
-			}
-			if _, ok := statuses[p]; ok {
-				a.errorAt("lib/manifest.yaml", item.Line, "LIB_MANIFEST_DUPLICATE", "library path declared more than once: "+p)
-				continue
-			}
-			statuses[p] = status
-		}
-	}
 	names := make([]string, 0, len(a.files))
 	for filename := range a.files {
 		if strings.HasPrefix(filename, "lib/tools/") && (strings.HasSuffix(filename, ".yaml") || strings.HasSuffix(filename, ".yml")) {
@@ -87,8 +54,11 @@ func (a *analysis) importLibraries() {
 		} else {
 			a.validateMappingFields(filename, metadata, "ToolCatalog metadata", "LIB_SCHEMA_INVALID", "name", "owner")
 			for _, field := range []string{"name", "owner"} {
-				if !isNonemptyString(child(metadata, field)) {
+				value := child(metadata, field)
+				if !isNonemptyString(value) {
 					a.errorAt(filename, metadata.Line, "LIB_SCHEMA_INVALID", "ToolCatalog metadata requires nonempty string "+field)
+				} else if utf8.RuneCountInString(scalar(value)) > 160 {
+					a.errorAt(filename, value.Line, "LIB_SCHEMA_INVALID", "ToolCatalog metadata "+field+" exceeds 160 characters")
 				}
 			}
 		}
@@ -111,11 +81,15 @@ func (a *analysis) importLibraries() {
 			a.errorAt(filename, root.Line, "LIB_SCHEMA_INVALID", "ToolCatalog has no spec.contracts")
 			continue
 		}
+		if len(contracts) > maxFiles {
+			a.errorAt(filename, contractsNode.Line, "LIB_SCHEMA_INVALID", "ToolCatalog contracts exceeds 512 Operations")
+		}
 		for _, item := range contracts {
 			if unalias(item).Kind != yaml.MappingNode {
 				a.errorAt(filename, item.Line, "LIB_SCHEMA_INVALID", "Tool operation entry must be an object")
 				continue
 			}
+			operationDiagnosticsStart := len(a.diagnostics)
 			a.validateMappingFields(filename, item, "Tool operation", "LIB_SCHEMA_INVALID", "operation", "adapter", "description", "effect", "inputSchema", "outputSchema", "reconcileOutputSchema")
 			idNode := child(item, "operation")
 			id := scalar(idNode)
@@ -123,20 +97,33 @@ func (a *analysis) importLibraries() {
 				a.errorAt(filename, item.Line, "LIB_SCHEMA_INVALID", "Tool contract has no operation ID")
 				continue
 			}
+			if utf8.RuneCountInString(id) > 160 {
+				a.errorAt(filename, idNode.Line, "LIB_SCHEMA_INVALID", "operation ID exceeds 160 characters")
+				continue
+			}
 			for _, field := range []string{"adapter", "description"} {
-				if value := child(item, field); value != nil && unalias(value).Tag != "!!str" {
-					a.errorAt(filename, value.Line, "LIB_SCHEMA_INVALID", "Tool "+field+" must be a string: "+id)
+				if value := child(item, field); value != nil {
+					limit := 8192
+					if field == "adapter" {
+						limit = 160
+					}
+					if unalias(value).Tag != "!!str" || (field == "adapter" && scalar(value) == "") {
+						a.errorAt(filename, value.Line, "LIB_SCHEMA_INVALID", "Tool "+field+" must be a valid string: "+id)
+					} else if utf8.RuneCountInString(scalar(value)) > limit {
+						a.errorAt(filename, value.Line, "LIB_SCHEMA_INVALID", fmt.Sprintf("Tool %s exceeds %d characters: %s", field, limit, id))
+					}
 				}
 			}
 			if a.ambiguousOperations[id] {
 				continue
 			}
-			if prev, exists := a.tools[id]; exists {
-				a.errorAt(filename, item.Line, "LIB_OPERATION_DUPLICATE", "operation "+id+" already declared in "+prev.source)
+			if prev, exists := a.operationSources[id]; exists {
+				a.errorAt(filename, item.Line, "LIB_OPERATION_DUPLICATE", "operation "+id+" already declared in "+prev)
 				delete(a.tools, id)
 				a.ambiguousOperations[id] = true
 				continue
 			}
+			a.operationSources[id] = filename
 			input := child(item, "inputSchema")
 			if input == nil {
 				a.errorAt(filename, item.Line, "LIB_SCHEMA_INVALID", "operation "+id+" has no inputSchema")
@@ -155,10 +142,6 @@ func (a *analysis) importLibraries() {
 			reconcile := child(item, "reconcileOutputSchema")
 			if reconcile != nil && unalias(reconcile).Kind != yaml.MappingNode {
 				a.errorAt(filename, reconcile.Line, "LIB_SCHEMA_INVALID", "reconcileOutputSchema must be an object")
-			}
-			status := statuses[filename]
-			if status == "" {
-				status = "unspecified"
 			}
 			inputNode, outputNode := unalias(input), unalias(output)
 			if inputNode != nil {
@@ -191,14 +174,11 @@ func (a *analysis) importLibraries() {
 					reconcileNode = expanded
 				}
 			}
-			tool := LibraryTool{OperationID: id, SourcePath: filename, SourceStatus: status, DeclaredEffect: effect,
-				Description: scalar(child(item, "description")), InputSchema: nodeValue(input), OutputSchema: nodeValue(output), ReconcileOutputSchema: nodeValue(reconcile)}
-			a.tools[id] = toolEntry{source: filename, line: item.Line, effect: effect, tool: tool, inputNode: inputNode, outputNode: outputNode, reconcileOutputNode: reconcileNode}
-		}
-	}
-	for p := range statuses {
-		if a.files[p] == nil {
-			a.errorAt("lib/manifest.yaml", 0, "LIB_MANIFEST_PATH", "manifest references a library file that was not imported: "+p)
+			if len(a.diagnostics) == operationDiagnosticsStart {
+				tool := LibraryTool{OperationID: id, SourcePath: filename, DeclaredEffect: effect,
+					Description: scalar(child(item, "description")), InputSchema: nodeValue(input), OutputSchema: nodeValue(output), ReconcileOutputSchema: nodeValue(reconcile)}
+				a.tools[id] = toolEntry{source: filename, line: item.Line, effect: effect, tool: tool, inputNode: inputNode, outputNode: outputNode, reconcileOutputNode: reconcileNode}
+			}
 		}
 	}
 }

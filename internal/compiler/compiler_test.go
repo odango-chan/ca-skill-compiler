@@ -468,25 +468,44 @@ func TestPredicateSetAllowsStandardEnvelopeFields(t *testing.T) {
 	}
 }
 
-func TestScriptPredicateEvaluatorUsesStaticReferenceShape(t *testing.T) {
+func TestScriptPredicateEvaluatorUsesPackageRelativeReference(t *testing.T) {
 	files := source("pred", "check", "procedures:\n  check:\n    start: v\n    nodes:\n      v:\n        verify: allowed\n")
 	for i := range files {
 		if files[i].Path == "skills/pred/assurance/contract.yaml" {
-			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "capabilities: [demo.read]", "capabilities: [demo.read]\n    localTools: [skill.evaluate-allowed]", 1))
+			src := string(files[i].Bytes)
+			src = strings.Replace(src, "  entryProcedure: check\n", "  entryProcedure: check\n  inputs: {requestSchema: schemas/request.yaml}\n  context:\n    schemas:\n      subject: lib/host/subject.yaml\n      facts: lib/host/facts.yaml\n      observations: lib/observations/context.yaml\n      evidence: lib/host/evidence.yaml\n", 1)
+			files[i].Bytes = []byte(src)
 		}
 	}
-	predicates := File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("pred", "predicates:\n  allowed:\n    evaluator: {type: script, ref: skill.evaluate-allowed}\n"))}
-	files = append(files, predicates)
-	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "LOCAL_TOOL_RESOLUTION_UNSPECIFIED") {
-		t.Fatalf("unfrozen local Tool to Script mapping was silently accepted: %#v", got.Diagnostics)
+	files = append(files,
+		File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("pred", "predicates:\n  allowed:\n    evaluator: {type: script, ref: scripts/evaluate.py}\n"))},
+		File{Path: "skills/pred/scripts/evaluate.py", Bytes: []byte("from typing import TypedDict\nclass Output(TypedDict):\n    result: str\ndef main(input: dict) -> Output:\n    return {}\n")},
+		File{Path: "skills/pred/schemas/request.yaml", Bytes: []byte("type: object\n")},
+		File{Path: "lib/host/subject.yaml", Bytes: []byte("type: object\n")},
+		File{Path: "lib/host/facts.yaml", Bytes: []byte("type: object\n")},
+		File{Path: "lib/host/evidence.yaml", Bytes: []byte("type: object\n")},
+		File{Path: "lib/observations/context.yaml", Bytes: []byte("type: object\n")},
+	)
+	got := Build(Request{Files: files})
+	if !got.Success {
+		t.Fatalf("package-relative Predicate Script should compile: %#v", got.Diagnostics)
+	}
+	found := false
+	for _, file := range got.OutputFiles {
+		if file.Path == "skills/pred/schemas/generated/evaluate.output.schema.json" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("Predicate Script Output Schema was not generated")
 	}
 	for i := range files {
-		if files[i].Path == predicates.Path {
-			files[i].Bytes = []byte(predicateSetSource("pred", "predicates:\n  allowed:\n    evaluator: {type: script}\n"))
+		if files[i].Path == "skills/pred/assurance/predicates.yaml" {
+			files[i].Bytes = []byte(predicateSetSource("pred", "predicates:\n  allowed:\n    evaluator: {type: script, ref: skill.evaluate-allowed}\n"))
 		}
 	}
 	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") {
-		t.Fatalf("script Predicate evaluator without ref accepted: %#v", got.Diagnostics)
+		t.Fatalf("non-path Predicate Script identity was accepted: %#v", got.Diagnostics)
 	}
 }
 
@@ -614,7 +633,7 @@ func TestSkillMarkdownFrontmatterIsValidated(t *testing.T) {
 
 func TestBuildRequestTargetsAreUniqueAndBounded(t *testing.T) {
 	files := source("request", "run", "procedures:\n  run:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n")
-	for _, targets := range [][]string{{"request", "request"}, {strings.Repeat("x", 81)}} {
+	for _, targets := range [][]string{{"request", "request"}, {strings.Repeat("x", 81)}, {strings.Repeat("界", 81)}} {
 		got := Build(Request{Files: files, Targets: targets})
 		if got.Success || !findDiagnostic(got.Diagnostics, "REQUEST_INVALID") || len(got.OutputFiles) != 0 {
 			t.Fatalf("invalid target vector accepted or yielded partial output: %#v", got)
@@ -622,6 +641,16 @@ func TestBuildRequestTargetsAreUniqueAndBounded(t *testing.T) {
 	}
 	if got := Build(Request{}); got.Success || !findDiagnostic(got.Diagnostics, "REQUEST_INVALID") {
 		t.Fatalf("empty file vector accepted: %#v", got)
+	}
+}
+
+func TestDiagnosticStringsStayWithinBuildResultLimits(t *testing.T) {
+	a := &analysis{}
+	longPath := "skills/" + strings.Repeat("界", 234)
+	a.errorAt(longPath, 0, "PROJECT_PATH_INVALID", strings.Repeat("é", 9000))
+	got := a.sortedDiagnostics()
+	if len(got) != 1 || len([]rune(got[0].Path)) > 240 || len([]rune(got[0].Message)) > 8192 {
+		t.Fatalf("diagnostic exceeded BuildResult string limits: pathRunes=%d messageRunes=%d", len([]rune(got[0].Path)), len([]rune(got[0].Message)))
 	}
 }
 
@@ -648,6 +677,19 @@ func TestToolCatalogRejectsUnknownFieldsAndRequiresMetadata(t *testing.T) {
 	got = InspectLibraries(Request{Files: []File{catalog}})
 	if !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
 		t.Fatalf("ToolCatalog without owner metadata was accepted: %#v", got)
+	}
+}
+
+func TestToolCatalogEnforcesWireStringLimits(t *testing.T) {
+	catalog := toolCatalog()
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "operation: demo.read", "operation: "+strings.Repeat("a", 161), 1))
+	if got := InspectLibraries(Request{Files: []File{catalog}}); !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") || len(got.Tools) != 0 {
+		t.Fatal("Operation ID beyond the contract limit was accepted")
+	}
+	catalog = toolCatalog()
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "operation: demo.read", "operation: demo.read\n    description: "+strings.Repeat("d", 8193), 1))
+	if got := InspectLibraries(Request{Files: []File{catalog}}); !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") || len(got.Tools) != 0 {
+		t.Fatal("Tool description beyond the contract limit was accepted")
 	}
 }
 
@@ -1452,14 +1494,32 @@ func TestFileInputOrderDoesNotChangeDiagnosticsOrOutputs(t *testing.T) {
 	}
 }
 
-func TestManifestAndReadonlyLibraryInspection(t *testing.T) {
-	files := []File{toolCatalog(), {Path: "lib/manifest.yaml", Bytes: []byte("libraries:\n  - path: lib/tools/demo.yaml\n    status: proposed\n")}}
-	got := InspectLibraries(Request{Files: files})
-	if len(got.Diagnostics) != 0 || len(got.Tools) != 1 || got.Tools[0].SourceStatus != "proposed" || got.Tools[0].DeclaredEffect != "READ" {
+func TestReadonlyLibraryInspectionHasNoSourceLifecycleState(t *testing.T) {
+	got := InspectLibraries(Request{Files: []File{toolCatalog()}})
+	if len(got.Diagnostics) != 0 || len(got.Tools) != 1 || got.Tools[0].DeclaredEffect != "READ" {
 		t.Fatalf("unexpected library inspection: %#v", got)
 	}
 	if got.Tools[0].InputSchema == nil || got.Tools[0].OutputSchema == nil {
 		t.Fatalf("schema projections missing: %#v", got.Tools[0])
+	}
+	wire, err := json.Marshal(got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(wire), "sourceStatus") || strings.Contains(string(wire), "proposed") {
+		t.Fatalf("Compiler inspection leaked source lifecycle metadata: %s", wire)
+	}
+}
+
+func TestV01RejectsLegacyLocalToolGrantField(t *testing.T) {
+	files := source("no-local-tools", "run", "procedures:\n  run:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n")
+	for i := range files {
+		if files[i].Path == "skills/no-local-tools/assurance/contract.yaml" {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "capabilities: [demo.read]", "capabilities: [demo.read]\n    localTools: [legacy.script]", 1))
+		}
+	}
+	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "CONTRACT_SPEC") {
+		t.Fatalf("v0 localTools compatibility field was accepted: %#v", got.Diagnostics)
 	}
 }
 
@@ -1679,43 +1739,24 @@ func TestCurrentProcedureVerifyStepsMayBeUnnamedAndAcceptBindings(t *testing.T) 
 	}
 }
 
-func TestPinnedToolCatalogsInspectWithProvenance(t *testing.T) {
-	paths := []string{"../../examples/ca-agent-demo-project/lib/tools/createdsession.tool.yaml", "../../examples/ca-agent-demo-project/lib/tools/mas-proposed.tool.yaml", "../../examples/ca-agent-demo-project/lib/manifest.yaml"}
-	var files []File
-	for _, p := range paths {
-		b, err := os.ReadFile(filepath.Clean(p))
-		if err != nil {
-			t.Fatal(err)
-		}
-		rel := strings.TrimPrefix(filepath.ToSlash(filepath.Clean(p)), "../../examples/ca-agent-demo-project/")
-		if rel == "lib/manifest.yaml" {
-			b = []byte("libraries:\n  - path: lib/tools/createdsession.tool.yaml\n    status: declared\n  - path: lib/tools/mas-proposed.tool.yaml\n    status: proposed\n")
-		}
-		files = append(files, File{Path: rel, Bytes: b})
-	}
+func TestPinnedOfficialToolCatalogInspection(t *testing.T) {
+	files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "ca-skills-v0.2"))
 	got := InspectLibraries(Request{Files: files})
 	if len(got.Diagnostics) != 0 {
 		t.Fatalf("catalog inspection diagnostics: %#v", got.Diagnostics)
 	}
-	if len(got.Tools) != 28 {
-		t.Fatalf("wanted 28 imported Operations, got %d", len(got.Tools))
+	if len(got.Tools) != 12 {
+		t.Fatalf("wanted 12 approved imported Operations, got %d", len(got.Tools))
 	}
-	proposed := 0
 	for _, tool := range got.Tools {
-		if tool.SourceStatus == "proposed" {
-			proposed++
-		}
 		if tool.InputSchema == nil {
 			t.Errorf("missing input schema for %s", tool.OperationID)
 		}
 	}
-	if proposed != 16 {
-		t.Fatalf("wanted 16 proposed Operations, got %d", proposed)
-	}
 }
 
-func TestCurrentCaAgentDemoSnapshotParsesCurrentSourceAndKeepsOwnerGaps(t *testing.T) {
-	root := filepath.Join("..", "..", "examples", "ca-agent-demo-current-main")
+func TestCurrentOfficialCaSkillsSnapshotParsesAndKeepsOwnerGaps(t *testing.T) {
+	root := filepath.Join("..", "..", "examples", "ca-skills-v0.2")
 	checksums, err := os.ReadFile(filepath.Join(root, "UPSTREAM_SOURCE.sha256"))
 	if err != nil {
 		t.Fatal(err)
@@ -1736,17 +1777,17 @@ func TestCurrentCaAgentDemoSnapshotParsesCurrentSourceAndKeepsOwnerGaps(t *testi
 		}
 		verified++
 	}
-	if verified != 80 {
-		t.Fatalf("expected checksums for 79 Skill files and one ToolCatalog, got %d", verified)
+	if verified != 62 {
+		t.Fatalf("expected checksums for 61 official Skill files and one ToolCatalog, got %d", verified)
 	}
 	files := loadProjectFilesForTest(t, root)
 	pdu := Build(Request{Files: files, Targets: []string{"establish-pdu-session"}})
-	if pdu.Success || !findDiagnostic(pdu.Diagnostics, "EXTERNAL_SCHEMA_MISSING") || !findDiagnostic(pdu.Diagnostics, "SCRIPT_TYPE_UNSUPPORTED") || !findDiagnostic(pdu.Diagnostics, "LOCAL_TOOL_RESOLUTION_UNSPECIFIED") {
-		t.Fatalf("current PDU source must retain explicit Owner/Script contract gaps: %#v", pdu.Diagnostics)
+	if pdu.Success || !findDiagnostic(pdu.Diagnostics, "EXTERNAL_SCHEMA_MISSING") {
+		t.Fatalf("official PDU source must retain explicit Owner/Tool contract gaps: %#v", pdu.Diagnostics)
 	}
-	for _, unsupported := range []string{"SKILL_METADATA_INVALID", "CONTRACT_SPEC", "CASE_INVALID", "PREDICATE_SOURCE_INCOMPLETE", "PROCEDURE_UNSUPPORTED"} {
+	for _, unsupported := range []string{"SKILL_METADATA_INVALID", "CONTRACT_SPEC", "CASE_INVALID", "PREDICATE_SOURCE_INCOMPLETE", "PROCEDURE_UNSUPPORTED", "SCRIPT_TYPE_UNSUPPORTED", "LOCAL_TOOL_RESOLUTION_UNSPECIFIED"} {
 		if findDiagnostic(pdu.Diagnostics, unsupported) {
-			t.Errorf("current PDU source form was not parsed according to the source Language (%s): %#v", unsupported, pdu.Diagnostics)
+			t.Errorf("official PDU source form was not parsed according to Skill Language v0.2 (%s): %#v", unsupported, pdu.Diagnostics)
 		}
 	}
 	mas := Build(Request{Files: files, Targets: []string{"establish-pdu-session-mas"}})

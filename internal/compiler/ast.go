@@ -39,7 +39,6 @@ type SkillContractAST struct {
 	ContextSchemas      map[string]string
 	RequiredFacts       []string
 	AllowedCapabilities []string
-	AllowedLocalTools   []string
 }
 
 type PredicateAST struct {

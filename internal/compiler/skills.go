@@ -18,7 +18,7 @@ type skillEntry struct {
 	scripts        map[string]int
 	procedures     map[string]bool
 	allowed        map[string]bool
-	localTools     map[string]bool
+	scriptRefPaths map[string]string
 	nodes          map[string]map[string]*yaml.Node
 	procedureRefs  map[string]map[string]int
 	libraryFiles   map[string]bool
@@ -56,7 +56,7 @@ func (a *analysis) parseSkills() {
 		base := "skills/" + name + "/"
 		s := &skillEntry{name: name, ast: &SkillAST{Name: name, Span: SourceSpan{Path: base + "SKILL.md"}, Predicates: map[string]PredicateAST{}}, contract: base + "assurance/contract.yaml", procedure: base + "assurance/procedure.yaml",
 			calls: make(map[string]int), scripts: make(map[string]int), deps: make(map[string]int), procedureCalls: make(map[string]map[string]int),
-			procedures: make(map[string]bool), allowed: make(map[string]bool), localTools: make(map[string]bool), nodes: make(map[string]map[string]*yaml.Node), procedureRefs: make(map[string]map[string]int), libraryFiles: make(map[string]bool), schemaRoots: make(map[string]bool)}
+			procedures: make(map[string]bool), allowed: make(map[string]bool), scriptRefPaths: make(map[string]string), nodes: make(map[string]map[string]*yaml.Node), procedureRefs: make(map[string]map[string]int), libraryFiles: make(map[string]bool), schemaRoots: make(map[string]bool)}
 		a.skills[name] = s
 		if _, ok := a.files[base+"SKILL.md"]; !ok {
 			a.errorAt(base+"SKILL.md", 0, "SKILL_ENTRY_MISSING", "SKILL.md is required")
@@ -98,16 +98,38 @@ func (a *analysis) parseSkills() {
 }
 
 func (a *analysis) validatePredicateScriptReferences(s *skillEntry) {
+	needsContext := false
 	for _, id := range sortedStringMapKeys(s.ast.Predicates) {
 		predicate := s.ast.Predicates[id]
 		if predicate.EvaluatorType != "script" || predicate.EvaluatorRef == "" {
 			continue
 		}
-		if !s.localTools[predicate.EvaluatorRef] {
-			a.errorAt(predicate.Span.Path, predicate.Span.Line, "LOCAL_TOOL_NOT_ALLOWED", "Predicate Script reference is not declared in allowedResources.localTools: "+predicate.EvaluatorRef)
+		if !validSkillScriptPath(predicate.EvaluatorRef) {
+			a.errorAt(predicate.Span.Path, predicate.Span.Line, "PREDICATE_SOURCE_INCOMPLETE", "Predicate Script ref must be a package-relative scripts/*.py path: "+predicate.EvaluatorRef)
 			continue
 		}
-		a.errorAt(predicate.Span.Path, predicate.Span.Line, "LOCAL_TOOL_RESOLUTION_UNSPECIFIED", "Skill Language does not freeze how local Tool identity maps to a Script source path: "+predicate.EvaluatorRef)
+		s.scripts[predicate.EvaluatorRef] = predicate.Span.Line
+		s.scriptRefPaths[predicate.EvaluatorRef] = predicate.Span.Path
+		needsContext = true
+	}
+	if needsContext {
+		contract := s.ast.Contract
+		if contract == nil || contract.RequestSchema == "" {
+			a.errorAt(s.contract, 0, "EXTERNAL_SCHEMA_MISSING", "Predicate Evaluation Context requires the Skill Request Schema")
+		}
+		for _, key := range []string{"subject", "facts", "observations", "evidence"} {
+			path := ""
+			if contract != nil {
+				path = contract.ContextSchemas[key]
+			}
+			if path == "" {
+				a.errorAt(s.contract, 0, "EXTERNAL_SCHEMA_MISSING", "Predicate Evaluation Context requires context.schemas."+key)
+				continue
+			}
+			if a.files[path] == nil {
+				a.errorAt(s.contract, 0, "EXTERNAL_SCHEMA_MISSING", "Predicate Evaluation Context Owner Schema is not imported: "+path)
+			}
+		}
 	}
 }
 
@@ -414,15 +436,13 @@ func (a *analysis) parseContract(s *skillEntry) {
 				if unalias(schemas).Kind != yaml.MappingNode {
 					a.errorAtNode(s.contract, schemas, "CONTRACT_SPEC", "SkillContract context.schemas must be an object")
 				} else {
-					a.validateMappingFields(s.contract, schemas, "SkillContract context.schemas", "CONTRACT_SPEC", "subject", "facts", "observations")
+					a.validateMappingFields(s.contract, schemas, "SkillContract context.schemas", "CONTRACT_SPEC", "subject", "facts", "observations", "evidence")
 				}
 			}
 		case "allowedResources":
-			a.validateMappingFields(s.contract, container, "SkillContract allowedResources", "CONTRACT_SPEC", "capabilities", "localTools")
-			for _, key := range []string{"capabilities", "localTools"} {
-				if values := child(container, key); values != nil {
-					a.validateStringSequence(s.contract, values, "SkillContract allowedResources."+key, "CONTRACT_SPEC")
-				}
+			a.validateMappingFields(s.contract, container, "SkillContract allowedResources", "CONTRACT_SPEC", "capabilities")
+			if values := child(container, "capabilities"); values != nil {
+				a.validateStringSequence(s.contract, values, "SkillContract allowedResources.capabilities", "CONTRACT_SPEC")
 			}
 		case "planning":
 			a.validateMappingFields(s.contract, container, "SkillContract planning", "CONTRACT_SPEC", "maxActions", "allowDynamicProcedure")
@@ -459,12 +479,6 @@ func (a *analysis) parseContract(s *skillEntry) {
 			s.allowed[v] = true
 		}
 	}
-	for _, localTool := range sequence(child(child(spec, "allowedResources"), "localTools")) {
-		if v := scalar(localTool); v != "" {
-			s.ast.Contract.AllowedLocalTools = append(s.ast.Contract.AllowedLocalTools, v)
-			s.localTools[v] = true
-		}
-	}
 	if required := child(child(spec, "context"), "requiredFacts"); required != nil {
 		for _, fact := range sequence(required) {
 			if scalar(fact) != "" {
@@ -494,7 +508,7 @@ func (a *analysis) parseContract(s *skillEntry) {
 			s.schemaRoots[filename] = true
 		}
 	}
-	for _, key := range []string{"subject", "facts", "observations"} {
+	for _, key := range []string{"subject", "facts", "observations", "evidence"} {
 		if p := scalar(child(child(child(spec, "context"), "schemas"), key)); p != "" {
 			if !validLibraryPath(p) {
 				a.errorAt(s.contract, spec.Line, "LIB_SCHEMA_INVALID", "context schema has an unsafe Library path: "+p)
@@ -689,6 +703,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 					a.errorAt(s.procedure, child(node, "script").Line, "PROCEDURE_UNSUPPORTED", "Script reference must be a normalized scripts/*.py path: "+script)
 				}
 				s.scripts[script] = child(node, "script").Line
+				s.scriptRefPaths[script] = s.procedure
 			}
 			parsedNode := s.ast.Procedure.Procedures[pname].Nodes[n]
 			if parsedNode.Action == ActionProcedure {
@@ -778,6 +793,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 						}
 						if script != "" {
 							s.scripts[script] = child(step, "script").Line
+							s.scriptRefPaths[script] = s.procedure
 						}
 						if call != "" {
 							s.calls[call] = child(step, "call").Line
@@ -948,7 +964,11 @@ func (a *analysis) validateSkills(selected map[string]bool) {
 		for _, script := range sortedStringMapKeys(s.scripts) {
 			line := s.scripts[script]
 			if a.files["skills/"+name+"/"+script] == nil {
-				a.errorAt(s.procedure, line, "SCRIPT_NOT_FOUND", "Script missing: "+script)
+				refPath := s.scriptRefPaths[script]
+				if refPath == "" {
+					refPath = s.procedure
+				}
+				a.errorAt(refPath, line, "SCRIPT_NOT_FOUND", "Script missing: "+script)
 			}
 		}
 		for _, op := range sortedStringMapKeys(s.calls) {

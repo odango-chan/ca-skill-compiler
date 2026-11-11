@@ -22,15 +22,16 @@ GOWORK=off go run ./cmd/skillc build ./examples/script-contract-project --out ./
 
 In this environment, `GOWORK=off` avoids a parent `go.work` that refers to three absent sibling repositories. See [WORK status](docs/WORK.md) for the v0 closeout evidence and [v0.1 language alignment](docs/workstreams/language-alignment-v0.1.md) for current implementation status and open owner/spec issues. Passing synthetic examples do not imply complete Language conformance or real Skill acceptance.
 
-## Real 5GC examples are migration inputs, NOT legacy success fixtures
+## Official Skill sources and preserved legacy reference
 
-`examples/ca-agent-demo-project/` is the preserved pre-migration reference. [Current business source snapshot](examples/ca-agent-demo-current-main/) pins the latest checked `ca-agent-demo/main` SHA and verifies the source-file hashes. Strict Compiler **must not add compatibility code just to make old Script declarations build green**. MAS's proposed catalog is not an approved Tool contract. Real Host/Observation producer schemas are not fully available; missing Owner data remains an explicit compile diagnostic.
+`examples/ca-skills-v0.2/` pins ca-skills Skill Language v0.2, its two official Skills and the approved 12-Operation ToolCatalog. `examples/ca-agent-demo-project/` is preserved as a pre-migration reference and is not a current Skill grammar source. Host/Observation Owner Schemas and nested UDM Output fields are missing from the official input snapshot and produce explicit diagnostics; the MAS Operation catalog remains unavailable. The Compiler uses no `lib/manifest.yaml` or source lifecycle state.
 
 A separate synthetic `examples/script-contract-project` is a **positive contract fixture**: Tool Output imported from lib → Procedure `with` → Script strict generated Output Schema.
 
 ## Design and local implementation
 
 - [Compiler v0 project contract](docs/design/skill-compiler-v0.md)
+- [Compiler v0.1 Language & Linking Contract](docs/design/compiler-contract-v0.1.md)
 - [Script Contract v0 (no compatibility)](docs/design/script-contract-v0.md)
 - [Procedure Link v0](docs/design/procedure-link-v0.md)
 - [Acceptance matrix G0–G9](docs/workstreams/acceptance-matrix-v0.md)

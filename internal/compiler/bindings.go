@@ -96,25 +96,53 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 				expected = procedureInputSchema(target)
 				procedureInputs = true
 			}
+		} else if parsedNode.Action == ActionVerify && child(n, "with") != nil {
+			expected = a.contextConsumerSchema(s, "subject", path, child(n, "with").Line)
 		}
 		a.checkBindings(s, proc, path, child(n, "with"), expected, nodeID, "main", -1, outputs, stepOutputs[nodeID], stepOutputs, procedureInputs)
-		if parsedProcedure != nil && parsedProcedure.Nodes[nodeID].Action == ActionVerify && child(n, "with") != nil {
-			a.errorAtNode(path, child(n, "with"), "EXTERNAL_SCHEMA_MISSING", "Predicate invocation has no declared consumer input Schema")
-		}
 		for _, scope := range []string{"preconditions", "postconditions"} {
 			for stepIndex, step := range sequence(child(child(n, scope), "steps")) {
 				op := scalar(child(step, "call"))
 				var target *yaml.Node
 				if op != "" {
 					target = a.tools[op].inputNode
+				} else if child(step, "verify") != nil && child(step, "with") != nil {
+					target = a.contextConsumerSchema(s, "subject", path, child(step, "with").Line)
 				}
 				a.checkBindings(s, proc, path, child(step, "with"), target, nodeID, scope, stepIndex, outputs, stepOutputs[nodeID], stepOutputs, false)
-				if parsedProcedure != nil && child(step, "verify") != nil && child(step, "with") != nil {
-					a.errorAtNode(path, child(step, "with"), "EXTERNAL_SCHEMA_MISSING", "Predicate invocation has no declared consumer input Schema")
-				}
 			}
 		}
 	}
+}
+
+func (a *analysis) contextConsumerSchema(s *skillEntry, category, diagnosticPath string, line int) *yaml.Node {
+	if s.ast.Contract == nil {
+		a.errorAt(diagnosticPath, line, "EXTERNAL_SCHEMA_MISSING", "missing parsed SkillContract for Predicate Evaluation Context")
+		return nil
+	}
+	rel := s.ast.Contract.ContextSchemas[category]
+	if rel == "" {
+		a.errorAt(diagnosticPath, line, "EXTERNAL_SCHEMA_MISSING", "Predicate input projection requires context.schemas."+category)
+		return nil
+	}
+	if a.files[rel] == nil {
+		a.errorAt(diagnosticPath, line, "EXTERNAL_SCHEMA_MISSING", "Predicate consumer Owner Schema is not imported: "+rel)
+		return nil
+	}
+	document := a.parseYAML(rel)
+	if document == nil {
+		return nil
+	}
+	expanded, err := a.expandSchemaRefs(rel, document, document)
+	if err != nil {
+		a.errorAt(rel, document.Line, "LIB_SCHEMA_INVALID", "cannot resolve Predicate context Schema references: "+err.Error())
+		return nil
+	}
+	if err := validateSchemaShape(expanded); err != nil {
+		a.errorAt(rel, document.Line, "LIB_SCHEMA_INVALID", "invalid Predicate context Schema: "+err.Error())
+		return nil
+	}
+	return expanded
 }
 
 func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, with, expected *yaml.Node, nodeID, phase string, stepIndex int, outputs map[string]*yaml.Node, steps map[string]*yaml.Node, allSteps map[string]map[string]*yaml.Node, procedureInputs bool) {
@@ -245,16 +273,7 @@ func nodeOutputDominates(proc *yaml.Node, producer, consumer string) bool {
 			return false
 		}
 		visited[current] = true
-		node := child(nodes, current)
-		on := child(node, "on")
-		if on != nil && unalias(on).Kind == yaml.MappingNode {
-			for i := 1; i < len(unalias(on).Content); i += 2 {
-				target := scalar(unalias(on).Content[i])
-				if target != "" && !visited[target] {
-					stack = append(stack, target)
-				}
-			}
-		}
+		stack = appendOutcomeTargets(stack, child(nodes, current), visited)
 	}
 	// If consumer is unreachable even without excluding producer, do not claim
 	// a control-flow ordering. (Normally caught by the graph validator too.)
@@ -270,14 +289,24 @@ func nodeOutputDominates(proc *yaml.Node, producer, consumer string) bool {
 			continue
 		}
 		visited[current] = true
-		on := child(child(nodes, current), "on")
-		if on != nil && unalias(on).Kind == yaml.MappingNode {
-			for i := 1; i < len(unalias(on).Content); i += 2 {
-				stack = append(stack, scalar(unalias(on).Content[i]))
+		stack = appendOutcomeTargets(stack, child(nodes, current), nil)
+	}
+	return false
+}
+
+func appendOutcomeTargets(stack []string, node *yaml.Node, visited map[string]bool) []string {
+	for _, on := range []*yaml.Node{child(node, "on"), child(child(node, "preconditions"), "on"), child(child(node, "postconditions"), "on")} {
+		if on == nil || unalias(on).Kind != yaml.MappingNode {
+			continue
+		}
+		for i := 1; i < len(unalias(on).Content); i += 2 {
+			target := scalar(unalias(on).Content[i])
+			if target != "" && (visited == nil || !visited[target]) {
+				stack = append(stack, target)
 			}
 		}
 	}
-	return false
+	return stack
 }
 
 func bindingSourceAvailable(proc *yaml.Node, ref, consumerNode, consumerPhase string, consumerStep int) (bool, string) {
@@ -927,7 +956,7 @@ func (a *analysis) resolveSourceWithInputStack(s *skillEntry, proc *yaml.Node, r
 		}
 		if category == "request" {
 			rel = contract.RequestSchema
-		} else if category == "subject" || category == "facts" || category == "observations" {
+		} else if category == "subject" || category == "facts" || category == "observations" || category == "evidence" {
 			rel = contract.ContextSchemas[category]
 			if rel == "" {
 				a.errorAt(path, line, "EXTERNAL_SCHEMA_MISSING", "missing explicit Owner schema for context."+category)

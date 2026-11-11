@@ -7,6 +7,7 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	"gopkg.in/yaml.v3"
 )
@@ -47,8 +48,7 @@ type Result struct {
 type LibraryTool struct {
 	OperationID           string `json:"operationId"`
 	SourcePath            string `json:"sourcePath"`
-	SourceStatus          string `json:"sourceStatus"`
-	DeclaredEffect        string `json:"declaredEffect,omitempty"`
+	DeclaredEffect        string `json:"declaredEffect"`
 	Description           string `json:"description,omitempty"`
 	InputSchema           any    `json:"inputSchema"`
 	OutputSchema          any    `json:"outputSchema,omitempty"`
@@ -60,11 +60,16 @@ type LibraryResult struct {
 	Tools       []LibraryTool `json:"tools"`
 }
 
-// InspectLibraries parses only imported, read-only ToolCatalog files and their optional manifest.
+// InspectLibraries parses only caller-supplied ToolCatalog files.
 func InspectLibraries(req Request) LibraryResult {
 	a := newAnalysis(req)
 	a.importLibraries()
-	return LibraryResult{Diagnostics: a.sortedDiagnostics(), Tools: a.libraryTools()}
+	tools := a.libraryTools()
+	if len(tools) > maxFiles {
+		a.errorAt("lib/tools/", 0, "LIB_SCHEMA_INVALID", "library inspection exceeds the 512 Operation result limit")
+		tools = nil
+	}
+	return LibraryResult{Diagnostics: a.sortedDiagnostics(), Tools: tools}
 }
 
 type analysis struct {
@@ -74,6 +79,7 @@ type analysis struct {
 	diagnostics         []Diagnostic
 	generated           map[string][]File
 	ambiguousOperations map[string]bool
+	operationSources    map[string]string
 	schemaRefs          map[string]map[string]bool
 }
 
@@ -194,7 +200,7 @@ func (a *analysis) filterUnselectedSkillDiagnostics(selected map[string]bool) {
 }
 
 func newAnalysis(req Request) *analysis {
-	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry), generated: make(map[string][]File), ambiguousOperations: make(map[string]bool), schemaRefs: make(map[string]map[string]bool)}
+	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry), generated: make(map[string][]File), ambiguousOperations: make(map[string]bool), operationSources: make(map[string]string), schemaRefs: make(map[string]map[string]bool)}
 	if len(req.Files) == 0 {
 		a.errorAt("", 0, "REQUEST_INVALID", "BuildRequest.files must contain at least one file")
 	}
@@ -226,7 +232,7 @@ func newAnalysis(req Request) *analysis {
 	}
 	seenTargets := make(map[string]bool, len(req.Targets))
 	for _, target := range req.Targets {
-		if target == "" || len(target) > 80 {
+		if target == "" || utf8.RuneCountInString(target) > 80 {
 			a.errorAt("", 0, "REQUEST_INVALID", "target names must contain 1 to 80 characters")
 		}
 		if seenTargets[target] {
@@ -281,20 +287,36 @@ func (a *analysis) hasErrors() bool {
 }
 
 func (a *analysis) errorAt(filename string, line int, code, message string) {
-	a.diagnostics = append(a.diagnostics, Diagnostic{Severity: "error", Code: code, Path: filename, Line: line, Message: message})
+	a.diagnostics = append(a.diagnostics, Diagnostic{Severity: "error", Code: code, Path: limitDiagnosticPath(filename), Line: line, Message: limitDiagnosticMessage(message)})
 }
 
 func (a *analysis) errorAtNode(filename string, node *yaml.Node, code, message string) {
 	span := sourceSpan(filename, node)
-	a.diagnostics = append(a.diagnostics, Diagnostic{Severity: "error", Code: code, Path: filename, Line: span.Line, Column: span.Column, Message: message})
+	a.diagnostics = append(a.diagnostics, Diagnostic{Severity: "error", Code: code, Path: limitDiagnosticPath(filename), Line: span.Line, Column: span.Column, Message: limitDiagnosticMessage(message)})
 }
 
 func (a *analysis) warningAt(filename string, line int, code, message string) {
-	a.diagnostics = append(a.diagnostics, Diagnostic{Severity: "warning", Code: code, Path: filename, Line: line, Message: message})
+	a.diagnostics = append(a.diagnostics, Diagnostic{Severity: "warning", Code: code, Path: limitDiagnosticPath(filename), Line: line, Message: limitDiagnosticMessage(message)})
+}
+
+func limitDiagnosticPath(filename string) string {
+	if utf8.RuneCountInString(filename) <= 240 {
+		return filename
+	}
+	runes := []rune(filename)
+	return string(runes[:240])
+}
+
+func limitDiagnosticMessage(message string) string {
+	if utf8.RuneCountInString(message) <= 8192 {
+		return message
+	}
+	runes := []rune(message)
+	return string(runes[:8192])
 }
 
 func validPath(p string) bool {
-	if p == "" || len(p) > 240 || path.Clean(p) != p || strings.HasPrefix(p, "/") ||
+	if p == "" || utf8.RuneCountInString(p) > 240 || path.Clean(p) != p || strings.HasPrefix(p, "/") ||
 		strings.ContainsAny(p, "\\:\x00") || strings.Contains(p, "//") {
 		return false
 	}

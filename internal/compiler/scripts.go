@@ -12,10 +12,13 @@ import (
 )
 
 var (
-	classRE    = regexp.MustCompile(`^class ([A-Za-z_][A-Za-z0-9_]*)\(TypedDict\):\s*$`)
-	fieldRE    = regexp.MustCompile(`^\s+([A-Za-z_][A-Za-z0-9_]*):\s*(.+?)\s*(#.*)?$`)
-	mainRE     = regexp.MustCompile(`(?m)^def main\(input:\s*dict\)\s*->\s*([A-Za-z_][A-Za-z0-9_]*):`)
-	mainDeclRE = regexp.MustCompile(`(?m)^(?:async\s+)?def main\b`)
+	classRE           = regexp.MustCompile(`^class ([A-Za-z_][A-Za-z0-9_]*)\(TypedDict\):\s*$`)
+	fieldRE           = regexp.MustCompile(`^\s+([A-Za-z_][A-Za-z0-9_]*):\s*(.+?)\s*(#.*)?$`)
+	functionalStartRE = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*\s*=\s*TypedDict\s*\(`)
+	functionalNameRE  = regexp.MustCompile(`^\s*TypedDict\s*\(\s*['"]([A-Za-z_][A-Za-z0-9_]*)['"]\s*,\s*\{`)
+	functionalFieldRE = regexp.MustCompile(`^\s*['"]([^'"]+)['"]\s*:\s*(.*)\s*$`)
+	mainRE            = regexp.MustCompile(`(?m)^def main\(input:\s*dict\)\s*->\s*([A-Za-z_][A-Za-z0-9_]*):`)
+	mainDeclRE        = regexp.MustCompile(`(?m)^(?:async\s+)?def main\b`)
 )
 
 type pyField struct{ name, typ string }
@@ -109,11 +112,27 @@ func parseScriptOutput(src string) (map[string]any, error) {
 	classes := map[string]pyClass{}
 	classSeen := map[string]bool{}
 	fieldSeen := map[string]map[string]bool{}
+	functionalLines, functionalClasses, err := parseFunctionalTypedDicts(src, code)
+	if err != nil {
+		return nil, err
+	}
+	for name, class := range functionalClasses {
+		if classSeen[name] {
+			return nil, fmt.Errorf("duplicate TypedDict declaration %s", name)
+		}
+		classSeen[name] = true
+		classes[name] = class
+	}
 	current := ""
-	for i, line := range sourceLines {
+	for i := 0; i < len(sourceLines); i++ {
+		line := sourceLines[i]
 		trim := strings.TrimSpace(line)
 		codeLine := codeLines[i]
 		codeTrim := strings.TrimSpace(codeLine)
+		if functionalLines[i] {
+			current = ""
+			continue
+		}
 		if m := classRE.FindStringSubmatch(codeLine); m != nil {
 			current = m[1]
 			if classSeen[current] {
@@ -142,15 +161,29 @@ func parseScriptOutput(src string) (map[string]any, error) {
 				if f == nil {
 					return nil, fmt.Errorf("unsupported TypedDict body statement in %s: %s", current, trim)
 				}
+				typ := f[2]
+				balance := bracketBalance(codeLine)
+				for balance > 0 {
+					i++
+					if i >= len(sourceLines) {
+						return nil, fmt.Errorf("unterminated annotation in %s.%s", current, f[1])
+					}
+					typ += " " + strings.TrimSpace(sourceLines[i])
+					balance += bracketBalance(codeLines[i])
+				}
 				if fieldSeen[current][f[1]] {
 					return nil, fmt.Errorf("duplicate TypedDict field %s.%s", current, f[1])
 				}
 				fieldSeen[current][f[1]] = true
-				classes[current] = pyClass{fields: append(classes[current].fields, pyField{f[1], f[2]})}
-				for _, name := range []string{"Literal", "Annotated", "NotRequired"} {
-					if strings.Contains(f[2], name+"[") && !imports[name] {
-						return nil, fmt.Errorf("%s must be imported from typing", name)
-					}
+				classes[current] = pyClass{fields: append(classes[current].fields, pyField{f[1], typ})}
+			}
+		}
+	}
+	for className, class := range classes {
+		for _, field := range class.fields {
+			for _, name := range []string{"Literal", "Annotated", "NotRequired"} {
+				if strings.Contains(field.typ, name+"[") && !imports[name] {
+					return nil, fmt.Errorf("%s must be imported from typing (used by %s.%s)", name, className, field.name)
 				}
 			}
 		}
@@ -160,6 +193,109 @@ func parseScriptOutput(src string) (map[string]any, error) {
 		return nil, fmt.Errorf("main return type %s is not a local TypedDict", name)
 	}
 	return typedDictSchema(name, classes, map[string]bool{})
+}
+
+func parseFunctionalTypedDicts(src, code string) (map[int]bool, map[string]pyClass, error) {
+	lines := map[int]bool{}
+	classes := map[string]pyClass{}
+	codeLines := strings.Split(code, "\n")
+	offset := 0
+	for lineIndex, codeLine := range codeLines {
+		trimmed := strings.TrimSpace(codeLine)
+		if !functionalStartRE.MatchString(trimmed) {
+			offset += len(codeLine) + 1
+			continue
+		}
+		lineStart := offset
+		openParen := strings.Index(codeLine, "(")
+		openParen += lineStart
+		callEnd, ok := matchingDelimiter(code, openParen, '(', ')')
+		if !ok {
+			return nil, nil, fmt.Errorf("unterminated functional TypedDict declaration")
+		}
+		callStart := lineStart + strings.Index(codeLine, "TypedDict")
+		callSource := src[callStart : callEnd+1]
+		nameMatch := functionalNameRE.FindStringSubmatch(callSource)
+		if nameMatch == nil {
+			return nil, nil, fmt.Errorf("functional TypedDict requires a literal name and field mapping")
+		}
+		name := nameMatch[1]
+		openBraceRel := strings.Index(code[callStart:callEnd+1], "{")
+		if openBraceRel < 0 {
+			return nil, nil, fmt.Errorf("functional TypedDict %s requires a field mapping", name)
+		}
+		openBrace := callStart + openBraceRel
+		closeBrace, ok := matchingDelimiter(code, openBrace, '{', '}')
+		if !ok || closeBrace > callEnd {
+			return nil, nil, fmt.Errorf("unterminated field mapping in functional TypedDict %s", name)
+		}
+		body := src[openBrace+1 : closeBrace]
+		class := pyClass{}
+		seen := map[string]bool{}
+		for _, item := range splitTop(body) {
+			if strings.TrimSpace(item) == "" {
+				continue
+			}
+			field := functionalFieldRE.FindStringSubmatch(item)
+			if field == nil {
+				return nil, nil, fmt.Errorf("unsupported functional TypedDict field in %s: %s", name, strings.TrimSpace(item))
+			}
+			key := field[1]
+			if key == "" {
+				return nil, nil, fmt.Errorf("functional TypedDict %s has an invalid field name", name)
+			}
+			if seen[key] {
+				return nil, nil, fmt.Errorf("duplicate TypedDict field %s.%s", name, key)
+			}
+			seen[key] = true
+			typ := strings.TrimSpace(field[2])
+			if typ == "" {
+				return nil, nil, fmt.Errorf("functional TypedDict field %s.%s has no type", name, key)
+			}
+			class.fields = append(class.fields, pyField{name: key, typ: typ})
+		}
+		classes[name] = class
+		for i := lineIndex; i <= lineIndex+strings.Count(code[lineStart:callEnd+1], "\n"); i++ {
+			lines[i] = true
+		}
+		consumed := strings.Count(code[lineStart:callEnd+1], "\n")
+		for i := 0; i <= consumed && lineIndex+i < len(codeLines); i++ {
+			offset += len(codeLines[lineIndex+i]) + 1
+		}
+		lineIndex += consumed
+	}
+	return lines, classes, nil
+}
+
+func matchingDelimiter(src string, open int, left, right byte) (int, bool) {
+	if open < 0 || open >= len(src) || src[open] != left {
+		return 0, false
+	}
+	depth := 0
+	for i := open; i < len(src); i++ {
+		if src[i] == left {
+			depth++
+		} else if src[i] == right {
+			depth--
+			if depth == 0 {
+				return i, true
+			}
+		}
+	}
+	return 0, false
+}
+
+func bracketBalance(code string) int {
+	balance := 0
+	for i := 0; i < len(code); i++ {
+		switch code[i] {
+		case '(', '[', '{':
+			balance++
+		case ')', ']', '}':
+			balance--
+		}
+	}
+	return balance
 }
 
 func maskPythonStringsAndComments(src string) string {
