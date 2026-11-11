@@ -71,14 +71,16 @@ project/
 | Studio 用来支持 YAML 诊断的 Meta-Schema | 语言规范/Compiler | 否 | 内置编译器/Studio，不进入 Skill 包 |
 | Qualification/Profile/Release/Runtime 状态 | 外部相应 Owner | 否 | 不纳入 v0 |
 
-### 3.1 Script-to-Schema 的权威规约
+### 3.1 Script-to-Schema 的严格规约
 
-**新规范：[Script Contract v0](script-contract-v0.md)（ACCEPTED DESIGN / NOT IMPLEMENTED）。** 现有脚本的 `# /// connectionagent-tool` 头部保持不变；新增两个互斥 Schema 来源模式。
+**唯一规范：[Script Contract v0 · Strict TypedDict](script-contract-v0.md)，已冻结设计 / 代码未实现。**
 
-- `schemaMode: external`（缺省）：现有 5 个真实 Script 原样兼容，以单独 `schemas/*.schema.yaml` 为权威；禁止从空的 `class Input(dict): pass` 推断字段。
-- `schemaMode: embedded`（新作者推荐）：在脚本头部声明 `interface.input` 与 `interface.output` 的 JSON Schema 结构，编译器静态提取，在 `output/skills/<skill>/schemas/generated/` 中生成只读 JSON Schema。
-- 不执行 Python，不自动推断函数体；未来如确有必要再另行评审 TypedDict 受限静态推断，不作为 v0 的第二套必备输入格式。
-- Tool Schema 的权威仍在外部 `lib/`，不得由 Script 生成的 Schema 替代。
+- 新 Script 的默认权威是 Python `TypedDict` + 明确的 `main(input: In) -> Out`，可使用标准库 `Literal`、`NotRequired`、`Annotated[T, {constraint literals}]`。
+- 所有输入/输出对象及其嵌套字段必须有完整可静态解析的类型；禁止用通用 `dict`、`Any`、`object`、空类蒙混过关。内部算法中的普通 dict 合法，但不能成为接口契约。
+- v0 `TypedDict` 对象输出为 `additionalProperties: false` 的严格对象；不支持的联合、动态映射或复杂条件规则，应使用完整外部 Schema，而不是生成弱约束。
+- 现有 5 个 5GC Script 一律保留外部 Schema，直到另一个 Skill owner PR 完成精确等价迁移。Compiler 不执行 Python 或从函数体推断字段。
+- 此前讨论的脚本头部 `schemaMode: embedded` YAML 长注释方案**已撤回，不允许实现**；新脚本不要求写一份重复的 Schema 注释文档。
+- Tool Schema 的权威仍在 `lib/`；Compiler 生成的 Script Schema 仅供接口链接，不能覆盖 Tool 契约。
 
 ## 4. Library v0：先文件导入，后 MCP
 
