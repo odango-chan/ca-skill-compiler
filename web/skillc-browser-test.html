@@ -52,7 +52,8 @@ function send(command, request) {
   }
   if (check.diagnostics.length !== 0) throw new Error('valid project returned diagnostics');
   if (!Array.isArray(inspect.tools) || inspect.tools.length !== 1 || inspect.tools[0].operationId !== 'demo.read') throw new Error('inspectLibraries response malformed');
-  if (invalid.success || !invalid.diagnostics.some(d => d.code === 'TARGET_NOT_FOUND')) throw new Error('compiler diagnostics were not returned');
+  const expectedInvalid = [{severity:'error', code:'TARGET_NOT_FOUND', path:'skills/missing', message:'Skill is missing: missing'}];
+  if (invalid.success || JSON.stringify(invalid.diagnostics) !== JSON.stringify(expectedInvalid)) throw new Error(`WASM diagnostics differ from Native TARGET_NOT_FOUND golden: ${JSON.stringify(invalid.diagnostics)}`);
   output.textContent = JSON.stringify({status:'PASS', check, build:build.outputFiles.map(f=>f.path), inspect, invalid:invalid.diagnostics}, null, 2);
   document.documentElement.dataset.test = 'pass';
 })().catch(error => {
