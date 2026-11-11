@@ -81,7 +81,7 @@ Updated: 2026-11-11. Implementation branch: `feat/compiler-v01-implementation-20
 | Native packaging | PASS (synthetic) | Native CLI checked both positive fixtures and emitted all-target and targeted 7-file packages from `script-contract-project`. |
 | WASM / browser parity | PASS (smoke scope) | Current Go/WASM build ran in Chromium. Check/build/inspect passed, all seven output paths/order and bytes matched Native output, and five diagnostic vectors matched Native goldens. Broader diagnostic parity remains. |
 | Current-source analysis | PARTIAL | Pinned official snapshot is ca-skills `codex/semantic-token-contract-v01` `eeae62badf29f90eee257c7ef2ab504211bf7e30`: 61 Skill files plus the approved ToolCatalog, verified with a local SHA-256 manifest. PDU reports 115 migration/Owner/link diagnostics; MAS reports 133. Counts and syntax coverage are in [language-alignment-v0.1.md](workstreams/language-alignment-v0.1.md). |
-| PR / handoff | IN_PROGRESS | Design PR #4 is the dependency. Implementation PR and stack ancestry still need to be prepared and opened. No merge is authorized. |
+| PR / handoff | PARTIAL | Draft implementation [PR #5](https://github.com/odango-chan/ca-skill-compiler/pull/5) is open against the latest design PR #4 head. The implementation branch is pushed and stacked on that head. No merge is authorized; full v0.1 acceptance remains incomplete. |
 
 ### v0.1 acceptance gates
 
@@ -96,7 +96,7 @@ Updated: 2026-11-11. Implementation branch: `feat/compiler-v01-implementation-20
 | G6 native/WASM byte parity | PASS (synthetic) | Chromium Worker paths/order and every byte matched Native package files. Six check diagnostics and duplicate-operation inspect diagnostics matched shared Native goldens. |
 | G7 browser | PASS (smoke scope) | Headless Chromium completed check, build, inspect, six negative checks and duplicate-library inspection with `data-test=pass`. This is not a hosted Pages test. |
 | G8 real-source review | PARTIAL | Official ca-skills source analysis is reproducible; missing Host/Observation Schemas, broad UDM nested Output, and 16 MAS Operation refs without an approved ToolCatalog remain explicit errors. |
-| G9 handoff | IN_PROGRESS | Commit/push implementation and open a dependent review PR after all checks and docs are current. |
+| G9 handoff | PARTIAL | Implementation commits are pushed and draft PR #5 is open against design PR #4. Full acceptance remains partial; PR #5 records the current static evidence and unresolved Owner/spec coverage. No merge is authorized. |
 
 ### Current rerun notes
 

@@ -41,6 +41,6 @@ A separate synthetic `examples/script-contract-project` is a **positive contract
 - [v0.1 Language Alignment](docs/workstreams/language-alignment-v0.1.md)
 - [WORK status](docs/WORK.md)
 
-The original bootstrap is [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2). v0 implementation and closeout are on [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3), targeting `feat/compiler-v0-bootstrap`. The narrowed v0.1 contract is [Draft PR #4](https://github.com/odango-chan/ca-skill-compiler/pull/4); implementation work is kept in a separate dependent branch/PR. No PR is merged into `main` as part of these tasks.
+The original bootstrap is [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2). v0 implementation and closeout are on [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3), targeting `feat/compiler-v0-bootstrap`. The narrowed v0.1 contract is [Draft PR #4](https://github.com/odango-chan/ca-skill-compiler/pull/4); the breaking implementation is in dependent [Draft PR #5](https://github.com/odango-chan/ca-skill-compiler/pull/5), targeting PR #4's branch. No PR is merged into `main` as part of these tasks.
 
 Historical [ca-skill-toolchain](https://github.com/odango-chan/ca-skill-toolchain) is background only, not a code dependency.
