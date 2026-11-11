@@ -1311,6 +1311,8 @@ func TestScriptLiteralsKeepQuotedPunctuation(t *testing.T) {
 class Output(TypedDict):
     value: Annotated[str, {"minLength": 1, "pattern": r"^(foo,bar)[0-9]+$"}]
     marker: Literal["a,b"]
+    missing: Literal[None]
+    repeated: Literal["same", "same"]
 def main(input: dict) -> Output:
     return {}`
 	schema, err := parseScriptOutput(src)
@@ -1325,6 +1327,14 @@ def main(input: dict) -> Output:
 	marker := properties["marker"].(map[string]any)
 	if marker["const"] != "a,b" {
 		t.Fatalf("quoted Literal changed during parsing: %#v", marker)
+	}
+	missing := properties["missing"].(map[string]any)
+	if missing["type"] != "null" || missing["const"] != nil {
+		t.Fatalf("Literal[None] was not represented as JSON null: %#v", missing)
+	}
+	repeated := properties["repeated"].(map[string]any)
+	if repeated["const"] != "same" {
+		t.Fatalf("duplicate Literal values were not normalized: %#v", repeated)
 	}
 }
 
@@ -1360,7 +1370,7 @@ func TestScriptDeclarationsRejectAmbiguityAndInvalidLiterals(t *testing.T) {
 	cases := []string{
 		"from typing import TypedDict\nclass Output(TypedDict):\n    value: str\ndef main(input: dict) -> Output:\n    return {}\ndef main(input: dict) -> Output:\n    return {}\n",
 		"from typing import TypedDict\nclass Output(TypedDict):\n    value: str\n    value: int\ndef main(input: dict) -> Output:\n    return {}\n",
-		"from typing import TypedDict, Literal\nclass Output(TypedDict):\n    value: Literal[None]\ndef main(input: dict) -> Output:\n    return {}\n",
+		"from typing import TypedDict, Literal\nclass Output(TypedDict):\n    value: Literal[None, 'text']\ndef main(input: dict) -> Output:\n    return {}\n",
 	}
 	for _, src := range cases {
 		if _, err := parseScriptOutput(src); err == nil {

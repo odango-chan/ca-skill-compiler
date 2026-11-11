@@ -3,6 +3,7 @@ package compiler
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -308,7 +309,16 @@ func typeSchema(expr string, classes map[string]pyClass, active map[string]bool)
 				return nil, fmt.Errorf("mixed Literal types are unsupported")
 			}
 			typ = t
-			parsed = append(parsed, x)
+			duplicate := false
+			for _, existing := range parsed {
+				if reflect.DeepEqual(existing, x) {
+					duplicate = true
+					break
+				}
+			}
+			if !duplicate {
+				parsed = append(parsed, x)
+			}
 		}
 		if len(parsed) == 1 {
 			return map[string]any{"type": typ, "const": parsed[0]}, nil
@@ -467,6 +477,8 @@ func jsonType(v any) string {
 		return "string"
 	case bool:
 		return "boolean"
+	case nil:
+		return "null"
 	case float64:
 		if float64(int64(v.(float64))) == v.(float64) {
 			return "integer"
