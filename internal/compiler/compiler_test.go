@@ -359,6 +359,7 @@ func TestPredicateEvaluatorAndObservationContractsAreStrict(t *testing.T) {
 		name       string
 		predicates string
 	}{
+		{"unknown PredicateSet field", "metadata: legacy\npredicates:\n  ready: {evaluator: {type: cel, expression: 'true'}}\n"},
 		{"CEL expression must be string", "predicates:\n  ready:\n    evaluator: {type: cel, expression: true}\n"},
 		{"unsupported CEL field", "predicates:\n  ready:\n    evaluator: {type: cel, expression: 'true', ref: skill.check}\n"},
 		{"unsupported script field", "predicates:\n  ready:\n    evaluator: {type: script, ref: skill.check, expression: 'true'}\n"},

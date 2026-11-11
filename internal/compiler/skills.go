@@ -100,6 +100,15 @@ func (a *analysis) parsePredicates(s *skillEntry, filename string) {
 	if root == nil {
 		return
 	}
+	if unalias(root).Kind != yaml.MappingNode {
+		a.errorAt(filename, root.Line, "PREDICATE_SOURCE_INCOMPLETE", "PredicateSet must be a mapping")
+		return
+	}
+	for _, field := range mapKeys(root) {
+		if field != "predicates" {
+			a.errorAt(filename, child(root, field).Line, "PREDICATE_SOURCE_INCOMPLETE", "unknown PredicateSet field: "+field)
+		}
+	}
 	predicates := child(root, "predicates")
 	if predicates == nil || unalias(predicates).Kind != yaml.MappingNode {
 		a.errorAt(filename, root.Line, "PREDICATE_SOURCE_INCOMPLETE", "PredicateSet requires a predicates mapping")
