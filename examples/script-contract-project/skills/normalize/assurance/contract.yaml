@@ -1,0 +1,7 @@
+apiVersion: connectionagent.io/v1alpha1
+kind: SkillContract
+metadata:
+  name: normalize
+spec:
+  skillType: executable
+  entryProcedure: normalize
