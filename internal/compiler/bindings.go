@@ -1226,6 +1226,9 @@ func literalType(n *yaml.Node) string {
 	case "!!int":
 		return "integer"
 	case "!!float":
+		if value, ok := exactRational(n.Value); ok && value.IsInt() {
+			return "integer"
+		}
 		return "number"
 	case "!!seq":
 		return "array"

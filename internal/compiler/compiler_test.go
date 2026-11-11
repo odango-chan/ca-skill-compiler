@@ -1059,6 +1059,20 @@ func TestIntegerLiteralSatisfiesNumberInput(t *testing.T) {
 	if literalMatchesSchema(schemaNode(7.5), integer) {
 		t.Fatal("fractional literal must not satisfy an integer consumer")
 	}
+	var decimal yaml.Node
+	if err := yaml.Unmarshal([]byte("7.0\n"), &decimal); err != nil {
+		t.Fatal(err)
+	}
+	if !literalMatchesSchema(decimal.Content[0], integer) {
+		t.Fatal("mathematically integral JSON number 7.0 should satisfy an integer consumer")
+	}
+	var fractional yaml.Node
+	if err := yaml.Unmarshal([]byte("7.5\n"), &fractional); err != nil {
+		t.Fatal(err)
+	}
+	if literalMatchesSchema(fractional.Content[0], integer) {
+		t.Fatal("fractional JSON number 7.5 must not satisfy an integer consumer")
+	}
 }
 
 func TestNumericLiteralConstraintsAreEnforced(t *testing.T) {
