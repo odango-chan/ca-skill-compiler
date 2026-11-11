@@ -1,0 +1,6 @@
+procedures:
+  write:
+    start: done
+    nodes:
+      done:
+        terminal: SUCCEEDED

@@ -1,0 +1,11 @@
+procedures:
+  read-and-store:
+    start: fetch
+    nodes:
+      fetch:
+        call: demo.read
+        with: {}
+      child:
+        procedure:
+          skill: writer
+          procedure: write
