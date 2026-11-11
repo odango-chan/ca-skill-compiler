@@ -371,6 +371,46 @@ func TestScriptPredicateEvaluatorUsesStaticReferenceShape(t *testing.T) {
 	}
 }
 
+func TestContractPredicateGroupsAndEntriesAreValidated(t *testing.T) {
+	cases := []struct {
+		name  string
+		field string
+	}{
+		{"group must be a sequence", "preconditions: true"},
+		{"entry must be a mapping", "postconditions: [ready]"},
+		{"predicate ID must be a string", "preconditions: [{predicate: 7}]"},
+		{"expectation must be a string", "postconditions: [{predicate: ready, expect: 1}]"},
+		{"applicability must be a sequence", "applicability: {predicate: ready}"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			files := source("contract-predicates", "run", "procedures:\n  run:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n")
+			for i := range files {
+				if files[i].Path == "skills/contract-predicates/assurance/contract.yaml" {
+					files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "  entryProcedure: run\n", "  entryProcedure: run\n  "+tc.field+"\n", 1))
+				}
+			}
+			got := Build(Request{Files: files})
+			if got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") {
+				t.Fatalf("malformed contract Predicate declaration was accepted: %#v", got.Diagnostics)
+			}
+		})
+	}
+}
+
+func TestUnknownContractPredicateReferenceIsDiagnosed(t *testing.T) {
+	files := source("contract-predicate-ref", "run", "procedures:\n  run:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n")
+	for i := range files {
+		if files[i].Path == "skills/contract-predicate-ref/assurance/contract.yaml" {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "  entryProcedure: run\n", "  entryProcedure: run\n  preconditions: [{predicate: absent}]\n", 1))
+		}
+	}
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_NOT_FOUND") {
+		t.Fatalf("unknown contract Predicate reference was accepted: %#v", got.Diagnostics)
+	}
+}
+
 func TestLocalProcedureInvocationCycleFails(t *testing.T) {
 	files := source("cycle", "a", "procedures:\n  a:\n    start: call-b\n    nodes:\n      call-b: {procedure: b}\n  b:\n    start: call-a\n    nodes:\n      call-a: {procedure: a}\n")
 	got := Build(Request{Files: files})

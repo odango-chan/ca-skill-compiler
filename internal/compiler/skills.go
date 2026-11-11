@@ -153,9 +153,25 @@ func (a *analysis) validateContractPredicates(s *skillEntry) {
 		if n == nil {
 			continue
 		}
+		if unalias(n).Kind != yaml.SequenceNode {
+			a.errorAt(s.contract, n.Line, "PREDICATE_SOURCE_INCOMPLETE", "contract "+group+" must be a sequence of Predicate references")
+			continue
+		}
 		for _, item := range sequence(n) {
-			id := scalar(child(item, "predicate"))
-			if id != "" && s.preds[id] == 0 {
+			if unalias(item).Kind != yaml.MappingNode {
+				a.errorAt(s.contract, item.Line, "PREDICATE_SOURCE_INCOMPLETE", "contract "+group+" entry must be a mapping with a Predicate ID")
+				continue
+			}
+			predicate := child(item, "predicate")
+			id := scalar(predicate)
+			if predicate == nil || predicate.Kind != yaml.ScalarNode || predicate.Tag != "!!str" || id == "" {
+				a.errorAt(s.contract, item.Line, "PREDICATE_SOURCE_INCOMPLETE", "contract "+group+" entry requires a nonempty string Predicate ID")
+				continue
+			}
+			if expected := child(item, "expect"); expected != nil && (expected.Kind != yaml.ScalarNode || expected.Tag != "!!str" || expected.Value == "") {
+				a.errorAt(s.contract, expected.Line, "PREDICATE_SOURCE_INCOMPLETE", "contract Predicate expectation must be a nonempty string")
+			}
+			if s.preds[id] == 0 {
 				a.errorAt(s.contract, item.Line, "PREDICATE_NOT_FOUND", "unknown contract Predicate: "+id)
 			}
 		}
