@@ -806,7 +806,14 @@ func (a *analysis) resolveSourceWithInputStack(s *skillEntry, proc *yaml.Node, r
 			schema = outputs[parts[0]]
 			offset = 2
 			if schema == nil {
-				a.errorAt(path, line, "BINDING_UNRESOLVED", "unknown node output Producer: "+parts[0])
+				node := child(child(proc, "nodes"), parts[0])
+				if node == nil {
+					a.errorAt(path, line, "BINDING_UNRESOLVED", "unknown node output Producer: "+parts[0])
+				} else if child(node, "procedure") != nil {
+					a.errorAt(path, line, "BINDING_UNRESOLVED", "Procedure node has no declared output Schema: "+parts[0])
+				} else {
+					a.errorAt(path, line, "BINDING_UNRESOLVED", "node action has no declared output Schema: "+parts[0])
+				}
 				return nil
 			}
 		} else {

@@ -52,7 +52,7 @@
       "code": "BINDING_UNRESOLVED",
       "path": "skills/normalize/assurance/procedure.yaml",
       "line": 18,
-      "message": "unknown node output Producer: read"
+      "message": "node action has no declared output Schema: read"
     }
   ],
   "invalidScriptOutput": [

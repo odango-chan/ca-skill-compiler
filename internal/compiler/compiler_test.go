@@ -678,6 +678,36 @@ spec:
 	}
 }
 
+func TestProcedureNodeOutputWithoutDeclaredSchemaIsUnresolved(t *testing.T) {
+	files := source("procedure-output", "run", `procedures:
+  run:
+    start: invoke
+    nodes:
+      invoke: {procedure: helper}
+      consume:
+        call: demo.read
+        with: {ref: {from: invoke.output.result}}
+  helper:
+    start: done
+    nodes:
+      done: {terminal: SUCCEEDED}
+`)
+	files = append(files, toolCatalog())
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNRESOLVED") {
+		t.Fatalf("Procedure output without an authoritative Schema was accepted: %#v", got.Diagnostics)
+	}
+	foundExplanation := false
+	for _, diagnostic := range got.Diagnostics {
+		if diagnostic.Code == "BINDING_UNRESOLVED" && strings.Contains(diagnostic.Message, "Procedure node has no declared output Schema: invoke") {
+			foundExplanation = true
+		}
+	}
+	if !foundExplanation {
+		t.Fatalf("missing Procedure output Schema was reported as an unknown node: %#v", got.Diagnostics)
+	}
+}
+
 func TestIntegerProducerSatisfiesNumberInput(t *testing.T) {
 	integer := schemaNode(map[string]any{"type": "integer"})
 	number := schemaNode(map[string]any{"type": "number"})
