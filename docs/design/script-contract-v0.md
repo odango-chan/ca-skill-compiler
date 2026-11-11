@@ -66,7 +66,7 @@ Output rules:
 - Literal maps to const or enum.
 - dict, dict[str, T], Any, object, empty Output classes and broad/dynamic unions are forbidden.
 - No field, type or constraint is inferred from the function body. Python is never executed.
-- Generated output path: skills/<skill-name>/schemas/generated/<script-relative-path>.output.schema.json in the BuildResult file map.
+- Generated output path removes the leading scripts/ and trailing .py, then places the remaining relative path under skills/<skill-name>/schemas/generated/ and appends .output.schema.json. Example: scripts/common/normalize.py becomes skills/<skill-name>/schemas/generated/common/normalize.output.schema.json in the BuildResult file map.
 - The generated file is not written back into author source and is never accepted as a subsequent BuildRequest input.
 
 If a Script only forwards an existing Producer value, prefer a direct Procedure binding rather than introducing a duplicate Output type.

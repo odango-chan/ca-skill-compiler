@@ -132,7 +132,7 @@ def main(input: dict) -> OutputType:
 - The return annotation names a non-empty TypedDict declared statically in the same file.
 - Supported output declarations include primitive scalar types, nested TypedDict, functional TypedDict("Name", {...}) for wire keys such as 5qi, list[T], Literal, NotRequired and supported literal Annotated JSON Schema constraints.
 - dict, Any, object, empty Output types, unsupported unions, dynamic constraints and inferred function-body schemas are forbidden.
-- Compiler generates a read-only Draft 2020-12 Output Schema in BuildResult at skills/<skill>/schemas/generated/<script-relative-path>.output.schema.json. It does not generate an author-editable Script Input Schema.
+- Compiler generates a read-only Draft 2020-12 Output Schema in BuildResult at skills/<skill>/schemas/generated/<script-path-with-scripts-prefix-and-py-extension-removed>.output.schema.json; e.g. scripts/common/normalize.py becomes schemas/generated/common/normalize.output.schema.json under that Skill. It does not generate an author-editable Script Input Schema.
 - The old # /// connectionagent-tool metadata, independent local Tool IDs and external Script Input/Output Schema compatibility paths are not supported.
 - Compiler never executes Python. Runtime owns execution, sandbox and actual I/O validation.
 
