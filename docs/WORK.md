@@ -10,7 +10,7 @@ Updated: 2026-11-11
 | Native CLI | PARTIAL | NOT_RUN |
 | Browser WASM callback/Worker | PARTIAL | NOT_RUN |
 | Focused Go test sources | IMPLEMENTED | NOT_RUN |
-| Script Contract v0 strict TypedDict source-of-truth design | ACCEPTED | spec updated; new code NOT_IMPLEMENTED; ST-01..ST-11 NOT_RUN |
+| Producer-owned Script Input / strict computed Output design | ACCEPTED | spec and imported Tool test fixture updated; implementation NOT_STARTED; SO-01..SO-10 NOT_RUN |
 | Full Script I/O Schema generation | NOT_STARTED | NOT_RUN |
 | Correct Procedure, Predicate and transitive Skill dependency linking | PARTIAL | NOT_RUN; known nested procedure walker false-positive |
 | Read-only Library inspection/Studio schema projection | NOT_STARTED | NOT_RUN |
