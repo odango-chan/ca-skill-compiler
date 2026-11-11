@@ -82,7 +82,7 @@ cp "$WASM_EXEC" dist/wasm_exec.js
 cp web/skillc-worker.js dist/skillc-worker.js
 ~~~
 
-静态资源应与 Go/WASM runtime **版本匹配**。Worker 的资源路径相对于 Worker 文件解析。`web/skillc-browser-test.html` 是可执行 smoke page；它加载 `minimal-project` 与一份由 Native CLI 生成的 golden 输出，并调用 Worker 的三个 API 与负例。
+静态资源应与 Go/WASM runtime **版本匹配**。Worker 的资源路径相对于 Worker 文件解析。`web/skillc-browser-test.html` 是可执行 smoke page；它加载 `script-contract-project` 与一份由 Native CLI 生成的 golden 输出，并调用 Worker 的三个 API 与负例。
 
 从仓库根目录准备静态目录：
 
@@ -92,12 +92,12 @@ GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm
 cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" dist/wasm_exec.js
 cp web/skillc-worker.js dist/skillc-worker.js
 cp web/skillc-browser-test.html dist/index.html
-cp -R examples/minimal-project dist/project
-GOWORK=off go run ./cmd/skillc build ./examples/minimal-project --out dist/native-output
+cp -R examples/script-contract-project dist/project
+GOWORK=off go run ./cmd/skillc build ./examples/script-contract-project --out dist/native-output
 python3 -m http.server 8000 --directory dist
 ~~~
 
-Open `/` in Chromium; the page marks `data-test="pass"` only after check/build/inspect, three exact negative diagnostic goldens, stable file order, and every WASM output byte match the Native golden files. This smoke page passed in the local Chromium run. It is not a full Native/WASM diagnostic parity suite or Pages deployment test.
+Open `/` in Chromium; the page marks `data-test="pass"` only after check/build/inspect, exact missing-target and binding diagnostic goldens, stable file order, and every WASM output byte match the Native golden files, including the generated Script Output Schema. This smoke page passed in the local Chromium run. It is not a full Native/WASM diagnostic parity suite or Pages deployment test.
 
 最低通过项：同样的 project 文件集合（包括 Tool YAML/Manifest）在 Native Go 与 JS/WASM 返回一样的诊断码、source path、output file path 和字节；两份真实 5GC pinned 快照只用于迁移缺口说明，**不要求未经迁移的旧源码 PASS**。
 
