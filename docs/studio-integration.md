@@ -97,7 +97,7 @@ GOWORK=off go run ./cmd/skillc build ./examples/minimal-project --out dist/nativ
 python3 -m http.server 8000 --directory dist
 ~~~
 
-Open `/` in Chromium; the page marks `data-test="pass"` only after check/build/inspect, missing-target diagnostics, stable file order, and every WASM output byte match the Native golden files. This smoke page passed in the local Chromium run. It is not a full Native/WASM diagnostic parity suite or Pages deployment test.
+Open `/` in Chromium; the page marks `data-test="pass"` only after check/build/inspect, three exact negative diagnostic goldens, stable file order, and every WASM output byte match the Native golden files. This smoke page passed in the local Chromium run. It is not a full Native/WASM diagnostic parity suite or Pages deployment test.
 
 最低通过项：同样的 project 文件集合（包括 Tool YAML/Manifest）在 Native Go 与 JS/WASM 返回一样的诊断码、source path、output file path 和字节；两份真实 5GC pinned 快照只用于迁移缺口说明，**不要求未经迁移的旧源码 PASS**。
 

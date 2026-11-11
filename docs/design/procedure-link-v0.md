@@ -1,6 +1,6 @@
 # Procedure / Binding / Library Link Contract v0
 
-状态：**设计冻结 / 编译器尚待实现**，与 [Script Contract v0](script-contract-v0.md) 同级权威。本文件用于消除弱模型对 YAML 递归扫描和 `from:` 的猜测。
+状态：**设计冻结 / 编译器实现部分完成、尚未验收**，与 [Script Contract v0](script-contract-v0.md) 同级权威。本文件用于消除弱模型对 YAML 递归扫描和 `from:` 的猜测。
 
 ## 1. v0 最小静态语法（不为了历史兼容增加分支）
 
