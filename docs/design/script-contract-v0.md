@@ -1,75 +1,95 @@
-# Script Contract v0 · 唯一新规约（BREAKING）
+# Script Contract v0 · Compiler Implementation Contract
 
-状态：**设计冻结 / 代码未验收** · 2026-11-11 · Owner: ca-skill-compiler
+**Status:** Implement the current ca-skills Script Contract v0. The normative source document is [ca-skills/docs/script-contract.md](https://github.com/odango-chan/ca-skills/blob/codex/semantic-token-contract-v01/docs/script-contract.md). This file records the corresponding Compiler obligations and is not a separate language authority.
 
-> **明确决策：不提供旧 Script 格式兼容模式。** 不解析旧 `# /// connectionagent-tool` 里的 `inputSchema` / `outputSchema` 作为 fallback，不实现 `schemaMode: external/embedded`，不支持空 `dict` 类暗示 Schema。旧 5GC Python Script 是**迁移输入**，不是必须原样通过的回归兼容对象。
+## 1. Identity and entry point
 
-## 1. 数据生产者决定 Schema
+A Script is a Python source file owned by one Skill at skills/<skill-name>/scripts/<relative-path>.py.
 
-| 数据来源 | Schema 权威位置 | Compiler 处理 |
-| --- | --- | --- |
-| Tool/MCP 的 Input/Output | `lib/tools/*.yaml` 中 Operation 定义 | 解析和链接，**不再生成** |
-| Host / Ingress / Observation 的输入 | 真实 Owner 提供的 `lib/host/`、`lib/observations/` | 明确导入，缺失即静态诊断 |
-| Skill 对外公开请求（由 Skill 自己定义的接口） | `skills/<skill>/schemas/` | 直接使用；不是 Script 生成的 Schema |
-| Procedure 传递给 Script 的参数 | 每个 `with.<field>.from` 的源端口 Schema | 调用点派生 input projection，**不作为第二份权威文件** |
-| Script **自己计算出的新结果** | Script 中静态声明的 Output Type | 自动生成只读 Output Schema |
-| 透传一个已有结果 | 上游实际 Producer | Procedure 直接转发来源，不造重复类型 |
+Its only identity is **Skill name + package-relative Script path**. No Python metadata may declare a second name, Tool ID, Operation ID, Capability ID or version.
 
-**导入不是认证**：外部 Tool Catalog 说明接口存在，不保证 Operation 已实现/可调用/有权限。新 Compiler 不负责 Runtime READY。
-
-## 2. 新 Script 唯一写法
+The only supported entry point is:
 
 ~~~python
-from typing import Annotated, Literal, TypedDict
-
-class SelectionOutput(TypedDict):
-    dnn: Annotated[str, {"minLength": 1, "pattern": r"^[a-z0-9.-]+$"}]
-    accepted: Literal[True]
-
-def main(input: dict) -> SelectionOutput:
-    return {"dnn": input["value"].strip(), "accepted": True}
+def main(input: dict) -> OutputType:
+    ...
 ~~~
 
-- 一个 Skill-owned Script 必须位于 `skills/<skill>/scripts/*.py`，入口固定为 `main`；唯一命名身份是**Skill + Script 相对路径**，不靠 metadata 的 `name` 另造一套身份。
-- `main(input: dict)` 中的 `dict` **仅是调用点传入的字典容器**。它的每个入参由 Procedure `with:` 绑定的 Producer 严格决定；Compiler 必须解析绑定，不能把 `dict` 当作接受任意值的 Schema。
-- Script 新生成的 Output 类型是**非空** `TypedDict`。所有递归嵌套对象必须有明确定义；禁止 Output 为 `dict`、`dict[str, T]`、`Any`、`object`、空类、无类型注解和不受支持的 Union。
-- Output 白名单：`str/int/float/bool`、同文件有限的 `TypedDict`、`list[T]`、`Literal[constants]`、`NotRequired[T]`、受限 `Annotated[T, {...}]`；超出白名单直接 `SCRIPT_TYPE_UNSUPPORTED`。
-- `Annotated` 仅接受字面量约束（例如字符串 `minLength/maxLength/pattern`，数值 `minimum/maximum`，列表 `minItems/maxItems/uniqueItems`），必须按基础类型匹配。未知约束、未知类型、非法范围、动态表达式都应报错，不能降级。
-- `TypedDict` 生成 JSON Schema Draft 2020-12，`additionalProperties: false`、`required` / `NotRequired` 必须正确；`Literal` 生成 `const` 或 `enum`；不推断未声明的业务规则。
-- **不运行 Python，也不自动从函数体推断接口**。不必引入 Python/Pydantic 运行环境或 subprocess。编译只保证接口声明和链接，不保证函数体真的返回正确值，也不证明脚本确定性；Runtime 对实际 I/O 校验与沙箱负责。
-- 复杂跨字段约束（例如 `allOf/if/then`）若超出 Type 白名单，应**调整新 Script 的数据契约或提出单独的语言扩展**，不能复活旧 Script external 兼容路径来掩盖缺口。
+- Exactly one synchronous main.
+- Exactly one positional parameter named input, annotated exactly dict.
+- No extra positional/keyword parameters, *args, **kwargs or default values.
+- The return annotation names a non-empty TypedDict declared statically in the same file.
+- No old # /// connectionagent-tool metadata or fallback parser.
 
-## 3. Source 与 Output
+## 2. Input projections
 
-Script `skills/<skill>/scripts/common/normalize.py` → **仅产生**：
+Scripts do not author Input Schemas.
 
-`skills/<skill>/schemas/generated/common/normalize.output.schema.json`
+### Procedure Script
 
-Output path 相对于 BuildResult 的 `outputFiles`，实际位于 `output/skills/...`；不得回写作者源码，也不能生成一份重复权威的 `normalize.input.schema.json`。若本次调用需要输入类型，只在诊断/Library Inspector 中显示从 `with:` 派生的投影。
+For each script: scripts/foo.py invocation, Compiler derives a distinct input projection from that step's with: bindings. Each from: resolves against the exact Producer Schema; each value: is checked against the destination type. The same Script can have different projections at different call sites.
 
-Script 结果中的原样上游数据应优先直接在 Procedure 链接而不返回无类型 `dict`；任何新算出的对象都必须满足完整类型白名单。Compiler 对重复/碰撞输出路径报错。
+Compiler must not treat input: dict as permission to access arbitrary fields. Missing Producers, unknown fields and incompatible types are errors. No editable Script Input Schema is created or generated.
 
-## 4. 旧 5GC 源码的角色（不是兼容承诺）
+### Predicate evaluator Script
 
-`examples/ca-agent-demo-project/` 的两套真实 Skill 是固定的**迁移前基线**：79 个 Skill 源文件 + 一份正式 ToolCatalog 与 upstream 固定 Git blob 一致，MAS 设计库另行导入。不要为拿绿色测试而偷偷篡改原始 Git 快照。
+For evaluator: {type: script, ref: scripts/foo.py}, the input is the Host-created Predicate Evaluation Context:
 
-实际新规约迁移在**单独的新版 Project 目录**进行（推荐 `examples/ca-agent-demo-v0/`，不要覆盖 pinned reference）；允许移除旧头部与旧重复 Schema、改写 Python Output TypedDict 和 Procedure 参数引用。**绝无要求迁移前源码原样编译 PASS**。如果外部 Host/Observation 的权威 Schema 缺失，则迁移版对应严格类型检查仍须 FAIL/BLOCKED，不可造假。
+- subject: exact trusted Subject projection;
+- request: Skill Request validated by spec.inputs.requestSchema;
+- facts: Host-owned fact projection;
+- observations: declared aliases mapped to materialized payloads;
+- evidence: Host-owned provenance/evidence projection.
 
-## 5. 确定性的真正含义
+The Compiler links these fields using the explicit spec.context.schemas Owner references and Predicate observation declarations. It does not infer schemas from Python access patterns, requiredFacts or Case fixtures.
 
-- Script “确定性”是输入固定时结果一致，或失败按确定的条件表现；静态 `TypedDict` 只能描述 Output 结构，**不能单独保证**无随机、无网络、无时间或运行时副作用。
-- Compiler 必须**不执行 Script**；Runtime/Harness 控制权限、隔离与执行验证。
-- 接口不完整必须有明确诊断；不自动给未声明字段加通配型 `object`。
-- Studio 只编辑 `skills/`，只读显示 `lib/` 和 `output/`。静态类型生成与外部数据链接唯一实现位于 Compiler Core。
+## 3. Output TypedDict and generated Schema
 
-## 6. 必测项（详见 acceptance matrix）
+Compiler statically parses the return TypedDict and generates a read-only JSON Schema Draft 2020-12.
 
-- ST-01 正向：导入 Tool Catalog、`with:` 引用 Tool 输出 → Script 输入投影 → 生成新 Output TypedDict Schema。
-- ST-02 负向：未知 Tool/字段/外部 Host schema、泛化 Tool 输出对象，必须诊断。
-- ST-03 负向：Script 输出 `dict/Any/object`、空类/非静态约束，必须拒绝。
-- ST-04 新 Script 不写旧 metadata；旧 Script metadata 不得作为 fallback。
-- ST-05 Native/WASM 对同一输入集合产生同样的诊断和输出字节。
-- ST-06 固定的 5GC 源快照在迁移前允许得到明确的“待迁移”诊断，不宣称 PASS。
-- ST-07 编译不执行 Python/Tool/MCP、不联网。
+Supported declarations:
 
-本文件是**最终 v0 选择**，不再需要兼容选择开关。
+- str, int, float, bool;
+- nested TypedDict declarations in the same file;
+- functional TypedDict("Name", {...}) for wire keys that are not valid Python identifiers (for example 5qi);
+- list[T];
+- Literal[...];
+- NotRequired[T];
+- Annotated[T, {<literal JSON Schema constraints>}].
+
+Supported literal constraints: string minLength, maxLength, pattern; numeric minimum, maximum; array minItems, maxItems, uniqueItems. Unknown constraints, dynamic expressions, unsupported annotations and invalid ranges fail explicitly.
+
+Output rules:
+
+- Output is non-empty and fully declared; generated additionalProperties is false.
+- Required and NotRequired fields are preserved exactly.
+- Literal maps to const or enum.
+- dict, dict[str, T], Any, object, empty Output classes and broad/dynamic unions are forbidden.
+- No field, type or constraint is inferred from the function body. Python is never executed.
+- Generated output path: skills/<skill-name>/schemas/generated/<script-relative-path>.output.schema.json in the BuildResult file map.
+- The generated file is not written back into author source and is never accepted as a subsequent BuildRequest input.
+
+If a Script only forwards an existing Producer value, prefer a direct Procedure binding rather than introducing a duplicate Output type.
+
+## 4. No per-Script execution policy
+
+Scripts are restricted to deterministic local computation. They must not access network/MCP/HTTP, shell/subprocess, filesystem, environment secrets, clocks, random sources, databases or credentials.
+
+Host owns the fixed execution sandbox and timeout policy. A Script cannot widen it through source metadata. Compiler does not run Python and does not claim that a static TypedDict proves runtime determinism.
+
+A Script is not an independently invocable Tool or Capability. There is no allowedResources.localTools.
+
+## 5. Current official PDU examples
+
+The five conventional PDU Scripts in ca-skills are the current migration examples:
+
+| Script | Output |
+|---|---|
+| scripts/select_establishment_configuration.py | EstablishmentSelectionOutput |
+| scripts/build_pcf_policy_inputs.py | PcfPolicyInputsOutput (functional TypedDict for 5qi) |
+| scripts/build_n1n2_delivery.py | N1N2DeliveryOutput |
+| scripts/evaluate_udm_read.py and scripts/evaluate_transfer_start.py | PredicateEvaluationResult |
+
+Do not compile a second copy of the same Skill source from ca-agent-demo. The official source is ca-skills; ca-agent-demo is a behavior reference only.
+
+The current imported UDM Tool Output Schema is too broad to prove nested subscription fields read by the selection Script. Until the Tool Owner supplies the complete schema, the linker must report the gap. Do not restore the removed selection-input.schema.yaml as a Skill-owned Script Input Schema.

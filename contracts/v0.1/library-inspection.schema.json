@@ -71,7 +71,7 @@
       "required": [
         "operationId",
         "sourcePath",
-        "sourceStatus",
+        "declaredEffect",
         "inputSchema"
       ],
       "properties": {
@@ -83,13 +83,6 @@
         "sourcePath": {
           "type": "string",
           "pattern": "^lib/"
-        },
-        "sourceStatus": {
-          "enum": [
-            "declared",
-            "proposed",
-            "unspecified"
-          ]
         },
         "declaredEffect": {
           "enum": [
