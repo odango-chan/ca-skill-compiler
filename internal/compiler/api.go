@@ -72,6 +72,7 @@ type analysis struct {
 	diagnostics         []Diagnostic
 	generated           map[string][]File
 	ambiguousOperations map[string]bool
+	schemaRefs          map[string]map[string]bool
 }
 
 func Check(req Request) []Diagnostic {
@@ -126,13 +127,38 @@ func analyze(req Request, materialize bool) Result {
 					usedLibs[tool.source] = true
 				}
 			}
+			for root := range skill.schemaRoots {
+				a.addSchemaDependencies(root, usedLibs)
+			}
 		}
+	}
+	for filename := range usedLibs {
+		a.addSchemaDependencies(filename, usedLibs)
 	}
 	for filename := range usedLibs {
 		outputs = append(outputs, File{Path: filename, Bytes: bytes.Clone(a.files[filename])})
 	}
 	sort.Slice(outputs, func(i, j int) bool { return outputs[i].Path < outputs[j].Path })
 	return a.result(outputs)
+}
+
+func (a *analysis) addSchemaDependencies(root string, usedLibs map[string]bool) {
+	seen := map[string]bool{}
+	queue := []string{root}
+	for len(queue) > 0 {
+		filename := queue[0]
+		queue = queue[1:]
+		if seen[filename] {
+			continue
+		}
+		seen[filename] = true
+		for dep := range a.schemaRefs[filename] {
+			if strings.HasPrefix(dep, "lib/") {
+				usedLibs[dep] = true
+			}
+			queue = append(queue, dep)
+		}
+	}
 }
 
 func (a *analysis) filterUnselectedSkillDiagnostics(selected map[string]bool) {
@@ -150,14 +176,14 @@ func (a *analysis) filterUnselectedSkillDiagnostics(selected map[string]bool) {
 }
 
 func newAnalysis(req Request) *analysis {
-	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry), generated: make(map[string][]File), ambiguousOperations: make(map[string]bool)}
+	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry), generated: make(map[string][]File), ambiguousOperations: make(map[string]bool), schemaRefs: make(map[string]map[string]bool)}
 	total := 0
 	if len(req.Files) > maxFiles {
 		a.errorAt("", 0, "INPUT_LIMIT", "too many project files")
 	}
 	for _, file := range req.Files {
 		if !validPath(file.Path) {
-			a.errorAt(file.Path, 0, "PATH_INVALID", "file path must be normalized and inside skills/ or lib/")
+			a.errorAt(file.Path, 0, "PROJECT_PATH_INVALID", "file path must be normalized and inside skills/ or lib/")
 			continue
 		}
 		if len(file.Bytes) > maxFileSize {
@@ -166,7 +192,7 @@ func newAnalysis(req Request) *analysis {
 		}
 		total += len(file.Bytes)
 		if _, exists := a.files[file.Path]; exists {
-			a.errorAt(file.Path, 0, "DUPLICATE_PATH", "duplicate project file")
+			a.errorAt(file.Path, 0, "PROJECT_DUPLICATE_FILE", "duplicate project file")
 			continue
 		}
 		a.files[file.Path] = bytes.Clone(file.Bytes)

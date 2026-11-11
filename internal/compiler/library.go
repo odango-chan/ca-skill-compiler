@@ -65,47 +65,75 @@ func (a *analysis) importLibraries() {
 			continue
 		}
 		if scalar(child(root, "kind")) != "ToolCatalog" {
-			a.errorAt(filename, root.Line, "LIB_KIND", "expected ca-agent-demo ToolCatalog")
+			a.errorAt(filename, root.Line, "LIB_SCHEMA_INVALID", "expected ca-agent-demo ToolCatalog")
 			continue
 		}
 		contracts := sequence(child(child(root, "spec"), "contracts"))
 		if len(contracts) == 0 {
-			a.errorAt(filename, root.Line, "LIB_EMPTY", "ToolCatalog has no spec.contracts")
+			a.errorAt(filename, root.Line, "LIB_SCHEMA_INVALID", "ToolCatalog has no spec.contracts")
 			continue
 		}
 		for _, item := range contracts {
 			id := scalar(child(item, "operation"))
 			if id == "" {
-				a.errorAt(filename, item.Line, "LIB_OPERATION", "Tool contract has no operation ID")
+				a.errorAt(filename, item.Line, "LIB_SCHEMA_INVALID", "Tool contract has no operation ID")
 				continue
 			}
 			if a.ambiguousOperations[id] {
 				continue
 			}
 			if prev, exists := a.tools[id]; exists {
-				a.errorAt(filename, item.Line, "LIB_DUPLICATE_OPERATION", "operation "+id+" already declared in "+prev.source)
+				a.errorAt(filename, item.Line, "LIB_OPERATION_DUPLICATE", "operation "+id+" already declared in "+prev.source)
 				delete(a.tools, id)
 				a.ambiguousOperations[id] = true
 				continue
 			}
 			input := child(item, "inputSchema")
 			if input == nil {
-				a.errorAt(filename, item.Line, "LIB_INPUT_SCHEMA", "operation "+id+" has no inputSchema")
+				a.errorAt(filename, item.Line, "LIB_SCHEMA_INVALID", "operation "+id+" has no inputSchema")
 			}
 			effect := scalar(child(item, "effect"))
 			if effect != "READ" && effect != "MUTATION" {
-				a.errorAt(filename, item.Line, "LIB_EFFECT", "operation "+id+" has unsupported/missing Effect")
+				a.errorAt(filename, item.Line, "LIB_SCHEMA_INVALID", "operation "+id+" has unsupported/missing Effect")
 			}
 			if input != nil && unalias(input).Kind != yaml.MappingNode {
 				a.errorAt(filename, input.Line, "LIB_SCHEMA_INVALID", "inputSchema must be an object")
+			}
+			output := child(item, "outputSchema")
+			if output != nil && unalias(output).Kind != yaml.MappingNode {
+				a.errorAt(filename, output.Line, "LIB_SCHEMA_INVALID", "outputSchema must be an object")
+			}
+			reconcile := child(item, "reconcileOutputSchema")
+			if reconcile != nil && unalias(reconcile).Kind != yaml.MappingNode {
+				a.errorAt(filename, reconcile.Line, "LIB_SCHEMA_INVALID", "reconcileOutputSchema must be an object")
 			}
 			status := statuses[filename]
 			if status == "" {
 				status = "unspecified"
 			}
+			inputNode, outputNode := unalias(input), unalias(output)
+			if inputNode != nil {
+				if expanded, err := a.expandSchemaRefs(filename, root, inputNode); err != nil {
+					a.errorAt(filename, inputNode.Line, "LIB_SCHEMA_INVALID", "operation "+id+" inputSchema: "+err.Error())
+				} else {
+					inputNode = expanded
+				}
+			}
+			if outputNode != nil {
+				if expanded, err := a.expandSchemaRefs(filename, root, outputNode); err != nil {
+					a.errorAt(filename, outputNode.Line, "LIB_SCHEMA_INVALID", "operation "+id+" outputSchema: "+err.Error())
+				} else {
+					outputNode = expanded
+				}
+			}
+			if reconcile != nil {
+				if _, err := a.expandSchemaRefs(filename, root, unalias(reconcile)); err != nil {
+					a.errorAt(filename, reconcile.Line, "LIB_SCHEMA_INVALID", "operation "+id+" reconcileOutputSchema: "+err.Error())
+				}
+			}
 			tool := LibraryTool{OperationID: id, SourcePath: filename, SourceStatus: status, DeclaredEffect: effect,
-				Description: scalar(child(item, "description")), InputSchema: nodeValue(input), OutputSchema: nodeValue(child(item, "outputSchema")), ReconcileOutputSchema: nodeValue(child(item, "reconcileOutputSchema"))}
-			a.tools[id] = toolEntry{source: filename, line: item.Line, effect: effect, tool: tool, inputNode: unalias(input), outputNode: unalias(child(item, "outputSchema"))}
+				Description: scalar(child(item, "description")), InputSchema: nodeValue(input), OutputSchema: nodeValue(output), ReconcileOutputSchema: nodeValue(reconcile)}
+			a.tools[id] = toolEntry{source: filename, line: item.Line, effect: effect, tool: tool, inputNode: inputNode, outputNode: outputNode}
 		}
 	}
 	for p := range statuses {

@@ -12,6 +12,7 @@ type skillEntry struct {
 	contract       string
 	contractAST    *yaml.Node
 	procedure      string
+	procedureAST   *yaml.Node
 	calls          map[string]int
 	scripts        map[string]int
 	preds          map[string]int
@@ -23,6 +24,7 @@ type skillEntry struct {
 	contextSchemas map[string]string
 	procedureRefs  map[string]map[string]int
 	libraryFiles   map[string]bool
+	schemaRoots    map[string]bool
 	deps           map[string]int
 	procedureCalls map[string]map[string]int
 }
@@ -56,10 +58,10 @@ func (a *analysis) parseSkills() {
 		base := "skills/" + name + "/"
 		s := &skillEntry{name: name, contract: base + "assurance/contract.yaml", procedure: base + "assurance/procedure.yaml",
 			calls: make(map[string]int), scripts: make(map[string]int), deps: make(map[string]int), preds: make(map[string]int), procedureCalls: make(map[string]map[string]int),
-			procedures: make(map[string]bool), allowed: make(map[string]bool), nodes: make(map[string]map[string]*yaml.Node), procedureRefs: make(map[string]map[string]int), libraryFiles: make(map[string]bool)}
+			procedures: make(map[string]bool), allowed: make(map[string]bool), nodes: make(map[string]map[string]*yaml.Node), procedureRefs: make(map[string]map[string]int), libraryFiles: make(map[string]bool), schemaRoots: make(map[string]bool)}
 		a.skills[name] = s
 		if _, ok := a.files[base+"SKILL.md"]; !ok {
-			a.errorAt(base+"SKILL.md", 0, "SKILL_MISSING", "SKILL.md is required")
+			a.errorAt(base+"SKILL.md", 0, "SKILL_ENTRY_MISSING", "SKILL.md is required")
 		}
 		for _, filename := range []string{s.contract, s.procedure} {
 			if _, ok := a.files[filename]; !ok {
@@ -70,18 +72,73 @@ func (a *analysis) parseSkills() {
 			a.parseContract(s)
 		}
 		if filename := base + "assurance/predicates.yaml"; a.files[filename] != nil {
-			root := a.parseYAML(filename)
-			for _, pred := range mapKeys(child(root, "predicates")) {
-				s.preds[pred] = 1
-			}
+			a.parsePredicates(s, filename)
 		}
 		if _, ok := a.files[s.procedure]; ok {
 			a.parseProcedure(s)
 		}
 		a.validateContractPredicates(s)
 	}
+	// Resolve call-site bindings only after every Skill's Procedure AST is available.
+	for _, name := range sorted {
+		s := a.skills[name]
+		if s == nil || s.procedureAST == nil {
+			continue
+		}
+		for _, pname := range mapKeys(child(s.procedureAST, "procedures")) {
+			proc := child(child(s.procedureAST, "procedures"), pname)
+			a.validateProcedureBindings(s, proc, child(proc, "nodes"), s.procedure)
+		}
+	}
 	if len(a.skills) == 0 {
 		a.errorAt("skills/", 0, "NO_SKILLS", "project contains no Skill")
+	}
+}
+
+func (a *analysis) parsePredicates(s *skillEntry, filename string) {
+	root := a.parseYAML(filename)
+	if root == nil {
+		return
+	}
+	predicates := child(root, "predicates")
+	if predicates == nil || unalias(predicates).Kind != yaml.MappingNode {
+		a.errorAt(filename, root.Line, "PREDICATE_SOURCE_INCOMPLETE", "PredicateSet requires a predicates mapping")
+		return
+	}
+	for _, id := range mapKeys(predicates) {
+		predicate := child(predicates, id)
+		s.preds[id] = 1
+		if unalias(predicate).Kind != yaml.MappingNode {
+			a.errorAt(filename, predicate.Line, "PREDICATE_SOURCE_INCOMPLETE", "Predicate definition must be a mapping: "+id)
+			continue
+		}
+		evaluator := child(predicate, "evaluator")
+		evaluatorType := scalar(child(evaluator, "type"))
+		complete := false
+		if evaluator != nil && unalias(evaluator).Kind == yaml.MappingNode {
+			switch evaluatorType {
+			case "cel":
+				complete = scalar(child(evaluator, "expression")) != ""
+			case "script":
+				complete = scalar(child(evaluator, "ref")) != ""
+			}
+		}
+		if !complete {
+			a.errorAt(filename, predicate.Line, "PREDICATE_SOURCE_INCOMPLETE", "Predicate evaluator requires cel expression or script ref: "+id)
+		}
+		observations := child(predicate, "observations")
+		if observations != nil {
+			if unalias(observations).Kind != yaml.MappingNode {
+				a.errorAt(filename, observations.Line, "PREDICATE_SOURCE_INCOMPLETE", "Predicate observations must be a mapping: "+id)
+				continue
+			}
+			for _, name := range mapKeys(observations) {
+				observation := child(observations, name)
+				if unalias(observation).Kind != yaml.MappingNode || scalar(child(observation, "ref")) == "" {
+					a.errorAt(filename, observation.Line, "PREDICATE_SOURCE_INCOMPLETE", "Predicate observation requires a reference: "+id+"/"+name)
+				}
+			}
+		}
 	}
 }
 
@@ -121,7 +178,7 @@ func (a *analysis) parseContract(s *skillEntry) {
 	}
 	entry := scalar(child(spec, "entryProcedure"))
 	if entry == "" {
-		a.errorAt(s.contract, spec.Line, "ENTRY_MISSING", "missing spec.entryProcedure")
+		a.errorAt(s.contract, spec.Line, "SKILL_ENTRY_MISSING", "missing spec.entryProcedure")
 	}
 	s.entry = entry
 	for _, capability := range sequence(child(child(spec, "allowedResources"), "capabilities")) {
@@ -149,13 +206,15 @@ func (a *analysis) parseContract(s *skillEntry) {
 			}
 		} else {
 			if !strings.HasPrefix(schema, "schemas/") || !validPath("skills/"+s.name+"/"+schema) {
-				a.errorAt(s.contract, spec.Line, "REQUEST_SCHEMA_MISSING", "requestSchema must be a Skill schemas/ path or imported lib/ path")
+				a.errorAt(s.contract, spec.Line, "EXTERNAL_SCHEMA_MISSING", "requestSchema must be a Skill schemas/ path or imported lib/ path")
 			} else {
 				filename = "skills/" + s.name + "/" + schema
 			}
 		}
 		if filename != "" && a.files[filename] == nil {
-			a.errorAt(s.contract, spec.Line, "REQUEST_SCHEMA_MISSING", "requestSchema not found: "+schema)
+			a.errorAt(s.contract, spec.Line, "EXTERNAL_SCHEMA_MISSING", "requestSchema not found: "+schema)
+		} else if filename != "" {
+			s.schemaRoots[filename] = true
 		}
 	}
 	s.contextSchemas = map[string]string{}
@@ -171,6 +230,7 @@ func (a *analysis) parseContract(s *skillEntry) {
 			}
 			s.contextSchemas[key] = p
 			s.libraryFiles[p] = true
+			s.schemaRoots[p] = true
 		}
 	}
 }
@@ -180,6 +240,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 	if root == nil {
 		return
 	}
+	s.procedureAST = root
 	for _, field := range mapKeys(root) {
 		if field != "procedures" {
 			a.errorAt(s.procedure, child(root, field).Line, "PROCEDURE_UNSUPPORTED", "unknown Procedure document field: "+field)
@@ -205,10 +266,44 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 				a.errorAt(s.procedure, child(proc, field).Line, "PROCEDURE_UNSUPPORTED", "unknown Procedure field: "+field)
 			}
 		}
+		if inputs := child(proc, "inputs"); inputs != nil {
+			if unalias(inputs).Kind != yaml.MappingNode {
+				a.errorAt(s.procedure, inputs.Line, "PROCEDURE_UNSUPPORTED", "Procedure inputs must be a mapping")
+			} else {
+				for _, inputName := range mapKeys(inputs) {
+					input := child(inputs, inputName)
+					if unalias(input).Kind != yaml.MappingNode {
+						a.errorAt(s.procedure, input.Line, "PROCEDURE_UNSUPPORTED", "Procedure input must declare type and from: "+inputName)
+						continue
+					}
+					for _, field := range mapKeys(input) {
+						if field != "type" && field != "from" {
+							a.errorAt(s.procedure, child(input, field).Line, "PROCEDURE_UNSUPPORTED", "unknown Procedure input field: "+field)
+						}
+					}
+					typ, from := scalar(child(input, "type")), scalar(child(input, "from"))
+					if !validProcedureInputType(typ) || from == "" {
+						a.errorAt(s.procedure, input.Line, "PROCEDURE_UNSUPPORTED", "Procedure input requires a supported type and from source: "+inputName)
+					}
+				}
+			}
+		}
 		if applicability := child(proc, "applicability"); applicability != nil {
-			for _, id := range mapKeys(child(applicability, "predicates")) {
+			if unalias(applicability).Kind != yaml.MappingNode {
+				a.errorAt(s.procedure, applicability.Line, "PROCEDURE_UNSUPPORTED", "Procedure applicability must be a mapping")
+			}
+			for _, field := range mapKeys(applicability) {
+				if field != "predicates" {
+					a.errorAt(s.procedure, child(applicability, field).Line, "PROCEDURE_UNSUPPORTED", "unknown applicability field: "+field)
+				}
+			}
+			predicates := child(applicability, "predicates")
+			if predicates != nil && unalias(predicates).Kind != yaml.MappingNode {
+				a.errorAt(s.procedure, predicates.Line, "PROCEDURE_UNSUPPORTED", "applicability.predicates must be a mapping")
+			}
+			for _, id := range mapKeys(predicates) {
 				if s.preds[id] == 0 {
-					a.errorAt(s.procedure, child(child(applicability, "predicates"), id).Line, "PREDICATE_NOT_FOUND", "unknown applicability Predicate: "+id)
+					a.errorAt(s.procedure, child(predicates, id).Line, "PREDICATE_NOT_FOUND", "unknown applicability Predicate: "+id)
 				}
 			}
 		}
@@ -233,6 +328,16 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 			}
 			if actions != 1 {
 				a.errorAt(s.procedure, node.Line, "PROCEDURE_UNSUPPORTED", "each node must have exactly one supported action")
+			}
+			for _, action := range []string{"call", "script", "verify", "reconcile", "terminal"} {
+				if value := child(node, action); value != nil && scalar(value) == "" {
+					a.errorAt(s.procedure, value.Line, "PROCEDURE_UNSUPPORTED", action+" action must be a nonempty scalar")
+				}
+			}
+			if ref := child(node, "procedure"); ref != nil && scalar(ref) == "" {
+				if unalias(ref).Kind != yaml.MappingNode || scalar(child(ref, "procedure")) == "" {
+					a.errorAt(s.procedure, ref.Line, "PROCEDURE_UNSUPPORTED", "procedure action must be a local name or {skill, procedure} reference")
+				}
 			}
 			if child(node, "with") != nil && child(node, "call") == nil && child(node, "script") == nil && child(node, "procedure") == nil {
 				a.errorAt(s.procedure, child(node, "with").Line, "PROCEDURE_UNSUPPORTED", "with is only valid for call, script, or procedure actions")
@@ -266,6 +371,9 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 				}
 			}
 			if script := scalar(child(node, "script")); script != "" {
+				if !validSkillScriptPath(script) {
+					a.errorAt(s.procedure, child(node, "script").Line, "PROCEDURE_UNSUPPORTED", "Script reference must be a normalized scripts/*.py path: "+script)
+				}
 				s.scripts[script] = child(node, "script").Line
 			}
 			if ref := child(node, "procedure"); ref != nil {
@@ -277,8 +385,11 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 						}
 					}
 				}
-				if skill == "" {
+				if skill == "" || skill == s.name {
 					target = scalar(ref)
+					if skill != "" {
+						target = scalar(child(ref, "procedure"))
+					}
 					if target == "" || !s.procedures[target] {
 						a.errorAt(s.procedure, ref.Line, "PROCEDURE_NOT_FOUND", "missing local Procedure: "+target)
 					} else {
@@ -310,7 +421,34 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 				}
 			}
 			for _, scope := range []string{"preconditions", "postconditions"} {
-				if steps := child(child(node, scope), "steps"); steps != nil {
+				scopeNode := child(node, scope)
+				if scopeNode != nil && unalias(scopeNode).Kind != yaml.MappingNode {
+					a.errorAt(s.procedure, scopeNode.Line, "PROCEDURE_UNSUPPORTED", scope+" must be a mapping")
+				}
+				if scopeNode != nil {
+					for _, field := range mapKeys(scopeNode) {
+						if field != "steps" && field != "on" {
+							a.errorAt(s.procedure, child(scopeNode, field).Line, "PROCEDURE_UNSUPPORTED", "unknown "+scope+" field: "+field)
+						}
+					}
+					if branch := child(scopeNode, "on"); branch != nil {
+						if unalias(branch).Kind != yaml.MappingNode {
+							a.errorAt(s.procedure, branch.Line, "PROCEDURE_UNSUPPORTED", scope+".on must map outcomes to node names")
+						} else {
+							for _, outcome := range mapKeys(branch) {
+								target := scalar(child(branch, outcome))
+								if outcome == "" || target == "" || !known[target] {
+									a.errorAt(s.procedure, child(branch, outcome).Line, "NODE_TARGET_UNKNOWN", "unknown "+scope+" outcome target: "+target)
+								}
+							}
+						}
+					}
+				}
+				if steps := child(scopeNode, "steps"); steps != nil {
+					if unalias(steps).Kind != yaml.SequenceNode {
+						a.errorAt(s.procedure, steps.Line, "PROCEDURE_UNSUPPORTED", scope+".steps must be a sequence")
+					}
+					seenSteps := map[string]bool{}
 					for _, step := range sequence(steps) {
 						id := scalar(child(step, "name"))
 						script := scalar(child(step, "script"))
@@ -329,6 +467,13 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 						if id == "" || count != 1 {
 							a.errorAt(s.procedure, step.Line, "PROCEDURE_UNSUPPORTED", "step requires name and exactly one script or call action")
 							continue
+						}
+						if seenSteps[id] {
+							a.errorAt(s.procedure, child(step, "name").Line, "PROCEDURE_UNSUPPORTED", "duplicate nested step name: "+id)
+						}
+						seenSteps[id] = true
+						if script != "" && !validSkillScriptPath(script) {
+							a.errorAt(s.procedure, child(step, "script").Line, "PROCEDURE_UNSUPPORTED", "Script reference must be a normalized scripts/*.py path: "+script)
 						}
 						for _, field := range mapKeys(step) {
 							switch field {
@@ -351,9 +496,21 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 			}
 			prior[n] = true
 		}
-		a.validateProcedureBindings(s, proc, nodes, s.procedure)
 	}
 	a.validateLocalProcedureCycles(s)
+}
+
+func validProcedureInputType(typ string) bool {
+	switch typ {
+	case "string", "integer", "number", "boolean", "object", "array":
+		return true
+	default:
+		return false
+	}
+}
+
+func validSkillScriptPath(rel string) bool {
+	return strings.HasPrefix(rel, "scripts/") && strings.HasSuffix(rel, ".py") && validPath("skills/_/"+rel)
 }
 
 func (a *analysis) validateLocalProcedureCycles(s *skillEntry) {
@@ -443,7 +600,7 @@ func (a *analysis) validateSkills(selected map[string]bool) {
 		for _, op := range sortedStringMapKeys(s.calls) {
 			line := s.calls[op]
 			if _, ok := a.tools[op]; !ok {
-				a.errorAt(s.procedure, line, "TOOL_NOT_FOUND", "Tool operation not imported: "+op)
+				a.errorAt(s.procedure, line, "LIB_OPERATION_UNKNOWN", "Tool operation not imported: "+op)
 			}
 			if len(s.allowed) > 0 && !s.allowed[op] {
 				a.errorAt(s.procedure, line, "TOOL_NOT_DECLARED", "Tool operation is not in allowedResources: "+op)

@@ -44,14 +44,14 @@ func (a *analysis) compileScripts(selected map[string]bool) {
 			b = append(b, '\n')
 			name := strings.TrimSuffix(strings.TrimPrefix(rel, "scripts/"), ".py")
 			out := "skills/" + skill + "/schemas/generated/" + name + ".output.schema.json"
-			if _, exists := a.files[out]; exists {
-				a.errorAt(path, line, "OUTPUT_PATH_COLLISION", "generated Script schema collides with source: "+out)
+			if sourcePath, collides := collidingPath(a.files, out); collides {
+				a.errorAt(path, line, "PROJECT_DUPLICATE_FILE", "generated Script schema path conflicts with source "+sourcePath+": "+out)
 				continue
 			}
 			for other, files := range a.generated {
 				for _, f := range files {
-					if f.Path == out {
-						a.errorAt(path, line, "OUTPUT_PATH_COLLISION", "generated Script schema collision with "+other)
+					if pathsCollide(f.Path, out) {
+						a.errorAt(path, line, "PROJECT_DUPLICATE_FILE", "generated Script schema collision with "+other)
 						out = ""
 					}
 				}
@@ -61,6 +61,19 @@ func (a *analysis) compileScripts(selected map[string]bool) {
 			}
 		}
 	}
+}
+
+func collidingPath(files map[string][]byte, candidate string) (string, bool) {
+	for filename := range files {
+		if pathsCollide(filename, candidate) {
+			return filename, true
+		}
+	}
+	return "", false
+}
+
+func pathsCollide(a, b string) bool {
+	return a == b || strings.HasPrefix(a, b+"/") || strings.HasPrefix(b, a+"/")
 }
 
 func parseScriptOutput(src string) (map[string]any, error) {
@@ -108,19 +121,22 @@ func parseScriptOutput(src string) (map[string]any, error) {
 			if trim == "" || strings.HasPrefix(trim, "#") {
 				continue
 			}
-			f := fieldRE.FindStringSubmatch(line)
-			if f == nil {
+			if line[0] != ' ' && line[0] != '\t' {
 				current = ""
-				continue
-			}
-			if fieldSeen[current][f[1]] {
-				return nil, fmt.Errorf("duplicate TypedDict field %s.%s", current, f[1])
-			}
-			fieldSeen[current][f[1]] = true
-			classes[current] = pyClass{fields: append(classes[current].fields, pyField{f[1], f[2]})}
-			for _, name := range []string{"Literal", "Annotated", "NotRequired"} {
-				if strings.Contains(f[2], name+"[") && !imports[name] {
-					return nil, fmt.Errorf("%s must be imported from typing", name)
+			} else {
+				f := fieldRE.FindStringSubmatch(line)
+				if f == nil {
+					return nil, fmt.Errorf("unsupported TypedDict body statement in %s: %s", current, trim)
+				}
+				if fieldSeen[current][f[1]] {
+					return nil, fmt.Errorf("duplicate TypedDict field %s.%s", current, f[1])
+				}
+				fieldSeen[current][f[1]] = true
+				classes[current] = pyClass{fields: append(classes[current].fields, pyField{f[1], f[2]})}
+				for _, name := range []string{"Literal", "Annotated", "NotRequired"} {
+					if strings.Contains(f[2], name+"[") && !imports[name] {
+						return nil, fmt.Errorf("%s must be imported from typing", name)
+					}
 				}
 			}
 		}
@@ -296,6 +312,9 @@ func parseLiteralMap(s string) (map[string]any, error) {
 			return nil, fmt.Errorf("invalid constraint %s", entry)
 		}
 		k := strings.Trim(strings.TrimSpace(p[0]), "'\"")
+		if _, exists := m[k]; exists {
+			return nil, fmt.Errorf("duplicate Annotated constraint %s", k)
+		}
 		v, e := literal(p[1])
 		if e != nil {
 			return nil, e

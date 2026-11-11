@@ -29,12 +29,13 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 		for _, scope := range []string{"preconditions", "postconditions"} {
 			for _, step := range sequence(child(child(n, scope), "steps")) {
 				id := scalar(child(step, "name"))
+				stepKey := scope + "." + id
 				if op := scalar(child(step, "call")); op != "" {
-					stepOutputs[nodeID][id] = a.tools[op].outputNode
+					stepOutputs[nodeID][stepKey] = a.tools[op].outputNode
 				} else if rel := scalar(child(step, "script")); rel != "" {
 					if b := a.files["skills/"+s.name+"/"+rel]; b != nil {
 						if schema, err := parseScriptOutput(string(b)); err == nil {
-							stepOutputs[nodeID][id] = schemaNode(schema)
+							stepOutputs[nodeID][stepKey] = schemaNode(schema)
 						}
 					}
 				}
@@ -44,10 +45,16 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 	for _, nodeID := range mapKeys(nodes) {
 		n := child(nodes, nodeID)
 		expected := (*yaml.Node)(nil)
+		procedureInputs := false
 		if op := scalar(child(n, "call")); op != "" {
 			expected = a.tools[op].inputNode
+		} else if ref := child(n, "procedure"); ref != nil {
+			if target := a.calledProcedure(s, ref); target != nil {
+				expected = procedureInputSchema(target)
+				procedureInputs = true
+			}
 		}
-		a.checkBindings(s, proc, path, child(n, "with"), expected, nodeID, outputs, stepOutputs[nodeID], stepOutputs)
+		a.checkBindings(s, proc, path, child(n, "with"), expected, nodeID, outputs, stepOutputs[nodeID], stepOutputs, procedureInputs)
 		for _, scope := range []string{"preconditions", "postconditions"} {
 			for _, step := range sequence(child(child(n, scope), "steps")) {
 				op := scalar(child(step, "call"))
@@ -55,15 +62,13 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 				if op != "" {
 					target = a.tools[op].inputNode
 				}
-				id := scalar(child(step, "name"))
-				a.checkBindings(s, proc, path, child(step, "with"), target, nodeID, outputs, stepOutputs[nodeID], stepOutputs)
-				_ = id
+				a.checkBindings(s, proc, path, child(step, "with"), target, nodeID, outputs, stepOutputs[nodeID], stepOutputs, false)
 			}
 		}
 	}
 }
 
-func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, with, expected *yaml.Node, nodeID string, outputs map[string]*yaml.Node, steps map[string]*yaml.Node, allSteps map[string]map[string]*yaml.Node) {
+func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, with, expected *yaml.Node, nodeID string, outputs map[string]*yaml.Node, steps map[string]*yaml.Node, allSteps map[string]map[string]*yaml.Node, procedureInputs bool) {
 	if with == nil {
 		if expected != nil {
 			for _, required := range sequence(child(expected, "required")) {
@@ -80,6 +85,11 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 	for i := 0; i+1 < len(with.Content); i += 2 {
 		key, val := with.Content[i].Value, unalias(with.Content[i+1])
 		line := val.Line
+		for _, field := range mapKeys(val) {
+			if field != "from" && field != "value" {
+				a.errorAt(path, child(val, field).Line, "BINDING_UNSUPPORTED", "unknown binding field: "+field)
+			}
+		}
 		from := child(val, "from")
 		literal := child(val, "value")
 		if (from == nil) == (literal == nil) {
@@ -88,7 +98,15 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 		}
 		var source *yaml.Node
 		if from != nil {
+			if scalar(from) == "" {
+				a.errorAt(path, from.Line, "BINDING_UNSUPPORTED", "from binding must be a nonempty source reference")
+				continue
+			}
 			source = a.resolveSource(s, proc, scalar(from), path, from.Line, nodeID, outputs, steps, allSteps)
+		}
+		if literal != nil && expected == nil && !validJSONLiteral(literal) {
+			a.errorAt(path, literal.Line, "BINDING_UNSUPPORTED", "value binding must be a JSON literal")
+			continue
 		}
 		if expected != nil {
 			target := schemaProperty(expected, key)
@@ -97,7 +115,11 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 				continue
 			}
 			if from != nil && source != nil {
-				if !schemasCompatible(source, target) {
+				compatible := schemasCompatible(source, target)
+				if procedureInputs {
+					compatible = declaredTypeCompatible(source, target)
+				}
+				if !compatible {
 					a.errorAt(path, line, "BINDING_TYPE_MISMATCH", fmt.Sprintf("Producer schema %s is not compatible with input %s", scalar(from), key))
 				}
 			} else if literal != nil {
@@ -121,13 +143,88 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 	}
 }
 
+func validJSONLiteral(node *yaml.Node) bool {
+	node = unalias(node)
+	if node == nil {
+		return false
+	}
+	switch node.Kind {
+	case yaml.ScalarNode:
+		switch node.Tag {
+		case "!!str", "!!bool", "!!int", "!!float", "!!null":
+			_, err := json.Marshal(nodeValue(node))
+			return err == nil
+		default:
+			return false
+		}
+	case yaml.SequenceNode:
+		for _, item := range node.Content {
+			if !validJSONLiteral(item) {
+				return false
+			}
+		}
+		return true
+	case yaml.MappingNode:
+		for i := 0; i+1 < len(node.Content); i += 2 {
+			if unalias(node.Content[i]).Tag != "!!str" || !validJSONLiteral(node.Content[i+1]) {
+				return false
+			}
+		}
+		return true
+	default:
+		return false
+	}
+}
+
+func (a *analysis) calledProcedure(caller *skillEntry, ref *yaml.Node) *yaml.Node {
+	name, procedure := caller.name, scalar(ref)
+	if unalias(ref).Kind == yaml.MappingNode {
+		if skill := scalar(child(ref, "skill")); skill != "" {
+			name = skill
+		}
+		procedure = scalar(child(ref, "procedure"))
+	}
+	callee := a.skills[name]
+	if callee == nil || callee.procedureAST == nil {
+		return nil
+	}
+	return child(child(callee.procedureAST, "procedures"), procedure)
+}
+
+func procedureInputSchema(proc *yaml.Node) *yaml.Node {
+	inputs := child(proc, "inputs")
+	props := make(map[string]any)
+	required := make([]any, 0)
+	for _, name := range mapKeys(inputs) {
+		typ := scalar(child(child(inputs, name), "type"))
+		if !validProcedureInputType(typ) {
+			continue
+		}
+		props[name] = map[string]any{"type": typ}
+		required = append(required, name)
+	}
+	return schemaNode(map[string]any{"type": "object", "properties": props, "required": required})
+}
+
+func declaredTypeCompatible(source, target *yaml.Node) bool {
+	sourceType, targetType := scalar(child(source, "type")), scalar(child(target, "type"))
+	return schemaTypeCompatible(sourceType, targetType)
+}
+
+func schemaTypeCompatible(source, target string) bool {
+	if source == "" || target == "" {
+		return false
+	}
+	return source == target || (source == "integer" && target == "number")
+}
+
 func schemasCompatible(source, target *yaml.Node) bool {
 	source, target = unalias(source), unalias(target)
 	if source == nil || target == nil || !supportedStaticSchema(source) || !supportedStaticSchema(target) {
 		return false
 	}
 	st, tt := scalar(child(source, "type")), scalar(child(target, "type"))
-	if st == "" || tt == "" || st != tt {
+	if !schemaTypeCompatible(st, tt) {
 		return false
 	}
 	if !schemaConstraintsCompatible(source, target) {
@@ -371,6 +468,10 @@ func supportedStaticSchema(schema *yaml.Node) bool {
 }
 
 func (a *analysis) resolveSource(s *skillEntry, proc *yaml.Node, ref, path string, line int, nodeID string, outputs, steps map[string]*yaml.Node, allSteps map[string]map[string]*yaml.Node) *yaml.Node {
+	return a.resolveSourceWithInputStack(s, proc, ref, path, line, nodeID, outputs, steps, allSteps, map[string]bool{})
+}
+
+func (a *analysis) resolveSourceWithInputStack(s *skillEntry, proc *yaml.Node, ref, path string, line int, nodeID string, outputs, steps map[string]*yaml.Node, allSteps map[string]map[string]*yaml.Node, resolvingInputs map[string]bool) *yaml.Node {
 	parts := strings.Split(ref, ".")
 	if len(parts) < 2 {
 		a.errorAt(path, line, "BINDING_UNSUPPORTED", "source reference must be a supported dotted path")
@@ -408,9 +509,22 @@ func (a *analysis) resolveSource(s *skillEntry, proc *yaml.Node, ref, path strin
 			a.errorAt(path, line, "EXTERNAL_SCHEMA_MISSING", "schema file is not imported: "+filename)
 			return nil
 		}
-		schema = a.parseYAML(filename)
+		document := a.parseYAML(filename)
+		if document == nil {
+			return nil
+		}
+		expanded, err := a.expandSchemaRefs(filename, document, document)
+		if err != nil {
+			a.errorAt(filename, document.Line, "LIB_SCHEMA_INVALID", "cannot resolve Schema references: "+err.Error())
+			return nil
+		}
+		schema = expanded
 		offset = 2
 	case "input":
+		if resolvingInputs[parts[1]] {
+			a.errorAt(path, line, "BINDING_UNRESOLVED", "cyclic Procedure input source: "+parts[1])
+			return nil
+		}
 		inputs := child(proc, "inputs")
 		field := child(inputs, parts[1])
 		if field == nil {
@@ -418,11 +532,22 @@ func (a *analysis) resolveSource(s *skillEntry, proc *yaml.Node, ref, path strin
 			return nil
 		}
 		if from := child(field, "from"); from != nil {
-			source := scalar(from)
-			if len(parts) > 2 {
-				source += "." + strings.Join(parts[2:], ".")
+			resolvingInputs[parts[1]] = true
+			base := a.resolveSourceWithInputStack(s, proc, scalar(from), path, line, nodeID, outputs, steps, allSteps, resolvingInputs)
+			delete(resolvingInputs, parts[1])
+			declared := scalar(child(field, "type"))
+			if base != nil && declared != "" && scalar(child(base, "type")) != declared && !(scalar(child(base, "type")) == "integer" && declared == "number") {
+				a.errorAt(path, line, "BINDING_TYPE_MISMATCH", "Procedure input source type does not match declared type: "+parts[1])
+				return nil
 			}
-			return a.resolveSource(s, proc, source, path, line, nodeID, outputs, steps, allSteps)
+			for _, nested := range parts[2:] {
+				base = schemaProperty(base, nested)
+				if base == nil {
+					a.errorAt(path, line, "SOURCE_FIELD_UNKNOWN", "Procedure input source has no field "+nested+": "+parts[1])
+					return nil
+				}
+			}
+			return base
 		}
 		a.errorAt(path, line, "BINDING_UNRESOLVED", "Procedure input has no resolvable Producer: "+parts[1])
 		return nil
@@ -430,15 +555,15 @@ func (a *analysis) resolveSource(s *skillEntry, proc *yaml.Node, ref, path strin
 		if len(parts) < 3 || parts[2] != "output" {
 			break
 		}
-		schema = steps[parts[1]]
+		schema = steps[parts[0]+"."+parts[1]]
 		offset = 3
 		if schema == nil {
-			a.errorAt(path, line, "STEP_SCOPE_UNKNOWN", "unknown local precondition step: "+parts[1])
+			a.errorAt(path, line, "STEP_SCOPE_UNKNOWN", "unknown local "+parts[0]+" step: "+parts[1])
 			return nil
 		}
 	default:
 		if len(parts) >= 4 && (parts[1] == "preconditions" || parts[1] == "postconditions") && parts[3] == "output" {
-			schema = allSteps[parts[0]][parts[2]]
+			schema = allSteps[parts[0]][parts[1]+"."+parts[2]]
 			offset = 4
 			if schema == nil {
 				a.errorAt(path, line, "STEP_SCOPE_UNKNOWN", "unknown nested step reference: "+strings.Join(parts[:3], "."))
@@ -509,6 +634,8 @@ func literalType(n *yaml.Node) string {
 		return "array"
 	case "!!map":
 		return "object"
+	case "!!null":
+		return "null"
 	}
 	return ""
 }
