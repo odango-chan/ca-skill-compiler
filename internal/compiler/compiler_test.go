@@ -178,6 +178,26 @@ spec:
 	}
 }
 
+func TestMalformedUnusedLibrarySchemaIsDiagnosed(t *testing.T) {
+	files := source("unused", "run", "procedures:\n  run:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n")
+	files = append(files, File{Path: "lib/tools/unused.yaml", Bytes: []byte(`apiVersion: ca-agent-demo.tool/v1
+kind: ToolCatalog
+spec:
+  contracts:
+  - operation: demo.unused
+    effect: READ
+    inputSchema: {type: object}
+    outputSchema:
+      type: object
+      properties:
+        value: invalid
+`)})
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
+		t.Fatalf("malformed unused Tool Schema was ignored: %#v", got.Diagnostics)
+	}
+}
+
 func TestMissingBuildTargetIsDiagnosed(t *testing.T) {
 	got := Build(Request{Files: testProject(), Targets: []string{"missing"}})
 	if got.Success || !findDiagnostic(got.Diagnostics, "TARGET_NOT_FOUND") {
@@ -406,6 +426,20 @@ func TestIntegerProducerSatisfiesNumberInput(t *testing.T) {
 	}
 	if schemasCompatible(number, integer) {
 		t.Fatal("number Producer must not satisfy an integer consumer")
+	}
+}
+
+func TestScriptInputProjectionRejectsUnsupportedNestedSchemas(t *testing.T) {
+	unsupported := schemaNode(map[string]any{
+		"type":       "object",
+		"properties": map[string]any{"nested": map[string]any{"anyOf": []any{map[string]any{"type": "string"}, map[string]any{"type": "integer"}}}},
+	})
+	if projectionSchemaSupported(unsupported) {
+		t.Fatal("unsupported nested union was accepted in a Script input projection")
+	}
+	incompleteArray := schemaNode(map[string]any{"type": "array"})
+	if projectionSchemaSupported(incompleteArray) {
+		t.Fatal("array with no item Schema was accepted in a Script input projection")
 	}
 }
 

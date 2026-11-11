@@ -117,6 +117,9 @@ func (a *analysis) importLibraries() {
 					a.errorAt(filename, inputNode.Line, "LIB_SCHEMA_INVALID", "operation "+id+" inputSchema: "+err.Error())
 				} else {
 					inputNode = expanded
+					if err := validateSchemaShape(inputNode); err != nil {
+						a.errorAt(filename, inputNode.Line, "LIB_SCHEMA_INVALID", "operation "+id+" inputSchema: "+err.Error())
+					}
 				}
 			}
 			if outputNode != nil {
@@ -124,10 +127,15 @@ func (a *analysis) importLibraries() {
 					a.errorAt(filename, outputNode.Line, "LIB_SCHEMA_INVALID", "operation "+id+" outputSchema: "+err.Error())
 				} else {
 					outputNode = expanded
+					if err := validateSchemaShape(outputNode); err != nil {
+						a.errorAt(filename, outputNode.Line, "LIB_SCHEMA_INVALID", "operation "+id+" outputSchema: "+err.Error())
+					}
 				}
 			}
 			if reconcile != nil {
-				if _, err := a.expandSchemaRefs(filename, root, unalias(reconcile)); err != nil {
+				if expanded, err := a.expandSchemaRefs(filename, root, unalias(reconcile)); err != nil {
+					a.errorAt(filename, reconcile.Line, "LIB_SCHEMA_INVALID", "operation "+id+" reconcileOutputSchema: "+err.Error())
+				} else if err := validateSchemaShape(expanded); err != nil {
 					a.errorAt(filename, reconcile.Line, "LIB_SCHEMA_INVALID", "operation "+id+" reconcileOutputSchema: "+err.Error())
 				}
 			}

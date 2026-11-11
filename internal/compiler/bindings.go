@@ -103,6 +103,10 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 				continue
 			}
 			source = a.resolveSource(s, proc, scalar(from), path, from.Line, nodeID, outputs, steps, allSteps)
+			if expected == nil && source != nil && !projectionSchemaSupported(source) {
+				a.errorAt(path, from.Line, "BINDING_UNSUPPORTED", "Producer Schema cannot be represented by the static input projection: "+scalar(from))
+				source = nil
+			}
 		}
 		if literal != nil && expected == nil && !validJSONLiteral(literal) {
 			a.errorAt(path, literal.Line, "BINDING_UNSUPPORTED", "value binding must be a JSON literal")
@@ -220,7 +224,7 @@ func schemaTypeCompatible(source, target string) bool {
 
 func schemasCompatible(source, target *yaml.Node) bool {
 	source, target = unalias(source), unalias(target)
-	if source == nil || target == nil || !supportedStaticSchema(source) || !supportedStaticSchema(target) {
+	if source == nil || target == nil || !projectionSchemaSupported(source) || !projectionSchemaSupported(target) {
 		return false
 	}
 	st, tt := scalar(child(source, "type")), scalar(child(target, "type"))
@@ -264,6 +268,49 @@ func schemasCompatible(source, target *yaml.Node) bool {
 		}
 	case "array":
 		return schemasCompatible(child(source, "items"), child(target, "items"))
+	}
+	return true
+}
+
+func projectionSchemaSupported(schema *yaml.Node) bool {
+	schema = unalias(schema)
+	if schema == nil || !supportedStaticSchema(schema) {
+		return false
+	}
+	typ := scalar(child(schema, "type"))
+	switch typ {
+	case "object":
+		if properties := child(schema, "properties"); properties != nil {
+			if unalias(properties).Kind != yaml.MappingNode {
+				return false
+			}
+			for _, name := range mapKeys(properties) {
+				if !projectionSchemaSupported(child(properties, name)) {
+					return false
+				}
+			}
+		}
+		if additional := child(schema, "additionalProperties"); additional != nil {
+			if unalias(additional).Kind == yaml.MappingNode && !projectionSchemaSupported(additional) {
+				return false
+			}
+			if unalias(additional).Kind == yaml.ScalarNode && scalar(additional) != "true" && scalar(additional) != "false" {
+				return false
+			}
+		}
+		for _, required := range sequence(child(schema, "required")) {
+			if scalar(required) == "" {
+				return false
+			}
+		}
+	case "array":
+		items := child(schema, "items")
+		if items == nil || !projectionSchemaSupported(items) {
+			return false
+		}
+	case "string", "integer", "number", "boolean", "null":
+	default:
+		return false
 	}
 	return true
 }
@@ -516,6 +563,10 @@ func (a *analysis) resolveSourceWithInputStack(s *skillEntry, proc *yaml.Node, r
 		expanded, err := a.expandSchemaRefs(filename, document, document)
 		if err != nil {
 			a.errorAt(filename, document.Line, "LIB_SCHEMA_INVALID", "cannot resolve Schema references: "+err.Error())
+			return nil
+		}
+		if err := validateSchemaShape(expanded); err != nil {
+			a.errorAt(filename, document.Line, "LIB_SCHEMA_INVALID", "invalid linked Schema: "+err.Error())
 			return nil
 		}
 		schema = expanded
