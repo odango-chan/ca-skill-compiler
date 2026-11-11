@@ -1313,6 +1313,8 @@ class Output(TypedDict):
     marker: Literal["a,b"]
     missing: Literal[None]
     repeated: Literal["same", "same"]
+    precise: Literal[9007199254740993]
+    threshold: Annotated[int, {"minimum": 9007199254740993, "maximum": 9007199254740994}]
 def main(input: dict) -> Output:
     return {}`
 	schema, err := parseScriptOutput(src)
@@ -1335,6 +1337,18 @@ def main(input: dict) -> Output:
 	repeated := properties["repeated"].(map[string]any)
 	if repeated["const"] != "same" {
 		t.Fatalf("duplicate Literal values were not normalized: %#v", repeated)
+	}
+	precise := properties["precise"].(map[string]any)
+	if precise["const"] != json.Number("9007199254740993") {
+		t.Fatalf("large integer Literal lost precision: %#v", precise)
+	}
+	threshold := properties["threshold"].(map[string]any)
+	if threshold["minimum"] != json.Number("9007199254740993") || threshold["maximum"] != json.Number("9007199254740994") {
+		t.Fatalf("large Annotated numeric constraints lost precision: %#v", threshold)
+	}
+	encoded, err := json.Marshal(schema)
+	if err != nil || !strings.Contains(string(encoded), "9007199254740993") {
+		t.Fatalf("serialized Script Schema lost exact integer values: %s, %v", encoded, err)
 	}
 }
 

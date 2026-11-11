@@ -3,6 +3,8 @@ package compiler
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"math/big"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -283,7 +285,7 @@ func typeSchema(expr string, classes map[string]pyClass, active map[string]bool)
 			base[k] = v
 		}
 		if low, ok := numberConstraint(constraints, "minLength", "minimum", "minItems"); ok {
-			if high, ok := numberConstraint(constraints, "maxLength", "maximum", "maxItems"); ok && low > high {
+			if high, ok := numberConstraint(constraints, "maxLength", "maximum", "maxItems"); ok && low.Cmp(high) > 0 {
 				return nil, fmt.Errorf("minimum constraint exceeds maximum")
 			}
 		}
@@ -462,12 +464,32 @@ func literal(s string) (any, error) {
 		}
 		return value, nil
 	}
+	decoder := json.NewDecoder(strings.NewReader(s))
+	decoder.UseNumber()
 	var v any
-	if json.Unmarshal([]byte(s), &v) == nil {
-		return v, nil
+	if err := decoder.Decode(&v); err == nil {
+		var extra any
+		if decoder.Decode(&extra) == io.EOF {
+			return v, nil
+		}
 	}
-	if n, e := strconv.ParseFloat(s, 64); e == nil {
-		return n, nil
+	if rat, ok := exactRational(s); ok {
+		normalized := strings.ReplaceAll(strings.TrimSpace(s), "_", "")
+		normalized = strings.TrimPrefix(normalized, "+")
+		if strings.HasPrefix(normalized, ".") {
+			normalized = "0" + normalized
+		} else if strings.HasPrefix(normalized, "-.") {
+			normalized = "-0" + normalized[1:]
+		}
+		if strings.HasSuffix(normalized, ".") {
+			normalized += "0"
+		}
+		if rat.Sign() == 0 && strings.HasPrefix(normalized, "-") {
+			normalized = strings.TrimPrefix(normalized, "-")
+		}
+		if _, err := json.Marshal(json.Number(normalized)); err == nil {
+			return json.Number(normalized), nil
+		}
 	}
 	return nil, fmt.Errorf("non-literal type expression %s", s)
 }
@@ -479,6 +501,15 @@ func jsonType(v any) string {
 		return "boolean"
 	case nil:
 		return "null"
+	case json.Number:
+		rat, ok := exactRational(string(v.(json.Number)))
+		if !ok {
+			return ""
+		}
+		if rat.IsInt() {
+			return "integer"
+		}
+		return "number"
 	case float64:
 		if float64(int64(v.(float64))) == v.(float64) {
 			return "integer"
@@ -513,19 +544,30 @@ func validConstraint(key string, v any) bool {
 		_, ok := v.(bool)
 		return ok
 	case "minLength", "maxLength", "minItems", "maxItems":
-		n, ok := v.(float64)
-		return ok && n >= 0 && n == float64(int64(n))
+		n, ok := literalRational(v)
+		return ok && n.Sign() >= 0 && n.IsInt()
 	case "minimum", "maximum":
-		_, ok := v.(float64)
+		_, ok := literalRational(v)
 		return ok
 	}
 	return false
 }
-func numberConstraint(m map[string]any, keys ...string) (float64, bool) {
+func numberConstraint(m map[string]any, keys ...string) (*big.Rat, bool) {
 	for _, k := range keys {
-		if v, ok := m[k].(float64); ok {
+		if v, ok := literalRational(m[k]); ok {
 			return v, true
 		}
 	}
-	return 0, false
+	return nil, false
+}
+
+func literalRational(value any) (*big.Rat, bool) {
+	switch number := value.(type) {
+	case json.Number:
+		return exactRational(string(number))
+	case float64:
+		return exactRational(strconv.FormatFloat(number, 'g', -1, 64))
+	default:
+		return nil, false
+	}
 }
