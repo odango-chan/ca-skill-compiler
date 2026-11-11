@@ -10,7 +10,21 @@ Updated: 2026-11-11. This implementation report follows the narrowed Compiler co
 | Compiler design | PR #4 head `69b67c572910c4222e657758ff155269e57e60f5` | Narrow Build API and current language/linking contract |
 | `odango-chan/ca-agent-demo` | Not used as a Skill source tree | May help locate Tool Owner gaps or refresh business behavior; its Skills do not define Compiler grammar |
 
-The isolated snapshot is [examples/ca-skills-v0.2](../../examples/ca-skills-v0.2). It has 61 official Skill source files and one approved ToolCatalog, verified with a SHA-256 manifest. The snapshot includes no Host/Observation Owner Schemas. `examples/ca-agent-demo-project` remains the separate, unmodified pre-migration v0 fixture.
+The isolated v0.2 design-branch snapshot is [examples/ca-skills-v0.2](../../examples/ca-skills-v0.2). It has 61 Skill source files and one approved ToolCatalog, verified with a SHA-256 manifest. The snapshot includes no Host/Observation Owner Schemas. It is not the same revision as current `ca-skills/main`. `examples/ca-agent-demo-project` remains the separate, unmodified pre-migration v0 fixture.
+
+## Current upstream divergence (verified 2026-11-11)
+
+Read-only `git ls-remote` and fetch verified these upstream tips:
+
+| Repository/ref | Current tip | Relationship to the v0.1 implementation contract |
+|---|---|---|
+| `ca-skills` `main` | `6742d4cae65c482accdf74c3cd1daf8350856d52` | Default branch calls its language specification v0.1 and labels it draft/source-derived. It includes refreshed current Skill sources and changed language semantics. |
+| `ca-skills` `codex/semantic-token-contract-v01` | `eeae62badf29f90eee257c7ef2ab504211bf7e30` | This is the exact v0.2 source contract pinned by design PR #4 and the implementation's `examples/ca-skills-v0.2` fixture. |
+| `ca-agent-demo` `main` | `4395982fa6efb97714b97901603b2dfb7018c4d0` | Matches the source revision named by current `ca-skills/main`'s `current-5gc-skill-baseline.md`; its ToolCatalog blob is `05a34f38b9974742c9e2d85e0d432cf616ce01e8`, matching the checked catalog bytes (SHA-256 `c99ffe9c0ccbf5e65da19f689b5af47580a2975c4734954c18af4805641d7f6f`). |
+
+The `ca-skills/main` language documents differ materially from the PR #4 v0.2 contract. Main describes `allowedResources.localTools`, identity-bearing local Script metadata, and a broader Capability/Operation/Local Tool vocabulary; PR #4 explicitly says `localTools` does not exist and requires `main(input: dict) -> Output` with a strict nonempty Output TypedDict. The default-branch language spec is marked v0.1 Draft and source-derived, while PR #4 explicitly pins the separate v0.2 branch. This implementation remains contractually based on PR #4; accepting current `main` as normative would require a deliberate contract migration, not an implicit parser fallback.
+
+For an independent static review, the two current Skill directories were read from `ca-skills/main` into a temporary directory and paired with the exact ToolCatalog from `ca-agent-demo/main`; neither upstream working tree was modified. Current implementation results are PDU 119 diagnostics (`93 EXTERNAL_SCHEMA_MISSING`, `9 STEP_SCOPE_UNKNOWN`, `7 BINDING_TYPE_MISMATCH`, `3 BINDING_UNSUPPORTED`, `3 SCRIPT_TYPE_UNSUPPORTED`, `2 PREDICATE_SOURCE_INCOMPLETE`, `1 CONTRACT_SPEC`, `1 SOURCE_FIELD_UNKNOWN`) and MAS 127 (`51 EXTERNAL_SCHEMA_MISSING`, `43 BINDING_UNRESOLVED`, `16 PROCEDURE_UNSUPPORTED`, `16 LIB_OPERATION_UNKNOWN`, `1 CONTRACT_SPEC`). This review confirms that latest default-branch source is not accepted by the PR #4 contract: PDU reports `localTools`, `skill.*` Predicate refs, and three legacy-metadata Scripts; MAS reports `localTools`. Remaining findings include Owner Schemas, source/link gaps and absent MAS Operations. It does not claim qualification or runtime acceptance.
 
 ## Contract-to-implementation status
 
