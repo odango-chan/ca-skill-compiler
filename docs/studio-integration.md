@@ -27,7 +27,11 @@ The initial implementation checks Skill folder identity, entry Procedure, file r
 
 ## Script interface / generated schemas
 
-Use the canonical [Script Contract v0](design/script-contract-v0.md). Existing `# /// connectionagent-tool` headers use `schemaMode: external` implicitly and retain authored `schemas/` files. New authors may use `schemaMode: embedded` with `interface.input/output` as a YAML JSON Schema declaration inside the Python comment header. Compiler returns generated `schemas/generated/**` files only through `outputFiles`; Studio must not edit or independently infer them. An inspector can present two read-only views: "External Schema" and "Generated Schema" and navigate diagnostics to the Python metadata line. This feature is **NOT IMPLEMENTED** in the current compiler Core.
+Canonical [Script Contract v0](design/script-contract-v0.md): a new Script uses complete, strict `TypedDict` input/output annotation types at `main(input: In) -> Out`. Nested object fields must be typed; `Literal`, `NotRequired` and static `Annotated` constraints are supported by the target format. Generic `dict`, `Any`, `object` and empty classes are **not admissible as typed interface contracts**. Plain dicts in the Python function body remain legal. Older `# /// connectionagent-tool` scripts keep their existing separately-authored external Schema in a compatibility mode.
+
+The previously proposed YAML comment-header `schemaMode: embedded` design is **withdrawn** and must not be implemented. Compiler is the sole generator; it emits `skills/<skill>/schemas/generated/*.input.schema.json` / `*.output.schema.json` only in `outputFiles`. Studio shows these outputs as read-only and offers navigation from Script declarations. Neither Studio nor a browser-side second implementation should infer Schema from Python body.
+
+**Implementation: NOT_STARTED; browser proof: NOT_RUN.**
 
 ## Library format v0
 
