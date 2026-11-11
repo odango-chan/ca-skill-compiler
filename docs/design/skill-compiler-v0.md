@@ -1,9 +1,9 @@
 # Skill Compiler v0 · 多 Skill 工程、Library 链接与浏览器编译
 
-- **设计状态**：ACCEPTED（2026-11-11 用户确认产品范围与目录）；实现状态：NOT_STARTED；验收：NOT_RUN
+- **设计状态**：ACCEPTED（2026-11-11 用户确认产品范围与目录）；实现状态：PARTIAL（首批 Core/CLI/WASM 源码）；验收：NOT_RUN
 - **目标产品 / 仓库名**：`ca-skill-compiler`；CLI：`skillc`
 - **当前代码仓**：`odango-chan/ca-skill-compiler`（全新仓库，与旧 `ca-skill-toolchain` 保持独立）
-- **跟踪**：[#133](https://github.com/odango-chan/ca-skill-toolchain/issues/133)
+- **跟踪**：[新仓 Issue #1](https://github.com/odango-chan/ca-skill-compiler/issues/1)；历史决策 [旧仓 #133](https://github.com/odango-chan/ca-skill-toolchain/issues/133)
 - **设计所有者**：Skill Compiler；**消费者**：Skill Studio、Agent Host / Runtime 的包加载端
 - 本文件是新仓的设计基线，首批代码实现范围需以测试和仓库实际文件为准。旧 `ca-skill-toolchain` 的 Artifact/Variant/Qualification/Release 仅供历史参考。
 
@@ -206,12 +206,12 @@ skillc build ./project --skill establish-pdu-session --out ./dist
 ## 8. 重写策略与切换顺序
 
 1. **D0 文档与边界**：冻结本设计、Studio handoff、命名；现有 `main` 代码保持 legacy，不宣称新架构已实现。
-2. **C1 新纯 Core**：在独立新模块/隔离目录实现 `check/build`，只搬必需 Parser/Validator/Skill linker；不做旧 Service 的删改式重构。
+2. **C1 新纯 Core**：在本独立仓库实现 `check/build`，只参考必需 Parser/Validator/Skill linker；不做旧 Service 的删改式重构。
 3. **C2 Library**：导入真实 ToolCatalog（含 Alias）、负例、只读接口投影。
 4. **C3 输出**：多 Skill / 单 Skill / 依赖闭包 / generated schemas / 可拷贝文件集 / Native CLI。
 5. **C4 WASM**：同一 Core 构建并在 Browser Worker 运行；对齐 Native golden vectors、时间和体积。
 6. **C5 消费者验收**：Studio 新工程集成；Agent Host 读取生成目录并跑基础 Source/Link/Admission 回归。
-7. **C6 切换命名和仓库**：更新 Go module、imports、schema snapshot 和外部文档链接，再正式改 GitHub repo 为 `ca-skill-compiler` 或新建同名仓库；历史 `ca-skill-toolchain` 保留可追溯。不要在迁移前强行改名。
+7. **C6 消费者切换与旧仓退役**：新仓和 Go module 均已命名为 `ca-skill-compiler`；在通过 C5 之后更新消费者 imports/schema snapshot/文档和工作流。历史 `ca-skill-toolchain` 仅保留归档参考，不为兼容而恢复旧平台。
 
 旧仓 Draft [#132](https://github.com/odango-chan/ca-skill-toolchain/pull/132) 是旧平台上 Predicate/Artifact 变更，需提取必要语言语义与测试，不直接合并重构分支；Issue [#129](https://github.com/odango-chan/ca-skill-toolchain/issues/129) 的 invocation-local Predicate 绑定风险仍须在跨 Skill 消费端审视。
 
@@ -236,5 +236,5 @@ skillc build ./project --skill establish-pdu-session --out ./dist
 
 - 旧 `ca-skill-toolchain/main` 仍包含 Registry/Profile/Report、SQLite、Scenario/Planning/Mock、Qualification/Release；这些组件不会迁入新仓。
 - 目前已观察到 `backend/internal/compiler/`、`backend/internal/service/release.go`、`backend/internal/store/` 等遗留组件。
-- 本文中的“ACCEPTED”只表示产品范围与原则已确认；所有 C1-C6/SC-01..10 均 **NOT_RUN**，不能宣称新编译器或 WASM/Studio 集成成功。
-- 对外记录见 [Issue #133](https://github.com/odango-chan/ca-skill-toolchain/issues/133)。
+- 本文中的“ACCEPTED”只表示产品范围与原则已确认；C1-C4 仅有部分初始源码；C5-C6/SC-01..10 验收均 **NOT_RUN**，不能宣称新编译器或 WASM/Studio 集成成功。
+- 实现追踪见 [本仓 Issue #1](https://github.com/odango-chan/ca-skill-compiler/issues/1)；架构决策历史见 [旧仓 Issue #133](https://github.com/odango-chan/ca-skill-toolchain/issues/133)。
