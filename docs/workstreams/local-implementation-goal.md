@@ -55,16 +55,16 @@ No unattended modifications to Tool contract truths: an imported Tool contract d
 - Make a **real input fixture test**: 12 conventional and 16 MAS declared Operations are discoverable. The effect contract is only a claim from the imported file; no READY test.
 - MCP `tools/list` JSON import is an optional later adapter; do not connect to live MCP or add a network dependency to compiler Core.
 
-### WP3 · Script Contract v0 (normative)
+### WP3 · Strict Script Contract v0 (normative)
 
-**Read [Script Contract v0](../design/script-contract-v0.md) before implementation; do not invent a different Script metadata format or eagerly implement Python AST inference.** This is the canonical specification for both new Script authors and old Skill compatibility.
+Read [Script Contract v0](../design/script-contract-v0.md) first. **Do not implement the superseded long YAML comment `schemaMode: embedded` design.** The single recommended new-script mode is type-first: Python standard-library `TypedDict` + `main(input: In) -> Out` + `Annotated` static JSON Schema constraints. Input/output types and all nested object fields must be explicit; reject `dict`, `dict[str,T]`, `Any`, `object`, empty `TypedDict`, unsupported unions, unknown metadata and untyped values, never degrade to loose object.
 
-- Keep the existing `# /// connectionagent-tool` header. Two exclusive modes: `external` (legacy default, names + unique Schema reference/title resolution) and `embedded` (new recommendation, YAML JSON Schema under `interface.input` / `interface.output` in header).
-- Implement strict static metadata parsing: no duplicate keys, scripts without metadata cannot invent constraints, no Python import/execution, path containment, no unresolved/ambiguous external Schema names.
-- Preserve all five frozen real `establish-pdu-session` scripts **byte-identical** in the fixture. Their `dict: pass` annotations cannot generate schemas. Resolve existing external `schemas/*.schema.yaml` unchanged; do not add speculative fields.
-- For new embedded scripts, generate only under Output: `skills/<skill>/schemas/generated/<script-relative>.input.schema.json` and `...output.schema.json`. Keep required/enum/const/pattern/allOf exactly as declared; never silently discard constraints. No need to implement optional future TypedDict inference in v0.
-- Script output linking to Tool input must use the external Library Tool Schema as sole Tool-contract authority. Generated files read-only in Studio; diagnostics point back to Script metadata or external author Schema.
-- Add all PY-01..PY-10 positive/negative tests including Native vs WASM parity. Do not migrate real scripts in this repository; any real owner migration requires an independent PR in ca-agent-demo.
+- Implement a bounded **static** parser for the supported annotation syntax; no Python import/execution, cgo-only dependency, remote ref resolution or unconstrained default. Use `Annotated[T, {"minLength":...}]` and a documented whitelist, preserving all constraints; `NotRequired` controls optional keys. Make each `TypedDict` a closed object in the emitted Schema as specified.
+- Legacy mode: existing `# /// connectionagent-tool` header with external `inputSchema/outputSchema` continues to use the existing author-owned YAML Schema. **All five real scripts must remain byte-identical**. Do not infer missing types from their empty dict subclasses, or rewrite/remove complex `allOf/if/then` constraints.
+- Reject typed/external double authority, unsupported annotation constructs and superseded `schemaMode: embedded`; include precise file/line diagnostics.
+- Output generated schemas under `output/skills/<skill>/schemas/generated/<script-relative>.input.schema.json` and matching output; never write back into source. Do not let Studio implement separate type inference.
+- Validate that a proposed future migration from an existing complex external schema doesn't lose fields or constraints. When strict typed subset cannot express it, keep the external Schema instead of weakening semantics.
+- Add all ST-01..ST-11 cases from the new canonical Script Contract; native/WASM bytes and diagnostics must match. Runtime/Host still owns actual execution, validation and sandboxing.
 
 ### WP4 · Deterministic package and Native CLI
 
