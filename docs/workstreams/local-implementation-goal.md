@@ -55,13 +55,16 @@ No unattended modifications to Tool contract truths: an imported Tool contract d
 - Make a **real input fixture test**: 12 conventional and 16 MAS declared Operations are discoverable. The effect contract is only a claim from the imported file; no READY test.
 - MCP `tools/list` JSON import is an optional later adapter; do not connect to live MCP or add a network dependency to compiler Core.
 
-### WP3 · Script I/O Schema handling
+### WP3 · Script Contract v0 (normative)
 
-- Existing Script-level I/O YAML schemas remain valid authored input during transition. Their Schema content must not be lost.
-- Implement static, explicit Script interface declarations only when enough fields/types/constraints exist (e.g. limited TypedDict or structured source metadata); parse, do NOT import/execute Python.
-- Inadequate metadata like `class Input(dict): pass` must not produce invented required fields or strong constraints. Emit an explicit warning / keep existing Schema.
-- Tool Input/Output Schema remains externally authoritative for Tool boundary. Do not copy an editable duplicate under Skill-owned `schemas/` merely to satisfy linking.
-- Emit generated schemas only under Output; return source location in diagnostics.
+**Read [Script Contract v0](../design/script-contract-v0.md) before implementation; do not invent a different Script metadata format or eagerly implement Python AST inference.** This is the canonical specification for both new Script authors and old Skill compatibility.
+
+- Keep the existing `# /// connectionagent-tool` header. Two exclusive modes: `external` (legacy default, names + unique Schema reference/title resolution) and `embedded` (new recommendation, YAML JSON Schema under `interface.input` / `interface.output` in header).
+- Implement strict static metadata parsing: no duplicate keys, scripts without metadata cannot invent constraints, no Python import/execution, path containment, no unresolved/ambiguous external Schema names.
+- Preserve all five frozen real `establish-pdu-session` scripts **byte-identical** in the fixture. Their `dict: pass` annotations cannot generate schemas. Resolve existing external `schemas/*.schema.yaml` unchanged; do not add speculative fields.
+- For new embedded scripts, generate only under Output: `skills/<skill>/schemas/generated/<script-relative>.input.schema.json` and `...output.schema.json`. Keep required/enum/const/pattern/allOf exactly as declared; never silently discard constraints. No need to implement optional future TypedDict inference in v0.
+- Script output linking to Tool input must use the external Library Tool Schema as sole Tool-contract authority. Generated files read-only in Studio; diagnostics point back to Script metadata or external author Schema.
+- Add all PY-01..PY-10 positive/negative tests including Native vs WASM parity. Do not migrate real scripts in this repository; any real owner migration requires an independent PR in ca-agent-demo.
 
 ### WP4 · Deterministic package and Native CLI
 
