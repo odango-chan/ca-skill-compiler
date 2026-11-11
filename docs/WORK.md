@@ -1,6 +1,6 @@
 # Skill Compiler v0 implementation status
 
-Updated: 2026-11-11. Implementation branch: `feat/compiler-v0-complete`; Go tests/vet and WASM build ran against code commit `431b67e4a44f4e7037aa5448cbb1595ff6212f22`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`. Draft [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3) targets `feat/compiler-v0-bootstrap`. This report records observed local evidence; it does not claim a complete Compiler v0.
+Updated: 2026-11-11. Implementation branch: `feat/compiler-v0-complete`; implementation code commit `431b67e4a44f4e7037aa5448cbb1595ff6212f22`, with closeout documentation at `57a3fcc52e2b97ba2c336bbc21e49480020c193b`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`. Open [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3) targets `feat/compiler-v0-bootstrap`. This report records observed local evidence; it does not claim a complete Compiler v0.
 
 ## Work packages
 
@@ -56,5 +56,11 @@ git diff --check                                                  PASS
 ~~~
 
 Raw-source checks intentionally return nonzero. They do not establish runtime/5GC readiness. Missing authoritative Owner Schema inputs are: `context.subject`, `context.facts`, and any referenced Observation schema. Do not substitute deployment routing configuration or infer these contracts from `requiredFacts`.
+
+### Closeout rerun (2026-11-11)
+
+The core gates were rerun from the clean `feat/compiler-v0-complete` checkout after confirming the current PR head. Results: `GOWORK=off go test ./... -count=1`, `GOWORK=off go vet ./...`, native CLI build, and `GOOS=js GOARCH=wasm GOWORK=off go build ...` all PASS. The browser smoke was served from a temporary static directory and driven by headless Chromium through Playwright; it reached `data-test="pass"` and verified check/build/inspect, seven generated output paths and bytes against Native, and all shared diagnostic goldens. The transient page favicon 404 is unrelated to the harness result. No repository source files were modified by these checks.
+
+This closeout does not broaden v0 to cover the missing grammar, Schema, or parity areas below. The separate [Compiler v0.1 design PR #4](https://github.com/odango-chan/ca-skill-compiler/pull/4) remains design-only; it is not implemented by PR #3. The next implementation iteration must be a separate Goal that migrates the Core to the accepted v0.1 contract as a breaking change, without a compatibility layer.
 
 The final v0 result remains **PARTIAL**: Procedure result Schema syntax is absent from the frozen v0 grammar; broader parser/linker, binding, JSON Schema, and Native/WASM parity coverage remains; and authoritative Host/Observation contracts are unavailable. The pinned source migrations therefore remain diagnostic-only, with 124 PDU and 85 MAS findings. PR #3 contains the v0 Core and this closeout record, targeting `feat/compiler-v0-bootstrap`. The separate v0.1 design PR #4 is not implemented in this v0 branch; any v0.1 migration requires its own Goal and breaking contract transition.
