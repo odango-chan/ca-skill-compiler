@@ -13,7 +13,7 @@ Updated: 2026-11-11. Implementation branch: `feat/compiler-v0-complete`; Go test
 | WP4 Package and Native CLI | PARTIAL | `check`, whole-project `build`, `--skill`, dependency closure, deterministic ordering, referenced read-only Tool/Schema inclusion, and generated Output schemas work. A real synthetic build wrote a 7-file tree. File/directory source-to-generated collisions are rejected. More hostile path and schema cases remain. |
 | WP5 WASM and browser interface | PARTIAL | WASM exposes `check`, `build`, and `inspectLibraries`; Worker handles all three. Chromium ran the Script Contract project with an `Annotated` raw regex through check/build/inspect and compared every Native/WASM output path, order, and byte, including the generated Script Output Schema. For missing target, unresolved binding, type mismatch, unknown Tool operation, missing Procedure result Schema, and unsupported Script Output failures, the browser and Native Go Core are checked against the same shared serialized diagnostic vectors. A duplicate-operation `inspectLibraries` failure is also compared to a shared Native golden. Broader parity vectors remain. |
 | WP6 Real Skill migration review | PARTIAL | Pinned sources were not edited. Current targeted strict checks report 124 diagnostics for PDU and 85 for MAS. Both lack authoritative `context.subject` and `context.facts` Owner schemas; PDU's three legacy Scripts and step forms need migration, and MAS reconcile references lack declared Tool outputs while its catalog remains `proposed`. Unsupported static binding-schema forms are reported separately from type mismatches. Per-Skill evidence is in [migration-review-v0.md](workstreams/migration-review-v0.md). A separate migrated project was not created because doing so without Owner schemas would misrepresent the migration. |
-| WP7 Final acceptance and PR | PARTIAL | Local test/build/browser evidence, updated status report, pushed implementation branch, and open Draft PR #3 are present. Full G2–G6 acceptance remains incomplete. |
+| WP7 Final acceptance and PR | PARTIAL | Required local test/build/Browser commands and current PDU/MAS migration diagnostics were rerun; the updated status report and pushed implementation branch are in PR #3. Full G2–G6 acceptance remains incomplete. |
 
 ## Acceptance gates
 
@@ -46,7 +46,7 @@ GOWORK=off go run ./cmd/skillc build ./examples/script-contract-project --out /t
 GOWORK=off go run ./cmd/skillc build ./examples/script-contract-project --skill normalize --out /tmp/skillc-v0-targeted-normalize PASS (7 files)
 Chromium static Worker smoke test                                 PASS
   (Script Contract fixture with raw regex; generated Schema bytes and output paths/order match Native; six shared check diagnostic vectors including missing Procedure output Schema)
-WASM artifact size                                               5,689,725 bytes
+WASM artifact size                                               5,698,220 bytes
 Chromium smoke page result                                       PASS (`data-test=pass`; includes missing Procedure-output diagnostic parity)
 Targeted pinned reference check (PDU)                              124 migration/owner diagnostics
 Targeted pinned reference check (MAS)                              85 migration/owner diagnostics
@@ -57,4 +57,4 @@ git diff --check                                                  PASS
 
 Raw-source checks intentionally return nonzero. They do not establish runtime/5GC readiness. Missing authoritative Owner Schema inputs are: `context.subject`, `context.facts`, and any referenced Observation schema. Do not substitute deployment routing configuration or infer these contracts from `requiredFacts`.
 
-The final result remains **PARTIAL** until the remaining parser/linker and binding coverage and broader Native/WASM parity audit are complete. Draft PR #3 is open for review of this implementation slice.
+The final v0 result remains **PARTIAL**: Procedure result Schema syntax is absent from the frozen v0 grammar; broader parser/linker, binding, JSON Schema, and Native/WASM parity coverage remains; and authoritative Host/Observation contracts are unavailable. The pinned source migrations therefore remain diagnostic-only, with 124 PDU and 85 MAS findings. PR #3 contains the v0 Core and this closeout record, targeting `feat/compiler-v0-bootstrap`. The separate v0.1 design PR #4 is not implemented in this v0 branch; any v0.1 migration requires its own Goal and breaking contract transition.
