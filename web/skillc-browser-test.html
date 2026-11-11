@@ -19,6 +19,11 @@ async function loadFiles() { return Promise.all(paths.map(async path => {
   let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
   return {path, bytes:btoa(binary)};
 })); }
+async function loadDiagnosticGolden() {
+  const response = await fetch('./diagnostics-golden.json');
+  if (!response.ok) throw new Error('Unable to fetch Native diagnostic golden vectors');
+  return response.json();
+}
 function encodeUTF8(text) {
   const bytes = new TextEncoder().encode(text);
   let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -40,6 +45,7 @@ function send(command, request) {
 }
 (async () => {
   const files = await loadFiles();
+  const diagnosticGolden = await loadDiagnosticGolden();
   const request = {files};
   const check = await send('check', request);
   const build = await send('build', request);
@@ -73,13 +79,8 @@ function send(command, request) {
   }
   if (check.diagnostics.length !== 0) throw new Error('valid project returned diagnostics');
   if (!Array.isArray(inspect.tools) || inspect.tools.length !== 1 || inspect.tools[0].operationId !== 'demo.read') throw new Error('inspectLibraries response malformed');
-  const expectedInvalid = [{severity:'error', code:'TARGET_NOT_FOUND', path:'skills/missing', message:'Skill is missing: missing'}];
-  if (invalid.success || JSON.stringify(invalid.diagnostics) !== JSON.stringify(expectedInvalid)) throw new Error(`WASM diagnostics differ from Native TARGET_NOT_FOUND golden: ${JSON.stringify(invalid.diagnostics)}`);
-  const expectedBinding = [
-    {severity:'error', code:'BINDING_UNRESOLVED', path:'skills/normalize/assurance/procedure.yaml', line:8, message:'required consumer input is not bound: key'},
-    {severity:'error', code:'SOURCE_FIELD_UNKNOWN', path:'skills/normalize/assurance/procedure.yaml', line:8, message:'consumer input field is not declared: unexpected'}
-  ];
-  if (invalidBinding.success || JSON.stringify(invalidBinding.diagnostics) !== JSON.stringify(expectedBinding)) throw new Error(`WASM diagnostics differ from Native binding golden: ${JSON.stringify(invalidBinding.diagnostics)}`);
+  if (invalid.success || JSON.stringify(invalid.diagnostics) !== JSON.stringify(diagnosticGolden.targetNotFound)) throw new Error(`WASM diagnostics differ from Native TARGET_NOT_FOUND golden: ${JSON.stringify(invalid.diagnostics)}`);
+  if (invalidBinding.success || JSON.stringify(invalidBinding.diagnostics) !== JSON.stringify(diagnosticGolden.invalidBinding)) throw new Error(`WASM diagnostics differ from Native binding golden: ${JSON.stringify(invalidBinding.diagnostics)}`);
   output.textContent = JSON.stringify({status:'PASS', check, build:build.outputFiles.map(f=>f.path), inspect, invalid:invalid.diagnostics, invalidBinding:invalidBinding.diagnostics}, null, 2);
   document.documentElement.dataset.test = 'pass';
 })().catch(error => {

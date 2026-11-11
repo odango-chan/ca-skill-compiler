@@ -80,9 +80,10 @@ WASM_EXEC="$(go env GOROOT)/lib/wasm/wasm_exec.js"
 if [ ! -f "$WASM_EXEC" ]; then WASM_EXEC="$(go env GOROOT)/misc/wasm/wasm_exec.js"; fi
 cp "$WASM_EXEC" dist/wasm_exec.js
 cp web/skillc-worker.js dist/skillc-worker.js
+cp web/diagnostics-golden.json dist/diagnostics-golden.json
 ~~~
 
-静态资源应与 Go/WASM runtime **版本匹配**。Worker 的资源路径相对于 Worker 文件解析。`web/skillc-browser-test.html` 是可执行 smoke page；它加载 `script-contract-project` 与一份由 Native CLI 生成的 golden 输出，并调用 Worker 的三个 API 与负例。
+静态资源应与 Go/WASM runtime **版本匹配**。Worker 的资源路径相对于 Worker 文件解析。`web/skillc-browser-test.html` 是可执行 smoke page；它加载 `script-contract-project` 与 Native CLI 生成的文件 golden，并调用 Worker 的三个 API 与负例。`web/diagnostics-golden.json` 由 Native Go Core 测试验证，供浏览器对照相同的失败诊断。
 
 从仓库根目录准备静态目录：
 
@@ -92,6 +93,7 @@ GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm
 cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" dist/wasm_exec.js
 cp web/skillc-worker.js dist/skillc-worker.js
 cp web/skillc-browser-test.html dist/index.html
+cp web/diagnostics-golden.json dist/diagnostics-golden.json
 cp -R examples/script-contract-project dist/project
 GOWORK=off go run ./cmd/skillc build ./examples/script-contract-project --out dist/native-output
 python3 -m http.server 8000 --directory dist

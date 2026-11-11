@@ -23,6 +23,67 @@ func source(name, entry, procedure string) []File {
 	}
 }
 
+func loadProjectFilesForTest(t *testing.T, root string) []File {
+	t.Helper()
+	var files []File
+	for _, dir := range []string{"skills", "lib"} {
+		base := filepath.Join(root, dir)
+		err := filepath.WalkDir(base, func(filename string, entry os.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				return walkErr
+			}
+			if entry.IsDir() {
+				return nil
+			}
+			content, err := os.ReadFile(filename)
+			if err != nil {
+				return err
+			}
+			rel, err := filepath.Rel(root, filename)
+			if err != nil {
+				return err
+			}
+			files = append(files, File{Path: filepath.ToSlash(rel), Bytes: content})
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	return files
+}
+
+func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
+	files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "script-contract-project"))
+	var golden struct {
+		TargetNotFound []Diagnostic `json:"targetNotFound"`
+		InvalidBinding []Diagnostic `json:"invalidBinding"`
+	}
+	data, err := os.ReadFile(filepath.Join("..", "..", "web", "diagnostics-golden.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(data, &golden); err != nil {
+		t.Fatal(err)
+	}
+	if got := Check(Request{Files: files, Targets: []string{"missing"}}); !reflect.DeepEqual(got, golden.TargetNotFound) {
+		t.Fatalf("Native missing-target diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.TargetNotFound)
+	}
+	invalidBinding := make([]File, len(files))
+	for i, file := range files {
+		invalidBinding[i] = File{Path: file.Path, Bytes: bytes.Clone(file.Bytes)}
+		if file.Path == "skills/normalize/assurance/procedure.yaml" {
+			invalidBinding[i].Bytes = []byte(strings.Replace(string(file.Bytes), "          key: {from: context.request.dnn}", "          unexpected: {value: sample}", 1))
+			if bytes.Equal(invalidBinding[i].Bytes, file.Bytes) {
+				t.Fatal("negative binding fixture mutation did not apply")
+			}
+		}
+	}
+	if got := Check(Request{Files: invalidBinding}); !reflect.DeepEqual(got, golden.InvalidBinding) {
+		t.Fatalf("Native invalid-binding diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.InvalidBinding)
+	}
+}
+
 func toolCatalog() File {
 	return File{Path: "lib/tools/demo.yaml", Bytes: []byte(
 		"apiVersion: ca-agent-demo.tool/v1\nkind: ToolCatalog\nx-common:\n  ref: &ref {type: string, minLength: 1}\nspec:\n  contracts:\n  - operation: demo.read\n    effect: READ\n    inputSchema:\n      type: object\n      required: [ref]\n      properties:\n        ref: *ref\n    outputSchema: {type: object}\n")}

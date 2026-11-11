@@ -1,0 +1,26 @@
+{
+  "targetNotFound": [
+    {
+      "severity": "error",
+      "code": "TARGET_NOT_FOUND",
+      "path": "skills/missing",
+      "message": "Skill is missing: missing"
+    }
+  ],
+  "invalidBinding": [
+    {
+      "severity": "error",
+      "code": "BINDING_UNRESOLVED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 8,
+      "message": "required consumer input is not bound: key"
+    },
+    {
+      "severity": "error",
+      "code": "SOURCE_FIELD_UNKNOWN",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 8,
+      "message": "consumer input field is not declared: unexpected"
+    }
+  ]
+}
