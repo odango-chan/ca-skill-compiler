@@ -1,0 +1,10 @@
+# Tool Library import provenance (not a Runtime deployment authority).
+# Status labels describe contract maturity only; "declared" still does NOT mean READY.
+apiVersion: skillc.library/v1
+libraries:
+  - path: lib/tools/createdsession.tool.yaml
+    source: ca-agent-demo/tools/contracts/createdsession.tool.yaml
+    status: declared
+  - path: lib/tools/mas-proposed.tool.yaml
+    source: ca-agent-demo/skills/establish-pdu-session-mas/design/tool-contract.yaml
+    status: proposed
