@@ -880,6 +880,20 @@ func TestTypedDictMustHaveTypingImport(t *testing.T) {
 	}
 }
 
+func TestScriptDeclarationsInsideMultilineStringsAreIgnored(t *testing.T) {
+	src := `"""
+from typing import TypedDict
+class Output(TypedDict):
+    value: str
+def main(input: dict) -> Output:
+    return {}
+"""
+`
+	if _, err := parseScriptOutput(src); err == nil {
+		t.Fatal("declarations inside a multiline string were treated as Python code")
+	}
+}
+
 func TestScriptDeclarationsRejectAmbiguityAndInvalidLiterals(t *testing.T) {
 	cases := []string{
 		"from typing import TypedDict\nclass Output(TypedDict):\n    value: str\ndef main(input: dict) -> Output:\n    return {}\ndef main(input: dict) -> Output:\n    return {}\n",

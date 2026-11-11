@@ -77,13 +77,15 @@ func pathsCollide(a, b string) bool {
 }
 
 func parseScriptOutput(src string) (map[string]any, error) {
-	matches := mainRE.FindAllStringSubmatch(src, -1)
-	if len(matches) != 1 || len(mainDeclRE.FindAllString(src, -1)) != 1 {
+	code := maskPythonStringsAndComments(src)
+	matches := mainRE.FindAllStringSubmatch(code, -1)
+	if len(matches) != 1 || len(mainDeclRE.FindAllString(code, -1)) != 1 {
 		return nil, fmt.Errorf("expected main(input: dict) -> nonempty TypedDict output; legacy metadata is not an interface")
 	}
 	match := matches[0]
 	imports := map[string]bool{}
-	for _, line := range strings.Split(src, "\n") {
+	sourceLines, codeLines := strings.Split(src, "\n"), strings.Split(code, "\n")
+	for _, line := range codeLines {
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "from typing import ") {
 			for _, name := range strings.Split(strings.TrimPrefix(line, "from typing import "), ",") {
@@ -101,9 +103,11 @@ func parseScriptOutput(src string) (map[string]any, error) {
 	classSeen := map[string]bool{}
 	fieldSeen := map[string]map[string]bool{}
 	current := ""
-	for _, line := range strings.Split(src, "\n") {
+	for i, line := range sourceLines {
 		trim := strings.TrimSpace(line)
-		if m := classRE.FindStringSubmatch(line); m != nil {
+		codeLine := codeLines[i]
+		codeTrim := strings.TrimSpace(codeLine)
+		if m := classRE.FindStringSubmatch(codeLine); m != nil {
 			current = m[1]
 			if classSeen[current] {
 				return nil, fmt.Errorf("duplicate TypedDict declaration %s", current)
@@ -113,15 +117,18 @@ func parseScriptOutput(src string) (map[string]any, error) {
 			classes[current] = pyClass{}
 			continue
 		}
-		if strings.HasPrefix(trim, "class ") {
+		if strings.HasPrefix(codeTrim, "class ") {
 			current = ""
 			continue
 		}
-		if current != "" {
-			if trim == "" || strings.HasPrefix(trim, "#") {
-				continue
+		if codeTrim == "" {
+			if current != "" && trim != "" && !strings.HasPrefix(trim, "#") {
+				return nil, fmt.Errorf("unsupported TypedDict body statement in %s: %s", current, trim)
 			}
-			if line[0] != ' ' && line[0] != '\t' {
+			continue
+		}
+		if current != "" {
+			if codeLine[0] != ' ' && codeLine[0] != '\t' {
 				current = ""
 			} else {
 				f := fieldRE.FindStringSubmatch(line)
@@ -146,6 +153,70 @@ func parseScriptOutput(src string) (map[string]any, error) {
 		return nil, fmt.Errorf("main return type %s is not a local TypedDict", name)
 	}
 	return typedDictSchema(name, classes, map[string]bool{})
+}
+
+func maskPythonStringsAndComments(src string) string {
+	masked := []byte(src)
+	var quote byte
+	triple, escaped, comment := false, false, false
+	for i := 0; i < len(src); i++ {
+		c := src[i]
+		if comment {
+			if c == '\n' {
+				comment = false
+			} else {
+				masked[i] = ' '
+			}
+			continue
+		}
+		if quote != 0 {
+			if c == '\n' {
+				if !triple && !escaped {
+					quote = 0
+				}
+				escaped = false
+				continue
+			}
+			if escaped {
+				masked[i] = ' '
+				escaped = false
+				continue
+			}
+			if c == '\\' {
+				masked[i] = ' '
+				escaped = true
+				continue
+			}
+			if c == quote && triple && i+2 < len(src) && src[i+1] == quote && src[i+2] == quote {
+				masked[i], masked[i+1], masked[i+2] = ' ', ' ', ' '
+				i += 2
+				quote, triple = 0, false
+				continue
+			}
+			masked[i] = ' '
+			if c == quote && !triple {
+				quote = 0
+			}
+			continue
+		}
+		if c == '#' {
+			comment = true
+			masked[i] = ' '
+			continue
+		}
+		if c == '\'' || c == '"' {
+			quote = c
+			if i+2 < len(src) && src[i+1] == c && src[i+2] == c {
+				triple = true
+				masked[i], masked[i+1], masked[i+2] = ' ', ' ', ' '
+				i += 2
+			} else {
+				triple = false
+				masked[i] = ' '
+			}
+		}
+	}
+	return string(masked)
 }
 
 func typedDictSchema(name string, classes map[string]pyClass, active map[string]bool) (map[string]any, error) {
