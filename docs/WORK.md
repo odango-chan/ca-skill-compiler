@@ -1,6 +1,6 @@
 # Skill Compiler v0 implementation status
 
-Updated: 2026-11-11. Implementation branch: `feat/compiler-v0-complete`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`. This report records observed local evidence; it does not claim a complete Compiler v0.
+Updated: 2026-11-11. Implementation branch: `feat/compiler-v0-complete`, HEAD `b90033b0cb8515e32240ad33e038ae71f65d8388`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`. Draft [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3) targets `feat/compiler-v0-bootstrap`. This report records observed local evidence; it does not claim a complete Compiler v0.
 
 ## Work packages
 
@@ -28,7 +28,7 @@ Updated: 2026-11-11. Implementation branch: `feat/compiler-v0-complete`, based o
 | G6 Native/WASM parity | PARTIAL | Browser and Native CLI processed the same `minimal-project`; output paths, order, and bytes matched. The negative target code is covered by Native Go tests and returned in-browser, but automated equality across broader diagnostic vectors remains. |
 | G7 Browser | PASS | Chromium loaded `wasm_exec.js`, `skillc.wasm`, and Worker; check/build/inspect succeeded and a missing-target diagnostic returned in-band. |
 | G8 Real migration | PARTIAL | PDU: 94 expected migration/owner diagnostics (62 `EXTERNAL_SCHEMA_MISSING`, 19 `PROCEDURE_UNSUPPORTED`, 9 `STEP_SCOPE_UNKNOWN`, 3 `SCRIPT_TYPE_UNSUPPORTED`, 1 `SOURCE_FIELD_UNKNOWN`). MAS: 65 (48 `EXTERNAL_SCHEMA_MISSING`, 17 `PREDICATE_NOT_FOUND`). No original snapshot changed. |
-| G9 Handoff | PARTIAL | Docs and implementation branch are ready for review; push and PR creation are pending. |
+| G9 Handoff | PASS | Docs updated; branch pushed; open Draft [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3) targets `feat/compiler-v0-bootstrap`. |
 
 ## Commands observed
 
