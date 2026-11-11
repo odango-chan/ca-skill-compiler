@@ -42,7 +42,7 @@ The same Core exports `skillcCheck` and `skillcBuild` with Go/WASM, bridged by `
 ## Other docs
 
 - [Canonical compiler design](docs/design/skill-compiler-v0.md)
-- [Script Contract v0: strict TypedDict and legacy external Schema](docs/design/script-contract-v0.md)
+- [Script Contract v0: imported producer Schema for inputs, strict generated Script outputs](docs/design/script-contract-v0.md)
 - [Implementation status](docs/WORK.md)
 - [Issue #1](https://github.com/odango-chan/ca-skill-compiler/issues/1)
 - [Old Toolchain history](https://github.com/odango-chan/ca-skill-toolchain) (not a dependency)
