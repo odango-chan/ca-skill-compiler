@@ -71,16 +71,16 @@ project/
 | Studio 用来支持 YAML 诊断的 Meta-Schema | 语言规范/Compiler | 否 | 内置编译器/Studio，不进入 Skill 包 |
 | Qualification/Profile/Release/Runtime 状态 | 外部相应 Owner | 否 | 不纳入 v0 |
 
-### 3.1 Script-to-Schema 的严格规约
+### 3.1 Script-to-Schema · Producer-owned 接口
 
-**唯一规范：[Script Contract v0 · Strict TypedDict](script-contract-v0.md)，已冻结设计 / 代码未实现。**
+**唯一规范：[Script Contract v0](script-contract-v0.md)，设计确认，代码未实现。** 此规约取代了「所有 Script 输入输出均需 TypedDict」的旧方案。
 
-- 新 Script 的默认权威是 Python `TypedDict` + 明确的 `main(input: In) -> Out`，可使用标准库 `Literal`、`NotRequired`、`Annotated[T, {constraint literals}]`。
-- 所有输入/输出对象及其嵌套字段必须有完整可静态解析的类型；禁止用通用 `dict`、`Any`、`object`、空类蒙混过关。内部算法中的普通 dict 合法，但不能成为接口契约。
-- v0 `TypedDict` 对象输出为 `additionalProperties: false` 的严格对象；不支持的联合、动态映射或复杂条件规则，应使用完整外部 Schema，而不是生成弱约束。
-- 现有 5 个 5GC Script 一律保留外部 Schema，直到另一个 Skill owner PR 完成精确等价迁移。Compiler 不执行 Python 或从函数体推断字段。
-- 此前讨论的脚本头部 `schemaMode: embedded` YAML 长注释方案**已撤回，不允许实现**；新脚本不要求写一份重复的 Schema 注释文档。
-- Tool Schema 的权威仍在 `lib/`；Compiler 生成的 Script Schema 仅供接口链接，不能覆盖 Tool 契约。
+- **外部输入**来自其真实 Producer 的 Schema：Tool/MCP 从只读 `lib/tools/` 导入，Host context/observation 从权威 Host/Ingress/Observation 契约导入，Skill 自有 request 从对应 `skills/*/schemas/` 读取。
+- Procedure `with:` 根据每个 `from:` 绑定形成 Script 的调用点 **input projection**；作者**不必重复定义**外部 Input TypedDict。但缺少外部 Schema、字段未知或类型冲突不能宣称严格验证通过。
+- Script **自己计算产生的 Output** 必须有完整 `TypedDict` / 受限 `Annotated` 声明，由 Compiler 静态生成只读 Output Schema。`main(input: dict) -> OwnOutput` 里的 dict 只是 Python 输入容器，不意味着允许无契约数据。
+- 现有 5 个 5GC Script 保留原始 external input/output Schema，不篡改复杂 `allOf/if/then` 约束；正式 ToolCatalog 和 MAS proposed ToolCatalog 已导入样例项目。**MAS 仅供静态链接，不 READY**。
+- 不执行 Python、不从函数体推断接口。新旧两个被撤回方案——脚本头内 embedded YAML、强制所有 Script Input TypedDict——**均不得实现**。
+- Root Routing Profile 是部署路由配置，不是完整 Host 输入 Schema；缺少权威 Host 数据契约时需要诊断，禁止自行造一个。
 
 ## 4. Library v0：先文件导入，后 MCP
 
