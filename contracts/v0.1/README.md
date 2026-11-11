@@ -9,3 +9,5 @@
 Normative behavior, hash algorithm, logical Procedure syntax, security and migration gates: [Plugin-managed contract v0.1](../../docs/design/plugin-managed-project-v0.1.md).
 
 Do **not** pass this v0.1 request to current Compiler v0 Go/WASM; those still consume `{files,targets}` with physical `skills/` and `lib/` inputs.
+
+- [snapshot-vectors.json](snapshot-vectors.json) — exact digest golden vector, with an independent test-only Go reference algorithm; does not qualify the pre-v0.1 compiler binary.

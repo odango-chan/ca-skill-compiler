@@ -1,0 +1,17 @@
+{
+  "version": "skillc/snapshot/v1",
+  "cases": [
+    {
+      "name": "mcp-ping-unknown-effect",
+      "files": [
+        {
+          "path": "tool-contract.json",
+          "bytes": "eyJhcGlWZXJzaW9uIjoic2tpbGxjLnRvb2wvdjAuMSIsIm9wZXJhdGlvbnMiOlt7ImVmZmVjdCI6eyJhdXRob3JpdHkiOiJVTlZFUklGSUVEIiwiY2xhc3NpZmljYXRpb24iOiJVTktOT1dOIn0sImlkIjoicGluZyIsImlucHV0U2NoZW1hIjp7InR5cGUiOiJvYmplY3QifX1dfQ==",
+          "size": 157,
+          "sha256": "sha256:cc9a063c3f3045513b38b5a052a3ccdc888b31399c4049cd421c8ef30cf3f9fd"
+        }
+      ],
+      "snapshotDigest": "sha256:e767fe5bf3914658691d2502a44fc6ae0027f3499f92f854d6694bea8fd456b7"
+    }
+  ]
+}
