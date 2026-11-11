@@ -367,8 +367,9 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 							a.errorAt(s.procedure, child(input, field).Line, "PROCEDURE_UNSUPPORTED", "unknown Procedure input field: "+field)
 						}
 					}
-					typ, from := scalar(child(input, "type")), scalar(child(input, "from"))
-					if !validProcedureInputType(typ) || from == "" {
+					typNode, fromNode := child(input, "type"), child(input, "from")
+					typ := scalar(typNode)
+					if !validProcedureInputType(typ) || fromNode == nil || unalias(fromNode).Kind != yaml.ScalarNode || unalias(fromNode).Tag != "!!str" || scalar(fromNode) == "" {
 						a.errorAt(s.procedure, input.Line, "PROCEDURE_UNSUPPORTED", "Procedure input requires a supported type and from source: "+inputName)
 					}
 				}

@@ -941,6 +941,7 @@ func TestProcedureIdentifiersAndActionsRequireStrings(t *testing.T) {
 	}{
 		{"procedure key", "procedures:\n  7:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n"},
 		{"input key", "procedures:\n  run:\n    inputs:\n      7: {type: string, from: context.request.name}\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n"},
+		{"procedure input source must be a string", "procedures:\n  run:\n    inputs:\n      value: {type: string, from: true}\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n"},
 		{"node key", "procedures:\n  run:\n    start: 7\n    nodes:\n      7: {terminal: SUCCEEDED}\n"},
 		{"non-string node action", "procedures:\n  run:\n    start: done\n    nodes: {done: {terminal: true}}\n"},
 		{"non-string nested step name", "procedures:\n  run:\n    start: done\n    nodes:\n      done:\n        preconditions:\n          steps: [{name: 7, script: scripts/run.py}]\n        terminal: SUCCEEDED\n"},
@@ -971,6 +972,27 @@ func TestBindingFieldNamesMustBeStrings(t *testing.T) {
 	got := Build(Request{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
 		t.Fatalf("non-string binding field name was accepted: %#v", got.Diagnostics)
+	}
+}
+
+func TestBindingSourcesMustBeStrings(t *testing.T) {
+	for _, value := range []string{"true", "7", "[]", "{}"} {
+		t.Run(value, func(t *testing.T) {
+			files := source("nonstring-binding-source", "run", `procedures:
+  run:
+    start: read
+    nodes:
+      read:
+        call: demo.read
+        with:
+          ref: {from: `+value+`}
+`)
+			files = append(files, toolCatalog())
+			got := Build(Request{Files: files})
+			if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
+				t.Fatalf("non-string binding source %s was accepted: %#v", value, got.Diagnostics)
+			}
+		})
 	}
 }
 

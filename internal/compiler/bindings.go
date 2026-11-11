@@ -125,7 +125,7 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 		}
 		var source *yaml.Node
 		if from != nil {
-			if scalar(from) == "" {
+			if unalias(from).Kind != yaml.ScalarNode || unalias(from).Tag != "!!str" || scalar(from) == "" {
 				a.errorAt(path, from.Line, "BINDING_UNSUPPORTED", "from binding must be a nonempty source reference")
 				continue
 			}
