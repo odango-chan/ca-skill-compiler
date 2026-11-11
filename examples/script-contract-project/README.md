@@ -1,14 +1,12 @@
-# Script Contract v0 · embedded schema test input
+# Strict TypedDict Script Contract fixture
 
-This is a **new synthetic fixture** to validate the [Script Contract v0](../../docs/design/script-contract-v0.md) implementation, not a live Skill runtime fixture.
+[Script Contract v0](../../docs/design/script-contract-v0.md) is the authority. This is a **compile-only**, synthetic test source: no old YAML script header, no external I/O Schema, no Pydantic runtime dependency.
 
-The file `skills/normalize/scripts/normalize.py` declares its **complete** input/output JSON Schema under the existing `# /// connectionagent-tool` comment header, with `schemaMode: embedded`. A static compiler must produce:
+`skills/normalize/scripts/normalize.py` defines fully typed nested `TypedDict` input/output and static `Annotated` constraints. A correct compiler generates:
 
 - `skills/normalize/schemas/generated/normalize.input.schema.json`
 - `skills/normalize/schemas/generated/normalize.output.schema.json`
 
-Each generated Schema must be JSON Schema Draft 2020-12, retain the declared `required`, `additionalProperties`, `minLength` and `pattern` constraints, and use `NormalizeInput` and `NormalizeOutput` as the respective titles. No inferred fields, execution, network calls or source rewrites are allowed.
+Required keys, `NotRequired`, literal values, bounds, pattern and `additionalProperties: false` must be preserved. The Compiler must never run Python or silently replace nested types with unconstrained `dict`/object. **This is an expected future test, not currently PASS.**
 
-The embedded mode is **not implemented yet** in the initial `internal/compiler` code; this fixture is a WP3 acceptance input, not a currently passing build.
-
-The old 5GC scripts in `examples/ca-agent-demo-project` retain their existing external Schema files, without modification.
+The real five older Python scripts live unchanged under `examples/ca-agent-demo-project/`; their external Schema remains the authority until explicitly migrated and proven equivalent.

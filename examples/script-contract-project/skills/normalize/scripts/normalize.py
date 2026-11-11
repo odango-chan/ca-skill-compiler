@@ -1,28 +1,23 @@
-# /// connectionagent-tool
-# name: normalize-dnn
-# entrypoint: main
-# inputSchema: NormalizeInput
-# outputSchema: NormalizeOutput
-# schemaMode: embedded
-# effect: local_compute
-# sandbox:
-#   network: denied
-# timeout: 1s
-# interface:
-#   input:
-#     type: object
-#     additionalProperties: false
-#     required: [dnn]
-#     properties:
-#       dnn: {type: string, minLength: 1, pattern: "^[a-z0-9.-]+$"}
-#   output:
-#     type: object
-#     additionalProperties: false
-#     required: [dnn, accepted]
-#     properties:
-#       dnn: {type: string, minLength: 1}
-#       accepted: {type: boolean}
-# ///
+from typing import Annotated, Literal, NotRequired, TypedDict
 
-def main(input: dict) -> dict:
-    return {"dnn": input["dnn"], "accepted": True}
+# This is a compile-only test fixture. No custom runtime library is required.
+class DnnScope(TypedDict):
+    sst: Annotated[int, {"minimum": 0, "maximum": 255}]
+    sd: NotRequired[Annotated[int, {"minimum": 0, "maximum": 16777214}]]
+
+class NormalizeInput(TypedDict):
+    dnn: Annotated[str, {"minLength": 1, "pattern": r"^[a-z0-9][a-z0-9.-]*$"}]
+    sNssai: DnnScope
+    requestedPduSessionType: Literal["IPV4"]
+
+class NormalizeOutput(TypedDict):
+    dnn: Annotated[str, {"minLength": 1}]
+    sNssai: DnnScope
+    accepted: Literal[True]
+
+def main(input: NormalizeInput) -> NormalizeOutput:
+    return {
+        "dnn": input["dnn"],
+        "sNssai": input["sNssai"],
+        "accepted": True,
+    }
