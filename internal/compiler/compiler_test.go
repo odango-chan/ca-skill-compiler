@@ -855,6 +855,59 @@ func TestIntegerProducerSatisfiesNumberInput(t *testing.T) {
 	}
 }
 
+func TestNullableSchemaBindingsRespectEveryAllowedType(t *testing.T) {
+	nullableString := schemaNode(map[string]any{"type": []any{"string", "null"}})
+	stringOnly := schemaNode(map[string]any{"type": "string"})
+	nullableNumber := schemaNode(map[string]any{"type": []any{"number", "null"}})
+	nullableInteger := schemaNode(map[string]any{"type": []any{"integer", "null"}})
+	if !projectionSchemaSupported(nullableString) {
+		t.Fatal("supported nullable type union should be projectable")
+	}
+	for _, tc := range []struct {
+		name   string
+		source *yaml.Node
+		target *yaml.Node
+		want   bool
+	}{
+		{"nullable producer to nullable consumer", nullableString, nullableString, true},
+		{"nullable producer to required string consumer", nullableString, stringOnly, false},
+		{"string producer to nullable consumer", stringOnly, nullableString, true},
+		{"integer-or-null producer to number-or-null consumer", nullableInteger, nullableNumber, true},
+		{"string producer to number-or-null consumer", stringOnly, nullableNumber, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := schemasCompatible(tc.source, tc.target); got != tc.want {
+				t.Fatalf("schemasCompatible() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+	if !literalMatchesSchema(schemaNode(nil), nullableString) || !literalMatchesSchema(schemaNode("value"), nullableString) || literalMatchesSchema(schemaNode(3), nullableString) {
+		t.Fatal("nullable literal validation did not match the declared type union")
+	}
+	files := source("nullable", "run", `procedures:
+  run:
+    start: read
+    nodes:
+      read:
+        call: demo.read
+        with: {ref: {value: null}}
+`)
+	catalog := toolCatalog()
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "ref: *ref", `ref: {type: [string, "null"]}`, 1))
+	files = append(files, catalog)
+	if got := Build(Request{Files: files}); !got.Success {
+		t.Fatalf("nullable literal binding should compile: %#v", got.Diagnostics)
+	}
+	for i := range files {
+		if files[i].Path == "skills/nullable/assurance/procedure.yaml" {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "value: null", "value: 3", 1))
+		}
+	}
+	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
+		t.Fatalf("nonnullable literal binding should fail against nullable string Schema: %#v", got.Diagnostics)
+	}
+}
+
 func TestIntegerLiteralSatisfiesNumberInput(t *testing.T) {
 	number := schemaNode(map[string]any{"type": "number"})
 	integer := schemaNode(map[string]any{"type": "integer"})

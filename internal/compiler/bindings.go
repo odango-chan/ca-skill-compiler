@@ -438,15 +438,17 @@ func schemasCompatible(source, target *yaml.Node) bool {
 	if source == nil || target == nil || !projectionSchemaSupported(source) || !projectionSchemaSupported(target) {
 		return false
 	}
-	st, tt := scalar(child(source, "type")), scalar(child(target, "type"))
-	if !schemaTypeCompatible(st, tt) {
+	sourceTypes, sourceOK := schemaTypeNames(child(source, "type"))
+	targetTypes, targetOK := schemaTypeNames(child(target, "type"))
+	if !sourceOK || !targetOK || !schemaTypeSetsCompatible(sourceTypes, targetTypes) {
 		return false
 	}
-	if !schemaConstraintsCompatible(source, target, st) {
-		return false
+	for _, sourceType := range sourceTypes {
+		if !schemaConstraintsCompatible(source, target, sourceType) {
+			return false
+		}
 	}
-	switch st {
-	case "object":
+	if schemaTypeSetHas(sourceTypes, "object") {
 		sp, tp := child(source, "properties"), child(target, "properties")
 		sourceAdditional := child(source, "additionalProperties")
 		targetAdditional := child(target, "additionalProperties")
@@ -496,8 +498,63 @@ func schemasCompatible(source, target *yaml.Node) bool {
 				return false
 			}
 		}
-	case "array":
+	}
+	if schemaTypeSetHas(sourceTypes, "array") {
 		return schemasCompatible(child(source, "items"), child(target, "items"))
+	}
+	return true
+}
+
+func schemaTypeNames(node *yaml.Node) ([]string, bool) {
+	node = unalias(node)
+	if node == nil || node.Kind != yaml.ScalarNode && node.Kind != yaml.SequenceNode {
+		return nil, false
+	}
+	items := []*yaml.Node{node}
+	if node.Kind == yaml.SequenceNode {
+		items = sequence(node)
+	}
+	if len(items) == 0 {
+		return nil, false
+	}
+	seen := make(map[string]bool, len(items))
+	names := make([]string, 0, len(items))
+	for _, item := range items {
+		item = unalias(item)
+		if item == nil || item.Kind != yaml.ScalarNode || item.Tag != "!!str" || seen[item.Value] {
+			return nil, false
+		}
+		seen[item.Value] = true
+		names = append(names, item.Value)
+	}
+	return names, true
+}
+
+func schemaTypeFits(source, target string) bool {
+	return source == target || source == "integer" && target == "number"
+}
+
+func schemaTypeSetHas(types []string, name string) bool {
+	for _, typ := range types {
+		if typ == name {
+			return true
+		}
+	}
+	return false
+}
+
+func schemaTypeSetsCompatible(source, target []string) bool {
+	for _, sourceType := range source {
+		matched := false
+		for _, targetType := range target {
+			if schemaTypeFits(sourceType, targetType) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return false
+		}
 	}
 	return true
 }
@@ -512,40 +569,45 @@ func projectionSchemaSupported(schema *yaml.Node) bool {
 	if schema == nil || !supportedStaticSchema(schema) {
 		return false
 	}
-	typ := scalar(child(schema, "type"))
-	switch typ {
-	case "object":
-		if properties := child(schema, "properties"); properties != nil {
-			if unalias(properties).Kind != yaml.MappingNode {
-				return false
+	types, ok := schemaTypeNames(child(schema, "type"))
+	if !ok {
+		return false
+	}
+	for _, typ := range types {
+		switch typ {
+		case "object":
+			if properties := child(schema, "properties"); properties != nil {
+				if unalias(properties).Kind != yaml.MappingNode {
+					return false
+				}
+				for _, name := range mapKeys(properties) {
+					if !projectionSchemaSupported(child(properties, name)) {
+						return false
+					}
+				}
 			}
-			for _, name := range mapKeys(properties) {
-				if !projectionSchemaSupported(child(properties, name)) {
+			if additional := child(schema, "additionalProperties"); additional != nil {
+				if unalias(additional).Kind == yaml.MappingNode && !projectionSchemaSupported(additional) {
+					return false
+				}
+				if unalias(additional).Kind == yaml.ScalarNode && scalar(additional) != "true" && scalar(additional) != "false" {
 					return false
 				}
 			}
-		}
-		if additional := child(schema, "additionalProperties"); additional != nil {
-			if unalias(additional).Kind == yaml.MappingNode && !projectionSchemaSupported(additional) {
+			for _, required := range sequence(child(schema, "required")) {
+				if scalar(required) == "" {
+					return false
+				}
+			}
+		case "array":
+			items := child(schema, "items")
+			if items == nil || !projectionSchemaSupported(items) {
 				return false
 			}
-			if unalias(additional).Kind == yaml.ScalarNode && scalar(additional) != "true" && scalar(additional) != "false" {
-				return false
-			}
-		}
-		for _, required := range sequence(child(schema, "required")) {
-			if scalar(required) == "" {
-				return false
-			}
-		}
-	case "array":
-		items := child(schema, "items")
-		if items == nil || !projectionSchemaSupported(items) {
+		case "string", "integer", "number", "boolean", "null":
+		default:
 			return false
 		}
-	case "string", "integer", "number", "boolean", "null":
-	default:
-		return false
 	}
 	return true
 }
@@ -669,8 +731,8 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 	if !projectionSchemaSupported(schema) {
 		return false
 	}
-	typ := scalar(child(schema, "type"))
-	if typ == "" || !schemaTypeCompatible(literalType(value), typ) {
+	types, ok := schemaTypeNames(child(schema, "type"))
+	if !ok || !schemaTypeSetAllowsLiteral(types, literalType(value)) {
 		return false
 	}
 	if c := child(schema, "const"); c != nil && !jsonValuesEqual(c, value) {
@@ -687,7 +749,7 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 			return false
 		}
 	}
-	switch typ {
+	switch literalType(value) {
 	case "object":
 		props := child(schema, "properties")
 		if value.Kind != yaml.MappingNode {
@@ -783,6 +845,15 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 		}
 	}
 	return true
+}
+
+func schemaTypeSetAllowsLiteral(types []string, literal string) bool {
+	for _, typ := range types {
+		if schemaTypeFits(literal, typ) {
+			return true
+		}
+	}
+	return false
 }
 
 // JSON Schema treats numbers mathematically, so integer and decimal spellings

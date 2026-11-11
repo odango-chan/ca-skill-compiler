@@ -90,7 +90,7 @@ Updated: 2026-11-11. Implementation branch: `feat/compiler-v01-implementation-20
 | G0 Go baseline | PASS | `GOWORK=off go test ./... -count=1` and `GOWORK=off go vet ./...` pass after all current changes. |
 | G1 ToolCatalog and Schema | PARTIAL | Tests cover the approved 12-operation catalog, aliases, local refs, ToolCatalog string limits and structural constraints; broad keyword compatibility remains. |
 | G2 Skill and Procedure graph | PARTIAL | Official PDU/MAS artifacts parse without syntax diagnostics; complete outcome domain and nested-scope analysis remains. |
-| G3 Producer bindings | PARTIAL | Explicit schemas, dominance over phase and main edges, and named phase-step ordering are checked; nested Procedure input aliases and full schema compatibility remain. |
+| G3 Producer bindings | PARTIAL | Explicit schemas, dominance over phase and main edges, named phase-step ordering, nullable JSON Schema type unions and exact integer-to-number compatibility are checked; nested Procedure input aliases and full schema compatibility remain. |
 | G4 Script | PARTIAL | Strict output TypedDict parsing, functional `5qi` wire-key form, generated schemas and predicate path identity are covered; exhaustive negative syntax/constraint coverage remains. |
 | G5 package output | PASS (synthetic) | Native all-target and `--skill normalize` builds each emitted seven files. |
 | G6 native/WASM byte parity | PASS (synthetic) | Chromium Worker paths/order and every byte matched Native package files. Six check diagnostics and duplicate-operation inspect diagnostics matched shared Native goldens. |
@@ -105,3 +105,7 @@ Final checks after the latest Core and contract updates: `GOWORK=off go test ./.
 ### Current upstream refresh
 
 Read-only upstream refs were refreshed on 2026-11-11. `ca-skills/main` is `6742d4cae65c482accdf74c3cd1daf8350856d52`; `ca-agent-demo/main` is `4395982fa6efb97714b97901603b2dfb7018c4d0`. The latest default-branch Skill source paired with the ToolCatalog from that exact ca-agent-demo revision returns PDU 119 diagnostics and MAS 127. This is not the PR #4 v0.2 acceptance baseline: current `ca-skills/main` describes a draft v0.1 contract with `localTools` and legacy Script metadata, contrary to PR #4's v0.2 strict Output TypedDict contract. See [language alignment](workstreams/language-alignment-v0.1.md) for the exact conflict and code breakdown. Do not treat this result as acceptance of either source language; a contract owner decision is still required before changing normative behavior.
+
+### Nullable binding coverage
+
+Added static Producer/Consumer and literal validation for Draft 2020-12 `type` unions, including nullable values. Regression coverage verifies safe subset assignment (`integer|null` to `number|null`), rejects a nullable producer for a nonnullable consumer, and accepts/rejects null, string and numeric literals by the declared union. The full Go tests and vet pass; Native and WASM builds pass; headless Chromium reran check/build/inspect and all existing diagnostic goldens with seven-file Native/WASM byte parity (`data-test=pass`). The pinned v0.2 PDU/MAS diagnostic counts remain 115/133 after this change.
