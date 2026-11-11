@@ -693,6 +693,37 @@ func TestProducerNumericConstraintsMustSatisfyConsumer(t *testing.T) {
 	}
 }
 
+func TestSchemaCompatibilityIgnoresConstraintsForOtherTypes(t *testing.T) {
+	cases := []struct {
+		name   string
+		typ    string
+		source map[string]any
+		target map[string]any
+	}{
+		{"string ignores array item count", "string", map[string]any{}, map[string]any{"minItems": 2}},
+		{"string length ignores numeric bounds", "string", map[string]any{"minLength": 2, "maxLength": 5, "exclusiveMinimum": 0, "exclusiveMaximum": 100}, map[string]any{"minLength": 2, "maxLength": 5}},
+		{"integer ignores string pattern", "integer", map[string]any{}, map[string]any{"pattern": "^[0-9]+$"}},
+		{"array ignores numeric bounds", "array", map[string]any{"items": map[string]any{"type": "string"}}, map[string]any{"items": map[string]any{"type": "string"}, "minimum": 2}},
+		{"string ignores array uniqueness", "string", map[string]any{}, map[string]any{"uniqueItems": true}},
+		{"number ignores string length", "number", map[string]any{}, map[string]any{"minLength": 5}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			source := map[string]any{"type": tc.typ}
+			target := map[string]any{"type": tc.typ}
+			for key, value := range tc.source {
+				source[key] = value
+			}
+			for key, value := range tc.target {
+				target[key] = value
+			}
+			if !schemasCompatible(schemaNode(source), schemaNode(target)) {
+				t.Fatal("inapplicable JSON Schema keywords changed compatibility")
+			}
+		})
+	}
+}
+
 func TestObjectSchemaCompatibilityHonorsAdditionalProperties(t *testing.T) {
 	object := func(properties map[string]any, additional any) *yaml.Node {
 		value := map[string]any{"type": "object", "properties": properties}

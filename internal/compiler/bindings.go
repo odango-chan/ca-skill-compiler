@@ -266,7 +266,7 @@ func schemasCompatible(source, target *yaml.Node) bool {
 	if !schemaTypeCompatible(st, tt) {
 		return false
 	}
-	if !schemaConstraintsCompatible(source, target) {
+	if !schemaConstraintsCompatible(source, target, st) {
 		return false
 	}
 	switch st {
@@ -374,47 +374,70 @@ func projectionSchemaSupported(schema *yaml.Node) bool {
 	return true
 }
 
-func schemaConstraintsCompatible(source, target *yaml.Node) bool {
-	for _, key := range []string{"minLength", "minItems", "minProperties", "minimum"} {
+func schemaConstraintsCompatible(source, target *yaml.Node, typ string) bool {
+	var lowerKeys, upperKeys []string
+	switch typ {
+	case "string":
+		lowerKeys, upperKeys = []string{"minLength"}, []string{"maxLength"}
+	case "array":
+		lowerKeys, upperKeys = []string{"minItems"}, []string{"maxItems"}
+	case "object":
+		lowerKeys, upperKeys = []string{"minProperties"}, []string{"maxProperties"}
+	case "integer", "number":
+		lowerKeys, upperKeys = []string{"minimum"}, []string{"maximum"}
+	}
+	for _, key := range lowerKeys {
 		if t := schemaNumber(target, key); t != nil {
 			s := schemaNumber(source, key)
-			exclusive := schemaNumber(source, "exclusiveMinimum")
-			if (s == nil || *s < *t) && (exclusive == nil || *exclusive < *t) {
+			weaker := s == nil || *s < *t
+			if typ == "integer" || typ == "number" {
+				exclusive := schemaNumber(source, "exclusiveMinimum")
+				weaker = weaker && (exclusive == nil || *exclusive < *t)
+			}
+			if weaker {
 				return false
 			}
 		}
 	}
-	for _, key := range []string{"maxLength", "maxItems", "maxProperties", "maximum"} {
+	for _, key := range upperKeys {
 		if t := schemaNumber(target, key); t != nil {
 			s := schemaNumber(source, key)
-			exclusive := schemaNumber(source, "exclusiveMaximum")
-			if (s == nil || *s > *t) && (exclusive == nil || *exclusive > *t) {
+			weaker := s == nil || *s > *t
+			if typ == "integer" || typ == "number" {
+				exclusive := schemaNumber(source, "exclusiveMaximum")
+				weaker = weaker && (exclusive == nil || *exclusive > *t)
+			}
+			if weaker {
 				return false
 			}
 		}
 	}
-	if t := schemaNumber(target, "exclusiveMinimum"); t != nil {
-		minimum, exclusive := schemaNumber(source, "minimum"), schemaNumber(source, "exclusiveMinimum")
-		if (minimum == nil || *minimum <= *t) && (exclusive == nil || *exclusive < *t) {
+	if typ == "integer" || typ == "number" {
+		if t := schemaNumber(target, "exclusiveMinimum"); t != nil {
+			minimum, exclusive := schemaNumber(source, "minimum"), schemaNumber(source, "exclusiveMinimum")
+			if (minimum == nil || *minimum <= *t) && (exclusive == nil || *exclusive < *t) {
+				return false
+			}
+		}
+		if t := schemaNumber(target, "exclusiveMaximum"); t != nil {
+			maximum, exclusive := schemaNumber(source, "maximum"), schemaNumber(source, "exclusiveMaximum")
+			if (maximum == nil || *maximum >= *t) && (exclusive == nil || *exclusive > *t) {
+				return false
+			}
+		}
+		if child(target, "multipleOf") != nil {
+			s := schemaNumber(source, "multipleOf")
+			if s == nil || !isIntegerMultiple(scalar(child(source, "multipleOf")), scalar(child(target, "multipleOf"))) {
+				return false
+			}
+		}
+	}
+	if typ == "string" {
+		if p := scalar(child(target, "pattern")); p != "" && scalar(child(source, "pattern")) != p {
 			return false
 		}
 	}
-	if t := schemaNumber(target, "exclusiveMaximum"); t != nil {
-		maximum, exclusive := schemaNumber(source, "maximum"), schemaNumber(source, "exclusiveMaximum")
-		if (maximum == nil || *maximum >= *t) && (exclusive == nil || *exclusive > *t) {
-			return false
-		}
-	}
-	if child(target, "multipleOf") != nil {
-		s := schemaNumber(source, "multipleOf")
-		if s == nil || !isIntegerMultiple(scalar(child(source, "multipleOf")), scalar(child(target, "multipleOf"))) {
-			return false
-		}
-	}
-	if p := scalar(child(target, "pattern")); p != "" && scalar(child(source, "pattern")) != p {
-		return false
-	}
-	if scalar(child(target, "uniqueItems")) == "true" && scalar(child(source, "uniqueItems")) != "true" {
+	if typ == "array" && scalar(child(target, "uniqueItems")) == "true" && scalar(child(source, "uniqueItems")) != "true" {
 		return false
 	}
 	if c := child(target, "const"); c != nil {
