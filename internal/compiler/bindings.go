@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -442,7 +441,7 @@ func schemaConstraintsCompatible(source, target *yaml.Node, typ string) bool {
 	}
 	if c := child(target, "const"); c != nil {
 		sc := child(source, "const")
-		if sc == nil || !reflect.DeepEqual(nodeValue(sc), nodeValue(c)) {
+		if sc == nil || !jsonValuesEqual(sc, c) {
 			return false
 		}
 	}
@@ -458,7 +457,7 @@ func schemaConstraintsCompatible(source, target *yaml.Node, typ string) bool {
 		for _, v := range values {
 			found := false
 			for _, allowed := range enum {
-				if reflect.DeepEqual(nodeValue(v), nodeValue(allowed)) {
+				if jsonValuesEqual(v, allowed) {
 					found = true
 				}
 			}
@@ -497,13 +496,13 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 	if typ == "" || !schemaTypeCompatible(literalType(value), typ) {
 		return false
 	}
-	if c := child(schema, "const"); c != nil && !reflect.DeepEqual(nodeValue(c), nodeValue(value)) {
+	if c := child(schema, "const"); c != nil && !jsonValuesEqual(c, value) {
 		return false
 	}
 	if enum := sequence(child(schema, "enum")); len(enum) > 0 {
 		matched := false
 		for _, v := range enum {
-			if reflect.DeepEqual(nodeValue(v), nodeValue(value)) {
+			if jsonValuesEqual(v, value) {
 				matched = true
 			}
 		}
@@ -558,13 +557,12 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 			return false
 		}
 		if scalar(child(schema, "uniqueItems")) == "true" {
-			seen := map[string]bool{}
-			for _, item := range value.Content {
-				b, err := json.Marshal(nodeValue(item))
-				if err != nil || seen[string(b)] {
-					return false
+			for i, item := range value.Content {
+				for _, previous := range value.Content[:i] {
+					if jsonValuesEqual(previous, item) {
+						return false
+					}
 				}
-				seen[string(b)] = true
 			}
 		}
 		for _, v := range value.Content {
@@ -608,6 +606,60 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 		}
 	}
 	return true
+}
+
+// JSON Schema treats numbers mathematically, so integer and decimal spellings
+// with the same exact value compare equal even when Go decodes them into
+// different numeric types. Compare recursively to preserve that rule inside
+// const and enum arrays and objects as well.
+func jsonValuesEqual(left, right *yaml.Node) bool {
+	left, right = unalias(left), unalias(right)
+	if left == nil || right == nil || left.Kind != right.Kind {
+		return left == nil && right == nil
+	}
+	if left.Kind == yaml.ScalarNode {
+		leftNumber := left.Tag == "!!int" || left.Tag == "!!float"
+		rightNumber := right.Tag == "!!int" || right.Tag == "!!float"
+		if leftNumber || rightNumber {
+			if !leftNumber || !rightNumber {
+				return false
+			}
+			l, lok := exactRational(left.Value)
+			r, rok := exactRational(right.Value)
+			return lok && rok && l.Cmp(r) == 0
+		}
+		if left.Tag == "!!null" || right.Tag == "!!null" {
+			return left.Tag == "!!null" && right.Tag == "!!null"
+		}
+		if left.Tag == "!!bool" && right.Tag == "!!bool" {
+			l, lok := strconv.ParseBool(left.Value)
+			r, rok := strconv.ParseBool(right.Value)
+			return lok == nil && rok == nil && l == r
+		}
+		return left.Tag == right.Tag && left.Value == right.Value
+	}
+	if len(left.Content) != len(right.Content) {
+		return false
+	}
+	if left.Kind == yaml.SequenceNode {
+		for i := range left.Content {
+			if !jsonValuesEqual(left.Content[i], right.Content[i]) {
+				return false
+			}
+		}
+		return true
+	}
+	if left.Kind == yaml.MappingNode {
+		for i := 0; i+1 < len(left.Content); i += 2 {
+			key := unalias(left.Content[i])
+			other := child(right, key.Value)
+			if other == nil || !jsonValuesEqual(left.Content[i+1], other) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
 
 func isIntegerMultiple(value, divisor string) bool {
@@ -806,7 +858,14 @@ func (a *analysis) resolveSourceWithInputStack(s *skillEntry, proc *yaml.Node, r
 			schema = outputs[parts[0]]
 			offset = 2
 			if schema == nil {
-				a.errorAt(path, line, "BINDING_UNRESOLVED", "unknown node output Producer: "+parts[0])
+				node := child(child(proc, "nodes"), parts[0])
+				if node == nil {
+					a.errorAt(path, line, "BINDING_UNRESOLVED", "unknown node output Producer: "+parts[0])
+				} else if child(node, "procedure") != nil {
+					a.errorAt(path, line, "BINDING_UNRESOLVED", "Procedure node has no declared output Schema: "+parts[0])
+				} else {
+					a.errorAt(path, line, "BINDING_UNRESOLVED", "node action has no declared output Schema: "+parts[0])
+				}
 				return nil
 			}
 		} else {

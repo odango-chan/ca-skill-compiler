@@ -56,11 +56,13 @@ func loadProjectFilesForTest(t *testing.T, root string) []File {
 func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "script-contract-project"))
 	var golden struct {
-		TargetNotFound      []Diagnostic `json:"targetNotFound"`
-		InvalidBinding      []Diagnostic `json:"invalidBinding"`
-		BindingTypeMismatch []Diagnostic `json:"bindingTypeMismatch"`
-		UnknownOperation    []Diagnostic `json:"unknownOperation"`
-		InvalidScriptOutput []Diagnostic `json:"invalidScriptOutput"`
+		TargetNotFound               []Diagnostic `json:"targetNotFound"`
+		InvalidBinding               []Diagnostic `json:"invalidBinding"`
+		BindingTypeMismatch          []Diagnostic `json:"bindingTypeMismatch"`
+		UnknownOperation             []Diagnostic `json:"unknownOperation"`
+		ProcedureOutputMissingSchema []Diagnostic `json:"procedureOutputMissingSchema"`
+		InvalidScriptOutput          []Diagnostic `json:"invalidScriptOutput"`
+		DuplicateLibrary             []Diagnostic `json:"duplicateLibrary"`
 	}
 	data, err := os.ReadFile(filepath.Join("..", "..", "web", "diagnostics-golden.json"))
 	if err != nil {
@@ -93,9 +95,25 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	if got := Check(Request{Files: unknownOperation}); !reflect.DeepEqual(got, golden.UnknownOperation) {
 		t.Fatalf("Native unknown-operation diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.UnknownOperation)
 	}
+	procedureOutput := make([]File, len(files))
+	for i, file := range files {
+		procedureOutput[i] = File{Path: file.Path, Bytes: bytes.Clone(file.Bytes)}
+		if file.Path == "skills/normalize/assurance/procedure.yaml" {
+			procedureOutput[i].Bytes = []byte("procedures:\n  normalize:\n    start: invoke\n    nodes:\n      invoke:\n        procedure: helper\n        'on':\n          SUCCEEDED: normalize-step\n          FAILED: failed\n      normalize-step:\n        preconditions:\n          steps:\n            - name: normalize-value\n              script: scripts/normalize.py\n\n\n\n\n              with:\n                value: {from: invoke.output.value}\n        terminal: SUCCEEDED\n      failed: {terminal: FAILED}\n  helper:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n")
+		}
+	}
+	if got := Check(Request{Files: procedureOutput}); !reflect.DeepEqual(got, golden.ProcedureOutputMissingSchema) {
+		t.Fatalf("Native missing-Procedure-output diagnostics differ from browser golden:\\ngot  %#v\\nwant %#v", got, golden.ProcedureOutputMissingSchema)
+	}
 	invalidOutput := mutateProjectFile(t, files, "skills/normalize/scripts/normalize.py", "normalized: Annotated[str, {\"minLength\": 1, \"pattern\": r\"^[a-z0-9.-]+$\"}]", "normalized: Any")
 	if got := Check(Request{Files: invalidOutput}); !reflect.DeepEqual(got, golden.InvalidScriptOutput) {
 		t.Fatalf("Native invalid-Script diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.InvalidScriptOutput)
+	}
+	duplicate := toolCatalog()
+	duplicate.Path = "lib/tools/duplicate.tool.yaml"
+	duplicateResult := InspectLibraries(Request{Files: append(append([]File(nil), files...), duplicate)})
+	if !reflect.DeepEqual(duplicateResult.Diagnostics, golden.DuplicateLibrary) {
+		t.Fatalf("Native InspectLibraries duplicate-operation diagnostics differ from browser golden:\ngot  %#v\nwant %#v", duplicateResult.Diagnostics, golden.DuplicateLibrary)
 	}
 }
 
@@ -337,7 +355,7 @@ func TestSchemaShapeValidatesDraft2020ConstraintTypes(t *testing.T) {
 	valid := schemaNode(map[string]any{
 		"type": "array", "items": map[string]any{"type": "object"},
 		"minItems": 1, "maxItems": 4, "contains": map[string]any{"type": "string"},
-		"minContains": 1, "maxContains": 2,
+		"minContains": 1, "maxContains": 2, "unevaluatedItems": false,
 	})
 	if err := validateSchemaShape(valid); err != nil {
 		t.Fatalf("valid Draft 2020 constraints rejected: %v", err)
@@ -351,6 +369,16 @@ func TestSchemaShapeValidatesDraft2020ConstraintTypes(t *testing.T) {
 		{"type": "array", "contains": map[string]any{}, "minContains": 3, "maxContains": 2},
 		{"type": "string", "enum": []any{"same", "same"}},
 		{"type": "number", "enum": []any{1, 1.0}},
+		{"type": "array", "unevaluatedItems": "false"},
+	}
+	for _, source := range []string{"type: object\ntrue: {type: string}\n", "type: object\nproperties:\n  true: {type: string}\n", "type: object\ndependentRequired:\n  true: [value]\n"} {
+		var document yaml.Node
+		if err := yaml.Unmarshal([]byte(source), &document); err != nil {
+			t.Fatal(err)
+		}
+		if err := validateSchemaShape(document.Content[0]); err == nil {
+			t.Errorf("non-string JSON object key was accepted: %q", source)
+		}
 	}
 	for _, candidate := range invalid {
 		if err := validateSchemaShape(schemaNode(candidate)); err == nil {
@@ -671,6 +699,36 @@ spec:
 	}
 }
 
+func TestProcedureNodeOutputWithoutDeclaredSchemaIsUnresolved(t *testing.T) {
+	files := source("procedure-output", "run", `procedures:
+  run:
+    start: invoke
+    nodes:
+      invoke: {procedure: helper}
+      consume:
+        call: demo.read
+        with: {ref: {from: invoke.output.result}}
+  helper:
+    start: done
+    nodes:
+      done: {terminal: SUCCEEDED}
+`)
+	files = append(files, toolCatalog())
+	got := Build(Request{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNRESOLVED") {
+		t.Fatalf("Procedure output without an authoritative Schema was accepted: %#v", got.Diagnostics)
+	}
+	foundExplanation := false
+	for _, diagnostic := range got.Diagnostics {
+		if diagnostic.Code == "BINDING_UNRESOLVED" && strings.Contains(diagnostic.Message, "Procedure node has no declared output Schema: invoke") {
+			foundExplanation = true
+		}
+	}
+	if !foundExplanation {
+		t.Fatalf("missing Procedure output Schema was reported as an unknown node: %#v", got.Diagnostics)
+	}
+}
+
 func TestIntegerProducerSatisfiesNumberInput(t *testing.T) {
 	integer := schemaNode(map[string]any{"type": "integer"})
 	number := schemaNode(map[string]any{"type": "number"})
@@ -777,6 +835,34 @@ func TestSchemaCompatibilityIgnoresConstraintsForOtherTypes(t *testing.T) {
 				t.Fatal("inapplicable JSON Schema keywords changed compatibility")
 			}
 		})
+	}
+}
+
+func TestJSONNumericValuesCompareMathematically(t *testing.T) {
+	parse := func(source string) *yaml.Node {
+		t.Helper()
+		var document yaml.Node
+		if err := yaml.Unmarshal([]byte(source), &document); err != nil {
+			t.Fatal(err)
+		}
+		return document.Content[0]
+	}
+	producer := parse("type: number\nenum: [1]\n")
+	consumer := parse("type: number\nenum: [1.0]\n")
+	if !schemasCompatible(producer, consumer) {
+		t.Fatal("JSON Schema numeric enum values 1 and 1.0 should be equal")
+	}
+	if !literalMatchesSchema(parse("1.0\n"), parse("type: number\nconst: 1\n")) {
+		t.Fatal("JSON number literal 1.0 did not satisfy const 1")
+	}
+	if literalMatchesSchema(parse("[1, 1.0]\n"), parse("type: array\nitems: {type: number}\nuniqueItems: true\n")) {
+		t.Fatal("uniqueItems accepted mathematically equal numeric values")
+	}
+	if err := validateSchemaShape(parse("type: number\nenum: [1, 1.0]\n")); err == nil {
+		t.Fatal("duplicate mathematical enum values were accepted")
+	}
+	if !jsonValuesEqual(parse("{nested: [1, {value: 2.00}]}\n"), parse("{nested: [1.0, {value: 2}]}\n")) {
+		t.Fatal("nested JSON values did not compare numeric members mathematically")
 	}
 }
 

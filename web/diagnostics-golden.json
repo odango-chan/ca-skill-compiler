@@ -52,7 +52,16 @@
       "code": "BINDING_UNRESOLVED",
       "path": "skills/normalize/assurance/procedure.yaml",
       "line": 18,
-      "message": "unknown node output Producer: read"
+      "message": "node action has no declared output Schema: read"
+    }
+  ],
+  "procedureOutputMissingSchema": [
+    {
+      "severity": "error",
+      "code": "BINDING_UNRESOLVED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 20,
+      "message": "Procedure node has no declared output Schema: invoke"
     }
   ],
   "invalidScriptOutput": [
@@ -62,6 +71,15 @@
       "path": "skills/normalize/scripts/normalize.py",
       "line": 16,
       "message": "field normalized: broad output type Any is forbidden"
+    }
+  ],
+  "duplicateLibrary": [
+    {
+      "severity": "error",
+      "code": "LIB_OPERATION_DUPLICATE",
+      "path": "lib/tools/duplicate.tool.yaml",
+      "line": 7,
+      "message": "operation demo.read already declared in lib/tools/demo.tool.yaml"
     }
   ]
 }
