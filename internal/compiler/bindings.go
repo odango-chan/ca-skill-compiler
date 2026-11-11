@@ -469,6 +469,14 @@ func schemasCompatible(source, target *yaml.Node) bool {
 	if source == nil || target == nil || !projectionSchemaSupported(source) || !projectionSchemaSupported(target) {
 		return false
 	}
+	if values, finite := finiteSchemaValues(source); finite {
+		for _, value := range values {
+			if literalMatchesSchema(value, source) && !literalMatchesSchema(value, target) {
+				return false
+			}
+		}
+		return true
+	}
 	sourceTypes, sourceOK := schemaTypeNames(child(source, "type"))
 	targetTypes, targetOK := schemaTypeNames(child(target, "type"))
 	if !sourceOK || !targetOK || !schemaTypeSetsCompatible(sourceTypes, targetTypes) {
@@ -534,6 +542,16 @@ func schemasCompatible(source, target *yaml.Node) bool {
 		return schemasCompatible(child(source, "items"), child(target, "items"))
 	}
 	return true
+}
+
+func finiteSchemaValues(schema *yaml.Node) ([]*yaml.Node, bool) {
+	if constant := child(schema, "const"); constant != nil {
+		return []*yaml.Node{constant}, true
+	}
+	if values := child(schema, "enum"); values != nil {
+		return sequence(values), true
+	}
+	return nil, false
 }
 
 func schemaTypeNames(node *yaml.Node) ([]string, bool) {

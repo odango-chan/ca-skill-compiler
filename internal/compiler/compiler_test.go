@@ -898,6 +898,37 @@ func TestIntegerProducerSatisfiesNumberInput(t *testing.T) {
 	}
 }
 
+func TestFiniteProducerSchemasProveConsumerCompatibility(t *testing.T) {
+	parse := func(source string) *yaml.Node {
+		t.Helper()
+		var document yaml.Node
+		if err := yaml.Unmarshal([]byte(source), &document); err != nil {
+			t.Fatal(err)
+		}
+		return document.Content[0]
+	}
+	for _, tc := range []struct {
+		name   string
+		source string
+		target string
+		want   bool
+	}{
+		{"enum satisfies matching const", "type: string\nenum: [ready]\n", "type: string\nconst: ready\n", true},
+		{"enum with another value does not satisfy const", "type: string\nenum: [ready, waiting]\n", "type: string\nconst: ready\n", false},
+		{"const proves consumer pattern", "type: string\nconst: ready\n", "type: string\npattern: '^r'\n", true},
+		{"const fails consumer length", "type: string\nconst: x\n", "type: string\nminLength: 2\n", false},
+		{"numeric enum proves consumer minimum", "type: number\nenum: [4]\n", "type: number\nminimum: 3\n", true},
+		{"numeric enum fails consumer maximum", "type: number\nenum: [4]\n", "type: number\nmaximum: 3\n", false},
+		{"enum eliminated by producer constraints has no outputs", "type: number\nenum: [1]\nminimum: 2\n", "type: string\n", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := schemasCompatible(parse(tc.source), parse(tc.target)); got != tc.want {
+				t.Fatalf("schemasCompatible() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestNullableSchemaBindingsRespectEveryAllowedType(t *testing.T) {
 	nullableString := schemaNode(map[string]any{"type": []any{"string", "null"}})
 	stringOnly := schemaNode(map[string]any{"type": "string"})
