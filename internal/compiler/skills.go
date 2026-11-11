@@ -105,7 +105,9 @@ func (a *analysis) parsePredicates(s *skillEntry, filename string) {
 		return
 	}
 	for _, field := range mapKeys(root) {
-		if field != "predicates" {
+		switch field {
+		case "apiVersion", "kind", "metadata", "predicates":
+		default:
 			a.errorAt(filename, child(root, field).Line, "PREDICATE_SOURCE_INCOMPLETE", "unknown PredicateSet field: "+field)
 		}
 	}
