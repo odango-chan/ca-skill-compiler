@@ -280,8 +280,29 @@ func generic(s, name string) (string, bool) {
 func splitTop(s string) []string {
 	out := []string{}
 	depth, start := 0, 0
-	for i, r := range s {
-		switch r {
+	var quote byte
+	escaped := false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if quote != 0 {
+			if escaped {
+				escaped = false
+				continue
+			}
+			if c == '\\' {
+				escaped = true
+				continue
+			}
+			if c == quote {
+				quote = 0
+			}
+			continue
+		}
+		if c == '\'' || c == '"' {
+			quote = c
+			continue
+		}
+		switch c {
 		case '[', '{', '(':
 			depth++
 		case ']', '}', ')':
@@ -311,13 +332,17 @@ func parseLiteralMap(s string) (map[string]any, error) {
 		if len(p) != 2 {
 			return nil, fmt.Errorf("invalid constraint %s", entry)
 		}
-		k := strings.Trim(strings.TrimSpace(p[0]), "'\"")
+		keyValue, err := literal(strings.TrimSpace(p[0]))
+		k, ok := keyValue.(string)
+		if err != nil || !ok || k == "" {
+			return nil, fmt.Errorf("constraint keys must be nonempty string literals")
+		}
 		if _, exists := m[k]; exists {
 			return nil, fmt.Errorf("duplicate Annotated constraint %s", k)
 		}
-		v, e := literal(p[1])
-		if e != nil {
-			return nil, e
+		v, err := literal(p[1])
+		if err != nil {
+			return nil, err
 		}
 		m[k] = v
 	}
@@ -325,6 +350,21 @@ func parseLiteralMap(s string) (map[string]any, error) {
 }
 func literal(s string) (any, error) {
 	s = strings.TrimSpace(s)
+	if len(s) >= 3 && (s[0] == 'r' || s[0] == 'R') && (s[1] == '\'' || s[1] == '"') {
+		quote := s[1]
+		if s[len(s)-1] != quote {
+			return nil, fmt.Errorf("unterminated raw string literal")
+		}
+		value := s[2 : len(s)-1]
+		trailingSlashes := 0
+		for i := len(value) - 1; i >= 0 && value[i] == '\\'; i-- {
+			trailingSlashes++
+		}
+		if trailingSlashes%2 != 0 {
+			return nil, fmt.Errorf("raw string literal cannot end with an odd number of backslashes")
+		}
+		return value, nil
+	}
 	if s == "True" {
 		return true, nil
 	}
@@ -335,7 +375,11 @@ func literal(s string) (any, error) {
 		return nil, nil
 	}
 	if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
-		return s[1 : len(s)-1], nil
+		value := s[1 : len(s)-1]
+		if strings.ContainsAny(value, "'\\") {
+			return nil, fmt.Errorf("unsupported escape or quote in string literal")
+		}
+		return value, nil
 	}
 	var v any
 	if json.Unmarshal([]byte(s), &v) == nil {

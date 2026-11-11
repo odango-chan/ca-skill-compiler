@@ -836,11 +836,33 @@ func TestBroadScriptOutputIsRejected(t *testing.T) {
 }
 
 func TestAnnotatedOutputConstraintsAreStrict(t *testing.T) {
-	for _, constraint := range []string{`{"minLength": -1}`, `{"mystery": 1}`, `{"pattern": "["}`, `{"minLength": 1, "minLength": 2}`} {
+	for _, constraint := range []string{`{"minLength": -1}`, `{"mystery": 1}`, `{"pattern": "["}`, `{"minLength": 1, "minLength": 2}`, `{minLength: 1}`, `{"minLength: 1}`} {
 		src := "from typing import TypedDict, Annotated\nclass Output(TypedDict):\n    value: Annotated[str, " + constraint + "]\ndef main(input: dict) -> Output:\n    return {}\n"
 		if _, err := parseScriptOutput(src); err == nil {
 			t.Errorf("invalid constraint %s was accepted", constraint)
 		}
+	}
+}
+
+func TestScriptLiteralsKeepQuotedPunctuation(t *testing.T) {
+	src := `from typing import Annotated, Literal, TypedDict
+class Output(TypedDict):
+    value: Annotated[str, {"minLength": 1, "pattern": r"^(foo,bar)[0-9]+$"}]
+    marker: Literal["a,b"]
+def main(input: dict) -> Output:
+    return {}`
+	schema, err := parseScriptOutput(src)
+	if err != nil {
+		t.Fatalf("documented raw pattern string rejected: %v", err)
+	}
+	properties := schema["properties"].(map[string]any)
+	value := properties["value"].(map[string]any)
+	if got := value["pattern"]; got != "^(foo,bar)[0-9]+$" {
+		t.Fatalf("raw pattern changed during parsing: %#v", got)
+	}
+	marker := properties["marker"].(map[string]any)
+	if marker["const"] != "a,b" {
+		t.Fatalf("quoted Literal changed during parsing: %#v", marker)
 	}
 }
 
