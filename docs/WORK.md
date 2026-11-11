@@ -1,6 +1,6 @@
 # Skill Compiler v0 implementation status
 
-Updated: 2026-11-11. Implementation branch: `feat/compiler-v0-complete`, HEAD `04d5b37049820bb9f9014a141bf42f3d6a42d595`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`. Draft [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3) targets `feat/compiler-v0-bootstrap`. This report records observed local evidence; it does not claim a complete Compiler v0.
+Updated: 2026-11-11. Implementation branch: `feat/compiler-v0-complete`, implementation HEAD `d6fab3908728e875a5d3f6c0b33c1ec15160a1f5`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`. Draft [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3) targets `feat/compiler-v0-bootstrap`. This report records observed local evidence; it does not claim a complete Compiler v0.
 
 ## Work packages
 
