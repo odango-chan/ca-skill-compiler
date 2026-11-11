@@ -410,15 +410,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 				}
 			}
 			if branch := child(node, "on"); branch != nil {
-				if unalias(branch).Kind != yaml.MappingNode {
-					a.errorAt(s.procedure, branch.Line, "PROCEDURE_UNSUPPORTED", "on must map outcomes to node names")
-				}
-				for _, outcome := range mapKeys(branch) {
-					target := scalar(child(branch, outcome))
-					if !known[target] {
-						a.errorAt(s.procedure, child(branch, outcome).Line, "NODE_TARGET_UNKNOWN", "unknown outcome target: "+target)
-					}
-				}
+				a.validateOutcomeBranches(s.procedure, branch, known, "on")
 			}
 			for _, scope := range []string{"preconditions", "postconditions"} {
 				scopeNode := child(node, scope)
@@ -432,16 +424,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 						}
 					}
 					if branch := child(scopeNode, "on"); branch != nil {
-						if unalias(branch).Kind != yaml.MappingNode {
-							a.errorAt(s.procedure, branch.Line, "PROCEDURE_UNSUPPORTED", scope+".on must map outcomes to node names")
-						} else {
-							for _, outcome := range mapKeys(branch) {
-								target := scalar(child(branch, outcome))
-								if outcome == "" || target == "" || !known[target] {
-									a.errorAt(s.procedure, child(branch, outcome).Line, "NODE_TARGET_UNKNOWN", "unknown "+scope+" outcome target: "+target)
-								}
-							}
-						}
+						a.validateOutcomeBranches(s.procedure, branch, known, scope+".on")
 					}
 				}
 				if steps := child(scopeNode, "steps"); steps != nil {
@@ -498,6 +481,36 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 		}
 	}
 	a.validateLocalProcedureCycles(s)
+}
+
+func (a *analysis) validateOutcomeBranches(filename string, branch *yaml.Node, known map[string]bool, label string) {
+	branch = unalias(branch)
+	if branch == nil || branch.Kind != yaml.MappingNode {
+		line := 0
+		if branch != nil {
+			line = branch.Line
+		}
+		a.errorAt(filename, line, "PROCEDURE_UNSUPPORTED", label+" must map nonempty outcome names to node names")
+		return
+	}
+	if len(branch.Content) == 0 {
+		a.errorAt(filename, branch.Line, "PROCEDURE_UNSUPPORTED", label+" must contain at least one outcome branch")
+		return
+	}
+	for i := 0; i+1 < len(branch.Content); i += 2 {
+		outcome, targetNode := unalias(branch.Content[i]), unalias(branch.Content[i+1])
+		if outcome.Kind != yaml.ScalarNode || outcome.Tag != "!!str" || outcome.Value == "" {
+			a.errorAt(filename, outcome.Line, "PROCEDURE_UNSUPPORTED", label+" outcome names must be nonempty strings")
+			continue
+		}
+		if targetNode.Kind != yaml.ScalarNode || targetNode.Tag != "!!str" || targetNode.Value == "" || !known[targetNode.Value] {
+			target := ""
+			if targetNode.Kind == yaml.ScalarNode {
+				target = targetNode.Value
+			}
+			a.errorAt(filename, targetNode.Line, "NODE_TARGET_UNKNOWN", "unknown "+label+" target: "+target)
+		}
+	}
 }
 
 func validProcedureInputType(typ string) bool {

@@ -71,6 +71,26 @@ func TestBuildMultiSkillAndImportedToolCatalog(t *testing.T) {
 	}
 }
 
+func TestRequestFileOrderDoesNotChangeBuildOrDiagnostics(t *testing.T) {
+	files := testProject()
+	baseline := Build(Request{Files: files})
+	for i, j := 0, len(files)-1; i < j; i, j = i+1, j-1 {
+		files[i], files[j] = files[j], files[i]
+	}
+	shuffled := Build(Request{Files: files})
+	if !reflect.DeepEqual(baseline, shuffled) {
+		t.Fatalf("input file order changed Build result:\nbaseline=%#v\nshuffled=%#v", baseline, shuffled)
+	}
+	broken := append(testProject(), File{Path: "skills/broken/assurance/procedure.yaml", Bytes: []byte("procedures: [broken")})
+	check := Check(Request{Files: broken})
+	for i, j := 0, len(broken)-1; i < j; i, j = i+1, j-1 {
+		broken[i], broken[j] = broken[j], broken[i]
+	}
+	if got := Check(Request{Files: broken}); !reflect.DeepEqual(check, got) {
+		t.Fatalf("input file order changed diagnostics:\nfirst=%#v\nsecond=%#v", check, got)
+	}
+}
+
 func TestBuildCanSelectOneSkill(t *testing.T) {
 	req := Request{Files: testProject(), Targets: []string{"child"}}
 	result := Build(req)
@@ -90,6 +110,22 @@ func TestTargetBuildIgnoresBrokenUnrelatedSkill(t *testing.T) {
 	got := Build(Request{Files: files, Targets: []string{"root"}})
 	if !got.Success {
 		t.Fatalf("unrelated invalid Skill blocked target closure: %#v", got.Diagnostics)
+	}
+}
+
+func TestOutcomeBranchesRejectEmptyMapsAndNames(t *testing.T) {
+	for _, branch := range []string{"'on': {}", "'on': {\"\": done}", "postconditions: {on: {}}"} {
+		files := source("branch", "run", "procedures:\n  run:\n    start: read\n    nodes:\n      read:\n        call: demo.read\n        with: {ref: {value: sample}}\n        "+branch+"\n      done: {terminal: SUCCEEDED}\n")
+		files = append(files, toolCatalog())
+		got := Build(Request{Files: files})
+		if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
+			t.Fatalf("malformed outcome branch %q was accepted: %#v", branch, got.Diagnostics)
+		}
+		for _, d := range got.Diagnostics {
+			if d.Code == "PROCEDURE_UNSUPPORTED" && d.Path != "skills/branch/assurance/procedure.yaml" {
+				t.Fatalf("branch diagnostic has wrong source path: %#v", d)
+			}
+		}
 	}
 }
 
@@ -195,6 +231,30 @@ spec:
 	got := Build(Request{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
 		t.Fatalf("malformed unused Tool Schema was ignored: %#v", got.Diagnostics)
+	}
+}
+
+func TestSchemaShapeValidatesDraft2020ConstraintTypes(t *testing.T) {
+	valid := schemaNode(map[string]any{
+		"type": "array", "items": map[string]any{"type": "object"},
+		"minItems": 1, "maxItems": 4, "contains": map[string]any{"type": "string"},
+		"minContains": 1, "maxContains": 2,
+	})
+	if err := validateSchemaShape(valid); err != nil {
+		t.Fatalf("valid Draft 2020 constraints rejected: %v", err)
+	}
+	invalid := []map[string]any{
+		{"type": "object", "minProperties": "1"},
+		{"type": "string", "minLength": 1.5},
+		{"type": "object", "required": []any{"key", "key"}},
+		{"type": "object", "patternProperties": map[string]any{"[": map[string]any{"type": "string"}}},
+		{"type": "object", "additionalProperties": "true"},
+		{"type": "array", "contains": map[string]any{}, "minContains": 3, "maxContains": 2},
+	}
+	for _, candidate := range invalid {
+		if err := validateSchemaShape(schemaNode(candidate)); err == nil {
+			t.Errorf("invalid Schema accepted: %#v", candidate)
+		}
 	}
 }
 

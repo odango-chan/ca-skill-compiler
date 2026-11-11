@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -21,6 +22,7 @@ func validateSchemaShape(schema *yaml.Node) error {
 		"additionalProperties": true, "unevaluatedProperties": true, "items": true,
 		"prefixItems": true, "unevaluatedItems": true, "contains": true, "minItems": true,
 		"maxItems": true, "uniqueItems": true, "minLength": true, "maxLength": true,
+		"minProperties": true, "maxProperties": true, "minContains": true, "maxContains": true,
 		"pattern": true, "format": true, "minimum": true, "maximum": true,
 		"exclusiveMinimum": true, "exclusiveMaximum": true, "multipleOf": true,
 		"const": true, "enum": true, "allOf": true, "anyOf": true, "oneOf": true,
@@ -40,7 +42,7 @@ func validateSchemaShape(schema *yaml.Node) error {
 	if typ := child(schema, "type"); typ != nil {
 		allowed := map[string]bool{"null": true, "boolean": true, "object": true, "array": true, "number": true, "integer": true, "string": true}
 		if unalias(typ).Kind == yaml.ScalarNode {
-			if !allowed[scalar(typ)] {
+			if unalias(typ).Tag != "!!str" || !allowed[scalar(typ)] {
 				return fmt.Errorf("unsupported type %q", scalar(typ))
 			}
 		} else if unalias(typ).Kind == yaml.SequenceNode {
@@ -50,7 +52,7 @@ func validateSchemaShape(schema *yaml.Node) error {
 			seen := map[string]bool{}
 			for _, item := range sequence(typ) {
 				name := scalar(item)
-				if !allowed[name] || seen[name] {
+				if unalias(item).Kind != yaml.ScalarNode || unalias(item).Tag != "!!str" || !allowed[name] || seen[name] {
 					return fmt.Errorf("invalid or duplicate type %q", name)
 				}
 				seen[name] = true
@@ -68,6 +70,11 @@ func validateSchemaShape(schema *yaml.Node) error {
 			return fmt.Errorf("%s must be an object", key)
 		}
 		for _, name := range mapKeys(mapping) {
+			if key == "patternProperties" {
+				if _, err := regexp.Compile(name); err != nil {
+					return fmt.Errorf("invalid patternProperties pattern %q: %w", name, err)
+				}
+			}
 			if err := validateSubschema(child(mapping, name)); err != nil {
 				return fmt.Errorf("%s.%s: %w", key, name, err)
 			}
@@ -87,7 +94,7 @@ func validateSchemaShape(schema *yaml.Node) error {
 			continue
 		}
 		if key == "additionalProperties" || key == "unevaluatedProperties" {
-			if unalias(value).Kind == yaml.ScalarNode && (scalar(value) == "true" || scalar(value) == "false") {
+			if unalias(value).Kind == yaml.ScalarNode && unalias(value).Tag == "!!bool" {
 				continue
 			}
 		}
@@ -122,22 +129,21 @@ func validateSchemaShape(schema *yaml.Node) error {
 			seen[name] = true
 		}
 	}
-	for _, key := range []string{"minLength", "maxLength", "minItems", "maxItems", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf"} {
+	for _, key := range []string{"minLength", "maxLength", "minItems", "maxItems", "minProperties", "maxProperties", "minContains", "maxContains", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf"} {
 		if value := child(schema, key); value != nil {
-			n, err := strconv.ParseFloat(scalar(value), 64)
-			if err != nil || (strings.HasPrefix(key, "min") || strings.HasPrefix(key, "max")) && n < 0 || key == "multipleOf" && n <= 0 {
+			n, err := schemaNumericValue(value)
+			if err != nil || math.IsNaN(n) || math.IsInf(n, 0) || (strings.HasPrefix(key, "min") || strings.HasPrefix(key, "max")) && n < 0 || key == "multipleOf" && n <= 0 {
 				return fmt.Errorf("invalid numeric constraint %s", key)
 			}
-			if (key == "minLength" || key == "maxLength" || key == "minItems" || key == "maxItems") && n != float64(int64(n)) {
+			if schemaCountConstraint(key) && n != math.Trunc(n) {
 				return fmt.Errorf("%s must be an integer", key)
 			}
 		}
 	}
-	if min, max := schemaNumber(schema, "minLength"), schemaNumber(schema, "maxLength"); min != nil && max != nil && *min > *max {
-		return fmt.Errorf("minLength exceeds maxLength")
-	}
-	if min, max := schemaNumber(schema, "minItems"), schemaNumber(schema, "maxItems"); min != nil && max != nil && *min > *max {
-		return fmt.Errorf("minItems exceeds maxItems")
+	for _, pair := range [][2]string{{"minLength", "maxLength"}, {"minItems", "maxItems"}, {"minProperties", "maxProperties"}, {"minContains", "maxContains"}} {
+		if min, max := schemaNumber(schema, pair[0]), schemaNumber(schema, pair[1]); min != nil && max != nil && *min > *max {
+			return fmt.Errorf("%s exceeds %s", pair[0], pair[1])
+		}
 	}
 	for _, key := range []string{"pattern", "format"} {
 		if value := child(schema, key); value != nil && (unalias(value).Kind != yaml.ScalarNode || unalias(value).Tag != "!!str") {
@@ -163,10 +169,13 @@ func validateSchemaShape(schema *yaml.Node) error {
 			if unalias(list).Kind != yaml.SequenceNode {
 				return fmt.Errorf("dependentRequired.%s must be a string array", name)
 			}
+			seen := map[string]bool{}
 			for _, item := range sequence(list) {
-				if unalias(item).Kind != yaml.ScalarNode || unalias(item).Tag != "!!str" {
+				name := scalar(item)
+				if unalias(item).Kind != yaml.ScalarNode || unalias(item).Tag != "!!str" || seen[name] {
 					return fmt.Errorf("dependentRequired.%s entries must be strings", name)
 				}
+				seen[name] = true
 			}
 		}
 	}
@@ -179,6 +188,16 @@ func validateSchemaShape(schema *yaml.Node) error {
 		value := child(schema, key)
 		if value != nil && unalias(value).Kind != yaml.SequenceNode {
 			return fmt.Errorf("%s must be an array", key)
+		}
+	}
+	if value := child(schema, "default"); value != nil && !validJSONLiteral(value) {
+		return fmt.Errorf("default must be a JSON value")
+	}
+	if examples := child(schema, "examples"); examples != nil {
+		for _, value := range sequence(examples) {
+			if !validJSONLiteral(value) {
+				return fmt.Errorf("examples entries must be JSON values")
+			}
 		}
 	}
 	if enum := child(schema, "enum"); enum != nil && len(sequence(enum)) == 0 {
@@ -198,6 +217,23 @@ func validateSchemaShape(schema *yaml.Node) error {
 		return fmt.Errorf("uniqueItems must be boolean")
 	}
 	return nil
+}
+
+func schemaNumericValue(value *yaml.Node) (float64, error) {
+	value = unalias(value)
+	if value == nil || value.Kind != yaml.ScalarNode || (value.Tag != "!!int" && value.Tag != "!!float") {
+		return 0, fmt.Errorf("not a numeric scalar")
+	}
+	return strconv.ParseFloat(value.Value, 64)
+}
+
+func schemaCountConstraint(key string) bool {
+	switch key {
+	case "minLength", "maxLength", "minItems", "maxItems", "minProperties", "maxProperties", "minContains", "maxContains":
+		return true
+	default:
+		return false
+	}
 }
 
 func validateSubschema(schema *yaml.Node) error {
