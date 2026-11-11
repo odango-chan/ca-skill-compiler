@@ -56,12 +56,13 @@ func loadProjectFilesForTest(t *testing.T, root string) []File {
 func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "script-contract-project"))
 	var golden struct {
-		TargetNotFound      []Diagnostic `json:"targetNotFound"`
-		InvalidBinding      []Diagnostic `json:"invalidBinding"`
-		BindingTypeMismatch []Diagnostic `json:"bindingTypeMismatch"`
-		UnknownOperation    []Diagnostic `json:"unknownOperation"`
-		InvalidScriptOutput []Diagnostic `json:"invalidScriptOutput"`
-		DuplicateLibrary    []Diagnostic `json:"duplicateLibrary"`
+		TargetNotFound               []Diagnostic `json:"targetNotFound"`
+		InvalidBinding               []Diagnostic `json:"invalidBinding"`
+		BindingTypeMismatch          []Diagnostic `json:"bindingTypeMismatch"`
+		UnknownOperation             []Diagnostic `json:"unknownOperation"`
+		ProcedureOutputMissingSchema []Diagnostic `json:"procedureOutputMissingSchema"`
+		InvalidScriptOutput          []Diagnostic `json:"invalidScriptOutput"`
+		DuplicateLibrary             []Diagnostic `json:"duplicateLibrary"`
 	}
 	data, err := os.ReadFile(filepath.Join("..", "..", "web", "diagnostics-golden.json"))
 	if err != nil {
@@ -93,6 +94,16 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	unknownOperation := mutateProjectFile(t, files, "skills/normalize/assurance/procedure.yaml", "call: demo.read", "call: demo.missing")
 	if got := Check(Request{Files: unknownOperation}); !reflect.DeepEqual(got, golden.UnknownOperation) {
 		t.Fatalf("Native unknown-operation diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.UnknownOperation)
+	}
+	procedureOutput := make([]File, len(files))
+	for i, file := range files {
+		procedureOutput[i] = File{Path: file.Path, Bytes: bytes.Clone(file.Bytes)}
+		if file.Path == "skills/normalize/assurance/procedure.yaml" {
+			procedureOutput[i].Bytes = []byte("procedures:\n  normalize:\n    start: invoke\n    nodes:\n      invoke:\n        procedure: helper\n        'on':\n          SUCCEEDED: normalize-step\n          FAILED: failed\n      normalize-step:\n        preconditions:\n          steps:\n            - name: normalize-value\n              script: scripts/normalize.py\n\n\n\n\n              with:\n                value: {from: invoke.output.value}\n        terminal: SUCCEEDED\n      failed: {terminal: FAILED}\n  helper:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n")
+		}
+	}
+	if got := Check(Request{Files: procedureOutput}); !reflect.DeepEqual(got, golden.ProcedureOutputMissingSchema) {
+		t.Fatalf("Native missing-Procedure-output diagnostics differ from browser golden:\\ngot  %#v\\nwant %#v", got, golden.ProcedureOutputMissingSchema)
 	}
 	invalidOutput := mutateProjectFile(t, files, "skills/normalize/scripts/normalize.py", "normalized: Annotated[str, {\"minLength\": 1, \"pattern\": r\"^[a-z0-9.-]+$\"}]", "normalized: Any")
 	if got := Check(Request{Files: invalidOutput}); !reflect.DeepEqual(got, golden.InvalidScriptOutput) {

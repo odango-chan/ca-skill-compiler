@@ -55,6 +55,15 @@
       "message": "node action has no declared output Schema: read"
     }
   ],
+  "procedureOutputMissingSchema": [
+    {
+      "severity": "error",
+      "code": "BINDING_UNRESOLVED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 20,
+      "message": "Procedure node has no declared output Schema: invoke"
+    }
+  ],
   "invalidScriptOutput": [
     {
       "severity": "error",
