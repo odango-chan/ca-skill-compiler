@@ -66,12 +66,17 @@ func TestSemanticProcedureInputBindingFailsClosed(t *testing.T) {
 			t.Fatalf("same field name must not bind: %#v", got)
 		}
 	})
-	t.Run("schema mismatch", func(t *testing.T) {
+	t.Run("schema proof remains canonical", func(t *testing.T) {
+		source := semanticTestNode(t, "{type: integer, x-ca-semanticId: policy.current}")
 		a := &analysis{procedureInputSchemas: map[*yaml.Node]map[string]*yaml.Node{
-			proc: {"state": semanticTestNode(t, "{type: integer, x-ca-semanticId: policy.current}")},
+			proc: {"state": source},
 		}}
-		if got := a.addSemanticProcedureInputBindings(proc, nil, expected, "procedure.yaml", "call"); got != nil {
-			t.Fatalf("incompatible producer must not bind: %#v", got)
+		got := a.addSemanticProcedureInputBindings(proc, nil, expected, "procedure.yaml", "call")
+		if got == nil || scalar(child(got.Content[1], "from")) != "input.state" {
+			t.Fatalf("semantic resolver should propose the unique identity candidate: %#v", got)
+		}
+		if schemasCompatible(source, schemaProperty(expected, "stateRef")) {
+			t.Fatal("canonical schema checker should reject integer Producer for string Consumer")
 		}
 	})
 }
