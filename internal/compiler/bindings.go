@@ -208,10 +208,13 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 					source = nil
 				}
 			}
-			if expected == nil && source != nil && !projectionSchemaSupported(source) {
-				a.errorAt(path, from.Line, "BINDING_UNSUPPORTED", "Producer Schema cannot be represented by the static input projection: "+scalar(from))
-				source = nil
-			}
+			// Procedure Script inputs have no separately authored consumer
+			// Schema: the with: keys define the invocation projection, and the
+			// exact Producer path above is the source contract. When an action
+			// has no available consumer Schema, do not reject a valid Producer
+			// solely because its value constraints are outside the compatibility
+			// checker; there is no consumer constraint to compare here. A missing
+			// authoritative Owner Schema is diagnosed independently.
 		}
 		if literal != nil && expected == nil && !validJSONLiteral(literal) {
 			a.errorAt(path, literal.Line, "BINDING_UNSUPPORTED", "value binding must be a JSON literal")

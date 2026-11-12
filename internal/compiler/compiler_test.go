@@ -1610,6 +1610,25 @@ func TestUnsupportedBindingSchemasAreNotReportedAsTypeMismatches(t *testing.T) {
 	}
 }
 
+func TestScriptInputProjectionUsesExactProducerWithoutConsumerSchema(t *testing.T) {
+	files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "script-contract-project"))
+	changed := false
+	for i := range files {
+		if files[i].Path == "lib/tools/demo.tool.yaml" {
+			text := strings.Replace(string(files[i].Bytes), "value: *text", "value: {type: string, format: date-time}", 1)
+			changed = text != string(files[i].Bytes)
+			files[i].Bytes = []byte(text)
+		}
+	}
+	if !changed {
+		t.Fatal("test mutation did not apply")
+	}
+	got := Build(Request{Files: files})
+	if !got.Success {
+		t.Fatalf("a Script input projection should carry the exact Producer Schema without inventing a consumer constraint: %#v", got.Diagnostics)
+	}
+}
+
 func TestPreAndPostconditionStepsHaveDistinctOutputScopes(t *testing.T) {
 	files := source("scopes", "run", `procedures:
   run:
