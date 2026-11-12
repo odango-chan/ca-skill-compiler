@@ -218,7 +218,7 @@ Current known external blockers in the official PDU source are the Host Subject/
 The response shapes are [build-result.schema.json](../../contracts/v0.1/build-result.schema.json) and [dependency-inspection.schema.json](../../contracts/v0.1/dependency-inspection.schema.json).
 
 - check and build share the same static analysis.
-- On any ERROR, Build returns success: false and an empty outputFiles array.
+- On any ERROR, Build returns success: false with empty dependencyClosure and outputFiles arrays.
 - On success, `outputFiles` contains selected Skill source and generated Skill files only, sorted by normalized Skill path. Imported dependency files are not copied into this tree.
 - `dependencyClosure` contains the unique dependency ID + digest pairs actually used by selected Skills and their transitive Schema/Operation references, sorted by dependency ID. This records the exact locked snapshots needed to reproduce the build without taking ownership of their persistence.
 - Diagnostics have stable ordering and identify the actual input path and source position when available.
