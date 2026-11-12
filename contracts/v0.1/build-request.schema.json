@@ -72,7 +72,7 @@
           "minLength": 1,
           "maxLength": 128,
           "pattern": "^[a-z][a-z0-9._-]*$",
-          "description": "Stable Workspace Configuration identity/alias. Never referenced by Skill source."
+          "description": "Stable Workspace Configuration alias / logical reference namespace. Skill source may use it only to qualify an exported contract reference; it is not a source locator."
         },
         "digest": {
           "type": "string",
