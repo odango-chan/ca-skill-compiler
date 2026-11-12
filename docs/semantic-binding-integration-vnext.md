@@ -134,9 +134,16 @@ A Skill must not hard-code a physical `lib/` path. The path is a workspace mater
 
 The target boundary is:
 
-1. Skill source names a stable dependency ID and the exported contract identity it consumes (for example an Operation ID or a named owner Schema).
-2. Plugin-managed Workspace Configuration resolves that dependency to a pinned source/revision and immutable content snapshot, keeping source selection, lock/integrity metadata, import/refresh, and cache outside Skill source.
-3. Compiler receives `sourceFiles` plus a deterministic `resolvedDependencies` collection keyed by logical dependency identity. It validates exact exported contract identity, version/revision, digest, schema shape, and references against the supplied bytes.
-4. Compiler returns an in-memory BuildResult. The Plugin owns persistence/display; `lib/` and `output/` are not mandatory compiler input/output filesystem paths.
+1. Skill source names only the language-level exported contract identity it consumes (for example an exact Operation ID or a future versioned stable Schema identity). It does **not** name a dependency ID/alias, source, repository, revision, digest, cache key, or local path.
+2. Plugin-managed Workspace Configuration owns dependency identity/alias, source acquisition, pinned source/revision, lock/integrity, immutable snapshot persistence, import/refresh/Update Lock, export and cache. It maps the Skill's exported contract references to the exact locked snapshot(s).
+3. Compiler receives Skill source plus a deterministic collection of resolved immutable dependency snapshots in its versioned BuildRequest. It validates snapshot digest and exact exported contract identity against supplied bytes. The final wire shape and digest preimage must be frozen with Studio's contract; do not invent a second ProjectContext or package lifecycle.
+4. Compiler returns an in-memory BuildResult. The Plugin owns persistence/display; no physical `lib/` or `output/` directory is required.
 
-Do not introduce `skill-project.yaml`, `skill.lock.yaml`, or another mandatory path manifest to solve this. The exact Skill YAML reference syntax remains open and must align with the accepted Plugin-managed configuration contract. Keep the current v0.2 `lib/**` path adapter as a compatibility bridge only; no path migration should occur until the dependency identity contract and a real 5GC build fixture are accepted.
+Do not introduce `dependency:` source locator fields in SkillContract, `skill-project.yaml`, `skill.lock.yaml`, or another mandatory path manifest. The exact Skill YAML reference syntax and Compiler BuildRequest wire shape remain open and must align with the frozen Studio Plugin-managed Configuration v0.1 contract. The current v0.2 `lib/**` path adapter is compatibility behavior only; no path migration should occur until the dependency identity contract and a real 5GC build fixture are accepted.
+
+
+## 11. Alignment finding: Compiler v0.1 Draft #4 must be reconciled before implementation
+
+Compiler Draft #4 currently accepts only `BuildRequest{files,targets}` with a caller-mounted `skills/**` + logical `lib/**` file namespace. Although this does not require a physical workspace `lib/` folder, it still models imported dependencies as path-mounted files and does not carry dependency snapshot identity/digest as a first-class input. Skill Studio PR #150 freezes a different boundary: Workspace Configuration owns dependencies/lock/snapshot storage, and the Compiler defines the canonical normalized input/digest contract while receiving already-pinned snapshots and logical Tool references, with no `lib/` fallback.
+
+These contracts are not yet aligned. Before declaring Compiler v0.1 implementation-ready, update its machine BuildRequest contract and cross-language golden vectors to accept resolved immutable dependency snapshots without making their workspace storage path part of Skill syntax or Compiler identity. Preserve the existing `{files,targets}` implementation only as the current compatibility baseline; do not claim it satisfies the frozen Plugin-managed design.
