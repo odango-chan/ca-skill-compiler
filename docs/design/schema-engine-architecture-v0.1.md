@@ -639,7 +639,7 @@ After the audit:
 
 ## 17. Final Spike decision and migration plan
 
-This section supersedes earlier candidate-selection and spike-planning statements in §§5, 7, 10, and 14–16 where they conflict with the completed PR #8 evidence.
+This section supersedes earlier candidate-selection and spike-planning statements in §§5, 7, 10, 11.8, 12, and 14–16 where they conflict with the completed PR #8 evidence. Those sections are historical context, not current candidate-selection guidance.
 
 ### 17.1 Final candidate decision
 
@@ -682,6 +682,30 @@ A critical correction: valid recursive JSON Schema references are supported Sche
 
 ### 17.4 Current authorization state
 
-The Spike is complete and awaiting review. The migration design is proposed for review. No production dependency, production code, BuildRequest/BuildResult contract, CLI, WASM public API, or main branch has been changed by this decision.
+The Spike is complete and remains isolated for review. The migration design is provisional and has not been approved as an implementation contract. No production dependency, production code, BuildRequest/BuildResult contract, CLI, WASM public API, or main branch has been changed by this decision.
 
-Production implementation may begin only after the migration design and Spike review are accepted. The migration branch must start from PR #5 head `49753ce345f8cf99654566995dd3b5aff070f844` and must not import the isolated Spike harness as a production package.
+Production implementation is paused until the ca-skills vNext language and owner contracts are reviewed and frozen, and the Studio Plugin-managed dependency snapshot contract is aligned with Compiler BuildRequest. The sequencing decision is recorded in docs/design/schema-engine-migration-sequencing-v0.1.md. The migration branch must be based on the then-current, explicitly confirmed PR #5 implementation checkpoint; do not assume the current checkpoint will remain valid after the language migration.
+
+
+## 18. Sequencing decision: SKILL language first, Schema Engine migration second
+
+**Status: FROZEN — sequencing decision only.** This does not freeze the proposed vNext SKILL syntax or approve this migration design for implementation.
+
+The ca-skills Capability & Authoring Model vNext is currently in design review and explicitly states that syntax is not frozen. Its open decisions affect Compiler inputs and semantics: Context Projection, Predicate input and READ acquisition scheduling, explicit binding placement and precedence, Semantic Field Identity, Capability/Operation authorization, Evidence and temporal guarantees, normalized projections, deployment overlays, and canonical Procedure placement.
+
+The current 5GC source audit also shows that the owner contract bundle is not yet complete. ca-agent-demo PR #198 (Host Context/Evidence schemas) and PR #200 (normalized Observation output schemas) remain Draft and unmerged. The 17-ref Observation inventory is a source-class mapping, not proof that each ref has an equivalent governed READ Operation, owner-published output Schema, evidence contract, and preserved acquisition point. MAS remains design-only and is not an executable acceptance baseline.
+
+Compiler PR #7 is an unverified Binding Resolver experiment. Its proposed semantic IDs are not yet owner-published; the fixture availability facts are not derived from real CFG analysis; and its compiler-package call-site prototype has not completed a full test run. It must remain separate from production migration.
+
+Therefore:
+- retain PR #8 as isolated technical evidence and the CONDITIONAL ADOPT candidate decision;
+- keep PR #6 Draft and revise it after the language/owner/dependency contracts are frozen;
+- keep PR #7 Draft and experimental until its inputs and algorithm are grounded in the frozen contracts;
+- preserve current v0.2 Skill and Compiler/Runtime behavior;
+- do not start production Schema Engine Adapter/Registry work or add San/regexp2 to production dependencies.
+
+The full decision and exit gates are recorded in docs/design/schema-engine-migration-sequencing-v0.1.md.
+
+After the vNext language, 5GC owner contracts, and Plugin-managed BuildRequest boundary are frozen, re-review this document. Resolve the previously identified Anchor/Alias SourceMap, Draft profile, reference ownership, ToolCatalog maturity/MAS NOT_READY, and Binding Plan/BuildRequest issues before implementation.
+
+This is a deliberate sequencing freeze, not abandonment of the Schema Engine work.
