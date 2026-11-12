@@ -1,6 +1,6 @@
 # Semantic Binding Resolver — Compiler Integration Design
 
-Status: **SPIKE DESIGN / NOT IMPLEMENTED IN COMPILER PIPELINE**  
+Status: **SPIKE IMPLEMENTATION COMMITTED / EXECUTION NOT VERIFIED**  
 Base: Compiler v0.1 implementation branch (feat/compiler-v01-implementation-20261111)  
 Related: [ca-skills Semantic Field Identity vNext](https://github.com/odango-chan/ca-skills/blob/design/capability-authoring-model-vnext/docs/design/semantic-field-identity-vnext.md), [isolated PR #7](https://github.com/odango-chan/ca-skill-compiler/pull/7).
 
@@ -104,3 +104,18 @@ Only after these pass should the Compiler expose a stable Binding Plan in its bu
 No production integration, syntax freeze, or PR merge is implied by this design note.
 
 Correction based on the current ca-skills main contracts and docs/schema-ownership.md: the logical Context Owner paths are already declared in the official SkillContracts, but the actual owner files are not present in the current shared lib snapshot. The older Compiler PR #5 demo copies are additionally stale because they omit those declarations. These are distinct issues; do not conflate them.
+
+
+## 8. Current spike implementation (2026-11-12)
+
+The isolated branch now contains a narrow compiler-package candidate generator:
+
+- `internal/compiler/semantic_bindings.go` reads explicit `x-ca-semanticId` values from the already resolved Procedure input Producer Schemas and Operation Consumer Schema properties.
+- `internal/compiler/bindings.go` invokes it only for Operation call sites (main node and named pre/postcondition calls), then passes the in-memory merged `with` map into the existing `checkBindings`.
+- The resolver considers missing **required** inputs only, never overwrites explicit authored mappings, preserves malformed explicit `with` for the existing diagnostic path, and emits `BINDING_AMBIGUOUS` when multiple Procedure inputs carry the same semantic ID.
+- A unique semantic match is proposed even if its schemas are incompatible; the existing `checkBindings` must then reject it with the canonical `BINDING_TYPE_MISMATCH`. The candidate generator deliberately does not call `schemasCompatible` itself and has no independent CFG/type proof.
+- `internal/compiler/semantic_bindings_test.go` covers ID parsing, unique candidate generation, ambiguity, same-name/different-ID, delegation of schema mismatch, and explicit mapping precedence.
+
+The static binding-schema allowlist now admits exactly `x-ca-semanticId` as non-validating metadata; other unknown extensions remain unsupported by that conservative proof subset. General Schema shape validation already permits `x-*` annotations.
+
+**Not yet verified:** no Go test execution or CI result was available for this follow-up compiler-package implementation. The environment could not resolve GitHub for a local clone, and this repository has no configured workflow run attached to the spike head. Treat this as committed prototype code awaiting execution, not PASS. Full pipeline tests still require owner-approved Context Schemas; see §5.
