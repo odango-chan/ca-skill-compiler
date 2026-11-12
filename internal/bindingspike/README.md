@@ -98,3 +98,10 @@ Related semantic-identity draft: `ca-skills` PR #24 `docs/design/semantic-field-
 The existing Compiler already implements the authoritative schema and control-flow checks in `internal/compiler/bindings.go`: `schemasCompatible`, `bindingSourceAvailable` / `nodeOutputDominates`, and `checkBindings`. The production Resolver should therefore generate candidate bindings only, then pass the in-memory result through `checkBindings`; it must not ship its own weaker type/CFG verifier.
 
 See [Semantic Binding Resolver — Compiler Integration Design](../../docs/semantic-binding-integration-vnext.md) for the proposed call-site, scope, test gates, and the important finding that the checked-in Compiler MAS/5GC SkillContract fixtures do not yet include the authoritative Context Owner Schemas referenced by their Procedures. A true compiler-pipeline integration test must supply those schemas explicitly rather than inventing them.
+
+
+### Context Owner dependency correction
+
+The official ca-skills main SkillContracts already declare the logical Owner paths (`lib/host/subject.schema.yaml`, `lib/host/facts.schema.yaml`, `lib/observations/context-observations.schema.yaml`; conventional 5GC also declares `lib/host/evidence.schema.yaml`). But those externally owned files are not present in the current ca-skills shared `lib/` snapshot. The older Compiler PR #5 demo copies are also stale and omit the `context.schemas` declarations. See `ca-skills/docs/schema-ownership.md`.
+
+This means a full compiler-pipeline auto-binding test must wait for the actual Host/Observation owners to supply the schemas (or use explicitly labeled test-only schemas). The current source-fixture comparison does not establish that missing external contract. Never fabricate these files inside a Skill to make compilation pass.
