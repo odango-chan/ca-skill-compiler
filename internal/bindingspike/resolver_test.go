@@ -5,17 +5,17 @@ import "testing"
 // Names match the 11 repeated fields in the current MAS Procedure/ToolCatalog.
 // Semantic IDs are hypothetical proposed annotations, NOT existing contracts.
 var mas = []struct{ alias, input, typ, semantic string }{
-	{"ue", "ueRef", "string", "session.ue"},
+	{"ue", "ueRef", "string", "session.subject.ue"},
 	{"ingress", "ingressRef", "string", "invocation.ingress"},
 	{"lifecycle", "lifecycleRef", "string", "invocation.lifecycle"},
-	{"pduSessionId", "pduSessionId", "integer", "session.psi"},
+	{"pduSessionId", "pduSessionId", "integer", "session.pduSessionId"},
 	{"pti", "pti", "integer", "session.pti"},
-	{"requestType", "requestType", "integer", "request.type"},
+	{"requestType", "requestType", "integer", "session.requestType"},
 	{"dnn", "dnn", "string", "session.dnn"},
-	{"sNssai", "sNssai", "object", "session.snssai"},
-	{"servingPlmn", "servingPlmn", "object", "session.plmn"},
-	{"requestedPduSessionType", "requestedPduSessionType", "string", "session.requestedType"},
-	{"requestedSscMode", "requestedSscMode", "integer", "session.requestedSsc"},
+	{"sNssai", "sNssai", "object", "session.sNssai"},
+	{"servingPlmn", "servingPlmn", "object", "session.servingPlmn"},
+	{"requestedPduSessionType", "requestedPduSessionType", "string", "session.requestedPduSessionType"},
+	{"requestedSscMode", "requestedSscMode", "integer", "session.requestedSscMode"},
 }
 
 func TestMASContextFanout(t *testing.T) {
@@ -41,12 +41,12 @@ func TestMASContextFanout(t *testing.T) {
 
 func TestFiveGCContextAliases(t *testing.T) {
 	ps := []Producer{
-		{"subject.ue", Field{Name: "ue-ref", SemanticID: "session.ue", Type: "string"}, "input.ue-ref", []string{"udm"}},
+		{"subject.ue", Field{Name: "ue-ref", SemanticID: "session.subject.ue", Type: "string"}, "input.ue-ref", []string{"udm"}},
 		{"facts.lifecycle", Field{Name: "lifecycle-ref", SemanticID: "invocation.lifecycle", Type: "string"}, "input.lifecycle-ref", []string{"udm"}},
 		{"facts.ingress", Field{Name: "ingress-ref", SemanticID: "invocation.ingress", Type: "string"}, "input.ingress-ref", []string{"udm"}},
 	}
 	cs := []Consumer{{NodeID: "udm", Operation: "example.read", Inputs: []Field{
-		{Name: "ueRef", SemanticID: "session.ue", Type: "string", Required: true},
+		{Name: "ueRef", SemanticID: "session.subject.ue", Type: "string", Required: true},
 		{Name: "lifecycleRef", SemanticID: "invocation.lifecycle", Type: "string", Required: true},
 		{Name: "ingressRef", SemanticID: "invocation.ingress", Type: "string", Required: true},
 	}}}
