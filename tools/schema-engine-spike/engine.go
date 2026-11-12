@@ -17,11 +17,25 @@ type Compiled struct {
 }
 
 type Trace struct {
-	RegistryLookups      []string `json:"registryLookups"`
-	DeniedReferences     []string `json:"deniedReferences"`
-	DeniedExternal       []string `json:"deniedExternalReferences"`
-	ExternalAccesses     int      `json:"externalAccesses"`
-	ResourcesPassedInMem int      `json:"resourcesPassedInMemory"`
+	RegistryLookups      []string         `json:"registryLookups"`
+	DeniedReferences     []string         `json:"deniedReferences"`
+	RegistryDenials      []RegistryDenial `json:"registryDenials"`
+	DeniedExternal       []string         `json:"deniedExternalReferences"`
+	ExternalAccesses     int              `json:"externalAccesses"`
+	ResourcesPassedInMem int              `json:"resourcesPassedInMemory"`
+}
+
+const RegistryDeniedCode = "SPIKE_REGISTRY_DENIED"
+
+type RegistryDenial struct {
+	URI  string `json:"uri"`
+	Code string `json:"code"`
+}
+
+type RegistryDeniedError struct{ URI string }
+
+func (e RegistryDeniedError) Error() string {
+	return fmt.Sprintf("%s: resource is not registered in the closed in-memory registry: %s", RegistryDeniedCode, e.URI)
 }
 
 type Registry struct {
@@ -42,10 +56,11 @@ func (r *Registry) Resolve(uri string) (any, []byte, error) {
 			r.Trace.ExternalAccesses++
 		}
 		r.Trace.DeniedReferences = append(r.Trace.DeniedReferences, uri)
-		if parsed != nil && (parsed.Scheme == "http" || parsed.Scheme == "https" || parsed.Scheme == "file") {
+		if parsed != nil && isExternalScheme(parsed.Scheme) {
 			r.Trace.DeniedExternal = append(r.Trace.DeniedExternal, uri)
 		}
-		return nil, nil, fmt.Errorf("resource denied by in-memory registry: %s", uri)
+		r.Trace.RegistryDenials = append(r.Trace.RegistryDenials, RegistryDenial{URI: uri, Code: RegistryDeniedCode})
+		return nil, nil, RegistryDeniedError{URI: uri}
 	}
 	r.Trace.ResourcesPassedInMem++
 	b, err := json.Marshal(doc)
@@ -53,7 +68,7 @@ func (r *Registry) Resolve(uri string) (any, []byte, error) {
 }
 
 func isExternalScheme(scheme string) bool {
-	switch scheme {
+	switch strings.ToLower(scheme) {
 	case "http", "https", "file":
 		return true
 	default:

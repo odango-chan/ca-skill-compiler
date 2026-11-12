@@ -14,10 +14,12 @@ import (
 const SuiteCommit = "38dea932b02986f496345bf007108277777630bf"
 
 type SuiteCounts struct {
-	Total   int `json:"total"`
-	Passed  int `json:"passed"`
-	Failed  int `json:"failed"`
-	Skipped int `json:"skipped"`
+	Total              int `json:"total"`
+	Passed             int `json:"passed"`
+	Failed             int `json:"failed"`
+	Skipped            int `json:"skipped"`
+	CompileFailures    int `json:"compileFailures"`
+	ValidationFailures int `json:"validationFailures"`
 }
 
 type SuiteFailure struct {
@@ -25,6 +27,7 @@ type SuiteFailure struct {
 	Group        string `json:"group"`
 	Test         string `json:"test"`
 	Optional     bool   `json:"optional"`
+	FailureKind  string `json:"failureKind,omitempty"`
 	CompileError string `json:"compileError,omitempty"`
 	Expected     bool   `json:"expected"`
 	Actual       bool   `json:"actual"`
@@ -124,9 +127,10 @@ func RunOfficialSuite(c Candidate, suiteRoot, regexMode string) (SuiteResult, er
 			for _, test := range group.Tests {
 				failure := SuiteFailure{File: rel, Group: group.Description, Test: test.Description, Optional: optional, Expected: test.Valid}
 				if compileErr != nil {
+					failure.FailureKind = "compile"
 					failure.CompileError = compileErr.Error()
 					failure.Error = "schema compilation failed"
-					result.addSuiteFailure(failure, false)
+					result.addSuiteFailure(failure)
 					continue
 				}
 				validationErr := compiled.Validator.Validate(test.Data)
@@ -134,7 +138,12 @@ func RunOfficialSuite(c Candidate, suiteRoot, regexMode string) (SuiteResult, er
 				if validationErr != nil {
 					failure.Error = validationErr.Error()
 				}
-				result.addSuiteFailure(failure, failure.Actual == test.Valid)
+				if failure.Actual == test.Valid {
+					counts.Passed++
+				} else {
+					failure.FailureKind = "validation"
+					result.addSuiteFailure(failure)
+				}
 			}
 		}
 	}
@@ -148,13 +157,17 @@ func countsFor(result *SuiteResult, optional bool) *SuiteCounts {
 	return &result.Required
 }
 
-func (r *SuiteResult) addSuiteFailure(f SuiteFailure, passed bool) {
+func (r *SuiteResult) addSuiteFailure(f SuiteFailure) {
 	counts := countsFor(r, f.Optional)
-	if passed {
-		counts.Passed++
-		return
-	}
 	counts.Failed++
+	switch f.FailureKind {
+	case "compile":
+		counts.CompileFailures++
+	case "validation":
+		counts.ValidationFailures++
+	default:
+		panic("suite failure must have a compile or validation kind")
+	}
 	if len(r.Failures) < 200 {
 		r.Failures = append(r.Failures, f)
 	}
@@ -170,25 +183,58 @@ func hasTag(tags []string, wanted string) bool {
 }
 
 func compatible2020(value string) bool {
+	return compatibleRelease(value, compatibilityRank("2020"))
+}
+
+type compatibilityConstraint struct {
+	operator string
+	version  int
+}
+
+// compatibleRelease follows validation/README.md in the pinned
+// JSON-Schema-Test-Suite commit. Compatibility tokens describe ordered release
+// ranges; the sequence must be evaluated as a whole, including the early break
+// at the first upper boundary. Unknown releases are rejected rather than
+// silently treated as compatible.
+func compatibleRelease(value string, versionUnderTest int) bool {
+	value = strings.TrimSpace(value)
 	if value == "" {
 		return true
 	}
-	valid := true
-	for _, term := range strings.Split(value, ",") {
-		term = strings.TrimSpace(term)
-		rank := -1
+	terms := strings.Split(value, ",")
+	constraints := make([]compatibilityConstraint, 0, len(terms))
+	for _, raw := range terms {
+		term := strings.TrimSpace(raw)
+		if term == "" {
+			return false
+		}
+		operator := ""
 		switch {
 		case strings.HasPrefix(term, "<="):
-			rank = compatibilityRank(strings.TrimSpace(strings.TrimPrefix(term, "<=")))
-			valid = rank >= 9
+			operator = "<="
+			term = strings.TrimSpace(strings.TrimPrefix(term, "<="))
 		case strings.HasPrefix(term, "="):
-			rank = compatibilityRank(strings.TrimSpace(strings.TrimPrefix(term, "=")))
-			valid = rank == 9
-		default:
-			rank = compatibilityRank(term)
-			valid = rank >= 0 && 9 >= rank
+			operator = "="
+			term = strings.TrimSpace(strings.TrimPrefix(term, "="))
 		}
-		if rank >= 0 && 9 <= rank {
+		rank := compatibilityRank(term)
+		if rank < 0 {
+			return false
+		}
+		constraints = append(constraints, compatibilityConstraint{operator: operator, version: rank})
+	}
+
+	valid := true
+	for _, constraint := range constraints {
+		switch constraint.operator {
+		case "":
+			valid = versionUnderTest >= constraint.version
+		case "<=":
+			valid = versionUnderTest <= constraint.version
+		case "=":
+			valid = versionUnderTest == constraint.version
+		}
+		if versionUnderTest <= constraint.version {
 			break
 		}
 	}

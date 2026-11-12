@@ -1,5 +1,5 @@
 const candidate = new URL(self.location.href).searchParams.get("candidate");
-if (!new Set(["san", "kaptin"]).has(candidate)) throw new Error("unknown candidate");
+if (candidate !== "san") throw new Error("unknown candidate");
 importScripts(`wasm_exec_${candidate}.js`);
 (async () => {
   const start = performance.now();

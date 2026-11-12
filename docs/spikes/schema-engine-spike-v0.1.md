@@ -6,6 +6,25 @@
 **Design:** PR #6 at `751e018d4b34c2f7cdbedc625f3a3f7843180c01`.
 **Spike branch:** `spike/schema-engine-library-v0.1-20261112`.
 
+## PR #8 review remediation (2026-11-12)
+
+- Added boundary tests against the pinned suite's Compatibility algorithm,
+  including ordered disjunction ranges, unknown versions, future drafts, and
+  Required/Optional/Skipped accounting invariants. The runner now separately
+  counts compile failures and validation failures.
+- Strengthened the closed-loader evidence with exact resolved URI and coded
+  registry-denial assertions, HTTP and HTTPS loopback zero-request checks, a
+  valid file-schema canary, a positive registered-relative-reference case,
+  and explicit path-traversal, missing-resource, unknown-scheme, and
+  custom-scheme denials.
+- Removed the Kaptinlin executable module and its dependency checksums from the
+  Spike harness. Its historical suite totals and failure categories remain
+  below for comparison; the old implementation is no longer independently
+  rerunnable from this branch.
+- Re-ran Native and Node WASM, the pinned official suite, and three actual
+  Chromium Worker runs on the current San-only artifacts. The detailed counts
+  and measurements below supersede the earlier run's values.
+
 This report records an isolated candidate evaluation. It does not authorize a
 production dependency change or migration.
 
@@ -22,25 +41,28 @@ The decision remains conditional because the spike does not establish all
 production acceptance conditions:
 
 1. The selected `regexp2` ECMAScript/Unicode mode passes all required official
-   suite cases and the regex samples from current contracts, but 11 optional
-   regex/format-regex cases still fail. It is not a claim of complete ECMA-262
-   compatibility. Keep the current contract pattern subset explicit and
-   re-evaluate if it expands.
+   suite cases and the regex samples from current contracts. Six Optional
+   cases across two schema groups still fail to compile due to unsupported
+   ECMAScript regex features, and 131 Optional cases fail format/assertion
+   validation. This is not a claim of complete ECMA-262 compatibility. Keep the current contract
+   pattern subset explicit and re-evaluate if it expands.
 2. The library supplies JSON Schema and instance paths, but the spike's YAML
    conversion does not retain a source map back to YAML line and column. The
    production adapter must preserve that mapping before integration.
-3. Optional format assertions have 126 mismatches in the selected suite run.
-   Current catalog `format` uses annotation behavior; any future assertion
-   policy needs its own acceptance decision and tests.
-4. The stripped spike executable is 6.69 MB WASM, with a 2.36 MB increase over
+3. Optional format/assertion behavior remains incomplete: 131 optional
+   validation failures and 6 optional regex compilation failures are retained
+   in the latest suite result. Current catalog `format` uses annotation
+   behavior; any future assertion policy needs its own acceptance decision and
+   tests.
+4. The stripped spike executable is 6.70 MB WASM, with a 2.29 MB increase over
    the same-toolchain no-engine harness. There is no accepted production size
    budget yet, and this is not a full Compiler binary delta.
 5. The error-shape test proves repeatable structured locations and keyword
    paths, but Compiler diagnostic-code mapping and a full dependency/security
    review remain migration work.
 
-The secondary Kaptinlin result is retained for comparison, not continued. Its
-recorded official required suite has 17 failures, and its nested module requires
+The Kaptinlin result is retained for comparison, not continued. Its recorded
+official required suite has 17 failures, and its deleted nested module required
 Go 1.27.0. No Go toolchain or production module version was upgraded for this
 spike. Corvus was not evaluated.
 
@@ -48,8 +70,8 @@ spike. Corvus was not evaluated.
 
 | Candidate | Toolchain / license | Recorded compatibility | Decision |
 | --- | --- | --- | --- |
-| [`santhosh-tekuri/jsonschema/v6`](https://pkg.go.dev/github.com/santhosh-tekuri/jsonschema/v6) v6.0.3 | Go 1.23.0; Apache-2.0. Custom regex mode adds `regexp2` v1.11.0 (MIT). | 25/25 shared vectors; 8/8 denied refs; required suite 1,319 pass / 0 fail / 475 skipped with custom regex; Native, Node WASM, and 3 Chromium runs pass. | **CONDITIONAL ADOPT** with the conditions above. |
-| [`kaptinlin/jsonschema`](https://github.com/kaptinlin/jsonschema) v0.9.10 | Nested module requires Go 1.27.0; MIT. | Retained prior results: 25/25 shared vectors and 8/8 denied refs in Native/Node WASM/Chromium; required suite 1,302 pass / 17 fail / 475 skipped; optional suite 862 pass / 107 fail / 126 skipped. | Do not continue or select. |
+| [`santhosh-tekuri/jsonschema/v6`](https://pkg.go.dev/github.com/santhosh-tekuri/jsonschema/v6) v6.0.3 | Go 1.23.0; Apache-2.0. Custom regex mode adds `regexp2` v1.11.0 (MIT). | 25/25 shared vectors; 8/8 exact denied refs; required suite 1,319 pass / 0 fail / 475 skipped with custom regex; Native, Node WASM, and 3 current Chromium runs pass. | **CONDITIONAL ADOPT** with the conditions above. |
+| [`kaptinlin/jsonschema`](https://github.com/kaptinlin/jsonschema) v0.9.10 | Deleted nested module required Go 1.27.0; MIT. | Historical results: 25/25 shared vectors and 8/8 denied refs; required suite 1,302 pass / 17 fail / 475 skipped; optional suite 862 pass / 107 fail / 126 skipped. Implementation removed; historical runs are not reproducible from this branch. | Do not continue or select. |
 
 San's custom regex path is the only configuration of these candidates that
 passed the required official suite in the recorded corpus. The extra regex
@@ -81,8 +103,9 @@ engine is included in the measured footprint.
   license/dependency inventory, not a vulnerability scan. The linked Go module
   set from `go list -deps -buildvcs=false` is San, regexp2, x/text, yaml.v3,
   and the two local spike modules.
-- Kaptinlin retained module: `v0.9.10`, `go 1.27.0`, license MIT. That isolated
-  module declaration did not change the Compiler toolchain.
+- Kaptinlin historical candidate: `v0.9.10`, `go 1.27.0`, license MIT. Its
+  nested module, tests, and dependency files were removed from the Spike branch;
+  the Compiler toolchain was not changed.
 - Runtime environment for the final San measurements: Linux amd64, Go 1.23.0,
   Node `v24.22.1`, Chromium `156.0.8078.79`. Browser runs used a new DevTools
   target in the already-running Chromium process and closed only that target.
@@ -129,25 +152,29 @@ path.
 
 ## WP3 — reference security
 
-San passed **8/8** denied-reference cases in Native, Node WASM, and each
-Chromium repetition:
+San passed **8/8** denied-reference cases in Native, Node WASM, and each of
+three Chromium Worker runs. The spike asserts each canonical resolved URI is
+present in both the registry lookup and a `SPIKE_REGISTRY_DENIED` record, and
+that the compile error contains that code and exact URI. A generic compile
+failure or an unrelated registry lookup cannot satisfy the test.
 
 | Attempt | Result |
 | --- | --- |
-| HTTP / HTTPS remote references | Denied by the instrumented loader |
-| Absolute filesystem path / `file:` URI | Denied by the in-memory registry |
-| Path traversal | Denied after URI resolution; no filesystem loader is installed |
-| Unknown and custom schemes | Denied by the registry |
-| Missing in-memory resource | Denied with a registry miss |
+| HTTP / HTTPS remote references | Exact resolved URI denied; separate loopback HTTP and HTTPS servers each receive zero requests |
+| Absolute filesystem path / `file:` URI | Denied by registry; a valid JSON schema on disk is used as a file-loader canary |
+| Path traversal | `../../outside.json` resolves to the exact escaped URI and is denied; no filesystem loader is installed |
+| Relative reference | A positive `../shared/child.json` resolves to the exact in-memory URI and validates with that schema |
+| Unknown and custom schemes | Exact URI denied by the registry |
+| Missing in-memory resource | Exact URI denied with the registry miss code |
 
 The successful semantic vectors separately exercise local `$defs`,
 cross-document references, nesting, `$id` base resolution, and recursive
 references. Each attempted resource lookup is recorded by the registry.
-Additionally, the HTTP security test points a schema at a live loopback
-`httptest` server and asserts both that the instrumented registry records the
-attempt and that the server receives **zero** requests. This proves the loader
-gate is invoked before network access; it does not infer safety from a failed
-request.
+The HTTPS check uses a live TLS loopback server with the same zero-request
+assertion. The file canary contains a syntactically valid schema, so successful
+compilation or an error without the registry denial marker fails the test.
+These checks verify the loader boundary itself and do not infer safety from an
+arbitrary compile failure.
 
 ## WP4 — regular expressions
 
@@ -173,24 +200,29 @@ limited to those patterns; it does not establish arbitrary ECMA-262 behavior.
 
 ## WP5 — Native, Node WASM, and Chromium Worker
 
-San Native and `GOOS=js GOARCH=wasm` builds and runs passed. All measured times
-below are three repetitions from the same stripped San WASM and Native
-artifacts. Compile and validation samples come from the 25 shared vectors;
-validation timings are per vector batch, which may contain multiple instances.
+San Native and `GOOS=js GOARCH=wasm` builds and runs passed. Native timings are
+three fresh-process runs, Node WASM timings use five fresh instances in one
+Node process, and Chromium measurements use three browser runs. Compile and
+validation samples come from the 25 shared vectors; validation timings are per
+vector batch, which may contain multiple instances.
 
-| Metric | Native Go 1.23.0 | Node WASM Go 1.23.0 | Chromium Worker |
+| Metric | Native Go 1.23.0 | Node WASM Go 1.23.0 | Chromium Worker (3 runs) |
 | --- | ---: | ---: | ---: |
-| First schema compile, median (range) | 0.051 ms (0.046–0.064) | 5.548 ms (4.317–6.882) | Included in `goRun` |
-| Later per-schema compile, median (range) | 0.061 ms (0.017–0.399) | 0.426 ms (0.155–8.014) | Included in `goRun` |
-| Validation batch, median (range) | 0.008 ms (0.001–0.059) | 0.079 ms (0.012–1.461) | Included in `goRun` |
-| Full vector + reference + regex harness, median (range) | 7.073 ms (6.331–9.430) | 98.744 ms (80.874–102.532) | `go.run` 370.3 ms (339.0–396.8) |
-| Peak memory | 8,020–8,240 KiB process RSS | Not separately sampled | WASM linear memory 19,595,264 → 28,311,552 bytes |
+| First schema compile, median (range) | 0.039 ms (0.036–0.078) | 3.992 ms (single smoke sample) | Included in `goRun` |
+| Later per-schema compile, median (range) | 0.064 ms (0.019–0.340) | 0.345 ms (0.131–7.363) | Included in `goRun` |
+| Validation batch, median (range) | 0.010 ms (0.001–0.224) | 0.057 ms (0.012–1.224) | Included in `goRun` |
+| Full harness, median (range) | 6.699 ms (6.330–8.042) | 29.705 ms (23.061–70.458) | `goRun` 318.4 ms (264.7–344.1) |
+| WASM instantiate or fetch + instantiate, median (range) | n/a | 23.193 ms (19.673–50.502) | 136.2 ms (99.6–162.2) |
+| Whole browser worker elapsed, median (range) | n/a | n/a | 459.6 ms (447.4–509.3) |
+| Peak memory | 8,084 KiB process RSS | WASM linear memory 19,595,264 → 28,311,552 bytes | WASM linear memory 19,595,264 → 28,311,552 bytes |
 
-Chromium's worker reported fetch-plus-instantiation at **136.3 ms median**
-(134.7–180.0 ms), and whole worker elapsed at **553.7 ms median**
-(541.8–562.9 ms). All three actual Chromium runs passed 25 vectors and 8
-reference-denial cases. The runtime glue matched Go 1.23.0
-`wasm_exec.js` SHA-256
+Native performance aggregates three fresh processes. The Node timing measured
+five fresh WASM instances in one Node process; its `go.run` median was 82.313 ms
+(57.030–174.353), including the slower first runtime invocation. Node process
+RSS deltas varied with GC and are not used as a memory claim. All three current
+Chromium runs passed 25 semantic vectors and 8 security cases in HeadlessChrome
+156.0.8078.79. The worker reports fetch plus instantiation separately from Go
+execution. The runtime glue matched Go 1.23.0 `wasm_exec.js` SHA-256
 `45ce9dfe7211247544ab6f4268eb8cb5b6f3d5ae602dc3b51447b7eada99c229`.
 
 The size comparison uses a same-toolchain no-engine **spike harness** under
@@ -201,10 +233,28 @@ size estimate.
 
 | Artifact | Size | No-engine harness | Delta |
 | --- | ---: | ---: | ---: |
-| Native San executable | 3,747,992 bytes | 2,494,616 bytes | +1,253,376 bytes (+50.2%) |
-| San WASM executable | 6,691,458 bytes | 4,334,505 bytes | +2,356,953 bytes (+54.4%) |
+| Native San executable | 3,756,184 bytes | 2,527,384 bytes | +1,228,800 bytes (+48.6%) |
+| San WASM executable | 6,701,949 bytes | 4,407,571 bytes | +2,294,378 bytes (+52.0%) |
 
 ## WP6 — official Draft 2020-12 suite
+
+### Compatibility semantics and accounting
+
+`compatibleRelease` follows the pinned `validation/README.md` pseudocode. An
+unqualified release is a lower bound, `<=` an upper bound, and `=` an exact
+release. Comma-separated, ordered constraints describe disjoint ranges (for
+example, `=3,7,<=2020` means draft-03 plus draft-07 through 2020-12); evaluation
+stops at the first upper boundary containing the release under test. Empty
+metadata is universal. Unknown or malformed release tokens are rejected.
+Drafts 2027/2028 and placeholder 9999 are not selected for the 2020 run.
+
+`suite_review_test.go` covers the requested boundaries (`7`, `2019`, `<=2019`,
+`2020`, `=2020`, `6,<=2019`, `9999`, unknown versions), disjunctions and their
+boundaries (`=3,7,<=2020`, `<=3,7`), and future releases. Its fake candidate
+exercises compile and validation failures in both classes, tagged Optional
+groups, skipped groups, and incompatible-group no-compile behavior. It asserts
+that each class's `total = passed + failed + skipped` and `failed = compile
+failures + validation failures`.
 
 The runner used the pinned suite's `validation/tests` corpus (86 JSON group
 files), compatibility metadata, and `UseNumber`. It classified
@@ -212,21 +262,26 @@ files), compatibility metadata, and `UseNumber`. It classified
 `tests/optional/` as Optional; incompatible groups were counted as Skipped;
 proposals were excluded. Of 689 total groups, 492 were compatible and 197
 were skipped by the Draft 2020-12 compatibility filter.
+Across 2,889 cases, 2,288 were evaluated and 601 skipped; the class totals and
+group totals reconcile in both regex configurations.
 
 ### San v6.0.3
 
-| Regex mode | Class | Total | Passed | Failed | Skipped |
-| --- | --- | ---: | ---: | ---: | ---: |
-| Default RE2 | Required | 1,794 | 1,310 | 9 | 475 |
-| Default RE2 | Optional | 1,095 | 805 | 164 | 126 |
-| `regexp2` custom | Required | 1,794 | 1,319 | 0 | 475 |
-| `regexp2` custom | Optional | 1,095 | 832 | 137 | 126 |
+| Regex mode | Class | Total | Passed | Failed | Skipped | Compile failures | Validation failures |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Default RE2 | Required | 1,794 | 1,310 | 9 | 475 | 9 | 0 |
+| Default RE2 | Optional | 1,095 | 805 | 164 | 126 | 18 | 146 |
+| `regexp2` custom | Required | 1,794 | 1,319 | 0 | 475 | 0 | 0 |
+| `regexp2` custom | Optional | 1,095 | 832 | 137 | 126 | 6 | 131 |
 
-With the custom regex engine, all 137 Optional failures are format/regex cases:
-126 format cases (duration, email, hostname/IDN, URI/IRI and URI-template) and
-11 optional regex/format-assertion cases. Draft 2020-12 defaults `format` to
-annotation; assertion-tagged tests are deliberately reported separately as
-Optional. The required class has no failures in this run.
+With the custom regex engine, 6 Optional cases fail schema compilation for
+unsupported ECMAScript regex constructs. The other 131 are validation
+mismatches: 126 built-in format cases and 5 optional regex/format-assertion
+cases, including duration, email, hostname/IDN, URI/IRI, and URI-template
+behavior. Draft 2020-12 defaults `format` to annotation; assertion-tagged tests
+are deliberately reported separately as Optional. All class totals reconcile:
+`passed + failed + skipped = total`, and compile plus validation failures equal
+failed cases. The required class has no failures in the custom regex run.
 
 ### Kaptinlin v0.9.10 — retained prior result, not rerun
 

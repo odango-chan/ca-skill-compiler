@@ -2,16 +2,20 @@ package spike
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 )
 
 type SecurityResult struct {
-	Candidate string `json:"candidate"`
-	ID        string `json:"id"`
-	Reference string `json:"reference"`
-	Passed    bool   `json:"passed"`
-	Error     string `json:"error,omitempty"`
-	Trace     *Trace `json:"trace,omitempty"`
+	Candidate                 string `json:"candidate"`
+	ID                        string `json:"id"`
+	Reference                 string `json:"reference"`
+	ResolvedReference         string `json:"resolvedReference"`
+	RegistryDenied            bool   `json:"registryDenied"`
+	CompileRejectedByRegistry bool   `json:"compileRejectedByRegistry"`
+	Passed                    bool   `json:"passed"`
+	Error                     string `json:"error,omitempty"`
+	Trace                     *Trace `json:"trace,omitempty"`
 }
 
 func RunSecurity(c Candidate) []SecurityResult {
@@ -28,32 +32,61 @@ func RunSecurity(c Candidate) []SecurityResult {
 	results := make([]SecurityResult, 0, len(refs))
 	for _, test := range refs {
 		root := "https://spike.invalid/project/security/" + test.id + ".json"
+		resolvedReference, resolveErr := resolveReference(root, test.ref)
 		documents := map[string]any{root: map[string]any{
 			"$schema": "https://json-schema.org/draft/2020-12/schema",
 			"$ref":    test.ref,
 		}}
 		compiled, err := c.Compile(documents, root, false, "")
-		passed := err != nil && compiled.Trace != nil && contains(compiled.Trace.RegistryLookups, root)
+		registryDenied := false
+		if compiled.Trace != nil {
+			registryDenied = hasRegistryDenial(compiled.Trace, resolvedReference)
+		}
+		compileRejectedByRegistry := err != nil &&
+			strings.Contains(err.Error(), RegistryDeniedCode) &&
+			strings.Contains(err.Error(), resolvedReference)
+		passed := resolveErr == nil && err != nil && compiled.Trace != nil &&
+			contains(compiled.Trace.RegistryLookups, root) && registryDenied && compileRejectedByRegistry
 		if strings.HasPrefix(test.ref, "http:") || strings.HasPrefix(test.ref, "https:") || strings.HasPrefix(test.ref, "file:") {
-			passed = passed && len(compiled.Trace.DeniedExternal) > 0
-		} else {
-			passed = passed && len(compiled.Trace.DeniedReferences) > 0
+			passed = passed && contains(compiled.Trace.DeniedExternal, resolvedReference)
 		}
-		if err == nil {
-			passed = false
+		result := SecurityResult{
+			Candidate: c.Name(), ID: test.id, Reference: test.ref,
+			ResolvedReference: resolvedReference, RegistryDenied: registryDenied,
+			CompileRejectedByRegistry: compileRejectedByRegistry,
+			Passed:                    passed, Trace: compiled.Trace,
 		}
-		result := SecurityResult{Candidate: c.Name(), ID: test.id, Reference: test.ref, Passed: passed, Trace: compiled.Trace}
 		if err != nil {
 			result.Error = err.Error()
+		} else if resolveErr != nil {
+			result.Error = "reference resolution failed: " + resolveErr.Error()
 		} else {
-			result.Error = "unsafe reference unexpectedly compiled"
-		}
-		if !passed && result.Error == "" {
-			result.Error = fmt.Sprintf("reference was not denied through instrumented registry: trace=%+v", compiled.Trace)
+			result.Error = fmt.Sprintf("reference was not rejected by the closed registry: expected=%s trace=%+v", resolvedReference, compiled.Trace)
 		}
 		results = append(results, result)
 	}
 	return results
+}
+
+func resolveReference(base, reference string) (string, error) {
+	baseURI, err := url.Parse(base)
+	if err != nil {
+		return "", err
+	}
+	referenceURI, err := url.Parse(reference)
+	if err != nil {
+		return "", err
+	}
+	return baseURI.ResolveReference(referenceURI).String(), nil
+}
+
+func hasRegistryDenial(trace *Trace, uri string) bool {
+	for _, denial := range trace.RegistryDenials {
+		if denial.URI == uri && denial.Code == RegistryDeniedCode {
+			return true
+		}
+	}
+	return false
 }
 
 func contains(values []string, want string) bool {

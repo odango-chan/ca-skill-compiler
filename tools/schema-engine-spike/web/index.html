@@ -5,10 +5,7 @@
 <pre id="result">{"state":"starting"}</pre>
 <script>
 const started = performance.now();
-// Default resumed acceptance to the primary candidate. The secondary candidate
-// remains in the harness for historical comparison, but is not rerun by default.
-const selected = new URL(location.href).searchParams.get("candidate");
-const candidates = selected ? [selected] : ["san"];
+const candidates = ["san"];
 const report = {browser: navigator.userAgent, candidates: []};
 const pre = document.getElementById("result");
 setTimeout(() => {
