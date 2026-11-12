@@ -32,6 +32,9 @@ func (a *analysis) addSemanticProcedureInputBindings(proc *yaml.Node, with, expe
 	if expected == nil || unalias(expected).Kind != yaml.MappingNode {
 		return with
 	}
+	if with != nil && unalias(with).Kind != yaml.MappingNode {
+		return with // preserve malformed author input for the canonical diagnostic
+	}
 	inputSchemas := a.procedureInputSchemas[proc]
 	if len(inputSchemas) == 0 {
 		return with
