@@ -368,7 +368,24 @@ func appendOutcomeTargets(stack []string, node *yaml.Node, visited map[string]bo
 }
 
 func bindingSourceAvailable(proc *yaml.Node, ref, consumerNode, consumerPhase string, consumerStep int) (bool, string) {
+	return bindingSourceAvailableThroughInputs(proc, ref, consumerNode, consumerPhase, consumerStep, map[string]bool{})
+}
+
+func bindingSourceAvailableThroughInputs(proc *yaml.Node, ref, consumerNode, consumerPhase string, consumerStep int, resolvingInputs map[string]bool) (bool, string) {
 	parts := strings.Split(ref, ".")
+	if len(parts) >= 2 && parts[0] == "input" {
+		name := parts[1]
+		input := child(child(proc, "inputs"), name)
+		if input == nil {
+			return true, "" // The source resolver reports an undeclared Procedure input.
+		}
+		from := scalar(child(input, "from"))
+		if from == "" || resolvingInputs[name] {
+			return true, "" // Missing and cyclic aliases are diagnosed by source resolution.
+		}
+		resolvingInputs[name] = true
+		return bindingSourceAvailableThroughInputs(proc, from, consumerNode, consumerPhase, consumerStep, resolvingInputs)
+	}
 	sourceNode, sourcePhase, sourceStep := "", "", -1
 	if len(parts) >= 2 && parts[1] == "output" {
 		sourceNode = parts[0]

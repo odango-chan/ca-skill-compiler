@@ -1,7 +1,16 @@
 procedures:
   run:
     start: build
+    inputs:
+      value: {from: build.output.5qi}
     nodes:
       build:
         script: scripts/out.py
         with: {}
+        'on': {SUCCEEDED: consume}
+      consume:
+        script: scripts/out.py
+        with:
+          value: {from: input.value}
+        'on': {SUCCEEDED: done}
+      done: {terminal: SUCCEEDED}

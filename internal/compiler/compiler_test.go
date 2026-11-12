@@ -1262,6 +1262,46 @@ func TestProcedureInputTypeAssertionNeverSubstitutesForProducerSchema(t *testing
 	}
 }
 
+func TestProcedureInputAliasesPreserveNodeOutputDominance(t *testing.T) {
+	makeFiles := func(bypass bool) []File {
+		procedure := `procedures:
+  run:
+    inputs:
+      value: {type: string, from: source.output.result}
+    start: source
+    nodes:
+      source:
+        call: demo.read
+        with: {ref: {value: sample}}
+        'on': {SUCCEEDED: consume}
+      consume:
+        call: demo.read
+        with: {ref: {from: input.value}}
+        'on': {SUCCEEDED: done}
+      done: {terminal: SUCCEEDED}
+`
+		if bypass {
+			procedure = strings.Replace(procedure, "    start: source\n", "    start: entry\n", 1)
+			procedure = strings.Replace(procedure, "    nodes:\n", `    nodes:
+      entry:
+        call: demo.read
+        with: {ref: {value: sample}}
+        'on': {SUCCEEDED: source, FAILED: consume}
+`, 1)
+		}
+		files := source("input-alias", "run", procedure)
+		catalog := toolCatalog()
+		catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "outputSchema: {type: object}", "outputSchema: {type: object, properties: {result: {type: string, minLength: 1}}}", 1))
+		return append(files, catalog)
+	}
+	if got := Build(BuildRequest{Files: makeFiles(false)}); !got.Success {
+		t.Fatalf("input alias to a dominating node output was rejected: %#v", got.Diagnostics)
+	}
+	if got := Build(BuildRequest{Files: makeFiles(true)}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_SOURCE_UNAVAILABLE") {
+		t.Fatalf("input alias hid a node output that does not dominate its consumer: %#v", got.Diagnostics)
+	}
+}
+
 func TestProcedureNodeOutputWithoutDeclaredSchemaIsUnresolved(t *testing.T) {
 	files := source("procedure-output", "run", `procedures:
   run:
