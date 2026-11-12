@@ -79,9 +79,10 @@ Go encoding/json represents []byte as a base64 string at the JSON Worker boundar
   "resolvedDependencies": [
     {
       "dependencyId": "host-contracts",
-      "digest": "sha256:<64 lowercase hex characters>",
+      "digest": "sha256:f9a26e8cceb4db7d36eb7e3905c73b1b166ff03bcb96a77297571e715020bfbc",
       "files": [
-        { "path": "schemas/subject.schema.json", "bytes": "eyJ0eXBlIjoib2JqZWN0In0=" }
+        { "path": "schemas/a.json", "bytes": "eyJ0eXBlIjoic3RyaW5nIn0K" },
+        { "path": "tools/catalog.yaml", "bytes": "YXBpVmVyc2lvbjogdjEK" }
       ]
     }
   ],
