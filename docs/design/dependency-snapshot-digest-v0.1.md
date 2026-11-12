@@ -62,7 +62,7 @@ Expected digest:
 sha256:f9a26e8cceb4db7d36eb7e3905c73b1b166ff03bcb96a77297571e715020bfbc
 ```
 
-Implementations must additionally test:
+Machine-readable vectors are in [dependency-snapshot-digest-vectors.json](../../contracts/v0.1/dependency-snapshot-digest-vectors.json). Implementations must additionally test:
 - reversed input array order gives the same digest;
 - changing one byte changes the digest;
 - changing a path changes the digest;
