@@ -619,7 +619,17 @@ func schemasCompatible(source, target *yaml.Node) bool {
 		}
 	}
 	if schemaTypeSetHas(sourceTypes, "array") {
-		return schemasCompatible(child(source, "items"), child(target, "items"))
+		sourceItems, targetItems := child(source, "items"), child(target, "items")
+		// Draft 2020-12 defaults an omitted `items` keyword to true. A
+		// Producer with unconstrained items cannot prove a typed Consumer,
+		// while any Producer item contract satisfies a Consumer that omits it.
+		if sourceItems == nil {
+			return targetItems == nil || schemaIsUnconstrained(targetItems)
+		}
+		if targetItems == nil {
+			return true
+		}
+		return schemasCompatible(sourceItems, targetItems)
 	}
 	return true
 }
@@ -753,7 +763,7 @@ func projectionSchemaSupported(schema *yaml.Node) bool {
 			}
 		case "array":
 			items := child(schema, "items")
-			if items == nil || !projectionSchemaSupported(items) {
+			if items != nil && !projectionSchemaSupported(items) {
 				return false
 			}
 		case "string", "integer", "number", "boolean", "null":
@@ -973,7 +983,7 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 		}
 	case "array":
 		items := child(schema, "items")
-		if items == nil || value.Kind != yaml.SequenceNode {
+		if value.Kind != yaml.SequenceNode {
 			return false
 		}
 		if n, ok := numberValue(child(schema, "minItems")); ok && new(big.Rat).SetInt64(int64(len(value.Content))).Cmp(n) < 0 {
@@ -991,9 +1001,11 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 				}
 			}
 		}
-		for _, v := range value.Content {
-			if !literalMatchesSchema(v, items) {
-				return false
+		if items != nil {
+			for _, v := range value.Content {
+				if !literalMatchesSchema(v, items) {
+					return false
+				}
 			}
 		}
 	case "string":

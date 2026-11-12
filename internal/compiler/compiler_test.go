@@ -79,6 +79,7 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 		PatternPropertiesUnsupported []Diagnostic `json:"patternPropertiesUnsupported"`
 		ContainsUnsupported          []Diagnostic `json:"containsUnsupported"`
 		TypingImportAliasUnsupported []Diagnostic `json:"typingImportAliasUnsupported"`
+		OmittedItemsBinding          []Diagnostic `json:"omittedItemsBinding"`
 	}
 	data, err := os.ReadFile(filepath.Join("..", "..", "web", "diagnostics-golden.json"))
 	if err != nil {
@@ -98,6 +99,11 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	booleanSchema := mutateProjectFile(t, files, "lib/tools/demo.tool.yaml", "key: *text", "key: true")
 	if got := Check(BuildRequest{Files: booleanSchema}); !reflect.DeepEqual(got, golden.BooleanTrueSchemaBinding) {
 		t.Fatalf("Native boolean Schema diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.BooleanTrueSchemaBinding)
+	}
+	omittedItems := mutateProjectFile(t, files, "lib/tools/demo.tool.yaml", "key: *text", "key: {type: array}")
+	omittedItems = mutateProjectFile(t, omittedItems, "skills/normalize/schemas/normalize-request.schema.yaml", "dnn: {type: string, minLength: 1}", "dnn: {type: array, items: {type: integer}}")
+	if got := Check(BuildRequest{Files: omittedItems}); !reflect.DeepEqual(got, golden.OmittedItemsBinding) {
+		t.Fatalf("Native omitted-items diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.OmittedItemsBinding)
 	}
 	patternProperties := mutateProjectFile(t, files, "lib/tools/demo.tool.yaml", "key: *text", `key: {type: object, patternProperties: {"^x-": {type: string}}}`)
 	if got := Check(BuildRequest{Files: patternProperties}); !reflect.DeepEqual(got, golden.PatternPropertiesUnsupported) {
@@ -1784,6 +1790,34 @@ func TestObjectCountAndUniqueItemBindingSemantics(t *testing.T) {
 	}
 }
 
+func TestOmittedArrayItemsUseDraftDefaultTrueSchema(t *testing.T) {
+	array := func(items any, includeItems bool) *yaml.Node {
+		value := map[string]any{"type": "array"}
+		if includeItems {
+			value["items"] = items
+		}
+		return schemaNode(value)
+	}
+	anyItems := array(nil, false)
+	integerItems := array(map[string]any{"type": "integer"}, true)
+	stringItems := array(map[string]any{"type": "string"}, true)
+	if !projectionSchemaSupported(anyItems) {
+		t.Fatal("valid array Schema with omitted items was rejected")
+	}
+	if !schemasCompatible(integerItems, anyItems) || !schemasCompatible(anyItems, anyItems) {
+		t.Fatal("omitted Consumer items must accept any Producer item contract")
+	}
+	if schemasCompatible(anyItems, stringItems) {
+		t.Fatal("unconstrained Producer items cannot satisfy a typed Consumer")
+	}
+	if !literalMatchesSchema(schemaNode([]any{1, "value"}), anyItems) || !literalMatchesSchema(schemaNode([]any{}), anyItems) {
+		t.Fatal("omitted items must accept every JSON array element")
+	}
+	if literalMatchesSchema(schemaNode([]any{1}), array(false, true)) {
+		t.Fatal("items: false must continue to reject nonempty arrays")
+	}
+}
+
 func TestScriptInputProjectionRejectsUnsupportedNestedSchemas(t *testing.T) {
 	unsupported := schemaNode(map[string]any{
 		"type":       "object",
@@ -1793,8 +1827,8 @@ func TestScriptInputProjectionRejectsUnsupportedNestedSchemas(t *testing.T) {
 		t.Fatal("unsupported nested union was accepted in a Script input projection")
 	}
 	incompleteArray := schemaNode(map[string]any{"type": "array"})
-	if projectionSchemaSupported(incompleteArray) {
-		t.Fatal("array with no item Schema was accepted in a Script input projection")
+	if !projectionSchemaSupported(incompleteArray) {
+		t.Fatal("valid array Schema with omitted items was rejected in a Script input projection")
 	}
 }
 
