@@ -1,0 +1,32 @@
+{
+  "version": "skillc.dependency-digest-v0.1",
+  "algorithm": "sha256",
+  "vectors": [
+    {
+      "name": "two-files-input-order-is-not-significant",
+      "dependencyId": "host-contracts",
+      "files": [
+        {
+          "path": "tools/catalog.yaml",
+          "bytes": "YXBpVmVyc2lvbjogdjEK"
+        },
+        {
+          "path": "schemas/a.json",
+          "bytes": "eyJ0eXBlIjoic3RyaW5nIn0K"
+        }
+      ],
+      "expectedDigest": "sha256:f9a26e8cceb4db7d36eb7e3905c73b1b166ff03bcb96a77297571e715020bfbc"
+    },
+    {
+      "name": "empty-file-content-is-valid",
+      "dependencyId": "empty-fixture",
+      "files": [
+        {
+          "path": "empty.txt",
+          "bytes": ""
+        }
+      ],
+      "expectedDigest": "sha256:f96097f77ababd439954f5bca80b69eff3b2b6bdcd62c2c71869f31acde3c290"
+    }
+  ]
+}
