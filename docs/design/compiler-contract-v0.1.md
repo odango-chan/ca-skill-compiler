@@ -278,4 +278,4 @@ Observation acquisition follows the same model: a read-only Observation provider
 
 Compiler still verifies the supplied snapshot digest on BuildRequest input because Studio's immutable lock and the frozen snapshot-integrity contract require it. This is input validation only.
 
-Compiler does not need to export digest values in BuildResult. The proposed v0.2 BuildResult returns the dependency aliases actually used, diagnostics and generated Skill files. Studio remains the owner of lock entries, source revision, snapshot persistence and digest display/export. Do not duplicate or regenerate the dependency lock from BuildResult.
+Compiler does not need to export digest values in BuildResult. BuildResult v0.1 returns the dependency aliases actually used, diagnostics and generated Skill files. Studio remains the owner of lock entries, source revision, snapshot persistence and digest display/export. Do not duplicate or regenerate the dependency lock from BuildResult.
