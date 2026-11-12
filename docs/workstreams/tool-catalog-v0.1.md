@@ -45,7 +45,7 @@ The `adapter` field is descriptive ToolCatalog metadata. Compiler does not treat
 | Unknown Operation fails exact linking | `TestMissingLibraryOperationFails`; shared `unknownOperation` diagnostic golden | PASS |
 | Duplicate Operation fails without source-order precedence | `TestDuplicateOperationFails`, `TestNativeDiagnosticResultsMatchBrowserGoldens` | PASS |
 | Missing required Tool input fails | `TestToolCallRejectsMissingRequiredCatalogInput` and cross-Skill required-input negative case | PASS |
-| Unsupported binding constraints fail closed | `TestUnsupportedBindingSchemasAreNotReportedAsTypeMismatches` | PASS for covered constraints |
+| Unsupported binding constraints fail closed | `TestUnsupportedDraftKeywordsFailBindingWithExplicitDiagnostic`, `TestPatternImplicationIsUnsupportedInsteadOfReportedAsMismatch` | PASS for covered constraints |
 | Reconcile cannot invent an output contract | `TestReconcileRequiresEarlierToolNodeWithDeclaredSchema` | PASS |
 | Local `$ref` and document-local fragments | `TestProjectLocalSchemaRefsAreResolvedWithoutFilesystemOrNetwork`, schema-cycle and transitive packaging tests | PASS for covered pointer cases |
 | Full Draft 2020-12 binding compatibility | See [language alignment](language-alignment-v0.1.md) | PARTIAL |
