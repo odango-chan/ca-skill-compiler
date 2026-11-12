@@ -55,7 +55,7 @@ type DependencyTool = {
 };
 type DependencyInspection = { diagnostics: Diagnostic[], tools: DependencyTool[] };
 
-check(input: BuildRequest): BuildResult;
+check(input: BuildRequest): Diagnostic[];
 build(input: BuildRequest): BuildResult;
 inspectDependencies(input: BuildRequest): DependencyInspection;
 ~~~
