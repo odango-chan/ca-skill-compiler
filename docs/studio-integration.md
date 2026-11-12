@@ -79,10 +79,11 @@ Worker request/response:
 
 ~~~typescript
 postMessage({ id: "r1", command: "check" | "build" | "inspect", request: BuildRequestAsBase64 });
-onmessage({ data: { id: "r1", result?: BuildResult | LibraryResult, error?: string } });
+onmessage({ data: { id: "r1", result?: Diagnostic[] | BuildResult | LibraryResult, error?: string } });
 ~~~
 
-- error is a Worker/Go/WASM host failure, not a Compiler diagnostic. Static validation errors arrive in result.diagnostics.
+- `check` returns `Diagnostic[]` directly; `build` returns diagnostics in `BuildResult`; `inspect` returns diagnostics in `LibraryResult`. The WASM adapter keeps these command-specific shapes for malformed and oversized requests too. It rejects JSON strings larger than 25 MiB before decoding base64 file contents.
+- error is a Worker/Go/WASM host failure, not a Compiler diagnostic.
 - ToolCatalog YAML anchors/aliases are parsed by Go Core; Studio does not implement semantic YAML processing.
 - Worker never carries MCP credentials, Server URL or Runtime admission token and never performs remote Tool calls.
 

@@ -14,34 +14,34 @@ var callbacks []js.Func
 func respond(command string) js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) any {
 		if len(args) != 1 || args[0].Type() != js.TypeString {
-			return `{"success":false,"diagnostics":[{"severity":"error","code":"REQUEST_INVALID","path":"","message":"expected JSON string"}],"outputFiles":[]}`
+			return marshalResult(command, wireErrorResult(command, "REQUEST_INVALID", "expected JSON string"))
+		}
+		raw := args[0].String()
+		if wireRequestTooLarge(raw) {
+			return marshalResult(command, wireErrorResult(command, "INPUT_LIMIT", "BuildRequest JSON exceeds wire size limit"))
 		}
 		var req compiler.BuildRequest
-		if err := json.Unmarshal([]byte(args[0].String()), &req); err != nil {
-			return `{"success":false,"diagnostics":[{"severity":"error","code":"REQUEST_INVALID","path":"","message":"invalid JSON request"}],"outputFiles":[]}`
+		if err := json.Unmarshal([]byte(raw), &req); err != nil {
+			return marshalResult(command, wireErrorResult(command, "REQUEST_INVALID", "invalid JSON request"))
 		}
 		var result any
 		if command == "inspect" {
 			result = compiler.InspectLibraries(req)
 		} else if command == "check" {
-			diagnostics := compiler.Check(req)
-			success := true
-			for _, d := range diagnostics {
-				if d.Severity == "error" {
-					success = false
-					break
-				}
-			}
-			result = compiler.BuildResult{Diagnostics: diagnostics, Success: success, OutputFiles: []compiler.File{}}
+			result = compiler.Check(req)
 		} else {
 			result = compiler.Build(req)
 		}
-		out, err := json.Marshal(result)
-		if err != nil {
-			return `{"success":false,"diagnostics":[{"severity":"error","code":"INTERNAL","path":"","message":"marshal failed"}],"outputFiles":[]}`
-		}
-		return string(out)
+		return marshalResult(command, result)
 	})
+}
+
+func marshalResult(command string, result any) string {
+	out, err := json.Marshal(result)
+	if err != nil {
+		out, _ = json.Marshal(wireErrorResult(command, "INTERNAL", "marshal failed"))
+	}
+	return string(out)
 }
 
 func main() {

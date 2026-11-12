@@ -106,6 +106,12 @@ Final checks after the latest Core and contract updates: `GOWORK=off go test ./.
 
 Read-only upstream refs were refreshed on 2026-11-12. `ca-skills/main` is `3fce09aca32b6a6faf6ec3e9a204d38cc129ec38`; `ca-agent-demo/main` is `4395982fa6efb97714b97901603b2dfb7018c4d0`. The latest Skill Language spec on ca-skills/main identifies v0.2. The selected PDU/MAS package files and ToolCatalog match the PR #4 pinned snapshot byte-for-byte. After the binding refinements, both current-main and pinned checks return PDU 102 / MAS 133 static findings. The earlier recorded language conflict was stale and has been corrected. See [language alignment](workstreams/language-alignment-v0.1.md) for exact refs and breakdown.
 
+### WASM wire-boundary closeout (2026-11-12)
+
+The WASM callbacks now match the documented Core return types: `check` returns `Diagnostic[]`, `build` returns `BuildResult`, and `inspect` returns `LibraryResult`. Malformed and oversized requests use the same command-specific response shape. The adapter checks the raw JSON string against a 25 MiB cap before unmarshalling/base64 decoding, keeping a valid request within the Core's 16 MiB file-byte limit plus bounded JSON overhead. Unit tests cover the threshold and error response shapes. Chromium exercised all three oversized paths and confirmed the response types and `INPUT_LIMIT` diagnostics; the existing valid build/check/inspect, six diagnostic parity vectors, duplicate-operation inspection, and seven output byte comparisons also passed (`data-test=pass`).
+
+Final rerun after this adapter change: `GOWORK=off go test ./... -count=1`, `GOWORK=off go vet ./...`, Native CLI build, and GOOS=js/GOARCH=wasm build all PASS. PR #5 remains Draft and acceptance remains PARTIAL; these boundary fixes do not close the remaining grammar, schema, parity, or Owner contract gaps.
+
 ### Nullable binding coverage
 
 Added static Producer/Consumer and literal validation for Draft 2020-12 `type` unions, including nullable values. Regression coverage verifies safe subset assignment (`integer|null` to `number|null`), an end-to-end routed Tool Output binding into nullable Tool input, rejection when that consumer is nonnullable, and null/string/numeric literal handling. The full Go tests and vet pass; Native and WASM builds pass; headless Chromium reran check/build/inspect and all existing diagnostic goldens with seven-file Native/WASM byte parity (`data-test=pass`).
