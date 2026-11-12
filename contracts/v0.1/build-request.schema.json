@@ -5,7 +5,8 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "files"
+    "files",
+    "resolvedDependencies"
   ],
   "properties": {
     "files": {
@@ -13,7 +14,14 @@
       "minItems": 1,
       "maxItems": 512,
       "items": {
-        "$ref": "#/$defs/file"
+        "$ref": "#/$defs/sourceFile"
+      }
+    },
+    "resolvedDependencies": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "$ref": "#/$defs/resolvedDependency"
       }
     },
     "targets": {
@@ -28,7 +36,7 @@
     }
   },
   "$defs": {
-    "file": {
+    "sourceFile": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -40,7 +48,61 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 240,
-          "pattern": "^(?:skills|lib)/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+(?:/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+)*$"
+          "pattern": "^skills/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+(?:/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+)*$",
+          "description": "Normalized Skill-source-relative path in the skills/ namespace."
+        },
+        "bytes": {
+          "type": "string",
+          "contentEncoding": "base64",
+          "maxLength": 2796204
+        }
+      }
+    },
+    "resolvedDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dependencyId",
+        "digest",
+        "files"
+      ],
+      "properties": {
+        "dependencyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9._-]*$",
+          "description": "Stable Workspace Configuration identity/alias. Never referenced by Skill source."
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "Compiler-verifiable digest of the canonical snapshot file set."
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/dependencyFile"
+          }
+        }
+      }
+    },
+    "dependencyFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^(?!/)(?!.*//)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$))[^\\\\\\\\:\\u0000]+$",
+          "description": "Normalized path relative to this dependency snapshot; no lib/ prefix."
         },
         "bytes": {
           "type": "string",
