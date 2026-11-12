@@ -82,7 +82,7 @@ Compiler must implement the source contract; it must not silently flatten unsupp
 - spec.inputs.requestSchema identifies the Skill-owned public Request Schema.
 - spec.context.requiredFacts is a list of fact identifiers, **not** a field-level Schema.
 - spec.context.schemas explicitly identifies Owner Schemas for subject, facts, observations and evidence when those context namespaces are used.
-- spec.allowedResources.capabilities[] is the resource-grant upper bound. It may contain deployment Capability IDs or direct Operation IDs. It is not a Script allowlist.
+- spec.allowedResources.capabilities[] is the resource-grant upper bound. In current v0.2 compatibility source it may contain direct Operation IDs (as the runnable 5GC Skill currently does); vNext source grants qualified Capability IDs only. Regardless of grant syntax, every callable Operation must be mapped to exactly one imported Capability by the independent CapabilityContracts owner contract. Direct Operation grants are legacy/narrower grants, not permission to leave an Operation ungrouped.
 - allowedResources.localTools does not exist in v0.2. A Script is a Skill-owned source asset, not an independently invocable Tool.
 
 Schema ownership:
@@ -116,7 +116,7 @@ call identifies one exact Operation exported by a dependency snapshot, qualified
 call: fivegc-tools::sbi.udm.sm_data.get
 ~~~
 
-It is not a Capability group or MCP display name. The resolved Operation must belong to exactly one imported Capability contract. The Skill grants the corresponding Capability identity in `allowedResources.capabilities`; Compiler verifies that every called Operation is a member of a granted Capability. A Tool Operation is never treated as an ungrouped standalone permission.
+It is not a Capability group or MCP display name. The resolved Operation must belong to exactly one imported Capability contract. For vNext source, the Skill grants that qualified Capability identity in `allowedResources.capabilities`. For current v0.2 compatibility source only, a direct Operation ID may be granted; Compiler still proves that it belongs to exactly one Capability and that the exact called Operation is within the legacy grant. Direct Operation grants do not create or imply Capability membership. A Tool Operation is never treated as an ungrouped standalone permission.
 
 Preconditions and postconditions are ordered node-entry/node-result phases. Their named steps support only call, script and verify; nested procedure and tool steps are unsupported. Unknown execution-affecting fields fail explicitly.
 
