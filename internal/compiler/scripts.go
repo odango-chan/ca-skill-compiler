@@ -99,7 +99,10 @@ func parseScriptOutput(src string) (map[string]any, error) {
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "from typing import ") {
 			for _, name := range strings.Split(strings.TrimPrefix(line, "from typing import "), ",") {
-				name = strings.TrimSpace(strings.Split(name, " as ")[0])
+				name = strings.TrimSpace(name)
+				if strings.Contains(name, " as ") {
+					return nil, fmt.Errorf("typing import aliases are unsupported in Script Output declarations: %s", name)
+				}
 				if name != "" {
 					imports[name] = true
 				}

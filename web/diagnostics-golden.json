@@ -175,5 +175,14 @@
       "line": 8,
       "message": "Producer or consumer Schema uses constraints unsupported by static binding validation: context.request.dnn"
     }
+  ],
+  "typingImportAliasUnsupported": [
+    {
+      "severity": "error",
+      "code": "SCRIPT_TYPE_UNSUPPORTED",
+      "path": "skills/normalize/scripts/normalize.py",
+      "line": 16,
+      "message": "typing import aliases are unsupported in Script Output declarations: TypedDict as TD"
+    }
   ]
 }

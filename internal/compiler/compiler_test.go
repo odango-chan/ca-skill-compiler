@@ -78,6 +78,7 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 		BooleanTrueSchemaBinding     []Diagnostic `json:"booleanTrueSchemaBinding"`
 		PatternPropertiesUnsupported []Diagnostic `json:"patternPropertiesUnsupported"`
 		ContainsUnsupported          []Diagnostic `json:"containsUnsupported"`
+		TypingImportAliasUnsupported []Diagnostic `json:"typingImportAliasUnsupported"`
 	}
 	data, err := os.ReadFile(filepath.Join("..", "..", "web", "diagnostics-golden.json"))
 	if err != nil {
@@ -105,6 +106,10 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	contains := mutateProjectFile(t, files, "lib/tools/demo.tool.yaml", "key: *text", "key: {type: array, items: {type: string}, contains: {type: string}}")
 	if got := Check(BuildRequest{Files: contains}); !reflect.DeepEqual(got, golden.ContainsUnsupported) {
 		t.Fatalf("Native contains diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.ContainsUnsupported)
+	}
+	typingAlias := mutateProjectFile(t, files, "skills/normalize/scripts/normalize.py", "from typing import Annotated, Literal, TypedDict", "from typing import Annotated, Literal, TypedDict as TD")
+	if got := Check(BuildRequest{Files: typingAlias}); !reflect.DeepEqual(got, golden.TypingImportAliasUnsupported) {
+		t.Fatalf("Native Script typing-alias diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.TypingImportAliasUnsupported)
 	}
 	invalidBinding := make([]File, len(files))
 	for i, file := range files {
@@ -2474,6 +2479,28 @@ func TestScriptOutputRejectsUnsupportedOptionalAndUnionExpressions(t *testing.T)
 		src := "from typing import NotRequired, Optional, TypedDict, Union\nclass Output(TypedDict):\n    value: " + expression + "\ndef main(input: dict) -> Output:\n    return {}\n"
 		if _, err := parseScriptOutput(src); err == nil {
 			t.Errorf("unsupported Script Output type expression %q was silently accepted", expression)
+		}
+	}
+}
+
+func TestScriptOutputRejectsTypingImportAliases(t *testing.T) {
+	cases := []string{
+		`from typing import TypedDict as TD
+class Output(TypedDict):
+    value: str
+def main(input: dict) -> Output:
+    return {}
+`,
+		`from typing import NotRequired as NR, TypedDict
+class Output(TypedDict):
+    value: NotRequired[str]
+def main(input: dict) -> Output:
+    return {}
+`,
+	}
+	for _, src := range cases {
+		if _, err := parseScriptOutput(src); err == nil {
+			t.Errorf("Script Output with a mismatched typing import alias was accepted")
 		}
 	}
 }
