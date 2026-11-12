@@ -1277,7 +1277,8 @@ func TestProcedureInputAliasesPreserveNodeOutputDominance(t *testing.T) {
 		procedure := `procedures:
   run:
     inputs:
-      value: {type: string, from: source.output.result}
+      base: {from: source.output}
+      value: {type: string, from: input.base.payload.name}
     start: source
     nodes:
       source:
@@ -1301,14 +1302,14 @@ func TestProcedureInputAliasesPreserveNodeOutputDominance(t *testing.T) {
 		}
 		files := source("input-alias", "run", procedure)
 		catalog := toolCatalog()
-		catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "outputSchema: {type: object}", "outputSchema: {type: object, properties: {result: {type: string, minLength: 1}}}", 1))
+		catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "outputSchema: {type: object}", "outputSchema: {type: object, properties: {payload: {type: object, properties: {name: {type: string, minLength: 1}}}}}", 1))
 		return append(files, catalog)
 	}
 	if got := Build(BuildRequest{Files: makeFiles(false)}); !got.Success {
-		t.Fatalf("input alias to a dominating node output was rejected: %#v", got.Diagnostics)
+		t.Fatalf("nested input alias to a dominating node output was rejected: %#v", got.Diagnostics)
 	}
 	if got := Build(BuildRequest{Files: makeFiles(true)}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_SOURCE_UNAVAILABLE") {
-		t.Fatalf("input alias hid a node output that does not dominate its consumer: %#v", got.Diagnostics)
+		t.Fatalf("nested input alias hid a node output that does not dominate its consumer: %#v", got.Diagnostics)
 	}
 }
 

@@ -2,7 +2,8 @@ procedures:
   run:
     start: build
     inputs:
-      value: {from: build.output.5qi}
+      base: {from: build.output}
+      value: {from: input.base.5qi}
     nodes:
       build:
         script: scripts/out.py
