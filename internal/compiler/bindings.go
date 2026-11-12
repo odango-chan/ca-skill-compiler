@@ -231,6 +231,10 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 					a.errorAt(path, line, "BINDING_UNSUPPORTED", "Producer or consumer Schema uses constraints unsupported by static binding validation: "+scalar(from))
 					continue
 				}
+				if schemaImplicationUnsupported(source, target) {
+					a.errorAt(path, line, "BINDING_UNSUPPORTED", "Producer-to-consumer Schema implication requires unsupported string-pattern analysis: "+scalar(from))
+					continue
+				}
 				if !schemasCompatible(source, target) {
 					a.errorAt(path, line, "BINDING_TYPE_MISMATCH", fmt.Sprintf("Producer schema %s is not compatible with input %s", scalar(from), key))
 				}
@@ -257,6 +261,44 @@ func (a *analysis) checkBindings(s *skillEntry, proc *yaml.Node, path string, wi
 			}
 		}
 	}
+}
+
+// schemaImplicationUnsupported separates an unproved regular-expression
+// implication from a proven type/constraint mismatch. Draft 2020-12 patterns
+// are not a proof engine for minLength/maxLength or another pattern.
+func schemaImplicationUnsupported(source, target *yaml.Node) bool {
+	source, target = unalias(source), unalias(target)
+	if source == nil || target == nil || source.Kind != yaml.MappingNode || target.Kind != yaml.MappingNode {
+		return false
+	}
+	sourceTypes, sourceOK := schemaTypeNames(child(source, "type"))
+	targetTypes, targetOK := schemaTypeNames(child(target, "type"))
+	if sourceOK && targetOK && schemaTypeSetHas(sourceTypes, "string") && schemaTypeSetHas(targetTypes, "string") {
+		sourcePattern, targetPattern := scalar(child(source, "pattern")), scalar(child(target, "pattern"))
+		if targetPattern != "" && sourcePattern != targetPattern {
+			return true
+		}
+		if sourcePattern != "" {
+			if targetMin := schemaNumber(target, "minLength"); targetMin != nil {
+				sourceMin := schemaNumber(source, "minLength")
+				if sourceMin == nil || sourceMin.Cmp(targetMin) < 0 {
+					return true
+				}
+			}
+			if targetMax := schemaNumber(target, "maxLength"); targetMax != nil {
+				sourceMax := schemaNumber(source, "maxLength")
+				if sourceMax == nil || sourceMax.Cmp(targetMax) > 0 {
+					return true
+				}
+			}
+		}
+	}
+	for _, name := range mapKeys(child(target, "properties")) {
+		if sourceProp := child(child(source, "properties"), name); sourceProp != nil && schemaImplicationUnsupported(sourceProp, child(child(target, "properties"), name)) {
+			return true
+		}
+	}
+	return false
 }
 
 // nodeOutputDominates reports whether every declared control-flow path from

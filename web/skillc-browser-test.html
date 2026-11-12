@@ -87,6 +87,9 @@ function send(command, request) {
 
               with:
                 value: {from: invoke.output.value}
+          'on':
+            FAILED: failed
+            UNRESOLVED: failed
         terminal: SUCCEEDED
       failed: {terminal: FAILED}
   helper:

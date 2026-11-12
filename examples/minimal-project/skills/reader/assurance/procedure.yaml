@@ -6,7 +6,14 @@ procedures:
         call: demo.read
         with:
           key: {value: sample}
+        'on':
+          SUCCEEDED: child
+          FAILED: failed
       child:
         procedure:
           skill: writer
           procedure: write
+        'on':
+          SUCCEEDED: done
+      failed: {terminal: FAILED}
+      done: {terminal: SUCCEEDED}

@@ -102,7 +102,7 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	for i, file := range files {
 		procedureOutput[i] = File{Path: file.Path, Bytes: bytes.Clone(file.Bytes)}
 		if file.Path == "skills/normalize/assurance/procedure.yaml" {
-			procedureOutput[i].Bytes = []byte("procedures:\n  normalize:\n    start: invoke\n    nodes:\n      invoke:\n        procedure: helper\n        'on':\n          SUCCEEDED: normalize-step\n          FAILED: failed\n      normalize-step:\n        preconditions:\n          steps:\n            - name: normalize-value\n              script: scripts/normalize.py\n\n\n\n\n              with:\n                value: {from: invoke.output.value}\n        terminal: SUCCEEDED\n      failed: {terminal: FAILED}\n  helper:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n")
+			procedureOutput[i].Bytes = []byte("procedures:\n  normalize:\n    start: invoke\n    nodes:\n      invoke:\n        procedure: helper\n        'on':\n          SUCCEEDED: normalize-step\n          FAILED: failed\n      normalize-step:\n        preconditions:\n          steps:\n            - name: normalize-value\n              script: scripts/normalize.py\n\n\n\n\n              with:\n                value: {from: invoke.output.value}\n          'on':\n            FAILED: failed\n            UNRESOLVED: failed\n        terminal: SUCCEEDED\n      failed: {terminal: FAILED}\n  helper:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n")
 		}
 	}
 	if got := Check(BuildRequest{Files: procedureOutput}); !reflect.DeepEqual(got, golden.ProcedureOutputMissingSchema) {
@@ -149,6 +149,8 @@ func toolCatalog() File {
 func testProject() []File {
 	parent := source("root", "start",
 		"procedures:\n  start:\n    start: lookup\n    nodes:\n      lookup:\n        call: demo.read\n        with: {ref: {value: sample}}\n      nested:\n        procedure: {skill: child, procedure: run}\n")
+	parent[2].Bytes = []byte(strings.Replace(string(parent[2].Bytes), "with: {ref: {value: sample}}\n      nested:", "with: {ref: {value: sample}}\n        'on': {SUCCEEDED: nested}\n      nested:", 1))
+	parent[2].Bytes = []byte(strings.Replace(string(parent[2].Bytes), "procedure: {skill: child, procedure: run}\n", "procedure: {skill: child, procedure: run}\n        'on': {SUCCEEDED: done}\n      done: {terminal: SUCCEEDED}\n", 1))
 	child := source("child", "run",
 		"procedures:\n  run:\n    start: done\n    nodes:\n      done:\n        terminal: SUCCEEDED\n")
 	return append(append(parent, child...), toolCatalog())
@@ -246,6 +248,151 @@ func TestOutcomeBranchesRejectEmptyMapsAndNames(t *testing.T) {
 				t.Fatalf("branch diagnostic has wrong source path: %#v", d)
 			}
 		}
+	}
+}
+
+func TestProcedureOutcomeDomainsAndReachability(t *testing.T) {
+	tests := []struct {
+		name, procedure, code string
+	}{
+		{
+			name: "wrong call outcome",
+			procedure: `procedures:
+  run:
+    start: read
+    nodes:
+      read:
+        call: demo.read
+        with: {ref: {value: sample}}
+        'on': {PASS: done, SUCCEEDED: done}
+      done: {terminal: SUCCEEDED}
+`,
+			code: "PROCEDURE_OUTCOME_INVALID",
+		},
+		{
+			name: "wrong predicate outcome",
+			procedure: `procedures:
+  run:
+    start: check
+    nodes:
+      check:
+        verify: ready
+        'on': {SUCCEEDED: done, FAIL: done, UNKNOWN: done}
+      done: {terminal: SUCCEEDED}
+`,
+			code: "PROCEDURE_OUTCOME_INVALID",
+		},
+		{
+			name: "wrong script outcome",
+			procedure: `procedures:
+  run:
+    start: compute
+    nodes:
+      compute:
+        script: scripts/compute.py
+        'on': {COMMITTED: done}
+      done: {terminal: SUCCEEDED}
+`,
+			code: "PROCEDURE_OUTCOME_INVALID",
+		},
+		{
+			name: "wrong procedure outcome",
+			procedure: `procedures:
+  run:
+    start: invoke
+    nodes:
+      invoke:
+        procedure: child
+        'on': {PASS: done}
+      done: {terminal: SUCCEEDED}
+  child:
+    start: done
+    nodes: {done: {terminal: SUCCEEDED}}
+`,
+			code: "PROCEDURE_OUTCOME_INVALID",
+		},
+		{
+			name: "invalid terminal result",
+			procedure: `procedures:
+  run:
+    start: done
+    nodes:
+      done: {terminal: DONE}
+`,
+			code: "PROCEDURE_OUTCOME_INVALID",
+		},
+		{
+			name: "unreachable node",
+			procedure: `procedures:
+  run:
+    start: done
+    nodes:
+      done: {terminal: SUCCEEDED}
+      orphan: {terminal: FAILED}
+`,
+			code: "PROCEDURE_NODE_UNREACHABLE",
+		},
+		{
+			name: "incomplete postcondition route",
+			procedure: `procedures:
+  run:
+    start: check
+    nodes:
+      check:
+        call: demo.read
+        with: {ref: {value: sample}}
+        postconditions:
+          steps: []
+          'on': {PASS: done, FAIL: done, SUCCEEDED: done}
+        'on': {SUCCEEDED: done}
+      done: {terminal: SUCCEEDED}
+`,
+			code: "PROCEDURE_OUTCOME_INVALID",
+		},
+		{
+			name: "missing precondition route outcome",
+			procedure: `procedures:
+  run:
+    start: check
+    nodes:
+      check:
+        call: demo.read
+        with: {ref: {value: sample}}
+        preconditions:
+          steps: []
+          'on': {FAILED: done}
+        'on': {SUCCEEDED: done}
+      done: {terminal: SUCCEEDED}
+`,
+			code: "PROCEDURE_OUTCOME_MISSING",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			files := source("flow", "run", tc.procedure)
+			files = append(files, toolCatalog())
+			got := Check(BuildRequest{Files: files})
+			if !findDiagnostic(got, tc.code) {
+				t.Fatalf("expected %s, got %#v", tc.code, got)
+			}
+		})
+	}
+}
+
+func TestProcedureFlowAllowsExplicitCycleWithExit(t *testing.T) {
+	files := source("cycle", "run", `procedures:
+  run:
+    start: retry
+    nodes:
+      retry:
+        call: demo.read
+        with: {ref: {value: sample}}
+        'on': {SUCCEEDED: retry, COMMITTED: retry, NOT_COMMITTED: done, OUTCOME_UNKNOWN: done, FAILED: done, DENIED: done, UNKNOWN: done, UNRESOLVED: done}
+      done: {terminal: FAILED}
+`)
+	files = append(files, toolCatalog())
+	if got := Check(BuildRequest{Files: files}); len(got) != 0 {
+		t.Fatalf("an explicit cycle with a reachable exit should remain statically valid: %#v", got)
 	}
 }
 
@@ -699,19 +846,23 @@ func TestReconcileRequiresEarlierToolNodeWithDeclaredSchema(t *testing.T) {
     start: create
     nodes:
       create:
-        call: demo.read
+        call: demo.mutate
         with: {ref: {value: sample}}
-        'on': {SUCCEEDED: recover}
+        'on': {OUTCOME_UNKNOWN: recover}
       recover:
         reconcile: create
-        'on': {SUCCEEDED: consume}
+        'on': {COMMITTED: consume}
       consume:
-        call: demo.read
+        call: demo.mutate
         with: {ref: {from: recover.output.state}}
-        'on': {SUCCEEDED: done}
-      done: {terminal: done}
+        'on': {COMMITTED: done}
+      done: {terminal: SUCCEEDED}
 `)
-	files = append(files, toolCatalog())
+	catalog := toolCatalog()
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "demo.read", "demo.mutate", 1))
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "effect: READ", "effect: MUTATION", 1))
+	files[1].Bytes = []byte(strings.Replace(string(files[1].Bytes), "capabilities: [demo.read]", "capabilities: [demo.read, demo.mutate]", 1))
+	files = append(files, catalog)
 	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
 		t.Fatalf("reconcile without Tool reconcileOutputSchema should fail: %#v", got.Diagnostics)
@@ -745,6 +896,64 @@ func TestReconcileCannotReferenceLaterNode(t *testing.T) {
 	}
 }
 
+func TestReconcileMustFollowExactMutationUnknownOutcome(t *testing.T) {
+	base := source("reconcile-causality", "run", `procedures:
+  run:
+    start: mutate
+    nodes:
+      mutate:
+        call: demo.mutate
+        with: {ref: {value: sample}}
+        'on': {OUTCOME_UNKNOWN: reconcile}
+      reconcile:
+        reconcile: mutate
+        'on': {COMMITTED: done}
+      done: {terminal: SUCCEEDED}
+`)
+	base[1].Bytes = []byte(strings.Replace(string(base[1].Bytes), "capabilities: [demo.read]", "capabilities: [demo.mutate]", 1))
+	catalog := toolCatalog()
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "demo.read", "demo.mutate", 1))
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "effect: READ", "effect: MUTATION", 1))
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "outputSchema: {type: object}", "outputSchema: {type: object}\n    reconcileOutputSchema: {type: object}", 1))
+	base = append(base, catalog)
+	if got := Check(BuildRequest{Files: base}); len(got) != 0 {
+		t.Fatalf("valid mutation reconciliation chain was rejected: %#v", got)
+	}
+	tests := []struct {
+		name string
+		edit func([]File) []File
+	}{
+		{"read cannot reconcile", func(files []File) []File {
+			for i := range files {
+				if files[i].Path == "lib/tools/demo.yaml" {
+					files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "effect: MUTATION", "effect: READ", 1))
+				}
+			}
+			return files
+		}},
+		{"reconcile must be the unknown-outcome edge", func(files []File) []File {
+			for i := range files {
+				if files[i].Path == "skills/reconcile-causality/assurance/procedure.yaml" {
+					files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "OUTCOME_UNKNOWN: reconcile", "OUTCOME_UNKNOWN: done", 1))
+				}
+			}
+			return files
+		}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			files := make([]File, len(base))
+			for i, file := range base {
+				files[i] = File{Path: file.Path, Bytes: bytes.Clone(file.Bytes)}
+			}
+			got := Check(BuildRequest{Files: tc.edit(files)})
+			if !findDiagnostic(got, "PROCEDURE_RECONCILE_TARGET_INVALID") {
+				t.Fatalf("invalid reconcile causality was not rejected: %#v", got)
+			}
+		})
+	}
+}
+
 func TestCrossSkillProcedureInputsAreLinkedFromProducerSchemas(t *testing.T) {
 	root := source("root", "run", `procedures:
   run:
@@ -753,10 +962,13 @@ func TestCrossSkillProcedureInputsAreLinkedFromProducerSchemas(t *testing.T) {
       lookup:
         call: demo.read
         with: {ref: {value: sample}}
+        'on': {SUCCEEDED: child}
       child:
         procedure: {skill: child, procedure: write}
         with:
           value: {from: lookup.output.result}
+        'on': {SUCCEEDED: done}
+      done: {terminal: SUCCEEDED}
 `)
 	child := source("child", "write", `procedures:
   write:
@@ -1056,7 +1268,7 @@ func TestNullableProducerOutputBindsOnlyToNullableConsumer(t *testing.T) {
         call: demo.write
         with:
           value: {from: read.output.value}
-        'on': {SUCCEEDED: done}
+        'on': {COMMITTED: done}
       done:
         terminal: SUCCEEDED
 `)
@@ -1610,6 +1822,38 @@ func TestUnsupportedBindingSchemasAreNotReportedAsTypeMismatches(t *testing.T) {
 	}
 }
 
+func TestPatternImplicationIsUnsupportedInsteadOfReportedAsMismatch(t *testing.T) {
+	files := []File{
+		{Path: "skills/pattern/SKILL.md", Bytes: []byte("---\nname: pattern\ndescription: Test fixture.\n---\n")},
+		{Path: "skills/pattern/assurance/contract.yaml", Bytes: []byte(`apiVersion: connectionagent.io/v1alpha1
+kind: SkillContract
+metadata: {name: pattern}
+spec:
+  entryProcedure: run
+  inputs: {requestSchema: schemas/request.yaml}
+  allowedResources: {capabilities: [demo.read]}
+`)},
+		{Path: "skills/pattern/assurance/procedure.yaml", Bytes: []byte(`procedures:
+  run:
+    start: read
+    nodes:
+      read:
+        call: demo.read
+        with: {ref: {from: context.request.value}}
+        'on': {SUCCEEDED: done}
+      done: {terminal: SUCCEEDED}
+`)},
+		{Path: "skills/pattern/schemas/request.yaml", Bytes: []byte("type: object\nproperties:\n  value: {type: string, pattern: '^[a-z]+$'}\n")},
+	}
+	catalog := toolCatalog()
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "minLength: 1", "minLength: 3", 1))
+	files = append(files, catalog)
+	got := Check(BuildRequest{Files: files})
+	if !findDiagnostic(got, "BINDING_UNSUPPORTED") || findDiagnostic(got, "BINDING_TYPE_MISMATCH") {
+		t.Fatalf("unproved regex implication must be distinguished from a proven mismatch: %#v", got)
+	}
+}
+
 func TestScriptInputProjectionUsesExactProducerWithoutConsumerSchema(t *testing.T) {
 	files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "script-contract-project"))
 	changed := false
@@ -1642,14 +1886,18 @@ func TestPreAndPostconditionStepsHaveDistinctOutputScopes(t *testing.T) {
             - name: same
               call: demo.read
               with: {ref: {value: sample}}
+          'on': {FAILED: done, UNRESOLVED: done}
         postconditions:
           steps:
             - name: same
               call: demo.integer
               with: {ref: {value: sample}}
+          'on': {PASS: remote-consumer, FAIL: done, UNKNOWN: done}
+        'on': {SUCCEEDED: remote-consumer}
       remote-consumer:
         call: demo.read
         with: {ref: {from: producer.preconditions.same.output.result}}
+        'on': {SUCCEEDED: local-consumer}
       local-consumer:
         call: demo.read
         with: {ref: {from: preconditions.same.output.result}}
@@ -1658,11 +1906,15 @@ func TestPreAndPostconditionStepsHaveDistinctOutputScopes(t *testing.T) {
             - name: same
               call: demo.read
               with: {ref: {value: sample}}
+          'on': {FAILED: done, UNRESOLVED: done}
         postconditions:
           steps:
             - name: same
               call: demo.integer
               with: {ref: {value: sample}}
+          'on': {PASS: done, FAIL: done, UNKNOWN: done}
+        'on': {SUCCEEDED: done}
+      done: {terminal: SUCCEEDED}
 `)
 	files[1].Bytes = []byte(strings.Replace(string(files[1].Bytes), "capabilities: [demo.read]", "capabilities: [demo.read, demo.integer]", 1))
 	files = append(files, File{Path: "lib/tools/scopes.yaml", Bytes: []byte(`apiVersion: ca-agent-demo.tool/v1

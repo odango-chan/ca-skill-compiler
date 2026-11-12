@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -707,8 +708,19 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 					a.errorAt(s.procedure, r.Line, "NODE_TARGET_UNKNOWN", "reconcile target must be declared before the reconcile node: "+reconcile)
 				} else if operation := scalar(child(child(nodes, reconcile), "call")); operation == "" {
 					a.errorAt(s.procedure, r.Line, "PROCEDURE_UNSUPPORTED", "reconcile target must be a Tool call node: "+reconcile)
-				} else if tool, ok := a.tools[operation]; !ok || tool.tool.ReconcileOutputSchema == nil {
-					a.errorAt(s.procedure, r.Line, "PROCEDURE_UNSUPPORTED", "reconcile target Tool has no declared reconcileOutputSchema: "+operation)
+				} else if tool, ok := a.tools[operation]; !ok {
+					a.errorAt(s.procedure, r.Line, "PROCEDURE_UNSUPPORTED", "reconcile target Operation is not imported: "+operation)
+				} else {
+					mutation := child(nodes, reconcile)
+					if tool.effect != "MUTATION" {
+						a.errorAt(s.procedure, r.Line, "PROCEDURE_RECONCILE_TARGET_INVALID", "reconcile target must be a MUTATION Operation: "+operation)
+					}
+					if scalar(child(child(mutation, "on"), "OUTCOME_UNKNOWN")) != n {
+						a.errorAt(s.procedure, r.Line, "PROCEDURE_RECONCILE_TARGET_INVALID", "reconcile node must be the exact mutation's OUTCOME_UNKNOWN successor: "+reconcile)
+					}
+					if tool.tool.ReconcileOutputSchema == nil {
+						a.errorAt(s.procedure, r.Line, "PROCEDURE_UNSUPPORTED", "reconcile target Tool has no declared reconcileOutputSchema: "+operation)
+					}
 				}
 			}
 			if script := scalar(child(node, "script")); script != "" {
@@ -741,6 +753,7 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 					}
 				}
 			}
+			a.validateNodeOutcomeDomain(s.procedure, node, child(node, "on"))
 			if branch := child(node, "on"); branch != nil {
 				a.validateOutcomeBranches(s.procedure, branch, known, "on")
 			}
@@ -757,6 +770,9 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 					}
 					if branch := child(scopeNode, "on"); branch != nil {
 						a.validateOutcomeBranches(s.procedure, branch, known, scope+".on")
+						a.validatePhaseOutcomeDomain(s.procedure, scope, branch)
+					} else {
+						a.errorAtNode(s.procedure, scopeNode, "PROCEDURE_OUTCOME_MISSING", scope+" requires an explicit on route")
 					}
 				}
 				if steps := child(scopeNode, "steps"); steps != nil {
@@ -816,8 +832,131 @@ func (a *analysis) parseProcedure(s *skillEntry) {
 			}
 			prior[n] = true
 		}
+		a.validateProcedureFlow(s.procedure, proc, start, names)
 	}
 	a.validateLocalProcedureCycles(s)
+}
+
+func (a *analysis) validateNodeOutcomeDomain(filename string, node, branches *yaml.Node) {
+	action := ""
+	for _, candidate := range []string{"call", "script", "procedure", "verify", "reconcile", "terminal"} {
+		if child(node, candidate) != nil {
+			action = candidate
+			break
+		}
+	}
+	allowed := map[string]bool{}
+	switch action {
+	case "verify":
+		allowed = outcomeSet("PASS", "FAIL", "UNKNOWN")
+	case "procedure":
+		allowed = outcomeSet("SUCCEEDED", "FAILED", "UNRESOLVED", "SAFE_STOPPED")
+	case "reconcile":
+		allowed = outcomeSet("COMMITTED", "NOT_COMMITTED", "UNRESOLVED")
+	case "script":
+		allowed = outcomeSet("SUCCEEDED", "FAILED", "DENIED", "UNKNOWN", "UNRESOLVED")
+	case "call":
+		allowed = outcomeSet("COMMITTED", "NOT_COMMITTED", "OUTCOME_UNKNOWN", "FAILED", "DENIED", "SUCCEEDED", "UNKNOWN", "UNRESOLVED")
+	}
+	if action == "terminal" {
+		value := scalar(child(node, "terminal"))
+		if !outcomeSet("SUCCEEDED", "FAILED", "UNRESOLVED", "SAFE_STOPPED")[value] {
+			a.errorAtNode(filename, child(node, "terminal"), "PROCEDURE_OUTCOME_INVALID", "terminal result must be SUCCEEDED, FAILED, UNRESOLVED, or SAFE_STOPPED")
+		}
+	}
+	if len(allowed) == 0 {
+		return
+	}
+	for _, key := range mapKeys(branches) {
+		if !allowed[key] {
+			a.errorAtNode(filename, child(branches, key), "PROCEDURE_OUTCOME_INVALID", fmt.Sprintf("outcome %q is not valid for %s action", key, action))
+		}
+	}
+}
+
+func (a *analysis) validatePhaseOutcomeDomain(filename, phase string, branches *yaml.Node) {
+	var allowed map[string]bool
+	if phase == "preconditions" {
+		allowed = outcomeSet("FAILED", "UNRESOLVED")
+	} else {
+		allowed = outcomeSet("PASS", "FAIL", "UNKNOWN")
+	}
+	for _, key := range mapKeys(branches) {
+		if !allowed[key] {
+			a.errorAtNode(filename, child(branches, key), "PROCEDURE_OUTCOME_INVALID", fmt.Sprintf("outcome %q is not valid for %s", key, phase))
+		}
+	}
+	for key := range allowed {
+		if child(branches, key) == nil {
+			a.errorAtNode(filename, branches, "PROCEDURE_OUTCOME_MISSING", fmt.Sprintf("%s route must declare %s", phase, key))
+		}
+	}
+}
+
+func outcomeSet(values ...string) map[string]bool {
+	set := make(map[string]bool, len(values))
+	for _, value := range values {
+		set[value] = true
+	}
+	return set
+}
+
+func (a *analysis) validateProcedureFlow(filename string, proc *yaml.Node, start string, names []string) {
+	nodes := child(proc, "nodes")
+	known := make(map[string]bool, len(names))
+	for _, name := range names {
+		known[name] = true
+	}
+	if !known[start] {
+		return
+	}
+	adj := make(map[string][]string, len(names))
+	for _, name := range names {
+		node := child(nodes, name)
+		for _, scope := range []string{"on", "preconditions", "postconditions"} {
+			branches := child(node, scope)
+			if scope != "on" {
+				branches = child(branches, "on")
+			}
+			for _, target := range mapValues(branches) {
+				if known[target] {
+					adj[name] = append(adj[name], target)
+				}
+			}
+		}
+	}
+	reachable := map[string]bool{}
+	var walk func(string)
+	walk = func(current string) {
+		if reachable[current] {
+			return
+		}
+		reachable[current] = true
+		for _, next := range adj[current] {
+			walk(next)
+		}
+	}
+	walk(start)
+	for _, name := range names {
+		if !reachable[name] {
+			a.errorAtNode(filename, child(nodes, name), "PROCEDURE_NODE_UNREACHABLE", "node is unreachable from procedure start: "+name)
+		}
+	}
+}
+
+func mapValues(mapping *yaml.Node) []string {
+	mapping = unalias(mapping)
+	if mapping == nil || mapping.Kind != yaml.MappingNode {
+		return nil
+	}
+	values := make([]string, 0, len(mapping.Content)/2)
+	for i := 1; i < len(mapping.Content); i += 2 {
+		value := unalias(mapping.Content[i])
+		if value.Kind == yaml.ScalarNode && value.Tag == "!!str" {
+			values = append(values, value.Value)
+		}
+	}
+	return values
 }
 
 func (a *analysis) validateOutcomeBranches(filename string, branch *yaml.Node, known map[string]bool, label string) {

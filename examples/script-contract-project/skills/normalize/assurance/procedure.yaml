@@ -16,6 +16,9 @@ procedures:
               script: scripts/normalize.py
               with:
                 value: {from: read.output.value}
+          'on':
+            FAILED: failed
+            UNRESOLVED: failed
         terminal: SUCCEEDED
       failed:
         terminal: FAILED
