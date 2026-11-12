@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/odango-chan/ca-skill-compiler/blob/main/contracts/v0.2/build-request.schema.json",
+  "title": "Skill Compiler BuildRequest v0.2 proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "files",
+    "resolvedDependencies"
+  ],
+  "properties": {
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 512,
+      "items": {
+        "$ref": "#/$defs/sourceFile"
+      }
+    },
+    "resolvedDependencies": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "$ref": "#/$defs/resolvedDependency"
+      }
+    },
+    "targets": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      }
+    },
+    "apiVersion": {
+      "const": "skillc.build/v0.2"
+    }
+  },
+  "$defs": {
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^skills/(?!\\.{1,2}(?:/|$))[^/\\\\:]+(?:/(?!\\.{1,2}(?:/|$))[^/\\\\:]+)*$",
+          "description": "Normalized project-relative authored Skill source path under skills/**."
+        },
+        "bytes": {
+          "type": "string",
+          "contentEncoding": "base64",
+          "maxLength": 2796204
+        }
+      }
+    },
+    "resolvedDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dependencyId",
+        "digest",
+        "files"
+      ],
+      "properties": {
+        "dependencyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9._-]*$",
+          "description": "Stable dependency alias used as a logical namespace by qualified Skill contract references. Not a source locator."
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "Compiler-verifiable digest of the canonical snapshot file set."
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/dependencyFile"
+          }
+        }
+      }
+    },
+    "dependencyFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^(?!/)(?!.*//)(?!.*(?:^|/)\\.\\.?(/|$))(?!.*\\/$)[^\\\\:]+$",
+          "description": "Normalized POSIX path relative to this immutable dependency snapshot. Never prefixed with lib/ and never referenced directly by Skill source."
+        },
+        "bytes": {
+          "type": "string",
+          "contentEncoding": "base64",
+          "maxLength": 2796204
+        }
+      }
+    }
+  },
+  "description": "Proposed versioned BuildRequest: authored Skill files plus Studio-resolved immutable dependency snapshots. Skill refs use dependency-alias-qualified exported contract IDs; no lib/ namespace."
+}
