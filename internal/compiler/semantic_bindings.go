@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"fmt"
 	"regexp"
 
 	"gopkg.in/yaml.v3"
@@ -73,9 +74,11 @@ func (a *analysis) addSemanticProcedureInputBindings(proc *yaml.Node, with, expe
 			continue
 		}
 		candidates := producers[id]
-		if len(candidates) != 1 {
-			// No candidate and ambiguous candidates both fail closed. The normal
-			// required-input check emits BINDING_UNRESOLVED; no path is guessed.
+		if len(candidates) == 0 {
+			continue
+		}
+		if len(candidates) > 1 {
+			a.errorAt(path, target.Line, "BINDING_AMBIGUOUS", fmt.Sprintf("multiple Procedure inputs declare semantic identity %s for %s", id, name))
 			continue
 		}
 		candidate := candidates[0]
