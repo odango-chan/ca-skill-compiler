@@ -78,7 +78,8 @@
         "capability": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 160
+          "maxLength": 160,
+          "description": "Stable logical authorization/grouping identity granted by Skill source, qualified by dependency alias when needed."
         },
         "owner": {
           "type": "string",
@@ -91,7 +92,8 @@
           "maxItems": 512,
           "items": {
             "$ref": "#/$defs/operation"
-          }
+          },
+          "description": "Exact callable Operations exposed under this Capability. Compiler rejects duplicate Operation IDs across all Capability entries."
         }
       }
     },
@@ -106,15 +108,18 @@
         "operation": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 160
+          "maxLength": 160,
+          "description": "Exact ToolCatalog Operation ID; not a Tool display name or inferred permission."
         },
         "effect": {
           "enum": [
             "READ",
             "MUTATION"
-          ]
+          ],
+          "description": "Capability owner's expected Effect, independently cross-checked against ToolCatalog."
         }
       }
     }
-  }
+  },
+  "description": "Owner-published Capability membership contract. Each callable ToolCatalog Operation must occur in exactly one Capability entry; Compiler checks global membership uniqueness and independently declared Effect equality. Runtime remains responsible for deployment admission and authorization."
 }
