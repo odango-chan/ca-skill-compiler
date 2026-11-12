@@ -2067,6 +2067,88 @@ func TestPinnedOfficialToolCatalogInspection(t *testing.T) {
 	}
 }
 
+func TestCreatedSessionToolCatalogMatchesCaAgentDemoOwnerBaseline(t *testing.T) {
+	// This blob is tools/contracts/createdsession.tool.yaml at
+	// odango-chan/ca-agent-demo@4395982fa6efb97714b97901603b2dfb7018c4d0.
+	// Pinning both the owner revision and blob digest prevents the checked-in
+	// official ca-skills fixture from drifting independently of its source.
+	const ownerCommit = "4395982fa6efb97714b97901603b2dfb7018c4d0"
+	const ownerBlobSHA256 = "c99ffe9c0ccbf5e65da19f689b5af47580a2975c4734954c18af4805641d7f6f"
+	const fixturePath = "../../examples/ca-skills-v0.2/lib/tools/createdsession.tool.yaml"
+
+	content, err := os.ReadFile(fixturePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	digest := sha256.Sum256(content)
+	if got := hex.EncodeToString(digest[:]); got != ownerBlobSHA256 {
+		t.Fatalf("ToolCatalog fixture differs from ca-agent-demo@%s source blob: got SHA-256 %s", ownerCommit, got)
+	}
+
+	type sourceOperation struct {
+		Operation             string `yaml:"operation"`
+		Effect                string `yaml:"effect"`
+		Description           string `yaml:"description"`
+		InputSchema           any    `yaml:"inputSchema"`
+		OutputSchema          any    `yaml:"outputSchema"`
+		ReconcileOutputSchema any    `yaml:"reconcileOutputSchema"`
+	}
+	var source struct {
+		Spec struct {
+			Contracts []sourceOperation `yaml:"contracts"`
+		} `yaml:"spec"`
+	}
+	if err := yaml.Unmarshal(content, &source); err != nil {
+		t.Fatalf("decode pinned ToolCatalog source: %v", err)
+	}
+	if len(source.Spec.Contracts) != 12 {
+		t.Fatalf("ca-agent-demo@%s must supply exactly 12 Agent-facing Operations; got %d", ownerCommit, len(source.Spec.Contracts))
+	}
+
+	got := InspectLibraries(BuildRequest{Files: []File{{Path: "lib/tools/createdsession.tool.yaml", Bytes: content}}})
+	if len(got.Diagnostics) != 0 {
+		t.Fatalf("pinned ToolCatalog was rejected: %#v", got.Diagnostics)
+	}
+	if len(got.Tools) != len(source.Spec.Contracts) {
+		t.Fatalf("inspection returned %d Operations for %d source contracts", len(got.Tools), len(source.Spec.Contracts))
+	}
+	byID := make(map[string]LibraryTool, len(got.Tools))
+	for _, tool := range got.Tools {
+		byID[tool.OperationID] = tool
+	}
+	for _, operation := range source.Spec.Contracts {
+		tool, ok := byID[operation.Operation]
+		if !ok {
+			t.Errorf("source Operation was not parsed: %s", operation.Operation)
+			continue
+		}
+		if tool.DeclaredEffect != operation.Effect {
+			t.Errorf("%s effect changed: source=%q inspected=%q", operation.Operation, operation.Effect, tool.DeclaredEffect)
+		}
+		if !reflect.DeepEqual(tool.InputSchema, operation.InputSchema) {
+			t.Errorf("%s inputSchema differs from owner source", operation.Operation)
+		}
+		if !reflect.DeepEqual(tool.OutputSchema, operation.OutputSchema) {
+			t.Errorf("%s outputSchema differs from owner source", operation.Operation)
+		}
+		if !reflect.DeepEqual(tool.ReconcileOutputSchema, operation.ReconcileOutputSchema) {
+			t.Errorf("%s reconcileOutputSchema differs from owner source", operation.Operation)
+		}
+	}
+}
+
+func TestToolCallRejectsMissingRequiredCatalogInput(t *testing.T) {
+	files := testProject()
+	for i := range files {
+		if files[i].Path == "skills/root/assurance/procedure.yaml" {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "with: {ref: {value: sample}}", "with: {}", 1))
+		}
+	}
+	if got := Build(BuildRequest{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNRESOLVED") {
+		t.Fatalf("missing required Tool input must fail static linking: %#v", got.Diagnostics)
+	}
+}
+
 func TestCurrentOfficialCaSkillsSnapshotParsesAndKeepsOwnerGaps(t *testing.T) {
 	root := filepath.Join("..", "..", "examples", "ca-skills-v0.2")
 	checksums, err := os.ReadFile(filepath.Join(root, "UPSTREAM_SOURCE.sha256"))
