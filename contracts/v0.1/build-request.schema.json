@@ -48,7 +48,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 240,
-          "pattern": "^skills/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+(?:/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+)*$",
+          "pattern": "^skills/(?!\\.{1,2}(?:/|$))[^/\\\\:]+(?:/(?!\\.{1,2}(?:/|$))[^/\\\\:]+)*$",
           "description": "Normalized Skill-source-relative path in the skills/ namespace."
         },
         "bytes": {
@@ -101,7 +101,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 240,
-          "pattern": "^(?!/)(?!.*//)(?!.*\\\\/$)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$))[^\\\\\\\\:\\u0000]+$",
+          "pattern": "^(?!/)(?!.*//)(?!.*(?:^|/)\\.\\.?(/|$))(?!.*\\/$)[^\\\\:]+$",
           "description": "Normalized POSIX path relative to this immutable dependency snapshot. Current v0.2 compatibility locators may match this exact path; vNext Skill source references stable exported Schema IDs instead."
         },
         "bytes": {
