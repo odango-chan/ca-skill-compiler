@@ -1,0 +1,159 @@
+draft: 2020-12
+resources:
+  https://spike.invalid/project/always-true.yaml: true
+  https://spike.invalid/project/always-false.yaml: false
+  https://spike.invalid/project/defs.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    $defs:
+      name:
+        type: string
+        minLength: 2
+    type: object
+    properties:
+      name:
+        $ref: '#/$defs/name'
+    required: [name]
+  https://spike.invalid/project/ref-target.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: string
+    minLength: 1
+  https://spike.invalid/project/ref-sibling.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    $ref: ref-target.yaml
+    maxLength: 2
+  https://spike.invalid/project/allof.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    allOf:
+      - type: integer
+      - minimum: 2
+  https://spike.invalid/project/anyof.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    anyOf:
+      - type: string
+      - type: integer
+  https://spike.invalid/project/oneof.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    oneOf:
+      - type: integer
+      - minimum: 2
+  https://spike.invalid/project/not.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    not:
+      type: "null"
+  https://spike.invalid/project/additional.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: object
+    properties:
+      known: {type: integer}
+    additionalProperties: false
+  https://spike.invalid/project/prefix-items.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    prefixItems:
+      - {type: integer}
+      - {type: string}
+    items: false
+  https://spike.invalid/project/items.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: array
+    items: {type: integer, minimum: 0}
+  https://spike.invalid/project/const.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    const: 9007199254740993
+  https://spike.invalid/project/const-uint64.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    const: 18446744073709551615
+  https://spike.invalid/project/const-negative.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    const: -9223372036854775809
+  https://spike.invalid/project/enum.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    enum: [1, 0.1, null]
+  https://spike.invalid/project/conditional.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    if:
+      properties:
+        kind: {const: small}
+      required: [kind]
+    then:
+      properties:
+        count: {maximum: 3}
+    else:
+      properties:
+        count: {minimum: 4}
+  https://spike.invalid/project/format.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: string
+    format: email
+  https://spike.invalid/project/unknown-format.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: string
+    format: spike-unknown-format
+  https://spike.invalid/project/multiple-of.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: number
+    multipleOf: 0.1
+  https://spike.invalid/project/scientific-multiple-of.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: number
+    multipleOf: 1e-7
+  https://spike.invalid/project/exclusive.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: number
+    exclusiveMinimum: 9007199254740993
+    exclusiveMaximum: 9007199254740995
+  https://spike.invalid/project/defs-leaf.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    $defs:
+      token: {type: string, minLength: 2}
+  https://spike.invalid/project/nested-ref.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    $ref: defs-leaf.yaml#/$defs/token
+  https://spike.invalid/project/id-parent.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    $id: https://spike.invalid/project/ids/parent.json
+    $ref: child.json
+  https://spike.invalid/project/ids/child.json:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: string
+    pattern: '^ok'
+  https://spike.invalid/project/recursive.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    $defs:
+      node:
+        type: object
+        properties:
+          value: {type: integer}
+          next: {$ref: '#/$defs/node'}
+        required: [value]
+        additionalProperties: false
+    $ref: '#/$defs/node'
+  https://spike.invalid/project/security-template.yaml:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    $ref: https://remote.invalid/schema.json
+
+cases:
+  - {id: boolean-true, root: https://spike.invalid/project/always-true.yaml, valid: [null, 1, x], invalid: []}
+  - {id: boolean-false, root: https://spike.invalid/project/always-false.yaml, valid: [], invalid: [null]}
+  - {id: defs-ref, root: https://spike.invalid/project/defs.yaml, valid: [{name: Ada}], invalid: [{name: A}]}
+  - {id: ref-sibling-semantics, root: https://spike.invalid/project/ref-sibling.yaml, valid: [ab], invalid: [abc]}
+  - {id: allOf, root: https://spike.invalid/project/allof.yaml, valid: [2], invalid: [1, x]}
+  - {id: anyOf, root: https://spike.invalid/project/anyof.yaml, valid: [word, 1], invalid: [null]}
+  - {id: oneOf, root: https://spike.invalid/project/oneof.yaml, valid: [1], invalid: [2]}
+  - {id: not, root: https://spike.invalid/project/not.yaml, valid: [word, 1], invalid: [null]}
+  - {id: additionalProperties, root: https://spike.invalid/project/additional.yaml, valid: [{known: 1}], invalid: [{extra: 1}]}
+  - {id: prefixItems, root: https://spike.invalid/project/prefix-items.yaml, valid: [[1, ok]], invalid: [[ok, 1], [1, ok, 3]]}
+  - {id: items, root: https://spike.invalid/project/items.yaml, valid: [[0, 1]], invalid: [[1, -1], [x]]}
+  - {id: const-precision, root: https://spike.invalid/project/const.yaml, valid: [9007199254740993], invalid: [9007199254740992]}
+  - {id: const-uint64-max, root: https://spike.invalid/project/const-uint64.yaml, valid: [18446744073709551615], invalid: [18446744073709551614]}
+  - {id: const-large-negative, root: https://spike.invalid/project/const-negative.yaml, valid: [-9223372036854775809], invalid: [-9223372036854775808]}
+  - {id: enum, root: https://spike.invalid/project/enum.yaml, valid: [1, 0.1, null], invalid: [true]}
+  - {id: conditional, root: https://spike.invalid/project/conditional.yaml, valid: [{kind: small, count: 3}, {kind: large, count: 4}], invalid: [{kind: small, count: 4}, {kind: large, count: 3}]}
+  - {id: format-annotation, root: https://spike.invalid/project/format.yaml, mode: annotation, valid: [not-an-email], invalid: []}
+  - {id: format-assertion, root: https://spike.invalid/project/format.yaml, mode: assertion, valid: [a@example.org], invalid: [not-an-email]}
+  - {id: unknown-format-remains-annotation, root: https://spike.invalid/project/unknown-format.yaml, mode: assertion, valid: [anything], invalid: []}
+  - {id: multipleOf-exact-decimal, root: https://spike.invalid/project/multiple-of.yaml, valid: [0.3, 0.1], invalid: [0.31]}
+  - {id: multipleOf-scientific-notation, root: https://spike.invalid/project/scientific-multiple-of.yaml, valid: [3e-7], invalid: [3.1e-7]}
+  - {id: exclusive-bounds-large-integer, root: https://spike.invalid/project/exclusive.yaml, valid: [9007199254740994], invalid: [9007199254740993, 9007199254740995]}
+  - {id: nested-reference, root: https://spike.invalid/project/nested-ref.yaml, valid: [ok], invalid: [x]}
+  - {id: id-base-uri, root: https://spike.invalid/project/id-parent.yaml, valid: [okay], invalid: [no]}
+  - {id: recursive-ref, root: https://spike.invalid/project/recursive.yaml, valid: [{value: 1, next: {value: 2}}], invalid: [{value: 1, next: {value: x}}]}

@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Schema engine WASM worker spike</title>
+<body data-test="pending">
+<pre id="result">{"state":"starting"}</pre>
+<script>
+const started = performance.now();
+// Default resumed acceptance to the primary candidate. The secondary candidate
+// remains in the harness for historical comparison, but is not rerun by default.
+const selected = new URL(location.href).searchParams.get("candidate");
+const candidates = selected ? [selected] : ["san"];
+const report = {browser: navigator.userAgent, candidates: []};
+const pre = document.getElementById("result");
+setTimeout(() => {
+  if (document.body.dataset.test === "pending") {
+    document.body.dataset.test = "timeout";
+    pre.textContent = JSON.stringify({error: "worker deadline exceeded", report}, null, 2);
+  }
+}, 15000);
+function run(candidate) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(`worker.js?candidate=${candidate}`);
+    const pageStarted = performance.now();
+    worker.onmessage = ({data}) => {
+      worker.terminate();
+      data.pageWorkerElapsedMs = performance.now() - pageStarted;
+      resolve(data);
+    };
+    worker.onerror = (error) => { worker.terminate(); reject(new Error(`${candidate}: ${error.message}`)); };
+  });
+}
+(async () => {
+  try {
+    for (const candidate of candidates) report.candidates.push(await run(candidate));
+    report.totalElapsedMs = performance.now() - started;
+    const pass = report.candidates.every((item) => item.result.vectors.failed === 0 && item.result.security.every((x) => x.passed));
+    document.body.dataset.test = pass ? "pass" : "fail";
+    pre.textContent = JSON.stringify(report, null, 2);
+  } catch (error) {
+    document.body.dataset.test = "error";
+    pre.textContent = JSON.stringify({error: String(error), report}, null, 2);
+  }
+})();
+</script>
+</body>
