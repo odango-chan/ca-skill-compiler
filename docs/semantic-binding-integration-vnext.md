@@ -126,3 +126,17 @@ The static binding-schema allowlist now admits exactly `x-ca-semanticId` as non-
 The first real acceptance target is `ca-agent-demo`'s runnable `skills/establish-pdu-session` 5GC Skill. MAS is not currently end-to-end runnable; its ToolCatalog is explicitly proposed / NOT_READY. The earlier 11 fields × 16 calls = 176 mapping test is a synthetic shape/feasibility example only, not a source-backed MAS migration result and not an acceptance criterion.
 
 Use [ca-skills 5GC Schema & Observation Source Inventory](https://github.com/odango-chan/ca-skills/blob/design/capability-authoring-model-vnext/docs/design/5gc-schema-source-inventory-vnext.md) to locate the actual 5GC owner authorities. The current Compiler PR #5 fixture is a copied demo project and may be stale; before using it for acceptance, refresh it from the exact current `ca-agent-demo` commit and bring in the real owner contracts without copying or inventing schemas. Do not migrate/remove 5GC `with` mappings until full compile and exact binding/evidence equivalence pass.
+
+
+## 10. Dependency paths are not Skill semantics
+
+A Skill must not hard-code a physical `lib/` path. The path is a workspace materialization detail and can differ between online Theia, local VS Code, CI, or a headless Compiler caller.
+
+The target boundary is:
+
+1. Skill source names a stable dependency ID and the exported contract identity it consumes (for example an Operation ID or a named owner Schema).
+2. Plugin-managed Workspace Configuration resolves that dependency to a pinned source/revision and immutable content snapshot, keeping source selection, lock/integrity metadata, import/refresh, and cache outside Skill source.
+3. Compiler receives `sourceFiles` plus a deterministic `resolvedDependencies` collection keyed by logical dependency identity. It validates exact exported contract identity, version/revision, digest, schema shape, and references against the supplied bytes.
+4. Compiler returns an in-memory BuildResult. The Plugin owns persistence/display; `lib/` and `output/` are not mandatory compiler input/output filesystem paths.
+
+Do not introduce `skill-project.yaml`, `skill.lock.yaml`, or another mandatory path manifest to solve this. The exact Skill YAML reference syntax remains open and must align with the accepted Plugin-managed configuration contract. Keep the current v0.2 `lib/**` path adapter as a compatibility bridge only; no path migration should occur until the dependency identity contract and a real 5GC build fixture are accepted.
