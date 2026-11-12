@@ -66,6 +66,14 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 		ProcedureOutputMissingSchema []Diagnostic `json:"procedureOutputMissingSchema"`
 		InvalidScriptOutput          []Diagnostic `json:"invalidScriptOutput"`
 		DuplicateLibrary             []Diagnostic `json:"duplicateLibrary"`
+		ProcedureOutcomeInvalid      []Diagnostic `json:"procedureOutcomeInvalid"`
+		ProcedureNodeUnreachable     []Diagnostic `json:"procedureNodeUnreachable"`
+		ProcedureTerminalInvalid     []Diagnostic `json:"procedureTerminalInvalid"`
+		ProcedurePhaseRouteMissing   []Diagnostic `json:"procedurePhaseRouteMissing"`
+		ReconcileCausalityInvalid    []Diagnostic `json:"reconcileCausalityInvalid"`
+		InvalidPath                  []Diagnostic `json:"invalidPath"`
+		DuplicateProjectPath         []Diagnostic `json:"duplicateProjectPath"`
+		MalformedProcedureYAML       []Diagnostic `json:"malformedProcedureYAML"`
 	}
 	data, err := os.ReadFile(filepath.Join("..", "..", "web", "diagnostics-golden.json"))
 	if err != nil {
@@ -117,6 +125,38 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	duplicateResult := InspectLibraries(BuildRequest{Files: append(append([]File(nil), files...), duplicate)})
 	if !reflect.DeepEqual(duplicateResult.Diagnostics, golden.DuplicateLibrary) {
 		t.Fatalf("Native InspectLibraries duplicate-operation diagnostics differ from browser golden:\ngot  %#v\nwant %#v", duplicateResult.Diagnostics, golden.DuplicateLibrary)
+	}
+	procedureOutcome := mutateProjectFile(t, files, "skills/normalize/assurance/procedure.yaml", "          SUCCEEDED: normalize-step", "          PASS: normalize-step")
+	if got := Check(BuildRequest{Files: procedureOutcome}); !reflect.DeepEqual(got, golden.ProcedureOutcomeInvalid) {
+		t.Fatalf("Native action-outcome diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.ProcedureOutcomeInvalid)
+	}
+	unreachable := mutateProjectFile(t, files, "skills/normalize/assurance/procedure.yaml", "      failed:\n", "      orphan: {terminal: FAILED}\n      failed:\n")
+	if got := Check(BuildRequest{Files: unreachable}); !reflect.DeepEqual(got, golden.ProcedureNodeUnreachable) {
+		t.Fatalf("Native unreachable-node diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.ProcedureNodeUnreachable)
+	}
+	invalidTerminal := mutateProjectFile(t, files, "skills/normalize/assurance/procedure.yaml", "terminal: FAILED", "terminal: DONE")
+	if got := Check(BuildRequest{Files: invalidTerminal}); !reflect.DeepEqual(got, golden.ProcedureTerminalInvalid) {
+		t.Fatalf("Native terminal diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.ProcedureTerminalInvalid)
+	}
+	missingPhaseRoute := mutateProjectFile(t, files, "skills/normalize/assurance/procedure.yaml", "            UNRESOLVED: failed\n", "")
+	if got := Check(BuildRequest{Files: missingPhaseRoute}); !reflect.DeepEqual(got, golden.ProcedurePhaseRouteMissing) {
+		t.Fatalf("Native phase-route diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.ProcedurePhaseRouteMissing)
+	}
+	flowFiles := loadProjectFilesForTest(t, filepath.Join("..", "..", "web", "flow-project"))
+	if got := Check(BuildRequest{Files: flowFiles}); !reflect.DeepEqual(got, golden.ReconcileCausalityInvalid) {
+		t.Fatalf("Native reconcile-causality diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.ReconcileCausalityInvalid)
+	}
+	invalidPath := append(append([]File(nil), files...), File{Path: "skills/../escape.yaml", Bytes: []byte("bad")})
+	if got := Check(BuildRequest{Files: invalidPath}); !reflect.DeepEqual(got, golden.InvalidPath) {
+		t.Fatalf("Native invalid-path diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.InvalidPath)
+	}
+	duplicatePath := append(append([]File(nil), files...), File{Path: files[0].Path, Bytes: bytes.Clone(files[0].Bytes)})
+	if got := Check(BuildRequest{Files: duplicatePath}); !reflect.DeepEqual(got, golden.DuplicateProjectPath) {
+		t.Fatalf("Native duplicate-file diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.DuplicateProjectPath)
+	}
+	malformedYAML := mutateProjectFile(t, files, "skills/normalize/assurance/procedure.yaml", "procedures:\n", "procedures: [\n")
+	if got := Check(BuildRequest{Files: malformedYAML}); !reflect.DeepEqual(got, golden.MalformedProcedureYAML) {
+		t.Fatalf("Native malformed-YAML diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.MalformedProcedureYAML)
 	}
 }
 

@@ -1,0 +1,14 @@
+apiVersion: ca-agent-demo.tool/v1
+kind: ToolCatalog
+metadata: {name: mutation, owner: tests}
+spec:
+  contracts:
+  - operation: demo.mutate
+    effect: MUTATION
+    inputSchema:
+      type: object
+      required: [ref]
+      properties:
+        ref: {type: string}
+    outputSchema: {type: object}
+    reconcileOutputSchema: {type: object}

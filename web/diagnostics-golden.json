@@ -81,5 +81,79 @@
       "line": 8,
       "message": "operation demo.read already declared in lib/tools/demo.tool.yaml"
     }
+  ],
+  "procedureOutcomeInvalid": [
+    {
+      "severity": "error",
+      "code": "PROCEDURE_OUTCOME_INVALID",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 10,
+      "column": 17,
+      "message": "outcome \"PASS\" is not valid for call action"
+    }
+  ],
+  "procedureNodeUnreachable": [
+    {
+      "severity": "error",
+      "code": "PROCEDURE_NODE_UNREACHABLE",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 23,
+      "column": 15,
+      "message": "node is unreachable from procedure start: orphan"
+    }
+  ],
+  "procedureTerminalInvalid": [
+    {
+      "severity": "error",
+      "code": "PROCEDURE_OUTCOME_INVALID",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 24,
+      "column": 19,
+      "message": "terminal result must be SUCCEEDED, FAILED, UNRESOLVED, or SAFE_STOPPED"
+    }
+  ],
+  "procedurePhaseRouteMissing": [
+    {
+      "severity": "error",
+      "code": "PROCEDURE_OUTCOME_MISSING",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 20,
+      "column": 13,
+      "message": "preconditions route must declare UNRESOLVED"
+    }
+  ],
+  "reconcileCausalityInvalid": [
+    {
+      "severity": "error",
+      "code": "PROCEDURE_RECONCILE_TARGET_INVALID",
+      "path": "skills/flow/assurance/procedure.yaml",
+      "line": 10,
+      "message": "reconcile node must be the exact mutation's OUTCOME_UNKNOWN successor: mutate"
+    }
+  ],
+  "invalidPath": [
+    {
+      "severity": "error",
+      "code": "PROJECT_PATH_INVALID",
+      "path": "skills/../escape.yaml",
+      "message": "file path must be normalized and inside skills/ or lib/"
+    }
+  ],
+  "duplicateProjectPath": [
+    {
+      "severity": "error",
+      "code": "PROJECT_DUPLICATE_FILE",
+      "path": "skills/normalize/SKILL.md",
+      "message": "duplicate project file"
+    }
+  ],
+  "malformedProcedureYAML": [
+    {
+      "severity": "error",
+      "code": "YAML_PARSE",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 1,
+      "message": "yaml: line 2: did not find expected ',' or ']'"
+    }
   ]
 }
