@@ -57,6 +57,9 @@ func TestSemanticProcedureInputBindingFailsClosed(t *testing.T) {
 		if got := a.addSemanticProcedureInputBindings(proc, nil, expected, "procedure.yaml", "call"); got != nil {
 			t.Fatalf("ambiguous producer must not bind: %#v", got)
 		}
+		if len(a.diagnostics) != 1 || a.diagnostics[0].Code != "BINDING_AMBIGUOUS" {
+			t.Fatalf("ambiguous candidates must be diagnosed: %#v", a.diagnostics)
+		}
 	})
 	t.Run("same name different semantic identity", func(t *testing.T) {
 		a := &analysis{procedureInputSchemas: map[*yaml.Node]map[string]*yaml.Node{
