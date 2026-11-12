@@ -15,8 +15,9 @@ Compiler responsibilities:
 - Link Skill, Procedure, Tool Operation, Script and Schema references.
 - Validate statically knowable Producer/Consumer bindings.
 - Generate Script Output JSON Schemas from strict Output TypedDict declarations.
-- Compute selected Skill dependency closure.
-- Return deterministic build files and diagnostics.
+- Verify supplied dependency snapshot digests and exact exported contract identities.
+- Compute the exact dependency snapshot closure used by selected Skills.
+- Return deterministic Skill build files, dependency closure metadata and diagnostics.
 - Expose identical semantics through Native Go and Go/WASM.
 
 Compiler does **not** acquire, discover, persist or manage dependencies. It does not read project settings, browse Git, upload files, connect to MCP, resolve registries, update locks, manage caches, hold credentials, bind Runtime Providers or execute Tools/Scripts.
@@ -155,7 +156,7 @@ The five conventional PDU Scripts in the official ca-skills source are the prima
 
 The current imported format is the ToolCatalog file contract described by [tool-catalog.schema.json](../../contracts/v0.1/tool-catalog.schema.json).
 
-A ToolCatalog contains:
+A ToolCatalog is one file within a resolved dependency snapshot and contains:
 
 - apiVersion: ca-agent-demo.tool/v1
 - kind: ToolCatalog
@@ -167,16 +168,16 @@ The ca-agent-demo.tool/v1 string is a file-format identifier only; it does not m
 
 Linking rules:
 
-- Operation IDs are unique across all ToolCatalog files in one BuildRequest. Duplicate IDs are errors; there is no source-order precedence.
+- Operation IDs are unique across all ToolCatalog files in all supplied dependency snapshots in one BuildRequest. Duplicate IDs are errors; there is no source-order precedence.
 - effect is a declared static classification (READ or MUTATION), not proof of Owner authority, permission, implementation or Runtime READY.
 - adapter is descriptive metadata. Compiler does not resolve or invoke it.
 - YAML anchors/aliases and document-local Schema fragments are supported with bounded expansion.
-- Only local references resolvable from the supplied file set are accepted. Remote $ref, network lookup and source discovery are outside Compiler scope.
-- inspectLibraries may return a read-only projection of imported Operation IDs, source paths, Effects and Schemas for Studio display. It does not maintain source maturity, package status, manifests or lifecycle state.
+- Local references are resolved within their containing contract/snapshot according to the contract format. Stable exported Schema `$id` references may be resolved across supplied snapshots only by exact identity. Remote `$ref`, network lookup and source discovery are outside Compiler scope.
+- inspectLibraries may return a read-only projection of imported Operation IDs, dependency IDs, snapshot-relative source paths, Effects and Schemas for Studio display. It does not maintain source maturity, package status, manifests or lifecycle state.
 
-There is **no** lib/manifest.yaml, sourceStatus, package manifest or dependency state in v0.1. If Studio needs labels such as imported or read-only, those are Studio presentation metadata, not Compiler input.
+There is **no** Compiler-side `lib/manifest.yaml`, sourceStatus, package manifest, dependency resolver or lifecycle state. Dependency IDs and snapshot digests are normalized inputs from Studio's locked Workspace Configuration; they do not encode source acquisition or permission. If Studio needs labels such as imported or read-only, those are Studio presentation metadata, not Compiler input.
 
-Current ca-skills lib/ contains the approved 12-Operation conventional PDU ToolCatalog. The MAS Skill's 16 ca.pdu_session.* references remain unresolved until an approved MAS ToolCatalog is supplied. Its design draft is not an approved import.
+The conventional 5GC ToolCatalog is supplied as a resolved dependency snapshot from the approved Tool Owner source. MAS remains excluded from executable acceptance until an approved MAS ToolCatalog and runnable end-to-end evidence exist.
 
 The current UDM ToolCatalog Output Schema is broad (result: {type: object}) and does not declare nested subscription fields used by the selection Script. Compiler must report the missing nested Producer Schema information; it must not infer it from the Script or restore a Skill-owned Input Schema.
 
@@ -218,42 +219,44 @@ The response shapes are [build-result.schema.json](../../contracts/v0.1/build-re
 
 - check and build share the same static analysis.
 - On any ERROR, Build returns success: false and an empty outputFiles array.
-- On success, output files are sorted by normalized path. Include selected Skill source, generated files and only imported contracts required by selected Skills and their transitive Schema references.
+- On success, `outputFiles` contains selected Skill source and generated Skill files only, sorted by normalized Skill path. Imported dependency files are not copied into this tree.
+- `dependencyClosure` contains the unique dependency ID + digest pairs actually used by selected Skills and their transitive Schema/Operation references, sorted by dependency ID. This records the exact locked snapshots needed to reproduce the build without taking ownership of their persistence.
 - Diagnostics have stable ordering and identify the actual input path and source position when available.
-- Identical normalized file bytes and targets produce identical diagnostics and output paths/bytes, independent of input array order.
+- Identical normalized Skill bytes, dependency IDs/digests/content and targets produce identical diagnostics, dependencyClosure and output paths/bytes, independent of input array order.
 - Native Go and WASM use the same Go Core and must produce equivalent results.
-- Content digests, lockfiles and cache keys are not Compiler inputs.
+- Dependency content digests are Compiler inputs and are verified. Source acquisition, lock mutation, cache keys, lock lifecycle and cache storage remain Studio-owned.
 
 ## 8. Ownership boundaries and explicit exclusions
 
 **Skill Studio / caller**
 - Owns project files and editor state.
 - Imports files from Upload, MCP discovery, Git or built-in examples.
-- Prepares the skills/** and lib/** byte set.
-- Owns source provenance, persistence, refresh, credentials, storage and export.
-- May use the same prepared bytes for LSP and Compiler analysis.
+- Owns resource-scoped dependency declarations, source provenance, revision pins, locks, immutable snapshot persistence, refresh/Update Lock, credentials, storage and export.
+- Prepares Skill source files plus resolved immutable dependency snapshots for the Compiler.
+- Computes the canonical snapshot digest using the Compiler-owned algorithm and validates the Workspace Configuration lock.
+- May use the same pinned snapshots for LSP and Compiler analysis.
 
 **Agent Host / Runtime**
 - Owns Provider bindings, connections, credentials, authorization, Effect admission, implementation readiness, Python execution and Tool execution.
 
 **Compiler**
-- Knows only paths, bytes, Skill semantics, ToolCatalog semantics and selected targets.
+- Knows Skill-source paths, snapshot-relative dependency paths, bytes, dependency IDs/digests, Skill semantics, ToolCatalog semantics and selected targets.
 - Does not know whether a file was uploaded, discovered through MCP, fetched from Git or bundled with Studio.
 
 Explicitly out of scope: Git/Upload/MCP adapters, dependency resolver lifecycle, Project Settings, package manifests, DependencyLock, version solvers, registry, Snapshot Store, digest protocol, caches, Provider Binding, Runtime admission, Qualification, Release, Python execution and live 5GC testing.
 
 ## 9. Acceptance gates
 
-1. BuildRequest accepts skills/** plus caller-supplied lib/**; no physical lib/ directory is assumed.
+1. BuildRequest accepts Skill files under skills/** plus separate resolved dependency snapshots; no lib/** namespace or physical lib/ directory is required.
 2. Invalid namespace, absolute/traversal path, duplicate path, oversized file and duplicate Operation ID fail deterministically.
 3. ToolCatalog positive/negative fixtures cover aliases, malformed Operations, missing Effect/Input Schema, duplicate IDs and unsupported/remote Schema references.
 4. Current v0.2 Procedure and Predicate constructs parse according to ca-skills; unsupported actions fail explicitly.
 5. Script Contract v0 is statically analyzed and Output TypedDict schemas are generated without running Python.
 6. Procedure and Predicate Script input projections link only to real Producer/Owner Schemas.
 7. Missing Host/Observation/Tool nested Output Schemas produce explicit diagnostics.
-8. Empty targets compile the whole supplied project; explicit targets compile their Skill dependency closure.
+8. Empty targets compile the whole supplied Skill project; explicit targets compile their Skill dependency closure and report the exact used dependency snapshot closure.
 9. Same input bytes/targets in different file order produce identical results.
 10. Native and WASM produce the same diagnostics, output paths and bytes.
-11. No test requires Git, MCP, network access, project settings, package manifests, lockfiles or physical lib/ / output/ folders.
+11. No Compiler test requires Git, MCP, network access, dependency acquisition, lock management, or physical lib/ / output/ folders. Studio integration tests separately prove Workspace Configuration lock-to-snapshot assembly.
 
 **Freeze rule:** keep the API small. Any proposal to add source acquisition, dependency lifecycle, storage, manifests, locks or cache management belongs to Studio/caller and must be rejected from the Compiler contract.
