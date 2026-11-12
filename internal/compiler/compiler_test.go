@@ -2794,6 +2794,69 @@ func TestPinnedOfficialToolCatalogInspection(t *testing.T) {
 	}
 }
 
+func TestPinnedOfficialDiagnosticsMatchBrowserGolden(t *testing.T) {
+	root := filepath.Join("..", "..", "examples", "ca-skills-v0.2")
+	files := loadProjectFilesForTest(t, root)
+	manifestData, err := os.ReadFile(filepath.Join("..", "..", "web", "official-project-files.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest []string
+	if err := json.Unmarshal(manifestData, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	paths := make(map[string]bool, len(files))
+	for _, file := range files {
+		paths[file.Path] = true
+	}
+	for _, path := range manifest {
+		if !paths[path] {
+			t.Fatalf("browser official input manifest contains unexpected file %q", path)
+		}
+		delete(paths, path)
+	}
+	if len(paths) != 0 || len(manifest) != len(files) {
+		t.Fatalf("browser official input manifest differs from pinned project; missing=%v, manifest=%d, project=%d", sortedStringMapKeys(paths), len(manifest), len(files))
+	}
+	checksumSource, err := os.ReadFile(filepath.Join(root, "UPSTREAM_SOURCE.sha256"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	pinnedChecksums := make(map[string]string)
+	for _, line := range strings.Split(strings.TrimSpace(string(checksumSource)), "\n") {
+		parts := strings.SplitN(line, "  ", 2)
+		if len(parts) != 2 {
+			t.Fatalf("invalid pinned checksum line %q", line)
+		}
+		pinnedChecksums[parts[1]] = parts[0]
+	}
+	checksumGolden, err := os.ReadFile(filepath.Join("..", "..", "web", "official-project-sha256.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var browserChecksums map[string]string
+	if err := json.Unmarshal(checksumGolden, &browserChecksums); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(browserChecksums, pinnedChecksums) {
+		t.Fatal("browser official source checksums differ from the pinned upstream manifest")
+	}
+	goldenData, err := os.ReadFile(filepath.Join("..", "..", "web", "official-diagnostics-golden.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var golden []Diagnostic
+	if err := json.Unmarshal(goldenData, &golden); err != nil {
+		t.Fatal(err)
+	}
+	if len(golden) != 235 {
+		t.Fatalf("pinned official diagnostic golden has %d findings; expected the classified 235", len(golden))
+	}
+	if got := Check(BuildRequest{Files: files}); !reflect.DeepEqual(got, golden) {
+		t.Fatalf("Native official diagnostics differ from browser golden: got %d, want %d", len(got), len(golden))
+	}
+}
+
 func TestCreatedSessionToolCatalogMatchesCaAgentDemoOwnerBaseline(t *testing.T) {
 	// This blob is tools/contracts/createdsession.tool.yaml at
 	// odango-chan/ca-agent-demo@4395982fa6efb97714b97901603b2dfb7018c4d0.
