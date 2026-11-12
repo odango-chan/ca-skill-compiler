@@ -67,7 +67,7 @@ The final v0 result remains **PARTIAL**: Procedure result Schema syntax is absen
 
 ## Compiler v0.1 implementation status
 
-Updated: 2026-11-12. Implementation branch: `feat/compiler-v01-implementation-20261111`, based on updated design PR #4 head `69b67c572910c4222e657758ff155269e57e60f5` and the merged v0 closeout ancestry. The v0.1 contract is being implemented as a separate full migration, with no v0 compatibility layer.
+Updated: 2026-11-12. Implementation branch: `feat/compiler-v01-implementation-20261111`, based on current design PR #4 head `4672621dbe4abe5a8df6e23c24395626f57199d` and the merged v0 closeout ancestry. The v0.1 contract is being implemented as a separate full migration, with no v0 compatibility layer.
 
 ### Current v0.1 evidence
 
@@ -96,7 +96,7 @@ Updated: 2026-11-12. Implementation branch: `feat/compiler-v01-implementation-20
 | WP6 Outcome, flow and scope | PARTIAL | Action-specific outcome and terminal values, mandatory exact pre/post routes, reachability, explicit cycle handling and reconcile-to-Mutation causality are checked. Full nested alias analysis and an upstream-frozen outcome contract remain. |
 | WP7 Native/WASM/Browser parity | PARTIAL | Current-head Chromium smoke matches all seven output paths/order/bytes, sixteen Check golden vectors (fourteen negative diagnostics and two positive Schema-semantics probes) and duplicate-operation Inspect diagnostics; oversized Check/Build/Inspect requests return their expected `INPUT_LIMIT` shapes. Official input parity and broader malformed/adversarial cases remain. |
 | WP8 Official Skill acceptance | PARTIAL | Current PDU 102 / MAS 133 findings are classified A–E in the linked report. PDU has B=1 (`maxLength: 512` absent from the Skill Script Output), C=98, E=3; MAS has B=7, C=51, D=75. Owner and MAS ToolCatalog gaps remain unresolved by design. |
-| WP9 Final acceptance | PARTIAL | Current iteration Go tests, vet, Native/WASM builds, positive fixtures, synthetic package build, official PDU/MAS diagnostics, Chromium vectors, and diff checks all pass at their stated scope. Full Draft 2020-12 implication, broader malformed-input parity, and official Owner/Tool inputs remain; PR update is pending this commit. |
+| WP9 Final acceptance | PARTIAL | At code commit `238e9d84`, Go tests, vet, Native/WASM builds, positive fixtures, synthetic package build, official PDU/MAS diagnostics, Chromium vectors, and diff checks all pass at their stated scope. PR #5 is updated and remains Draft. Full Draft 2020-12 implication, broader malformed-input parity, and official Owner/Tool inputs remain. |
 
 ### v0.1 acceptance gates
 
@@ -117,9 +117,15 @@ Updated: 2026-11-12. Implementation branch: `feat/compiler-v01-implementation-20
 
 At the previously pushed head, Go tests/vet, Native and WASM builds, synthetic CLI builds, and a Chromium smoke passed. Its diagnostic vectors did not include the current WP6 outcome/flow additions; current parity is pending below. The former PDU breakdown was superseded by the regex implication correction.
 
-### WP6 current iteration
+### WP6 validation evidence before WP4 Schema pass (code head `8b48afd5`)
 
 At current code head `8b48afd5`, `GOWORK=off go test ./... -count=1`, `GOWORK=off go vet ./...`, Native CLI build, WASM build and `git diff --check` PASS. Chromium 156 ran the current Worker against the Script Contract fixture: all seven output paths/order/bytes matched Native, fourteen Check diagnostic vectors (including invalid path, duplicate file and malformed YAML) and duplicate-operation Inspect diagnostics matched shared goldens, and the >25 MiB Check/Build/Inspect guards returned their command-specific `INPUT_LIMIT` response types. The official pinned source check returns 235 diagnostics: PDU 102 / MAS 133, with no new Procedure outcome or reachability findings. See [the A–E report](workstreams/official-skill-acceptance-v0.1.md). This remains synthetic browser evidence; official-source and broader adversarial parity are open.
+
+### WP4 Schema support pass (implementation code commit `238e9d84`)
+
+The Draft 2020-12 coverage boundary is recorded in [the JSON Schema matrix](workstreams/json-schema-support-v0.1.md). This pass adds root boolean Schema validity and universal/empty-set binding semantics, local `$ref` to boolean targets, type-less finite `const`/`enum` checks, correct treatment of type-specific assertions when `type` is omitted, exact JSON numeric conversion for generated Script Schemas, and default `format`/content annotation behavior. Unsupported applicators remain fail-closed for binding, and pattern implication remains explicitly unsupported.
+
+At `238e9d84`, `GOWORK=off go mod tidy`, `GOWORK=off go test ./... -count=1`, `GOWORK=off go vet ./...`, Native CLI build, GOOS=js/GOARCH=wasm build, and `git diff --check` PASS. Both positive fixture checks and the 7-file Script Contract build PASS. Pinned official checks remain expected nonzero: PDU 102 (`97 EXTERNAL_SCHEMA_MISSING`, `3 BINDING_UNSUPPORTED`, `1 BINDING_TYPE_MISMATCH`, `1 SOURCE_FIELD_UNKNOWN`); MAS 133 (`51 EXTERNAL_SCHEMA_MISSING`, `43 BINDING_UNRESOLVED`, `16 LIB_OPERATION_UNKNOWN`, `16 PROCEDURE_UNSUPPORTED`, `7 TOOL_NOT_DECLARED`). Chromium 156 passed seven output byte/path comparisons, 16 Check golden vectors (14 negative and 2 positive Schema probes), duplicate Inspect diagnostics, and oversized Check/Build/Inspect response checks. Browser evidence is synthetic; hosted CI and official-input cross-platform parity remain NOT_RUN.
 
 ### Current upstream refresh
 

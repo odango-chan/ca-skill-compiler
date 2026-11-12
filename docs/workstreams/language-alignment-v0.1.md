@@ -7,7 +7,7 @@ Updated: 2026-11-12. This implementation report follows the narrowed Compiler co
 | Source | Ref | Use |
 |---|---|---|
 | `odango-chan/ca-skills` | `codex/semantic-token-contract-v01` at `eeae62badf29f90eee257c7ef2ab504211bf7e30` | Skill Language v0.2, Script Contract, Schema Ownership, Authoring Model, official PDU and MAS Skills, approved ToolCatalog |
-| Compiler design | PR #4 head `69b67c572910c4222e657758ff155269e57e60f5` | Narrow Build API and current language/linking contract |
+| Compiler design | PR #4 head `4672621dbe4abe5a8df6e23c24395626f57199d` | Narrow Build API and current language/linking contract |
 | `odango-chan/ca-agent-demo` | Not used as a Skill source tree | May help locate Tool Owner gaps or refresh business behavior; its Skills do not define Compiler grammar |
 
 The isolated v0.2 design-branch snapshot is [examples/ca-skills-v0.2](../../examples/ca-skills-v0.2). It has 61 Skill source files and one approved ToolCatalog, verified with a SHA-256 manifest. The snapshot includes no Host/Observation Owner Schemas. A read-only refresh on 2026-11-12 verified that the current `ca-skills/main` PDU and MAS packages and ToolCatalog are byte-identical to this snapshot. `examples/ca-agent-demo-project` remains the separate, unmodified pre-migration v0 fixture.
