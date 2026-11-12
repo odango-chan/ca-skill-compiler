@@ -67,7 +67,7 @@ For JSON/WASM transport, Go []byte is represented as a base64 string. Native cal
 - All file paths are normalized relative paths inside their own namespace/snapshot. They are data labels, never instructions to read the physical filesystem.
 - `output/` is never an input namespace. Build returns `outputFiles`; Studio decides whether and where to export them. No physical output directory is required.
 
-There is no Compiler-side Project, Dependency Resolver, DependencyLock, LibraryManifest, SnapshotStore, cache or ProjectContext lifecycle. Studio owns acquisition, source selection, revision pinning, lock state, immutable persistence, refresh/Update Lock, export and cache. Compiler only verifies the supplied snapshot bytes/digests and links their exported contracts.
+There is no Compiler-side Project, Dependency Resolver, DependencyLock, DependencyManifest, SnapshotStore, cache or ProjectContext lifecycle. Studio owns acquisition, source selection, revision pinning, lock state, immutable persistence, refresh/Update Lock, export and cache. Compiler only verifies the supplied snapshot bytes/digests and links their exported contracts.
 
 The request is bounded by the existing limits: at most 512 files across Skill source and all dependency snapshots, 128 dependency snapshots, 2 MiB per file and 16 MiB aggregate raw bytes; duplicate paths are rejected within each namespace/snapshot. Compiler validates normalized relative paths, duplicate IDs/paths, digest integrity, aggregate size limits and namespace boundaries before parsing. It never opens a path from the request.
 
@@ -209,13 +209,13 @@ Rules:
 6. Resolve reconcile to the exact earlier mutation node and its declared reconcile Output Schema.
 7. Resolve local JSON Pointer references only within the supplied input file set.
 8. Missing, ambiguous, unknown or unsupported Schema semantics produce precise diagnostics. Do not accept an unknown nested field merely because its parent says type: object.
-9. Do not infer Owner Schema from Python access patterns, Case fixtures, requiredFacts or deployment routing profiles.
+10. Do not infer Owner Schema from Python access patterns, Case fixtures, requiredFacts or deployment routing profiles.
 
 Current known external blockers in the official PDU source are the Host Subject/Facts/Evidence and Observation Owner Schemas, plus the broad UDM Tool Output Schema described above. MAS has 16 unresolved Operation references. These are expected explicit diagnostics, not reasons to weaken the linker.
 
 ## 7. Compiler outputs and determinism
 
-The response shapes are [build-result.schema.json](../../contracts/v0.1/build-result.schema.json) and [dependency-inspection.schema.json](../../contracts/v0.1/library-inspection.schema.json).
+The response shapes are [build-result.schema.json](../../contracts/v0.1/build-result.schema.json) and [dependency-inspection.schema.json](../../contracts/v0.1/dependency-inspection.schema.json).
 
 - check and build share the same static analysis.
 - On any ERROR, Build returns success: false and an empty outputFiles array.
@@ -243,7 +243,7 @@ The response shapes are [build-result.schema.json](../../contracts/v0.1/build-re
 - Knows Skill-source paths, snapshot-relative dependency paths, bytes, dependency IDs/digests, Skill semantics, ToolCatalog semantics and selected targets.
 - Does not know whether a file was uploaded, discovered through MCP, fetched from Git or bundled with Studio.
 
-Explicitly out of scope: Git/Upload/MCP adapters, dependency resolver lifecycle, Project Settings, package manifests, DependencyLock, version solvers, registry, Snapshot Store, digest protocol, caches, Provider Binding, Runtime admission, Qualification, Release, Python execution and live 5GC testing.
+Explicitly out of scope: Git/Upload/MCP adapters, dependency resolver lifecycle, Project Settings, package manifests, DependencyLock mutation, version solvers, registry, Snapshot Store, cache lifecycle, Provider Binding, Runtime admission, Qualification, Release, Python execution and live 5GC testing. Canonical snapshot digest definition and verification are in scope; digest generation for Workspace Configuration is implemented by Studio.
 
 ## 9. Acceptance gates
 
@@ -255,7 +255,7 @@ Explicitly out of scope: Git/Upload/MCP adapters, dependency resolver lifecycle,
 6. Procedure and Predicate Script input projections link only to real Producer/Owner Schemas.
 7. Missing Host/Observation/Tool nested Output Schemas produce explicit diagnostics.
 8. Empty targets compile the whole supplied Skill project; explicit targets compile their Skill dependency closure and report the exact used dependency snapshot closure.
-9. Same input bytes/targets in different file order produce identical results.
+9. Same Skill bytes, snapshot file bytes, dependency IDs/digests and targets in different input array orders produce identical results.
 10. Native and WASM produce the same diagnostics, output paths and bytes.
 11. No Compiler test requires Git, MCP, network access, dependency acquisition, lock management, or physical lib/ / output/ folders. Studio integration tests separately prove Workspace Configuration lock-to-snapshot assembly.
 
