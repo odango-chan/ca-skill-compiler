@@ -119,3 +119,10 @@ The isolated branch now contains a narrow compiler-package candidate generator:
 The static binding-schema allowlist now admits exactly `x-ca-semanticId` as non-validating metadata; other unknown extensions remain unsupported by that conservative proof subset. General Schema shape validation already permits `x-*` annotations.
 
 **Not yet verified:** no Go test execution or CI result was available for this follow-up compiler-package implementation. The environment could not resolve GitHub for a local clone, and this repository has no configured workflow run attached to the spike head. Treat this as committed prototype code awaiting execution, not PASS. Full pipeline tests still require owner-approved Context Schemas; see §5.
+
+
+## 9. Executable acceptance baseline correction (2026-11-12)
+
+The first real acceptance target is `ca-agent-demo`'s runnable `skills/establish-pdu-session` 5GC Skill. MAS is not currently end-to-end runnable; its ToolCatalog is explicitly proposed / NOT_READY. The earlier 11 fields × 16 calls = 176 mapping test is a synthetic shape/feasibility example only, not a source-backed MAS migration result and not an acceptance criterion.
+
+Use [ca-skills 5GC Schema & Observation Source Inventory](https://github.com/odango-chan/ca-skills/blob/design/capability-authoring-model-vnext/docs/design/5gc-schema-source-inventory-vnext.md) to locate the actual 5GC owner authorities. The current Compiler PR #5 fixture is a copied demo project and may be stale; before using it for acceptance, refresh it from the exact current `ca-agent-demo` commit and bring in the real owner contracts without copying or inventing schemas. Do not migrate/remove 5GC `with` mappings until full compile and exact binding/evidence equivalence pass.
