@@ -426,3 +426,48 @@ The following decisions are recommended for approval:
 6. Can its diagnostics be mapped deterministically to Compiler error codes and source locations without exposing unstable library error strings as the public contract?
 
 **Review disposition:** The architecture is directionally sound, but the above clarifications are required before implementation authorization. PR #5 remains paused at checkpoint `49753ce3`; no production Schema code is changed by this addendum.
+
+
+## 12. Candidate comparison — public evidence and existing local evidence
+
+This comparison is a pre-spike shortlist, not a final selection. Public documentation is evidence of advertised capability; only the isolated Compiler spike can establish suitability for this project.
+
+| Candidate | Draft 2020-12 | Exact-number evidence | Closed resolver hooks | Regex control | Go/WASM status | Current assessment |
+| --- | --- | --- | --- | --- | --- | --- |
+| `github.com/santhosh-tekuri/jsonschema/v6` v6.0.3 | Advertises Draft 2020-12 and reports passing the JSON-Schema-Test-Suite excluding optional cases; Bowtie has a reported v6.0.2 run with no required-suite failures | Must verify the actual YAML-to-engine value path and numeric decoder; current Compiler spike's representative vectors passed Native and WASM under Node, but this is not a full exact-number proof | Exposes `Compiler.UseLoader` and `AddResource`; a custom loader can be used, but the spike must prove every URI path is gated and no fallback loader can reach network/filesystem | Exposes `UseRegexpEngine`; default uses Go regexp, so a compatible engine/subset must be selected and tested explicitly | Existing local evidence: representative vectors compiled/executed Native and WASM under Node. Actual Chromium Worker not yet tested | **Primary candidate for the next spike** because it is already integrated experimentally and exposes the required loader/regex seams |
+| `github.com/kaptinlin/jsonschema` v0.9.10 (public package version observed) | Advertises Draft 2020-12 plus earlier drafts | Explicitly documents preserving untyped JSON numbers as `encoding/json.Number` and mathematical numeric comparisons | Advertises pluggable per-scheme loaders and batch compilation; must verify strict disable/replace behavior for HTTP(S) defaults and nested refs | Its docs describe regex validation using Go regexp/syntax interoperable subset; not full ECMA-262. Must inspect and test exact behavior | No project-specific Native/WASM/Chromium evidence found | **Secondary comparison candidate**; exact-number story is attractive, but pre-v1 maturity and regex semantics require scrutiny |
+| `github.com/corvus-dotnet/Corvus.JsonSchema/src-go/corvus-json-schema` v0.1.5 | Advertises full Draft 2020-12 suite coverage (including optional tests except one documented Draft 4 case) | Claims JSON numeric fidelity and has detailed conformance evidence; must test the exact Compiler conversion path | Exposes a custom `DocumentResolver` and depth controls; closed in-memory resolver appears feasible but must be proven | Documents pattern limits and interoperable behavior; inspect the exact supported regex subset | Requires Go 1.25 or later, while Compiler currently declares Go 1.23.0. No project-specific WASM evidence | **Watchlist only for this iteration** unless the project explicitly accepts a Go toolchain upgrade; also a young v0.1 package with no known importers at the time checked |
+
+### 12.1 Evidence sources
+
+- santhosh-tekuri repository and feature list: https://github.com/santhosh-tekuri/jsonschema
+- santhosh-tekuri v6 API, including `UseLoader` and `UseRegexpEngine`: https://pkg.go.dev/github.com/santhosh-tekuri/jsonschema/v6
+- kaptinlin README and numeric/reference claims: https://github.com/kaptinlin/jsonschema
+- kaptinlin published package version and API: https://pkg.go.dev/github.com/kaptinlin/jsonschema
+- Corvus Go package requirements, resolver API, and conformance claims: https://pkg.go.dev/github.com/corvus-dotnet/Corvus.JsonSchema/src-go/corvus-json-schema
+- JSON Schema specification identifies Draft 2020-12 as the current published specification: https://json-schema.org/specification
+- Bowtie implementation comparison: https://bowtie.report/
+
+### 12.2 Preliminary recommendation
+
+Proceed with `santhosh-tekuri/jsonschema/v6` as the primary spike candidate, not as an approved production dependency. Compare it with `kaptinlin/jsonschema` using the same pinned corpus. Keep Corvus on the watchlist because its current Go 1.25 requirement conflicts with this repository's Go 1.23 baseline.
+
+Do not compare candidates by star count or headline suite claims alone. The go/no-go decision is driven by the Compiler's actual constraints: Go 1.23 compatibility (unless explicitly changed), WASM and Chromium execution, exact YAML number conversion, a closed resolver, source-aware diagnostics, acceptable binary footprint, and deterministic behavior.
+
+## 13. Binding proof boundary — explicit non-goal for general subsumption
+
+The phrase “bounded Producer/Consumer proof” must not be interpreted as an invitation to implement a general JSON Schema subsumption solver.
+
+For v0.1, the analyzer should remain a small, conservative checker over the subset already implemented and covered by the current binding goldens. It may prove only cases where the relationship is mechanically decidable by the existing rules (e.g. supported primitive type inclusion, required-property guarantees, supported nested properties, homogeneous arrays, exact numeric intervals, and finite `const`/`enum` cases).
+
+The analyzer MUST NOT attempt to solve arbitrary:
+- `allOf` / `anyOf` / `oneOf` / `not` implications;
+- conditional or dependent schemas;
+- regex-language inclusion or pattern-vs-length implications;
+- tuple-position relationships using `prefixItems`;
+- unevaluated-location semantics;
+- recursive-schema implication.
+
+For those cases, emit the existing explicit unsupported/unproven diagnostic. Do not add a SAT/SMT solver, automata engine, regex solver, or a general theorem prover as part of Schema Engine migration.
+
+The migration is successful if it removes duplicate standard Schema validation code while preserving the existing proof subset and fail-closed outcomes—not if it increases the percentage of arbitrary schema pairs that can be proven.
