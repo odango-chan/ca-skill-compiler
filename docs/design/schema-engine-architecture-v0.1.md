@@ -578,3 +578,60 @@ Sources:
 - https://json-schema.org/draft/2020-12
 
 **Revised preliminary recommendation:** start the isolated spike with santhosh-tekuri v6.0.3 as the primary candidate and keep kaptinlin as a focused exact-number/reference-loader comparison. If the primary candidate cannot meet regex and Chromium requirements without disproportionate custom code or bundle cost, reject it rather than expanding Compiler scope.
+
+
+## 16. Candidate admission gate and narrowed next step
+
+### 16.1 Go toolchain compatibility is a hard admission gate
+
+The Compiler baseline at checkpoint `49753ce3` declares:
+
+```go
+go 1.23.0
+```
+
+The candidate's tagged `go.mod` is authoritative for its minimum language/toolchain requirement. Do not infer compatibility from README badges, package documentation, or a successful test performed under a newer local toolchain.
+
+Verified tagged module declarations:
+
+| Candidate | Exact version | Tagged `go.mod` | Admission |
+| --- | --- | --- | --- |
+| `santhosh-tekuri/jsonschema/v6` | `v6.0.3` | `go 1.21` | Admitted for full spike |
+| `kaptinlin/jsonschema` | `v0.9.10` | `go 1.27.0` | Excluded from further full spike under Go 1.23 baseline |
+| Corvus Go candidate | previously evaluated v0.1 line | reported Go 1.25+ requirement | Excluded from further full spike under Go 1.23 baseline; retain prior notes only |
+
+A candidate that requires a newer Go toolchain is not compatible merely because the isolated spike happened to run using a newer installed Go version. Toolchain upgrade is a separate repository-wide decision and is out of scope for this Schema migration.
+
+Before any future candidate is admitted, record:
+- exact module path and tag/version;
+- tagged `go.mod` `go` directive and any `toolchain` directive;
+- minimum Go version of transitive dependencies;
+- whether the current Go 1.23 toolchain can build/test it without automatic toolchain download;
+- Native and `GOOS=js GOARCH=wasm` compatibility.
+
+### 16.2 Revised spike scope
+
+The remaining spike work is narrowed to **santhosh-tekuri/jsonschema/v6@v6.0.3 only**.
+
+Do not spend additional time implementing or benchmarking Kaptinlin or Corvus. Preserve their existing results as historical comparison evidence; do not delete their fixtures or reports.
+
+Complete only the remaining gates:
+1. Audit and reproduce the existing 25 shared semantic vectors and 8 reference-security vectors.
+2. Reproduce the official Draft 2020-12 required-suite count, pinning suite commit and documenting filters/adapters.
+3. Complete actual Chromium Worker validation using the same candidate configuration and fixtures as Native/Node.
+4. Measure WASM artifact size, Worker initialization, Schema compile/instance validation latency, and memory/allocation behavior with repeatable commands.
+5. Verify custom regex-engine behavior against the exact required pattern corpus; clearly report any unsupported ECMA-262 constructs.
+6. Produce the final ADOPT / CONDITIONAL ADOPT / REJECT decision and create the isolated Spike PR.
+
+### 16.3 Execution order and stop conditions
+
+The implementation agent must first audit the existing uncommitted spike worktree and the separate Compiler worktree. It must preserve all uncommitted changes and must not stop/kill existing Chromium or HTTP test servers unless ownership and purpose are established.
+
+After the audit:
+- Resume only the isolated Spike worktree.
+- Do not rerun completed tests unless necessary to reproduce or verify their evidence.
+- Do not alter production `go.mod`, `go.sum`, `internal/compiler/**`, BuildRequest/BuildResult, CLI, or public WASM APIs.
+- Do not change PR #5 or merge PR #6 as part of this work.
+- Once Chromium, measurement, and report are complete, create the isolated Spike PR and stop for review.
+
+**Decision:** Santhosh v6.0.3 is the only admitted candidate for the remaining spike under the current Go 1.23 baseline. This is not yet production adoption.
