@@ -33,7 +33,7 @@ type sourceCatalog struct {
 			InputSchema struct {
 				Required   []string `yaml:"required"`
 				Properties map[string]struct {
-					Type string `yaml:"type"`
+					Type any `yaml:"type"`
 				} `yaml:"properties"`
 			} `yaml:"inputSchema"`
 		} `yaml:"contracts"`
@@ -74,7 +74,7 @@ func TestPinnedMASProcedureAgainstProposedToolCatalog(t *testing.T) {
 			if exists && required[inputName] && x.Type != spec.Type {
 				t.Fatalf("MAS %s input %s schema type %s != %s", c.Operation, inputName, x.Type, spec.Type)
 			}
-			if exists && required[inputName] { props[inputName] = struct{ Type string }{x.Type} }
+			if exists && required[inputName] { typ, ok := x.Type.(string); if !ok { t.Fatalf("MAS %s input %s has non-scalar type", c.Operation, inputName) }; props[inputName] = struct{ Type string }{typ} }
 		}
 		operationSchemas[c.Operation] = props
 	}
@@ -138,7 +138,7 @@ func TestPinnedFiveGCProcedureAgainstToolCatalog(t *testing.T) {
 	for _, c := range catalog.Spec.Contracts {
 		if c.Operation == n.Call {
 			schemaTypes = make(map[string]string)
-			for name, property := range c.InputSchema.Properties { schemaTypes[name] = property.Type }
+			for name, property := range c.InputSchema.Properties { if typ, ok := property.Type.(string); ok { schemaTypes[name] = typ } }
 			schemaRequired = c.InputSchema.Required
 			break
 		}
