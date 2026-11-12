@@ -155,5 +155,7 @@
       "line": 1,
       "message": "yaml: line 2: did not find expected ',' or ']'"
     }
-  ]
+  ],
+  "untypedConstBinding": [],
+  "booleanTrueSchemaBinding": []
 }

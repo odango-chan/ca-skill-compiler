@@ -11,8 +11,11 @@ import (
 
 func validateSchemaShape(schema *yaml.Node) error {
 	schema = unalias(schema)
+	if schema != nil && schema.Kind == yaml.ScalarNode && schema.Tag == "!!bool" {
+		return nil
+	}
 	if schema == nil || schema.Kind != yaml.MappingNode {
-		return fmt.Errorf("Schema must be an object")
+		return fmt.Errorf("Schema must be an object or boolean")
 	}
 	if err := validateSchemaObjectKeys(schema); err != nil {
 		return err

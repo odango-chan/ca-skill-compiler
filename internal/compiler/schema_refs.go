@@ -78,8 +78,11 @@ func (a *analysis) expandSchemaNode(filename string, document, schema *yaml.Node
 			active[identity] = true
 			expanded, err := a.expandSchemaNode(targetFile, targetDocument, target, active)
 			delete(active, identity)
-			if err == nil && unalias(expanded).Kind != yaml.MappingNode {
-				err = fmt.Errorf("$ref target must resolve to a Schema object")
+			if err == nil {
+				expanded = unalias(expanded)
+				if expanded.Kind != yaml.MappingNode && !(expanded.Kind == yaml.ScalarNode && expanded.Tag == "!!bool") {
+					err = fmt.Errorf("$ref target must resolve to a Schema object or boolean")
+				}
 			}
 			return expanded, err
 		}

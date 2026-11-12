@@ -76,6 +76,8 @@ function send(command, request) {
   const inspect = await send('inspect', request);
   const duplicateCatalog = 'apiVersion: ca-agent-demo.tool/v1\nkind: ToolCatalog\nmetadata: {name: duplicate, owner: tests}\nx-common:\n  ref: &ref {type: string, minLength: 1}\nspec:\n  contracts:\n  - operation: demo.read\n    effect: READ\n    inputSchema: {type: object, required: [ref], properties: {ref: *ref}}\n    outputSchema: {type: object}\n';
   const duplicateLibrary = await send('inspect', {files:files.concat([{path:'lib/tools/duplicate.tool.yaml', bytes:encodeUTF8(duplicateCatalog)}])});
+  const untypedConstBinding = await send('check', {files:mutateFile(mutateFile(files, 'lib/tools/demo.tool.yaml', 'key: *text', 'key: {const: sample}'), 'skills/normalize/assurance/procedure.yaml', 'key: {from: context.request.dnn}', 'key: {value: sample}')});
+  const booleanTrueSchemaBinding = await send('check', {files:mutateFile(files, 'lib/tools/demo.tool.yaml', 'key: *text', 'key: true')});
   const invalid = await send('check', {files, targets:['missing']});
   const invalidBinding = await send('check', {files:mutateFile(files, 'skills/normalize/assurance/procedure.yaml', '          key: {from: context.request.dnn}', '          unexpected: {value: sample}')});
   const bindingTypeMismatch = await send('check', {files:mutateFile(files, 'skills/normalize/schemas/normalize-request.schema.yaml', 'dnn: {type: string, minLength: 1}', 'dnn: {type: integer}')});
@@ -145,6 +147,8 @@ function send(command, request) {
   if (check.length !== 0) throw new Error('valid project returned diagnostics');
   if (!Array.isArray(inspect.tools) || inspect.tools.length !== 1 || inspect.tools[0].operationId !== 'demo.read') throw new Error('inspectLibraries response malformed');
   if (JSON.stringify(duplicateLibrary.diagnostics) !== JSON.stringify(diagnosticGolden.duplicateLibrary) || duplicateLibrary.tools.length !== 0) throw new Error(`WASM inspectLibraries diagnostics differ from Native duplicate-operation golden: ${JSON.stringify(duplicateLibrary)}`);
+  if (JSON.stringify(untypedConstBinding) !== JSON.stringify(diagnosticGolden.untypedConstBinding)) throw new Error(`WASM type-less const diagnostics differ from Native golden: ${JSON.stringify(untypedConstBinding)}`);
+  if (JSON.stringify(booleanTrueSchemaBinding) !== JSON.stringify(diagnosticGolden.booleanTrueSchemaBinding)) throw new Error(`WASM boolean Schema diagnostics differ from Native golden: ${JSON.stringify(booleanTrueSchemaBinding)}`);
   if (JSON.stringify(invalid) !== JSON.stringify(diagnosticGolden.targetNotFound)) throw new Error(`WASM diagnostics differ from Native TARGET_NOT_FOUND golden: ${JSON.stringify(invalid)}`);
   if (JSON.stringify(invalidBinding) !== JSON.stringify(diagnosticGolden.invalidBinding)) throw new Error(`WASM diagnostics differ from Native binding golden: ${JSON.stringify(invalidBinding)}`);
   if (JSON.stringify(bindingTypeMismatch) !== JSON.stringify(diagnosticGolden.bindingTypeMismatch)) throw new Error(`WASM diagnostics differ from Native type mismatch golden: ${JSON.stringify(bindingTypeMismatch)}`);
@@ -162,7 +166,7 @@ function send(command, request) {
   if (!Array.isArray(oversizedCheck) || oversizedCheck.length !== 1 || oversizedCheck[0].code !== 'INPUT_LIMIT') throw new Error('oversized check request did not return a Diagnostic[] input limit');
   if (oversizedBuild.success || oversizedBuild.outputFiles.length !== 0 || oversizedBuild.diagnostics[0]?.code !== 'INPUT_LIMIT') throw new Error('oversized build request did not return an empty failed BuildResult');
   if (oversizedInspect.tools.length !== 0 || oversizedInspect.diagnostics[0]?.code !== 'INPUT_LIMIT') throw new Error('oversized inspect request did not return a LibraryResult');
-  output.textContent = JSON.stringify({status:'PASS', check, build:build.outputFiles.map(f=>f.path), inspect, duplicateLibrary:duplicateLibrary.diagnostics, invalid:invalid, invalidBinding:invalidBinding, bindingTypeMismatch:bindingTypeMismatch, unknownOperation:unknownOperation, invalidScriptOutput:invalidScriptOutput.diagnostics, procedureOutcomeInvalid, procedureNodeUnreachable, procedureTerminalInvalid, procedurePhaseRouteMissing, reconcileCausalityInvalid, invalidPath, duplicateProjectPath, malformedProcedureYAML, oversizedRequest:{check:oversizedCheck,build:oversizedBuild.diagnostics,inspect:oversizedInspect.diagnostics}}, null, 2);
+  output.textContent = JSON.stringify({status:'PASS', check, build:build.outputFiles.map(f=>f.path), inspect, duplicateLibrary:duplicateLibrary.diagnostics, untypedConstBinding, booleanTrueSchemaBinding, invalid:invalid, invalidBinding:invalidBinding, bindingTypeMismatch:bindingTypeMismatch, unknownOperation:unknownOperation, invalidScriptOutput:invalidScriptOutput.diagnostics, procedureOutcomeInvalid, procedureNodeUnreachable, procedureTerminalInvalid, procedurePhaseRouteMissing, reconcileCausalityInvalid, invalidPath, duplicateProjectPath, malformedProcedureYAML, oversizedRequest:{check:oversizedCheck,build:oversizedBuild.diagnostics,inspect:oversizedInspect.diagnostics}}, null, 2);
   document.documentElement.dataset.test = 'pass';
 })().catch(error => {
   output.textContent = `FAIL: ${error.stack || error}`;

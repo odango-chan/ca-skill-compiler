@@ -74,6 +74,8 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 		InvalidPath                  []Diagnostic `json:"invalidPath"`
 		DuplicateProjectPath         []Diagnostic `json:"duplicateProjectPath"`
 		MalformedProcedureYAML       []Diagnostic `json:"malformedProcedureYAML"`
+		UntypedConstBinding          []Diagnostic `json:"untypedConstBinding"`
+		BooleanTrueSchemaBinding     []Diagnostic `json:"booleanTrueSchemaBinding"`
 	}
 	data, err := os.ReadFile(filepath.Join("..", "..", "web", "diagnostics-golden.json"))
 	if err != nil {
@@ -84,6 +86,15 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	}
 	if got := Check(BuildRequest{Files: files, Targets: []string{"missing"}}); !reflect.DeepEqual(got, golden.TargetNotFound) {
 		t.Fatalf("Native missing-target diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.TargetNotFound)
+	}
+	untypedConst := mutateProjectFile(t, files, "lib/tools/demo.tool.yaml", "key: *text", "key: {const: sample}")
+	untypedConst = mutateProjectFile(t, untypedConst, "skills/normalize/assurance/procedure.yaml", "key: {from: context.request.dnn}", "key: {value: sample}")
+	if got := Check(BuildRequest{Files: untypedConst}); !reflect.DeepEqual(got, golden.UntypedConstBinding) {
+		t.Fatalf("Native type-less const diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.UntypedConstBinding)
+	}
+	booleanSchema := mutateProjectFile(t, files, "lib/tools/demo.tool.yaml", "key: *text", "key: true")
+	if got := Check(BuildRequest{Files: booleanSchema}); !reflect.DeepEqual(got, golden.BooleanTrueSchemaBinding) {
+		t.Fatalf("Native boolean Schema diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.BooleanTrueSchemaBinding)
 	}
 	invalidBinding := make([]File, len(files))
 	for i, file := range files {
@@ -523,6 +534,32 @@ spec:
 	}
 }
 
+func TestProjectLocalRefsMayResolveToBooleanSchemas(t *testing.T) {
+	files := source("boolean-ref", "run", `procedures:
+  run:
+    start: read
+    nodes:
+      read:
+        call: demo.read
+        with: {ref: {value: sample}}
+`)
+	catalog := toolCatalog()
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "x-common:\n  ref: &ref {type: string, minLength: 1}", "x-common:\n  ref: &ref {$ref: '#/x-common/Any'}\n  Any: true", 1))
+	files = append(files, catalog)
+	if got := Build(BuildRequest{Files: files}); !got.Success {
+		t.Fatalf("local $ref to a boolean true Schema should resolve: %#v", got.Diagnostics)
+	}
+	for i := range files {
+		if files[i].Path == catalog.Path {
+			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "Any: true", "Any: false", 1))
+		}
+	}
+	got := Build(BuildRequest{Files: files})
+	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
+		t.Fatalf("a literal must not satisfy a local $ref to false: %#v", got.Diagnostics)
+	}
+}
+
 func TestMalformedUnusedLibrarySchemaIsDiagnosed(t *testing.T) {
 	files := source("unused", "run", "procedures:\n  run:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n")
 	files = append(files, File{Path: "lib/tools/unused.yaml", Bytes: []byte(`apiVersion: ca-agent-demo.tool/v1
@@ -545,10 +582,30 @@ spec:
 }
 
 func TestSchemaShapeValidatesDraft2020ConstraintTypes(t *testing.T) {
+	for _, source := range []string{"true\n", "false\n"} {
+		var document yaml.Node
+		if err := yaml.Unmarshal([]byte(source), &document); err != nil {
+			t.Fatal(err)
+		}
+		if err := validateSchemaShape(document.Content[0]); err != nil {
+			t.Errorf("valid boolean JSON Schema %s rejected: %v", strings.TrimSpace(source), err)
+		}
+	}
 	valid := schemaNode(map[string]any{
 		"type": "array", "items": map[string]any{"type": "object"},
 		"minItems": 1, "maxItems": 4, "contains": map[string]any{"type": "string"},
 		"minContains": 1, "maxContains": 2, "unevaluatedItems": false,
+		"prefixItems": []any{map[string]any{"type": "integer"}, true},
+		"allOf":       []any{map[string]any{"minItems": 1}},
+		"anyOf":       []any{map[string]any{"type": "array"}, map[string]any{"type": "null"}},
+		"oneOf":       []any{map[string]any{"type": "array"}, map[string]any{"type": "null"}},
+		"not":         map[string]any{"type": "null"},
+		"if":          map[string]any{"minItems": 1}, "then": map[string]any{"maxItems": 4}, "else": true,
+		"dependentRequired":     map[string]any{"flag": []any{"value"}},
+		"dependentSchemas":      map[string]any{"flag": map[string]any{"required": []any{"value"}}},
+		"propertyNames":         map[string]any{"type": "string"},
+		"unevaluatedProperties": false,
+		"$defs":                 map[string]any{"entry": map[string]any{"type": "string"}},
 	})
 	if err := validateSchemaShape(valid); err != nil {
 		t.Fatalf("valid Draft 2020 constraints rejected: %v", err)
@@ -560,6 +617,11 @@ func TestSchemaShapeValidatesDraft2020ConstraintTypes(t *testing.T) {
 		{"type": "object", "patternProperties": map[string]any{"[": map[string]any{"type": "string"}}},
 		{"type": "object", "additionalProperties": "true"},
 		{"type": "array", "contains": map[string]any{}, "minContains": 3, "maxContains": 2},
+		{"type": "array", "prefixItems": []any{}},
+		{"type": "object", "allOf": []any{}},
+		{"type": "object", "dependentRequired": []any{}},
+		{"type": "object", "dependentSchemas": "invalid"},
+		{"type": "object", "propertyNames": "invalid"},
 		{"type": "string", "enum": []any{"same", "same"}},
 		{"type": "number", "enum": []any{1, 1.0}},
 		{"type": "array", "unevaluatedItems": "false"},
@@ -584,6 +646,24 @@ func TestSchemaShapeValidatesDraft2020ConstraintTypes(t *testing.T) {
 	}
 	if err := validateSchemaShape(document.Content[0]); err != nil {
 		t.Fatalf("exact large bounds and small positive multipleOf were rejected: %v", err)
+	}
+}
+
+func TestBooleanJSONSchemasFollowUniversalAndEmptySetSemantics(t *testing.T) {
+	trueSchema, falseSchema := schemaNode(true), schemaNode(false)
+	stringSchema := schemaNode(map[string]any{"type": "string"})
+	annotationSchema := schemaNode(map[string]any{"title": "any JSON value"})
+	if !projectionSchemaSupported(trueSchema) || !projectionSchemaSupported(falseSchema) {
+		t.Fatal("boolean JSON Schemas should be supported")
+	}
+	if !literalMatchesSchema(schemaNode(map[string]any{"x": []any{1, nil}}), trueSchema) || literalMatchesSchema(schemaNode("value"), falseSchema) {
+		t.Fatal("boolean Schema literal semantics are incorrect")
+	}
+	if !schemasCompatible(falseSchema, stringSchema) || !schemasCompatible(stringSchema, trueSchema) || !schemasCompatible(trueSchema, annotationSchema) {
+		t.Fatal("empty Producer or universal Consumer should be compatible")
+	}
+	if schemasCompatible(trueSchema, stringSchema) || schemasCompatible(stringSchema, falseSchema) {
+		t.Fatal("universal Producer or empty Consumer should not accept nonempty values")
 	}
 }
 
@@ -1228,11 +1308,17 @@ func TestFiniteProducerSchemasProveConsumerCompatibility(t *testing.T) {
 		want   bool
 	}{
 		{"enum satisfies matching const", "type: string\nenum: [ready]\n", "type: string\nconst: ready\n", true},
+		{"enum without type satisfies matching const", "type: string\nenum: [ready]\n", "const: ready\n", true},
 		{"enum with another value does not satisfy const", "type: string\nenum: [ready, waiting]\n", "type: string\nconst: ready\n", false},
+		{"untyped const producer satisfies matching untyped enum", "const: ready\n", "enum: [ready]\n", true},
 		{"const proves consumer pattern", "type: string\nconst: ready\n", "type: string\npattern: '^r'\n", true},
+		{"untyped const proves consumer length", "const: ready\n", "minLength: 3\n", true},
+		{"untyped const fails consumer length", "const: x\n", "minLength: 2\n", false},
 		{"const fails consumer length", "type: string\nconst: x\n", "type: string\nminLength: 2\n", false},
 		{"numeric enum proves consumer minimum", "type: number\nenum: [4]\n", "type: number\nminimum: 3\n", true},
 		{"numeric enum fails consumer maximum", "type: number\nenum: [4]\n", "type: number\nmaximum: 3\n", false},
+		{"typed string producer satisfies untyped string assertion", "type: string\nminLength: 3\n", "minLength: 2\n", true},
+		{"typed string producer fails untyped string assertion", "type: string\nminLength: 1\n", "minLength: 2\n", false},
 		{"enum eliminated by producer constraints has no outputs", "type: number\nenum: [1]\nminimum: 2\n", "type: string\n", true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1240,6 +1326,44 @@ func TestFiniteProducerSchemasProveConsumerCompatibility(t *testing.T) {
 				t.Fatalf("schemasCompatible() = %v, want %v", got, tc.want)
 			}
 		})
+	}
+}
+
+func TestUntypedFiniteSchemasValidateLiteralTypeAndValue(t *testing.T) {
+	parse := func(source string) *yaml.Node {
+		t.Helper()
+		var document yaml.Node
+		if err := yaml.Unmarshal([]byte(source), &document); err != nil {
+			t.Fatal(err)
+		}
+		return document.Content[0]
+	}
+	for _, tc := range []struct {
+		name, literal, schema string
+		want                  bool
+	}{
+		{"matching untyped const", "ready", "const: ready\n", true},
+		{"mismatching untyped const", "waiting", "const: ready\n", false},
+		{"matching untyped enum", "ready", "enum: [ready, waiting]\n", true},
+		{"untyped enum mismatch", "other", "enum: [ready, waiting]\n", false},
+		{"untyped numeric const", "3", "const: 3\nminimum: 2\n", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			value := parse(tc.literal + "\n")
+			schema := parse(tc.schema)
+			if got := projectionSchemaSupported(schema); !got {
+				t.Fatal("valid finite schema without type was rejected")
+			}
+			if got := literalMatchesSchema(value, schema); got != tc.want {
+				t.Fatalf("literalMatchesSchema() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+	if literalMatchesSchema(parse("x\n"), parse("minLength: 3\n")) {
+		t.Fatal("untyped minLength should constrain strings only")
+	}
+	if !literalMatchesSchema(parse("3\n"), parse("minLength: 3\n")) {
+		t.Fatal("type-specific constraints must be ignored for non-string instances")
 	}
 }
 
@@ -1581,6 +1705,70 @@ func TestScriptInputProjectionRejectsUnsupportedNestedSchemas(t *testing.T) {
 	}
 }
 
+func TestUnsupportedDraftKeywordsFailBindingWithExplicitDiagnostic(t *testing.T) {
+	cases := []struct {
+		name, typ string
+		keyword   string
+		value     any
+	}{
+		{"prefixItems", "array", "prefixItems", []any{map[string]any{"type": "string"}}},
+		{"allOf", "string", "allOf", []any{map[string]any{"minLength": 1}}},
+		{"anyOf", "string", "anyOf", []any{map[string]any{"type": "string"}}},
+		{"oneOf", "string", "oneOf", []any{map[string]any{"type": "string"}}},
+		{"not", "string", "not", map[string]any{"type": "null"}},
+		{"if", "string", "if", map[string]any{"type": "string"}},
+		{"then", "string", "then", map[string]any{"minLength": 1}},
+		{"else", "string", "else", map[string]any{"maxLength": 4}},
+		{"dependentRequired", "object", "dependentRequired", map[string]any{"flag": []any{"value"}}},
+		{"dependentSchemas", "object", "dependentSchemas", map[string]any{"flag": map[string]any{"required": []any{"value"}}}},
+		{"propertyNames", "object", "propertyNames", map[string]any{"type": "string"}},
+		{"unevaluatedProperties", "object", "unevaluatedProperties", false},
+		{"unevaluatedItems", "array", "unevaluatedItems", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			files := source("schema-boundary", "run", `procedures:
+  run:
+    start: read
+    nodes:
+      read:
+        call: demo.read
+        with: {ref: {from: context.request.value}}
+        'on': {SUCCEEDED: done}
+      done: {terminal: SUCCEEDED}
+`)
+			for i := range files {
+				if files[i].Path == "skills/schema-boundary/assurance/contract.yaml" {
+					files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "  entryProcedure: run\n", "  entryProcedure: run\n  inputs: {requestSchema: schemas/request.yaml}\n", 1))
+				}
+			}
+			valueSchema := map[string]any{"type": tc.typ}
+			if tc.typ == "array" {
+				valueSchema["items"] = map[string]any{"type": "string"}
+			}
+			requestSchema, err := json.Marshal(map[string]any{"type": "object", "required": []any{"value"}, "properties": map[string]any{"value": valueSchema}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			files = append(files, File{Path: "skills/schema-boundary/schemas/request.yaml", Bytes: requestSchema})
+			catalog := toolCatalog()
+			consumerSchema, err := json.Marshal(map[string]any{"type": tc.typ, tc.keyword: tc.value})
+			if err != nil {
+				t.Fatal(err)
+			}
+			catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "ref: *ref", "ref: "+string(consumerSchema), 1))
+			files = append(files, catalog)
+			got := Build(BuildRequest{Files: files})
+			if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
+				t.Fatalf("unsupported %s binding did not fail explicitly: %#v", tc.keyword, got.Diagnostics)
+			}
+			if findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
+				t.Fatalf("unsupported %s binding was mislabeled as a mismatch: %#v", tc.keyword, got.Diagnostics)
+			}
+		})
+	}
+}
+
 func TestUnusedProcedureInputsAreLinkedAgainstTheirProducer(t *testing.T) {
 	root := source("root", "run", `procedures:
   run:
@@ -1807,7 +1995,7 @@ func TestBindingSourcesMustBeStrings(t *testing.T) {
 	}
 }
 
-func TestUnsupportedBindingSchemasAreNotReportedAsTypeMismatches(t *testing.T) {
+func TestSchemaFormatAnnotationDoesNotConstrainBindings(t *testing.T) {
 	cases := []struct {
 		name, path, before, after string
 	}{
@@ -1821,7 +2009,7 @@ func TestUnsupportedBindingSchemasAreNotReportedAsTypeMismatches(t *testing.T) {
 			name:   "producer format constraint",
 			path:   "skills/normalize/schemas/normalize-request.schema.yaml",
 			before: "  dnn: {type: string, minLength: 1}",
-			after:  "  dnn: {type: string, format: email}",
+			after:  "  dnn: {type: string, minLength: 1, format: email}",
 		},
 		{
 			name:   "consumer format constraint on literal binding",
@@ -1852,11 +2040,8 @@ func TestUnsupportedBindingSchemasAreNotReportedAsTypeMismatches(t *testing.T) {
 				t.Fatal("test mutation did not apply")
 			}
 			got := Build(BuildRequest{Files: files})
-			if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
-				t.Fatalf("unsupported binding Schema was not reported explicitly: %#v", got.Diagnostics)
-			}
-			if findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
-				t.Fatalf("unsupported Schema was mislabeled as a type mismatch: %#v", got.Diagnostics)
+			if !got.Success {
+				t.Fatalf("Draft 2020-12 format annotation incorrectly constrained binding: %#v", got.Diagnostics)
 			}
 		})
 	}
@@ -1891,6 +2076,16 @@ spec:
 	got := Check(BuildRequest{Files: files})
 	if !findDiagnostic(got, "BINDING_UNSUPPORTED") || findDiagnostic(got, "BINDING_TYPE_MISMATCH") {
 		t.Fatalf("unproved regex implication must be distinguished from a proven mismatch: %#v", got)
+	}
+}
+
+func TestPatternImplicationHonorsOmittedJSONSchemaType(t *testing.T) {
+	source := schemaNode(map[string]any{"type": "string", "pattern": "^[a-z]+$"})
+	if !schemaImplicationUnsupported(source, schemaNode(map[string]any{"minLength": 3})) {
+		t.Fatal("untyped minLength must be treated as a string assertion for string Producers")
+	}
+	if schemaImplicationUnsupported(source, schemaNode(map[string]any{"type": "integer", "minimum": 0})) {
+		t.Fatal("string pattern implication should not consider a numeric-only Consumer")
 	}
 }
 
@@ -2196,6 +2391,10 @@ def main(input: dict) -> Output:
 	if threshold["minimum"] != json.Number("9007199254740993") || threshold["maximum"] != json.Number("9007199254740994") {
 		t.Fatalf("large Annotated numeric constraints lost precision: %#v", threshold)
 	}
+	thresholdNode := schemaNode(threshold)
+	if minimum := child(thresholdNode, "minimum"); minimum == nil || minimum.Tag != "!!int" || minimum.Value != "9007199254740993" {
+		t.Fatalf("numeric Script Output constraint was not preserved as an exact JSON integer: %#v", minimum)
+	}
 	encoded, err := json.Marshal(schema)
 	if err != nil || !strings.Contains(string(encoded), "9007199254740993") {
 		t.Fatalf("serialized Script Schema lost exact integer values: %s, %v", encoded, err)
@@ -2317,6 +2516,14 @@ func TestUnconstrainedSchemaAcceptsAnyJSONValue(t *testing.T) {
 	if schemaIsUnconstrained(schemaNode(map[string]any{"type": "object"})) ||
 		schemaIsUnconstrained(schemaNode(map[string]any{"pattern": "^x"})) {
 		t.Fatal("assertion keywords must not be treated as unconstrained annotations")
+	}
+	for _, annotation := range []map[string]any{
+		{"format": "email"}, {"contentEncoding": "base64"}, {"contentMediaType": "application/json"},
+		{"default": "x"}, {"examples": []any{"x"}}, {"readOnly": true}, {"writeOnly": true}, {"deprecated": true},
+	} {
+		if !schemaIsUnconstrained(schemaNode(annotation)) {
+			t.Fatalf("annotation-only schema should accept any value: %#v", annotation)
+		}
 	}
 }
 

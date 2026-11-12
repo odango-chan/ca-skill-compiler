@@ -7,7 +7,7 @@ Updated: 2026-11-12. This is a static Compiler result for the pinned ca-skills v
 - Official Skill source: `examples/ca-skills-v0.2`, pinned ca-skills commit `eeae62badf29f90eee257c7ef2ab504211bf7e30`.
 - Approved ToolCatalog: `examples/ca-skills-v0.2/lib/tools/createdsession.tool.yaml`, ca-agent-demo commit `4395982fa6efb97714b97901603b2dfb7018c4d0`.
 - Command: `GOWORK=off go run ./cmd/skillc check examples/ca-skills-v0.2`.
-- Result: exit 1 with 235 Compiler diagnostics, all on expected external contract, unavailable Operation, or currently unsupported binding evidence. The command did not emit a success result.
+- Result: exit 1 with 235 Compiler diagnostics. The command did not emit a success result.
 - No official input file was modified. The MAS draft ToolCatalog was not imported.
 
 ## Classification rules
@@ -29,11 +29,11 @@ Classes describe diagnostic causes, not live system behavior. Several diagnostic
 | Parser / language envelope | 0 findings | No current metadata, Contract, Predicate, Procedure, Case, or Script Output syntax diagnostic. |
 | Procedure / outcome / flow | 0 findings | Action outcomes, explicit phase routes, node reachability, terminal values, and reconcile causality all pass. |
 | Tool Operation identity | 0 findings | All referenced Operations resolve in the approved catalog and pass declared-resource checks. |
-| Producer / Consumer binding | 4 findings | E: three string pattern-to-length implications and one consumer `format: date-time` constraint are not proven by the static binding checker. They are reported as unsupported, not false type mismatches. |
+| Producer / Consumer binding | 4 findings | B: one Skill Script Output does not guarantee the Tool's `maxLength: 512` bound. E: three string pattern-to-length implications are not proven by the static binding checker. |
 | Owner Schema resolution | 98 findings | C: 97 missing Host/Observation Owner schemas and one `transactionRef` field absent from the imported UDM `result` Output Schema. |
-| **Total** | **102** | A=0, B=0, C=98, D=0, E=4. |
+| **Total** | **102** | A=0, B=1, C=98, D=0, E=3. |
 
-The UDM Tool Owner's current `result` schema is a broad object without nested properties. The Skill references `result.transactionRef`; the Compiler correctly leaves it unresolved rather than deriving it from Script access.
+The UDM Tool Owner's current `result` schema is a broad object without nested properties. The Skill references `result.transactionRef`; the Compiler correctly leaves it unresolved rather than deriving it from Script access. The Script Output for `build_n1n2_delivery` limits `operationContextRef` and `policyResultRef` to strings of at least one character, while the Tool also requires at most 512 characters. The declared Producer Schema does not prove that upper bound, so the binding is incompatible. The Tool's type-less `profileRef.const` does match the Script's typed finite `const` and is no longer an unsupported-schema finding.
 
 ## `establish-pdu-session-mas`
 

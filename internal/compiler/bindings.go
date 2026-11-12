@@ -273,7 +273,8 @@ func schemaImplicationUnsupported(source, target *yaml.Node) bool {
 	}
 	sourceTypes, sourceOK := schemaTypeNames(child(source, "type"))
 	targetTypes, targetOK := schemaTypeNames(child(target, "type"))
-	if sourceOK && targetOK && schemaTypeSetHas(sourceTypes, "string") && schemaTypeSetHas(targetTypes, "string") {
+	targetMayBeString := !targetOK || schemaTypeSetHas(targetTypes, "string")
+	if sourceOK && targetMayBeString && schemaTypeSetHas(sourceTypes, "string") {
 		sourcePattern, targetPattern := scalar(child(source, "pattern")), scalar(child(target, "pattern"))
 		if targetPattern != "" && sourcePattern != targetPattern {
 			return true
@@ -503,6 +504,20 @@ func schemasCompatible(source, target *yaml.Node) bool {
 	if source == nil || target == nil {
 		return false
 	}
+	// Boolean Draft 2020-12 Schemas denote the universal set (true) and the
+	// empty set (false), respectively.
+	if schemaBoolean(source, false) {
+		return true
+	}
+	if schemaBoolean(target, true) {
+		return true
+	}
+	if schemaBoolean(source, true) {
+		return schemaIsUnconstrained(target)
+	}
+	if schemaBoolean(target, false) {
+		return false
+	}
 	// An unconstrained JSON Schema accepts every JSON value. Imported catalogs
 	// commonly use this for optional extension fields; requiring a type
 	// annotation there would reject safe Producer-to-Consumer assignments.
@@ -522,7 +537,15 @@ func schemasCompatible(source, target *yaml.Node) bool {
 	}
 	sourceTypes, sourceOK := schemaTypeNames(child(source, "type"))
 	targetTypes, targetOK := schemaTypeNames(child(target, "type"))
-	if !sourceOK || !targetOK || !schemaTypeSetsCompatible(sourceTypes, targetTypes) {
+	if !sourceOK {
+		return false
+	}
+	if !targetOK {
+		// An omitted target type leaves type-specific assertions in force only
+		// for Producers of that instance type. Compare those assertions against
+		// each explicit Producer type below.
+		targetTypes = sourceTypes
+	} else if !schemaTypeSetsCompatible(sourceTypes, targetTypes) {
 		return false
 	}
 	for _, sourceType := range sourceTypes {
@@ -661,6 +684,9 @@ func projectionSchemaSupported(schema *yaml.Node) bool {
 	if schema == nil {
 		return false
 	}
+	if schema.Kind == yaml.ScalarNode && schema.Tag == "!!bool" {
+		return true
+	}
 	if schemaIsUnconstrained(schema) {
 		return true
 	}
@@ -669,7 +695,21 @@ func projectionSchemaSupported(schema *yaml.Node) bool {
 	}
 	types, ok := schemaTypeNames(child(schema, "type"))
 	if !ok {
-		return false
+		// Draft 2020-12 permits type-specific assertions without a type. Check
+		// nested schemas recursively; the keyword assertions themselves are
+		// evaluated against each concrete value's type.
+		for _, name := range mapKeys(child(schema, "properties")) {
+			if !projectionSchemaSupported(child(child(schema, "properties"), name)) {
+				return false
+			}
+		}
+		if additional := child(schema, "additionalProperties"); additional != nil && unalias(additional).Kind == yaml.MappingNode && !projectionSchemaSupported(additional) {
+			return false
+		}
+		if items := child(schema, "items"); items != nil && !projectionSchemaSupported(items) {
+			return false
+		}
+		return true
 	}
 	for _, typ := range types {
 		switch typ {
@@ -715,6 +755,9 @@ func projectionSchemaSupported(schema *yaml.Node) bool {
 // same as an object Schema with an open property map.
 func schemaIsUnconstrained(schema *yaml.Node) bool {
 	schema = unalias(schema)
+	if schema != nil && schema.Kind == yaml.ScalarNode && schema.Tag == "!!bool" {
+		return scalar(schema) == "true"
+	}
 	if schema == nil || schema.Kind != yaml.MappingNode {
 		return false
 	}
@@ -722,6 +765,7 @@ func schemaIsUnconstrained(schema *yaml.Node) bool {
 		"$schema": true, "$id": true,
 		"title": true, "description": true, "default": true, "examples": true,
 		"deprecated": true, "readOnly": true, "writeOnly": true,
+		"format": true, "contentEncoding": true, "contentMediaType": true,
 	}
 	for _, key := range mapKeys(schema) {
 		if !annotations[key] {
@@ -854,7 +898,14 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 		return false
 	}
 	types, ok := schemaTypeNames(child(schema, "type"))
-	if !ok || !schemaTypeSetAllowsLiteral(types, literalType(value)) {
+	if !ok {
+		typ := literalType(value)
+		if typ == "" {
+			return false
+		}
+		types = []string{typ}
+	}
+	if !schemaTypeSetAllowsLiteral(types, literalType(value)) {
 		return false
 	}
 	if c := child(schema, "const"); c != nil && !jsonValuesEqual(c, value) {
@@ -1114,7 +1165,18 @@ func supportedStaticSchema(schema *yaml.Node) bool {
 	if schema == nil || schema.Kind != yaml.MappingNode {
 		return false
 	}
-	known := map[string]bool{"$schema": true, "$id": true, "$ref": true, "title": true, "description": true, "type": true, "properties": true, "required": true, "additionalProperties": true, "items": true, "minLength": true, "maxLength": true, "pattern": true, "minimum": true, "maximum": true, "exclusiveMinimum": true, "exclusiveMaximum": true, "multipleOf": true, "minItems": true, "maxItems": true, "minProperties": true, "maxProperties": true, "uniqueItems": true, "const": true, "enum": true}
+	known := map[string]bool{
+		"$schema": true, "$id": true, "$ref": true,
+		"title": true, "description": true, "default": true, "examples": true,
+		"readOnly": true, "writeOnly": true, "deprecated": true,
+		"format": true, "contentEncoding": true, "contentMediaType": true,
+		"type": true, "properties": true, "required": true, "additionalProperties": true,
+		"items": true, "minLength": true, "maxLength": true, "pattern": true,
+		"minimum": true, "maximum": true, "exclusiveMinimum": true, "exclusiveMaximum": true,
+		"multipleOf": true, "minItems": true, "maxItems": true,
+		"minProperties": true, "maxProperties": true, "uniqueItems": true,
+		"const": true, "enum": true,
+	}
 	for _, key := range mapKeys(schema) {
 		if !known[key] || key == "$ref" {
 			return false
@@ -1266,7 +1328,9 @@ func (a *analysis) resolveSourceWithInputStack(s *skillEntry, proc *yaml.Node, r
 }
 
 func schemaNode(v any) *yaml.Node {
-	b, e := yaml.Marshal(v)
+	// Round-trip through JSON so json.Number values emitted by the Script
+	// parser remain JSON numeric instances instead of YAML strings.
+	b, e := json.Marshal(v)
 	if e != nil {
 		return nil
 	}
