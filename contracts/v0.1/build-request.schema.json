@@ -102,7 +102,7 @@
           "minLength": 1,
           "maxLength": 240,
           "pattern": "^(?!/)(?!.*//)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$))[^\\\\\\\\:\\u0000]+$",
-          "description": "Normalized path relative to this dependency snapshot; no lib/ prefix."
+          "description": "Normalized POSIX path relative to this immutable dependency snapshot. Current v0.2 compatibility locators may match this exact path; vNext Skill source references stable exported Schema IDs instead."
         },
         "bytes": {
           "type": "string",
