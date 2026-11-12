@@ -65,11 +65,14 @@ The MAS source fixture currently has:
 - 16 call nodes and 176 corresponding explicit context with/from mappings;
 - a MAS ToolCatalog explicitly marked NOT_READY.
 
-Its context request Schema is present. The checked-in MAS SkillContract fixture currently does not declare context.schemas.subject/facts, even though Procedure inputs reference context.subject.ueRef and context.facts.*. Those authoritative context Schema files/links must be added to a migration fixture before the real Compiler can resolve those paths. Do not silently invent a built-in Host schema.
+The **Compiler PR #5 demo copy is stale**: its MAS and 5GC SkillContract copies omit context.schemas even though their Procedure inputs reference context.subject/facts. The current official ca-skills main contracts do declare these logical Owner paths:
+- both Skills: lib/host/subject.schema.yaml and lib/host/facts.schema.yaml;
+- both Skills: lib/observations/context-observations.schema.yaml;
+- conventional 5GC additionally: lib/host/evidence.schema.yaml.
 
-The traditional 5GC Procedure also references Context paths whose authoritative Owner Schemas are not present in this Compiler fixture. Its four UDM Operation input schemas can be checked as a focused explicit mapping comparison, but end-to-end semantic auto-binding needs those owner Schemas imported and declared.
+However, ca-skills main's current official lib snapshot does **not** contain these Host/Observation Owner Schema files. docs/schema-ownership.md explicitly says these are externally owned dependencies and must be supplied by the Host/Observation owners; they must not be fabricated by the Skill or Compiler. Thus a complete real Compiler build is currently blocked by missing external owner files, not merely by a test fixture oversight. The focused source-level Procedure/ToolCatalog comparison in real_fixture_test.go does not resolve or prove those Context paths.
 
-The 5GC Operation catalog is an existing contract source. The MAS ToolCatalog remains proposed/not-ready and must not be used as proof of a deployable Operation owner contract.
+The 5GC Operation catalog is an existing Tool Owner contract source. The MAS ToolCatalog remains proposed/not-ready and must not be used as proof of a deployable Operation owner contract.
 
 ## 6. Test design for production integration
 
@@ -99,3 +102,5 @@ Only after these pass should the Compiler expose a stable Binding Plan in its bu
 7. Review the BuildResult/IR contract separately before any source YAML migration.
 
 No production integration, syntax freeze, or PR merge is implied by this design note.
+
+Correction based on the current ca-skills main contracts and docs/schema-ownership.md: the logical Context Owner paths are already declared in the official SkillContracts, but the actual owner files are not present in the current shared lib snapshot. The older Compiler PR #5 demo copies are additionally stale because they omit those declarations. These are distinct issues; do not conflate them.
