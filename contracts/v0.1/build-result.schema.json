@@ -7,6 +7,7 @@
   "required": [
     "success",
     "diagnostics",
+    "dependencyClosure",
     "outputFiles"
   ],
   "properties": {
@@ -25,6 +26,13 @@
       "items": {
         "$ref": "#/$defs/file"
       }
+    },
+    "dependencyClosure": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "$ref": "#/$defs/dependency"
+      }
     }
   },
   "$defs": {
@@ -40,7 +48,8 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 240,
-          "pattern": "^(?:skills|lib)/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+(?:/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+)*$"
+          "pattern": "^skills/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+(?:/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+)*$",
+          "description": "Normalized authored Skill or generated Skill artifact path. Imported dependency files are not copied into outputFiles."
         },
         "bytes": {
           "type": "string",
@@ -87,6 +96,26 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 8192
+        }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dependencyId",
+        "digest"
+      ],
+      "properties": {
+        "dependencyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
         }
       }
     }
