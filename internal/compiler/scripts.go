@@ -229,6 +229,10 @@ func parseFunctionalTypedDicts(src, code string) (map[int]bool, map[string]pyCla
 		if !ok || closeBrace > callEnd {
 			return nil, nil, fmt.Errorf("unterminated field mapping in functional TypedDict %s", name)
 		}
+		trailingArguments := strings.TrimSpace(callSource[closeBrace-callStart+1 : len(callSource)-1])
+		if trailingArguments != "" && trailingArguments != "," {
+			return nil, nil, fmt.Errorf("functional TypedDict %s does not support total or extra arguments", name)
+		}
 		body := src[openBrace+1 : closeBrace]
 		class := pyClass{}
 		seen := map[string]bool{}

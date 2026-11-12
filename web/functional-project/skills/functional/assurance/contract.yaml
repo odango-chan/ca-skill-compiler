@@ -1,0 +1,7 @@
+apiVersion: connectionagent.io/v1alpha1
+kind: SkillContract
+metadata:
+  name: functional
+spec:
+  skillType: executable
+  entryProcedure: run

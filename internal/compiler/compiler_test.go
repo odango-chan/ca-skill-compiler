@@ -2322,6 +2322,78 @@ func TestGeneratedStrictScriptOutput(t *testing.T) {
 	}
 }
 
+func TestFunctionalTypedDictPreservesWireKeysAndOptionalFields(t *testing.T) {
+	src := `from typing import NotRequired, TypedDict
+Output = TypedDict(
+    "Output",
+    {
+        "5qi": int,
+        "optional label": NotRequired[str],
+    },
+)
+def main(input: dict) -> Output:
+    return {}
+`
+	schema, err := parseScriptOutput(src)
+	if err != nil {
+		t.Fatalf("functional TypedDict rejected: %v", err)
+	}
+	properties := schema["properties"].(map[string]any)
+	if properties["5qi"].(map[string]any)["type"] != "integer" || properties["optional label"].(map[string]any)["type"] != "string" {
+		t.Fatalf("functional wire fields changed: %#v", properties)
+	}
+	required := schema["required"].([]string)
+	if !reflect.DeepEqual(required, []string{"5qi"}) {
+		t.Fatalf("NotRequired functional field changed required keys: %#v", required)
+	}
+	if schema["additionalProperties"] != false {
+		t.Fatalf("functional output must remain closed: %#v", schema)
+	}
+	files := source("functional", "run", `procedures:
+  run:
+    start: convert
+    nodes:
+      convert:
+        script: scripts/out.py
+        with: {}
+`)
+	files = append(files, File{Path: "skills/functional/scripts/out.py", Bytes: []byte(src)})
+	built := Build(BuildRequest{Files: files})
+	if !built.Success {
+		t.Fatalf("functional TypedDict Build failed: %#v", built.Diagnostics)
+	}
+	var generated []byte
+	for _, output := range built.OutputFiles {
+		if output.Path == "skills/functional/schemas/generated/out.output.schema.json" {
+			generated = output.Bytes
+		}
+	}
+	var decoded map[string]any
+	if len(generated) == 0 || json.Unmarshal(generated, &decoded) != nil || !reflect.DeepEqual(decoded["required"], []any{"5qi"}) {
+		t.Fatalf("functional TypedDict generated Schema lost its wire keys or requiredness: %s", generated)
+	}
+}
+
+func TestScriptOutputRejectsUnsupportedOptionalAndUnionExpressions(t *testing.T) {
+	for _, expression := range []string{"Optional[str]", "Union[str, int]", "str | None", "NotRequired[Optional[str]]", "list"} {
+		src := "from typing import NotRequired, Optional, TypedDict, Union\nclass Output(TypedDict):\n    value: " + expression + "\ndef main(input: dict) -> Output:\n    return {}\n"
+		if _, err := parseScriptOutput(src); err == nil {
+			t.Errorf("unsupported Script Output type expression %q was silently accepted", expression)
+		}
+	}
+}
+
+func TestFunctionalTypedDictRejectsTotalOverrides(t *testing.T) {
+	src := `from typing import TypedDict
+Output = TypedDict("Output", {"value": str}, total=False)
+def main(input: dict) -> Output:
+    return {}
+`
+	if _, err := parseScriptOutput(src); err == nil {
+		t.Fatal("functional TypedDict total=False was silently compiled as required fields")
+	}
+}
+
 func TestGeneratedOutputPathRejectsFileDirectoryCollisions(t *testing.T) {
 	files := []File{
 		{Path: "skills/s/assurance/contract.yaml", Bytes: []byte("apiVersion: connectionagent.io/v1alpha1\nkind: SkillContract\nmetadata: {name: s}\nspec: {entryProcedure: p}\n")},

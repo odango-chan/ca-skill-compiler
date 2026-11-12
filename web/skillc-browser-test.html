@@ -32,6 +32,19 @@ async function loadFlowFiles() {
     return {path, bytes:btoa(binary)};
   }));
 }
+async function loadFunctionalFiles() {
+  const functionalPaths = [
+    'skills/functional/SKILL.md', 'skills/functional/assurance/contract.yaml',
+    'skills/functional/assurance/procedure.yaml', 'skills/functional/scripts/out.py'
+  ];
+  return Promise.all(functionalPaths.map(async path => {
+    const response = await fetch(`./functional-project/${path}`);
+    if (!response.ok) throw new Error(`Unable to fetch functional fixture ${path}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+    return {path, bytes:btoa(binary)};
+  }));
+}
 async function loadDiagnosticGolden() {
   const response = await fetch('./diagnostics-golden.json');
   if (!response.ok) throw new Error('Unable to fetch Native diagnostic golden vectors');
@@ -74,6 +87,9 @@ function send(command, request) {
   const check = await send('check', request);
   const build = await send('build', request);
   const inspect = await send('inspect', request);
+  const functionalFiles = await loadFunctionalFiles();
+  const functionalCheck = await send('check', {files:functionalFiles});
+  const functionalBuild = await send('build', {files:functionalFiles});
   const duplicateCatalog = 'apiVersion: ca-agent-demo.tool/v1\nkind: ToolCatalog\nmetadata: {name: duplicate, owner: tests}\nx-common:\n  ref: &ref {type: string, minLength: 1}\nspec:\n  contracts:\n  - operation: demo.read\n    effect: READ\n    inputSchema: {type: object, required: [ref], properties: {ref: *ref}}\n    outputSchema: {type: object}\n';
   const duplicateLibrary = await send('inspect', {files:files.concat([{path:'lib/tools/duplicate.tool.yaml', bytes:encodeUTF8(duplicateCatalog)}])});
   const untypedConstBinding = await send('check', {files:mutateFile(mutateFile(files, 'lib/tools/demo.tool.yaml', 'key: *text', 'key: {const: sample}'), 'skills/normalize/assurance/procedure.yaml', 'key: {from: context.request.dnn}', 'key: {value: sample}')});
@@ -127,6 +143,19 @@ function send(command, request) {
   const oversizedBuild = await send('build', oversizedRequest);
   const oversizedInspect = await send('inspect', oversizedRequest);
   if (check.length !== 0 || !build.success || build.outputFiles.length !== 7) throw new Error('valid build/check failed');
+  if (functionalCheck.length !== 0 || !functionalBuild.success || functionalBuild.outputFiles.length !== 5) throw new Error('functional TypedDict build/check failed');
+  for (const file of functionalBuild.outputFiles) {
+    const response = await fetch(`./functional-native-output/${file.path}`);
+    if (!response.ok) throw new Error(`Native functional output is missing: ${file.path}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+    if (btoa(binary) !== file.bytes) throw new Error(`WASM functional output differs from Native: ${file.path}`);
+  }
+  const functionalSchemaFile = functionalBuild.outputFiles.find(file => file.path.endsWith('/out.output.schema.json'));
+  if (!functionalSchemaFile) throw new Error('functional TypedDict generated Schema is missing');
+  const functionalSchemaBytes = Uint8Array.from(atob(functionalSchemaFile.bytes), ch => ch.charCodeAt(0));
+  const functionalSchema = JSON.parse(new TextDecoder().decode(functionalSchemaBytes));
+  if (JSON.stringify(functionalSchema.required) !== JSON.stringify(['5qi']) || !functionalSchema.properties['optional label'] || functionalSchema.additionalProperties !== false) throw new Error('functional TypedDict wire keys/requiredness changed');
   const expectedPaths = [
     'lib/tools/demo.tool.yaml',
     'skills/normalize/SKILL.md',
@@ -166,7 +195,7 @@ function send(command, request) {
   if (!Array.isArray(oversizedCheck) || oversizedCheck.length !== 1 || oversizedCheck[0].code !== 'INPUT_LIMIT') throw new Error('oversized check request did not return a Diagnostic[] input limit');
   if (oversizedBuild.success || oversizedBuild.outputFiles.length !== 0 || oversizedBuild.diagnostics[0]?.code !== 'INPUT_LIMIT') throw new Error('oversized build request did not return an empty failed BuildResult');
   if (oversizedInspect.tools.length !== 0 || oversizedInspect.diagnostics[0]?.code !== 'INPUT_LIMIT') throw new Error('oversized inspect request did not return a LibraryResult');
-  output.textContent = JSON.stringify({status:'PASS', check, build:build.outputFiles.map(f=>f.path), inspect, duplicateLibrary:duplicateLibrary.diagnostics, untypedConstBinding, booleanTrueSchemaBinding, invalid:invalid, invalidBinding:invalidBinding, bindingTypeMismatch:bindingTypeMismatch, unknownOperation:unknownOperation, invalidScriptOutput:invalidScriptOutput.diagnostics, procedureOutcomeInvalid, procedureNodeUnreachable, procedureTerminalInvalid, procedurePhaseRouteMissing, reconcileCausalityInvalid, invalidPath, duplicateProjectPath, malformedProcedureYAML, oversizedRequest:{check:oversizedCheck,build:oversizedBuild.diagnostics,inspect:oversizedInspect.diagnostics}}, null, 2);
+  output.textContent = JSON.stringify({status:'PASS', check, build:build.outputFiles.map(f=>f.path), functionalBuild:functionalBuild.outputFiles.map(f=>f.path), inspect, duplicateLibrary:duplicateLibrary.diagnostics, untypedConstBinding, booleanTrueSchemaBinding, invalid:invalid, invalidBinding:invalidBinding, bindingTypeMismatch:bindingTypeMismatch, unknownOperation:unknownOperation, invalidScriptOutput:invalidScriptOutput.diagnostics, procedureOutcomeInvalid, procedureNodeUnreachable, procedureTerminalInvalid, procedurePhaseRouteMissing, reconcileCausalityInvalid, invalidPath, duplicateProjectPath, malformedProcedureYAML, oversizedRequest:{check:oversizedCheck,build:oversizedBuild.diagnostics,inspect:oversizedInspect.diagnostics}}, null, 2);
   document.documentElement.dataset.test = 'pass';
 })().catch(error => {
   output.textContent = `FAIL: ${error.stack || error}`;

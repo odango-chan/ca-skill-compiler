@@ -1,0 +1,7 @@
+procedures:
+  run:
+    start: build
+    nodes:
+      build:
+        script: scripts/out.py
+        with: {}
