@@ -30,6 +30,27 @@ with is a binding map. Each argument has exactly one of:
 
 No implicit previous-node binding, string interpolation, dynamic selector or source-specific alias is permitted.
 
+## 1.1 Outcome domains and flow
+
+The linker's action outcome vocabulary is explicit and action-scoped:
+
+| Node/action | Accepted outcomes |
+|---|---|
+| call | `SUCCEEDED`, `COMMITTED`, `NOT_COMMITTED`, `OUTCOME_UNKNOWN`, `FAILED`, `DENIED`, `UNKNOWN`, `UNRESOLVED` |
+| script | `SUCCEEDED`, `FAILED`, `DENIED`, `UNKNOWN`, `UNRESOLVED` |
+| procedure | `SUCCEEDED`, `FAILED`, `UNRESOLVED`, `SAFE_STOPPED` |
+| verify | `PASS`, `FAIL`, `UNKNOWN` |
+| reconcile | `COMMITTED`, `NOT_COMMITTED`, `UNRESOLVED` |
+| terminal | `SUCCEEDED`, `FAILED`, `UNRESOLVED`, `SAFE_STOPPED` |
+| preconditions aggregate route | exactly `FAILED` and `UNRESOLVED` |
+| postconditions aggregate route | exactly `PASS`, `FAIL` and `UNKNOWN` |
+
+The call vocabulary is the full `MutationStatus` set in the pinned ca-agent-demo Runtime baseline (`4395982fa6efb97714b97901603b2dfb7018c4d0`); script outcomes use that baseline's `SCRIPT_RESULT_STATUSES`. Predicate and Procedure terminal values follow the Skill-owned outcome domains. These are link-time names only: Compiler does not import Runtime code or execute a node. A main-node route may handle a subset; a result without an authored route stops as unresolved. Preconditions and postconditions require their complete aggregate route because the Skill Language defines their failure/unresolved and pass/fail/unknown distinctions.
+
+Every declared node must be reachable from the Procedure `start` through authored node or aggregate phase `on` edges. Explicit graph cycles are allowed; the linker traverses them safely, but does not prove eventual termination. No node-map order or implicit fallthrough creates an edge.
+
+`reconcile` must name a preceding `call` whose imported Operation Effect is `MUTATION`, and it must be the exact target node's `OUTCOME_UNKNOWN` successor. Its output Producer is only that Operation's declared `reconcileOutputSchema`; absence is an error. Reconcile outcome does not authorize retry: flow after reconciliation remains explicitly authored.
+
 ## 2. Authoritative source and schema namespaces
 
 ca-skills is the only official Skill source input. ca-agent-demo is not a second project source and must not be fetched by Compiler. The official current source packages are the two 5GC Skills in ca-skills; other historical Skill directories are not current grammar authorities.
