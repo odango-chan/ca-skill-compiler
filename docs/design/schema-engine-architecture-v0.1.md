@@ -471,3 +471,93 @@ The analyzer MUST NOT attempt to solve arbitrary:
 For those cases, emit the existing explicit unsupported/unproven diagnostic. Do not add a SAT/SMT solver, automata engine, regex solver, or a general theorem prover as part of Schema Engine migration.
 
 The migration is successful if it removes duplicate standard Schema validation code while preserving the existing proof subset and fail-closed outcomes—not if it increases the percentage of arbitrary schema pairs that can be proven.
+
+
+## 14. Isolated Library Spike execution protocol
+
+This protocol is the next authorized work unit after design review. It is **not** authorization to modify the production Compiler path.
+
+### 14.1 Branch and isolation
+
+- Create a dedicated branch from the paused PR #5 checkpoint `49753ce345f8cf99654566995dd3b5aff070f844`, not from `main` and not from an advancing implementation head.
+- Keep all spike code under `internal/schema-spike/` or a standalone nested module such as `tools/schema-engine-spike/`. Prefer a nested module if it avoids changing the production `go.mod`.
+- Do not change `internal/compiler/**`, production `go.mod` / `go.sum`, BuildRequest, BuildResult, CLI, WASM public API, official Skill files, or the PR #5 worktree.
+- Pin candidate versions and source corpus commit SHAs. Record Go toolchain version, GOOS/GOARCH, browser version, and exact commands.
+- The spike may add isolated candidate-specific dependencies in its own module. No production dependency decision is made by the spike.
+
+### 14.2 Candidate scope
+
+Compare only:
+- Primary: `github.com/santhosh-tekuri/jsonschema/v6@v6.0.3`.
+- Secondary: `github.com/kaptinlin/jsonschema@v0.9.10`.
+
+Do not add a third candidate unless one of these fails a hard gate and a concrete reason justifies another candidate. Corvus remains deferred due to the current Go 1.23 toolchain constraint.
+
+### 14.3 Shared test corpus
+
+Both candidates MUST receive semantically identical inputs, generated from one shared fixture corpus:
+
+1. Existing approved 12-operation ToolCatalog schemas from the pinned `ca-agent-demo` contract snapshot.
+2. Existing `x-common` and project-local Schema reference fixtures.
+3. Draft 2020-12 official conformance cases for the keywords used by the ToolCatalog and current Skills.
+4. Existing Compiler schema-validity and concrete-literal regression vectors extracted without changing their expected outcomes.
+5. Exact-number cases: integers beyond 2^53, uint64 max, negative large integers, decimals such as 0.1/0.3, exponent notation, exclusive bounds, and `multipleOf` boundaries.
+6. Reference cases: local `$defs`, cross-document local resources, nested refs, `$id` base URI, `$ref` siblings, recursive/dynamic references where applicable, missing refs, duplicate resources, traversal, absolute paths, HTTP/HTTPS refs, and unsupported schemes.
+7. Regex cases that distinguish Go RE2 from ECMA-262 expectations, including Unicode mode and representative lookaround/backreference constructs. Record unsupported constructs explicitly; do not silently rewrite expressions.
+8. Invalid YAML-to-JSON cases: duplicate keys, non-string keys, timestamps, custom tags, NaN/Infinity, alias cycles, and values that cannot be represented in JSON.
+
+The official test-suite submodule must be pinned to a commit SHA. Do not use a moving branch or compare candidate-specific partial test subsets.
+
+### 14.4 Hard gates
+
+A candidate is rejected if any hard gate fails:
+
+- Draft 2020-12 schema compilation and concrete instance semantics for the required corpus.
+- Lossless numeric conversion end-to-end from YAML node to validator instance.
+- Closed resolver: every external reference is denied before network or filesystem access; nested refs cannot bypass the gate.
+- Native and `GOOS=js GOARCH=wasm` build and runtime pass.
+- Actual Chromium Worker smoke test passes; Node WASM is supporting evidence only.
+- Deterministic structured errors can be mapped to stable Compiler diagnostic codes.
+- No dependency on a network service or filesystem at runtime.
+- License and dependency audit acceptable.
+- No unacceptable browser bundle/WASM size or initialization/validation latency regression.
+
+Regex compatibility is evaluated against the exact regular-expression subset the Skill/Tool contracts need. If the candidate cannot provide the required ECMA-262 behavior in the browser, either a separately justified compatible regex engine must be demonstrated inside the same WASM constraints or the candidate is rejected for the required contract. Do not call Go RE2 “ECMA-262 compatible”.
+
+### 14.5 Measurements and report
+
+For each candidate, record:
+
+- Schema compile latency (cold and warm).
+- Instance validation latency.
+- Peak memory or allocation profile where measurable.
+- Native binary size delta.
+- WASM binary size delta and browser startup cost.
+- Chromium Worker initialization time and representative validation latency.
+- Error object shape and source-location mapping feasibility.
+- Exact test counts: required/pass/fail/skipped, grouped by feature.
+- Any behavior differences from the current Compiler goldens.
+
+Run at least three repetitions for timing measurements and report median and range. Keep benchmark inputs and scripts in the spike branch so results are reproducible.
+
+### 14.6 Go / no-go decision
+
+The spike report MUST conclude with one of:
+
+- **ADOPT** one candidate, naming exact version and configuration.
+- **REJECT BOTH**, with hard-gate evidence and a narrowly scoped follow-up.
+- **CONDITIONAL ADOPT**, listing concrete blockers that can be resolved without changing the architecture or expanding Compiler scope.
+
+No production migration begins automatically after a successful spike. A separate implementation plan must map the current call sites and golden tests to the adapter, registry, and retained binding analyzer, then receive review.
+
+### 14.7 Required deliverables
+
+- `docs/spikes/schema-engine-spike-v0.1.md`: test design, environment, exact commands, and results.
+- Candidate comparison table with evidence links.
+- Shared fixtures and pinned conformance corpus reference.
+- Resolver closure and numeric fidelity evidence.
+- Native/WASM/Chromium results.
+- Size/performance report.
+- Go/no-go recommendation.
+
+**Stop condition:** when the report and reproducible evidence are complete, stop. Do not modify production Compiler code, merge PR #5, or start the migration without a separate explicit instruction.
