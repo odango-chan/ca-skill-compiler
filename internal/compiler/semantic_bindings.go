@@ -76,11 +76,6 @@ func (a *analysis) addSemanticProcedureInputBindings(proc *yaml.Node, with, expe
 			continue
 		}
 		candidate := candidates[0]
-		if !schemasCompatible(candidate.schema, target) {
-			// Let the canonical binding validator report the missing required
-			// input. Never bypass its richer compatibility proof.
-			continue
-		}
 		if generated == nil {
 			generated = &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
 			if with != nil {
