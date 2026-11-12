@@ -173,7 +173,7 @@ Linking rules:
 - adapter is descriptive metadata. Compiler does not resolve or invoke it.
 - YAML anchors/aliases and document-local Schema fragments are supported with bounded expansion.
 - Local references are resolved within their containing contract/snapshot according to the contract format. Stable exported Schema `$id` references may be resolved across supplied snapshots only by exact identity. Remote `$ref`, network lookup and source discovery are outside Compiler scope.
-- inspectLibraries may return a read-only projection of imported Operation IDs, dependency IDs, snapshot-relative source paths, Effects and Schemas for Studio display. It does not maintain source maturity, package status, manifests or lifecycle state.
+- inspectDependencies may return a read-only projection of imported Operation IDs, dependency IDs, snapshot-relative source paths, Effects and Schemas for Studio display. It does not maintain source maturity, package status, manifests or lifecycle state.
 
 There is **no** Compiler-side `lib/manifest.yaml`, sourceStatus, package manifest, dependency resolver or lifecycle state. Dependency IDs and snapshot digests are normalized inputs from Studio's locked Workspace Configuration; they do not encode source acquisition or permission. If Studio needs labels such as imported or read-only, those are Studio presentation metadata, not Compiler input.
 
@@ -215,7 +215,7 @@ Current known external blockers in the official PDU source are the Host Subject/
 
 ## 7. Compiler outputs and determinism
 
-The response shapes are [build-result.schema.json](../../contracts/v0.1/build-result.schema.json) and [library-inspection.schema.json](../../contracts/v0.1/library-inspection.schema.json).
+The response shapes are [build-result.schema.json](../../contracts/v0.1/build-result.schema.json) and [dependency-inspection.schema.json](../../contracts/v0.1/library-inspection.schema.json).
 
 - check and build share the same static analysis.
 - On any ERROR, Build returns success: false and an empty outputFiles array.
