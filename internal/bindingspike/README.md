@@ -73,3 +73,21 @@ This is not a claim of remote CI success.
 - Add negative cases for branches, loops, missing contract, same-name conflict,
   multiple producer generations, explicit override and version skew.
 - Keep PR #24 design-only and this spike Draft until those gates pass.
+
+
+## Actual pinned source fixture checks (added after the first algorithm test)
+
+`real_fixture_test.go` reads the already checked-in Compiler PR #5 fixture files:
+
+- `examples/ca-agent-demo-project/skills/establish-pdu-session-mas/assurance/procedure.yaml`
+- `examples/ca-agent-demo-project/lib/tools/mas-proposed.tool.yaml`
+- `examples/ca-agent-demo-project/skills/establish-pdu-session/assurance/procedure.yaml`
+- `examples/ca-agent-demo-project/lib/tools/createdsession.tool.yaml`
+
+The MAS test reads its actual 16 call nodes, 11 top-level aliases, and **required** Tool inputs, then compares 176 candidate semantic bindings against all authored `with/from` sources. The 5GC test similarly checks the actual UDM READ call's four required inputs and existing Procedure aliases.
+
+The semantic IDs are still test-side proposed annotations, NOT read from or added to the existing owner contracts. These tests do not analyze CFG or prove complete JSON Schema implication. The 5GC ToolCatalog is authoritative for its declared inputs; the MAS ToolCatalog is a **proposed NOT_READY** contract and must not be treated as an accepted owner guarantee.
+
+**Verification caveat:** the first isolated algorithm test passed locally; these new pinned-YAML fixture tests have been committed for verification but a new full Go test execution / remote CI result has not yet been obtained. Do not label them PASS until they run.
+
+Related semantic-identity draft: `ca-skills` PR #24 `docs/design/semantic-field-identity-vnext.md`.
