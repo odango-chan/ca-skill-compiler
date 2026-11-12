@@ -187,7 +187,7 @@ Evaluate at least the candidate above and one viable alternative against the sam
 9. Error structure/stability sufficient to map into Compiler diagnostics.
 10. License, maintenance status, supported Go versions, and transitive dependency risk.
 
-A library's support for Draft 2020-12 MUST NOT be interpreted as support for ECMA-262 regular-expression semantics or for Producer/Consumer implication unless independently demonstrated.
+A library's support for Draft 2020-12 MUST NOT be interpreted as support for ECMA-262 regular-expression semantics or for Producer/Consumer implication unless independently demonstrated. The current implementation's use of Go `regexp` for `pattern` and `patternProperties` is not a conforming substitute for JSON Schema's ECMA-262 regular-expression expectations. The migration must not preserve that behavior as if it were normative Schema validation. The spike must test representative regex constructs and decide whether the candidate's behavior is sufficiently compatible; otherwise it must produce a precise unsupported/compatibility limitation or use a separately justified regex implementation. Do not silently translate patterns.
 
 ### 5.1 Spike output
 
