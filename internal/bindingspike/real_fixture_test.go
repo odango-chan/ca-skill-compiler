@@ -133,21 +133,24 @@ func TestPinnedFiveGCProcedureAgainstToolCatalog(t *testing.T) {
 		{"slice", "sNssai", "object", "session.sNssai"},
 		{"plmn", "servingPlmn", "object", "session.servingPlmn"},
 	}
-	var schema *struct{ Required []string; Properties map[string]struct{ Type string }}
+	var schemaTypes map[string]string
+	var schemaRequired []string
 	for _, c := range catalog.Spec.Contracts {
 		if c.Operation == n.Call {
-			schema = &struct{ Required []string; Properties map[string]struct{ Type string }}{c.InputSchema.Required, c.InputSchema.Properties}
+			schemaTypes = make(map[string]string)
+			for name, property := range c.InputSchema.Properties { schemaTypes[name] = property.Type }
+			schemaRequired = c.InputSchema.Required
 			break
 		}
 	}
-	if schema == nil { t.Fatal("UDM tool schema missing") }
+	if schemaTypes == nil { t.Fatal("UDM tool schema missing") }
 	required := make(map[string]bool)
-	for _, key := range schema.Required { required[key] = true }
+	for _, key := range schemaRequired { required[key] = true }
 	var ps []Producer
 	var inputs []Field
 	for _, f := range fields {
 		if p.Inputs[f.alias].Type != f.typ || p.Inputs[f.alias].From == "" { t.Fatalf("5GC input alias %s inconsistent", f.alias) }
-		if !required[f.input] || schema.Properties[f.input].Type != f.typ { t.Fatalf("5GC UDM contract input %s inconsistent", f.input) }
+		if !required[f.input] || schemaTypes[f.input] != f.typ { t.Fatalf("5GC UDM contract input %s inconsistent", f.input) }
 		if n.With[f.input].From != "input."+f.alias { t.Fatalf("5GC existing source mismatch: %s", f.input) }
 		ps = append(ps, Producer{ID: "context."+f.alias, Field: Field{Name: f.alias, SemanticID: f.id, Type: f.typ}, SourcePath: "input."+f.alias, AvailableAt: []string{"nudm-sdm-get"}})
 		inputs = append(inputs, Field{Name: f.input, SemanticID: f.id, Type: f.typ, Required: true})
