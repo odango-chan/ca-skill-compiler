@@ -27,7 +27,7 @@ Skill Project/
 ~~~typescript
 type File = { path: string, bytes: Uint8Array }; // path under skills/**
 type ResolvedDependency = {
-  dependencyId: string;           // opaque ID from Workspace Configuration
+  dependencyId: string;           // stable alias / contract-reference namespace from Workspace Configuration
   digest: `sha256:${string}`;    // canonical snapshot content digest
   files: Array<{ path: string, bytes: Uint8Array }>; // snapshot-relative paths
 };
@@ -36,7 +36,7 @@ type BuildRequest = {
   resolvedDependencies: ResolvedDependency[];
   targets?: string[];
 };
-type DependencyClosureEntry = { dependencyId: string, digest: `sha256:${string}` };
+type DependencyClosureEntry = { dependencyId: string };
 type BuildResult = {
   success: boolean;
   diagnostics: Diagnostic[];
@@ -60,11 +60,11 @@ build(input: BuildRequest): BuildResult;
 inspectDependencies(input: BuildRequest): DependencyInspection;
 ~~~
 
-- Studio's resource-scoped `dependencies` and `dependencyLock` settings own source, revision, aliases, digest pins and snapshot lifecycle. The Compiler sees only the stable dependencyId, verified digest and immutable bytes.
-- Skill source never refers to dependencyId, alias, repository, URL, source revision, digest, cache key or local path.
+- Studio's resource-scoped `dependencies` and `dependencyLock` settings own source, revision, aliases, digest pins and snapshot lifecycle. The Compiler sees the stable dependency alias, supplied input digest and immutable bytes.
+- Skill source may use the dependency alias only as the namespace prefix of a qualified exported contract reference (`alias::contract-id`). It never contains repository, URL, source revision, digest, cache key or local path.
 - Tool calls keep exact Operation IDs. Owner Schemas are referenced by stable JSON Schema `$id` in the vNext language. Current v0.2 `lib/...` schema paths remain a temporary compatibility syntax; when present, they resolve only by exact match against supplied snapshot-relative paths and must be unambiguous.
 - Operation IDs and exported Schema IDs are indexed from snapshot contents. No separate dependency manifest or exports list is added to Skill source or Compiler input.
-- `dependencyClosure` lists only snapshots actually used by the selected Skill build, sorted by dependencyId. On any ERROR, `success=false`, `dependencyClosure=[]`, and `outputFiles=[]`.
+- `dependencyClosure` lists only dependency aliases actually used by the selected Skill build, sorted by dependencyId. It does not export snapshot digests; Studio retains lock and integrity metadata. On any ERROR, `success=false`, `dependencyClosure=[]`, and `outputFiles=[]`.
 - `inspectDependencies` returns a read-only Operation/Schema projection including dependencyId and snapshot-relative sourcePath. It does not maintain dependency lifecycle, source maturity or Runtime readiness.
 
 ## 3. JS ↔ Go/WASM wire
