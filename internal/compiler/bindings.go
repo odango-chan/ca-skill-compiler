@@ -813,7 +813,7 @@ func schemaConstraintsCompatible(source, target *yaml.Node, typ string) bool {
 	}
 	for _, key := range lowerKeys {
 		if t := schemaNumber(target, key); t != nil {
-			s := schemaNumber(source, key)
+			s := sourceConstraintBound(source, key, typ)
 			weaker := s == nil || s.Cmp(t) < 0
 			if typ == "integer" || typ == "number" {
 				exclusive := schemaNumber(source, "exclusiveMinimum")
@@ -826,7 +826,7 @@ func schemaConstraintsCompatible(source, target *yaml.Node, typ string) bool {
 	}
 	for _, key := range upperKeys {
 		if t := schemaNumber(target, key); t != nil {
-			s := schemaNumber(source, key)
+			s := sourceConstraintBound(source, key, typ)
 			weaker := s == nil || s.Cmp(t) > 0
 			if typ == "integer" || typ == "number" {
 				exclusive := schemaNumber(source, "exclusiveMaximum")
@@ -893,6 +893,32 @@ func schemaConstraintsCompatible(source, target *yaml.Node, typ string) bool {
 		}
 	}
 	return true
+}
+
+func sourceConstraintBound(schema *yaml.Node, key, typ string) *big.Rat {
+	bound := schemaNumber(schema, key)
+	if typ != "object" {
+		return bound
+	}
+	var inferred *big.Rat
+	switch key {
+	case "minProperties":
+		inferred = new(big.Rat).SetInt64(int64(len(sequence(child(schema, "required")))))
+	case "maxProperties":
+		if schemaBoolean(child(schema, "additionalProperties"), false) {
+			inferred = new(big.Rat).SetInt64(int64(len(mapKeys(child(schema, "properties")))))
+		}
+	}
+	if inferred == nil {
+		return bound
+	}
+	if bound == nil {
+		return inferred
+	}
+	if key == "minProperties" && inferred.Cmp(bound) > 0 || key == "maxProperties" && inferred.Cmp(bound) < 0 {
+		return inferred
+	}
+	return bound
 }
 
 func schemaNumber(schema *yaml.Node, key string) *big.Rat {

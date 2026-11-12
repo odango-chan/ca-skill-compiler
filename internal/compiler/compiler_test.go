@@ -80,6 +80,7 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 		ContainsUnsupported          []Diagnostic `json:"containsUnsupported"`
 		TypingImportAliasUnsupported []Diagnostic `json:"typingImportAliasUnsupported"`
 		OmittedItemsBinding          []Diagnostic `json:"omittedItemsBinding"`
+		RequiredObjectCountBinding   []Diagnostic `json:"requiredObjectCountBinding"`
 	}
 	data, err := os.ReadFile(filepath.Join("..", "..", "web", "diagnostics-golden.json"))
 	if err != nil {
@@ -104,6 +105,11 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	omittedItems = mutateProjectFile(t, omittedItems, "skills/normalize/schemas/normalize-request.schema.yaml", "dnn: {type: string, minLength: 1}", "dnn: {type: array, items: {type: integer}}")
 	if got := Check(BuildRequest{Files: omittedItems}); !reflect.DeepEqual(got, golden.OmittedItemsBinding) {
 		t.Fatalf("Native omitted-items diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.OmittedItemsBinding)
+	}
+	requiredObjectCount := mutateProjectFile(t, files, "lib/tools/demo.tool.yaml", "key: *text", "key: {type: object, minProperties: 2}")
+	requiredObjectCount = mutateProjectFile(t, requiredObjectCount, "skills/normalize/schemas/normalize-request.schema.yaml", "dnn: {type: string, minLength: 1}", "dnn: {type: object, required: [one, two], properties: {one: {type: string}, two: {type: string}}}")
+	if got := Check(BuildRequest{Files: requiredObjectCount}); !reflect.DeepEqual(got, golden.RequiredObjectCountBinding) {
+		t.Fatalf("Native required-object-count diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.RequiredObjectCountBinding)
 	}
 	patternProperties := mutateProjectFile(t, files, "lib/tools/demo.tool.yaml", "key: *text", `key: {type: object, patternProperties: {"^x-": {type: string}}}`)
 	if got := Check(BuildRequest{Files: patternProperties}); !reflect.DeepEqual(got, golden.PatternPropertiesUnsupported) {
@@ -1775,11 +1781,29 @@ func TestObjectCountAndUniqueItemBindingSemantics(t *testing.T) {
 	) {
 		t.Fatal("a stronger explicit Producer property-count bound should satisfy the Consumer")
 	}
+	if !schemasCompatible(
+		schemaNode(map[string]any{"type": "object", "required": []string{"one", "two"}}),
+		schemaNode(map[string]any{"type": "object", "minProperties": 2}),
+	) {
+		t.Fatal("required object fields guarantee the corresponding minProperties bound")
+	}
 	if schemasCompatible(
 		schemaNode(map[string]any{"type": "object", "properties": map[string]any{"one": map[string]any{"type": "string"}}}),
 		schemaNode(map[string]any{"type": "object", "minProperties": 1}),
 	) {
 		t.Fatal("the binder must not infer minProperties from optional named properties")
+	}
+	if !schemasCompatible(
+		schemaNode(map[string]any{"type": "object", "properties": map[string]any{"one": true, "two": true}, "additionalProperties": false}),
+		schemaNode(map[string]any{"type": "object", "maxProperties": 2}),
+	) {
+		t.Fatal("a closed Producer object guarantees maxProperties from its declared property set")
+	}
+	if schemasCompatible(
+		schemaNode(map[string]any{"type": "object", "properties": map[string]any{"one": true, "two": true}}),
+		schemaNode(map[string]any{"type": "object", "maxProperties": 2}),
+	) {
+		t.Fatal("open Producer objects do not guarantee maxProperties from declared properties")
 	}
 	uniqueArray := func(unique bool) *yaml.Node {
 		return schemaNode(map[string]any{"type": "array", "items": map[string]any{"type": "integer"}, "uniqueItems": unique})

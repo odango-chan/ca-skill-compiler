@@ -185,5 +185,6 @@
       "message": "typing import aliases are unsupported in Script Output declarations: TypedDict as TD"
     }
   ],
-  "omittedItemsBinding": []
+  "omittedItemsBinding": [],
+  "requiredObjectCountBinding": []
 }
