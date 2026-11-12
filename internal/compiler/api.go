@@ -25,7 +25,8 @@ type File struct {
 	Bytes []byte `json:"bytes"`
 }
 
-type Request struct {
+// BuildRequest contains the caller-supplied project files and optional targets.
+type BuildRequest struct {
 	Files   []File   `json:"files"`
 	Targets []string `json:"targets,omitempty"`
 }
@@ -39,7 +40,8 @@ type Diagnostic struct {
 	Message  string `json:"message"`
 }
 
-type Result struct {
+// BuildResult contains deterministic diagnostics and, on success, output files.
+type BuildResult struct {
 	Success     bool         `json:"success"`
 	Diagnostics []Diagnostic `json:"diagnostics"`
 	OutputFiles []File       `json:"outputFiles"`
@@ -61,7 +63,7 @@ type LibraryResult struct {
 }
 
 // InspectLibraries parses only caller-supplied ToolCatalog files.
-func InspectLibraries(req Request) LibraryResult {
+func InspectLibraries(req BuildRequest) LibraryResult {
 	a := newAnalysis(req)
 	a.importLibraries()
 	tools := a.libraryTools()
@@ -84,16 +86,16 @@ type analysis struct {
 	procedureInputSchemas map[*yaml.Node]map[string]*yaml.Node
 }
 
-func Check(req Request) []Diagnostic {
+func Check(req BuildRequest) []Diagnostic {
 	result := analyze(req, false)
 	return result.Diagnostics
 }
 
-func Build(req Request) Result {
+func Build(req BuildRequest) BuildResult {
 	return analyze(req, true)
 }
 
-func analyze(req Request, materialize bool) Result {
+func analyze(req BuildRequest, materialize bool) BuildResult {
 	a := newAnalysis(req)
 	if len(a.diagnostics) > 0 {
 		return a.result(nil)
@@ -200,7 +202,7 @@ func (a *analysis) filterUnselectedSkillDiagnostics(selected map[string]bool) {
 	a.diagnostics = kept
 }
 
-func newAnalysis(req Request) *analysis {
+func newAnalysis(req BuildRequest) *analysis {
 	a := &analysis{files: make(map[string][]byte), tools: make(map[string]toolEntry), skills: make(map[string]*skillEntry), generated: make(map[string][]File), ambiguousOperations: make(map[string]bool), operationSources: make(map[string]string), schemaRefs: make(map[string]map[string]bool), procedureInputSchemas: make(map[*yaml.Node]map[string]*yaml.Node)}
 	if len(req.Files) == 0 {
 		a.errorAt("", 0, "REQUEST_INVALID", "BuildRequest.files must contain at least one file")
@@ -244,12 +246,12 @@ func newAnalysis(req Request) *analysis {
 	return a
 }
 
-func (a *analysis) result(output []File) Result {
+func (a *analysis) result(output []File) BuildResult {
 	a.sortedDiagnostics()
 	if output == nil {
 		output = []File{}
 	}
-	return Result{Success: !a.hasErrors(), Diagnostics: a.diagnostics, OutputFiles: output}
+	return BuildResult{Success: !a.hasErrors(), Diagnostics: a.diagnostics, OutputFiles: output}
 }
 
 func (a *analysis) sortedDiagnostics() []Diagnostic {

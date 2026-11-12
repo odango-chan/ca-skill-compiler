@@ -16,7 +16,7 @@ func respond(command string) js.Func {
 		if len(args) != 1 || args[0].Type() != js.TypeString {
 			return `{"success":false,"diagnostics":[{"severity":"error","code":"REQUEST_INVALID","path":"","message":"expected JSON string"}],"outputFiles":[]}`
 		}
-		var req compiler.Request
+		var req compiler.BuildRequest
 		if err := json.Unmarshal([]byte(args[0].String()), &req); err != nil {
 			return `{"success":false,"diagnostics":[{"severity":"error","code":"REQUEST_INVALID","path":"","message":"invalid JSON request"}],"outputFiles":[]}`
 		}
@@ -32,7 +32,7 @@ func respond(command string) js.Func {
 					break
 				}
 			}
-			result = compiler.Result{Diagnostics: diagnostics, Success: success, OutputFiles: []compiler.File{}}
+			result = compiler.BuildResult{Diagnostics: diagnostics, Success: success, OutputFiles: []compiler.File{}}
 		} else {
 			result = compiler.Build(req)
 		}

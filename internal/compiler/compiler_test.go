@@ -74,7 +74,7 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	if err := json.Unmarshal(data, &golden); err != nil {
 		t.Fatal(err)
 	}
-	if got := Check(Request{Files: files, Targets: []string{"missing"}}); !reflect.DeepEqual(got, golden.TargetNotFound) {
+	if got := Check(BuildRequest{Files: files, Targets: []string{"missing"}}); !reflect.DeepEqual(got, golden.TargetNotFound) {
 		t.Fatalf("Native missing-target diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.TargetNotFound)
 	}
 	invalidBinding := make([]File, len(files))
@@ -87,15 +87,15 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 			}
 		}
 	}
-	if got := Check(Request{Files: invalidBinding}); !reflect.DeepEqual(got, golden.InvalidBinding) {
+	if got := Check(BuildRequest{Files: invalidBinding}); !reflect.DeepEqual(got, golden.InvalidBinding) {
 		t.Fatalf("Native invalid-binding diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.InvalidBinding)
 	}
 	typeMismatch := mutateProjectFile(t, files, "skills/normalize/schemas/normalize-request.schema.yaml", "dnn: {type: string, minLength: 1}", "dnn: {type: integer}")
-	if got := Check(Request{Files: typeMismatch}); !reflect.DeepEqual(got, golden.BindingTypeMismatch) {
+	if got := Check(BuildRequest{Files: typeMismatch}); !reflect.DeepEqual(got, golden.BindingTypeMismatch) {
 		t.Fatalf("Native binding type diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.BindingTypeMismatch)
 	}
 	unknownOperation := mutateProjectFile(t, files, "skills/normalize/assurance/procedure.yaml", "call: demo.read", "call: demo.missing")
-	if got := Check(Request{Files: unknownOperation}); !reflect.DeepEqual(got, golden.UnknownOperation) {
+	if got := Check(BuildRequest{Files: unknownOperation}); !reflect.DeepEqual(got, golden.UnknownOperation) {
 		t.Fatalf("Native unknown-operation diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.UnknownOperation)
 	}
 	procedureOutput := make([]File, len(files))
@@ -105,16 +105,16 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 			procedureOutput[i].Bytes = []byte("procedures:\n  normalize:\n    start: invoke\n    nodes:\n      invoke:\n        procedure: helper\n        'on':\n          SUCCEEDED: normalize-step\n          FAILED: failed\n      normalize-step:\n        preconditions:\n          steps:\n            - name: normalize-value\n              script: scripts/normalize.py\n\n\n\n\n              with:\n                value: {from: invoke.output.value}\n        terminal: SUCCEEDED\n      failed: {terminal: FAILED}\n  helper:\n    start: done\n    nodes:\n      done: {terminal: SUCCEEDED}\n")
 		}
 	}
-	if got := Check(Request{Files: procedureOutput}); !reflect.DeepEqual(got, golden.ProcedureOutputMissingSchema) {
+	if got := Check(BuildRequest{Files: procedureOutput}); !reflect.DeepEqual(got, golden.ProcedureOutputMissingSchema) {
 		t.Fatalf("Native missing-Procedure-output diagnostics differ from browser golden:\\ngot  %#v\\nwant %#v", got, golden.ProcedureOutputMissingSchema)
 	}
 	invalidOutput := mutateProjectFile(t, files, "skills/normalize/scripts/normalize.py", "normalized: Annotated[str, {\"minLength\": 1, \"pattern\": r\"^[a-z0-9.-]+$\"}]", "normalized: Any")
-	if got := Check(Request{Files: invalidOutput}); !reflect.DeepEqual(got, golden.InvalidScriptOutput) {
+	if got := Check(BuildRequest{Files: invalidOutput}); !reflect.DeepEqual(got, golden.InvalidScriptOutput) {
 		t.Fatalf("Native invalid-Script diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.InvalidScriptOutput)
 	}
 	duplicate := toolCatalog()
 	duplicate.Path = "lib/tools/duplicate.tool.yaml"
-	duplicateResult := InspectLibraries(Request{Files: append(append([]File(nil), files...), duplicate)})
+	duplicateResult := InspectLibraries(BuildRequest{Files: append(append([]File(nil), files...), duplicate)})
 	if !reflect.DeepEqual(duplicateResult.Diagnostics, golden.DuplicateLibrary) {
 		t.Fatalf("Native InspectLibraries duplicate-operation diagnostics differ from browser golden:\ngot  %#v\nwant %#v", duplicateResult.Diagnostics, golden.DuplicateLibrary)
 	}
@@ -164,7 +164,7 @@ func findDiagnostic(got []Diagnostic, code string) bool {
 }
 
 func TestBuildMultiSkillAndImportedToolCatalog(t *testing.T) {
-	req := Request{Files: testProject(), Targets: []string{"root"}}
+	req := BuildRequest{Files: testProject(), Targets: []string{"root"}}
 	result := Build(req)
 	if !result.Success {
 		t.Fatalf("unexpected diagnostics: %#v", result.Diagnostics)
@@ -193,26 +193,26 @@ func TestBuildMultiSkillAndImportedToolCatalog(t *testing.T) {
 
 func TestRequestFileOrderDoesNotChangeBuildOrDiagnostics(t *testing.T) {
 	files := testProject()
-	baseline := Build(Request{Files: files})
+	baseline := Build(BuildRequest{Files: files})
 	for i, j := 0, len(files)-1; i < j; i, j = i+1, j-1 {
 		files[i], files[j] = files[j], files[i]
 	}
-	shuffled := Build(Request{Files: files})
+	shuffled := Build(BuildRequest{Files: files})
 	if !reflect.DeepEqual(baseline, shuffled) {
 		t.Fatalf("input file order changed Build result:\nbaseline=%#v\nshuffled=%#v", baseline, shuffled)
 	}
 	broken := append(testProject(), File{Path: "skills/broken/assurance/procedure.yaml", Bytes: []byte("procedures: [broken")})
-	check := Check(Request{Files: broken})
+	check := Check(BuildRequest{Files: broken})
 	for i, j := 0, len(broken)-1; i < j; i, j = i+1, j-1 {
 		broken[i], broken[j] = broken[j], broken[i]
 	}
-	if got := Check(Request{Files: broken}); !reflect.DeepEqual(check, got) {
+	if got := Check(BuildRequest{Files: broken}); !reflect.DeepEqual(check, got) {
 		t.Fatalf("input file order changed diagnostics:\nfirst=%#v\nsecond=%#v", check, got)
 	}
 }
 
 func TestBuildCanSelectOneSkill(t *testing.T) {
-	req := Request{Files: testProject(), Targets: []string{"child"}}
+	req := BuildRequest{Files: testProject(), Targets: []string{"child"}}
 	result := Build(req)
 	if !result.Success {
 		t.Fatalf("unexpected diagnostics: %#v", result.Diagnostics)
@@ -227,7 +227,7 @@ func TestBuildCanSelectOneSkill(t *testing.T) {
 func TestTargetBuildIgnoresBrokenUnrelatedSkill(t *testing.T) {
 	files := testProject()
 	files = append(files, source("unrelated", "broken", "procedures: [invalid")...)
-	got := Build(Request{Files: files, Targets: []string{"root"}})
+	got := Build(BuildRequest{Files: files, Targets: []string{"root"}})
 	if !got.Success {
 		t.Fatalf("unrelated invalid Skill blocked target closure: %#v", got.Diagnostics)
 	}
@@ -237,7 +237,7 @@ func TestOutcomeBranchesRejectEmptyMapsAndNames(t *testing.T) {
 	for _, branch := range []string{"'on': {}", "'on': {\"\": done}", "postconditions: {on: {}}"} {
 		files := source("branch", "run", "procedures:\n  run:\n    start: read\n    nodes:\n      read:\n        call: demo.read\n        with: {ref: {value: sample}}\n        "+branch+"\n      done: {terminal: SUCCEEDED}\n")
 		files = append(files, toolCatalog())
-		got := Build(Request{Files: files})
+		got := Build(BuildRequest{Files: files})
 		if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
 			t.Fatalf("malformed outcome branch %q was accepted: %#v", branch, got.Diagnostics)
 		}
@@ -252,7 +252,7 @@ func TestOutcomeBranchesRejectEmptyMapsAndNames(t *testing.T) {
 func TestMissingLibraryOperationFails(t *testing.T) {
 	files := testProject()
 	files = files[:len(files)-1]
-	result := Build(Request{Files: files})
+	result := Build(BuildRequest{Files: files})
 	if result.Success || !findDiagnostic(result.Diagnostics, "LIB_OPERATION_UNKNOWN") || len(result.OutputFiles) != 0 {
 		t.Fatalf("must fail without the imported tool: %#v", result)
 	}
@@ -283,7 +283,7 @@ spec:
         definitions: {$ref: '#/x-common/Ref'}
     outputSchema: {type: object}
 `)}, File{Path: "lib/schemas/fields.yaml", Bytes: []byte("definitions:\n  Ref: {type: string, minLength: 1}\n")})
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if !got.Success {
 		t.Fatalf("local JSON Pointer ref should resolve: %#v", got.Diagnostics)
 	}
@@ -302,7 +302,7 @@ spec:
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "#/x-common/Ref", "https://example.invalid/schema.json", 1))
 		}
 	}
-	got = Build(Request{Files: files})
+	got = Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
 		t.Fatalf("remote schema reference should fail closed: %#v", got.Diagnostics)
 	}
@@ -330,7 +330,7 @@ spec:
       properties:
         ref: {$ref: '#/x-common/Ref'}
 `)})
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
 		t.Fatalf("cyclic Schema reference should be diagnosed: %#v", got.Diagnostics)
 	}
@@ -351,7 +351,7 @@ spec:
       properties:
         value: invalid
 `)})
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
 		t.Fatalf("malformed unused Tool Schema was ignored: %#v", got.Diagnostics)
 	}
@@ -401,7 +401,7 @@ func TestSchemaShapeValidatesDraft2020ConstraintTypes(t *testing.T) {
 }
 
 func TestMissingBuildTargetIsDiagnosed(t *testing.T) {
-	got := Build(Request{Files: testProject(), Targets: []string{"missing"}})
+	got := Build(BuildRequest{Files: testProject(), Targets: []string{"missing"}})
 	if got.Success || !findDiagnostic(got.Diagnostics, "TARGET_NOT_FOUND") {
 		t.Fatalf("missing build target did not fail: %#v", got)
 	}
@@ -410,7 +410,7 @@ func TestMissingBuildTargetIsDiagnosed(t *testing.T) {
 func TestVerifyResolvesPredicateDeclaredInSameSkill(t *testing.T) {
 	files := source("pred", "check", "procedures:\n  check:\n    start: v\n    nodes:\n      v:\n        verify: allowed\n")
 	files = append(files, File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("pred", "predicates:\n  allowed: {evaluator: {type: cel, expression: 'true'}}\n"))})
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if !got.Success {
 		t.Fatalf("valid Predicate reference failed: %#v", got.Diagnostics)
 	}
@@ -419,7 +419,7 @@ func TestVerifyResolvesPredicateDeclaredInSameSkill(t *testing.T) {
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "verify: allowed", "verify: absent", 1))
 		}
 	}
-	if d := Check(Request{Files: files}); !findDiagnostic(d, "PREDICATE_NOT_FOUND") {
+	if d := Check(BuildRequest{Files: files}); !findDiagnostic(d, "PREDICATE_NOT_FOUND") {
 		t.Fatalf("missing Predicate was not diagnosed: %#v", d)
 	}
 }
@@ -427,7 +427,7 @@ func TestVerifyResolvesPredicateDeclaredInSameSkill(t *testing.T) {
 func TestPredicateDefinitionsRequireStaticSourceShape(t *testing.T) {
 	files := source("pred", "check", "procedures:\n  check:\n    start: v\n    nodes:\n      v:\n        verify: allowed\n")
 	files = append(files, File{Path: "skills/pred/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("pred", "predicates:\n  allowed: {observations: []}\n"))})
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") {
 		t.Fatalf("incomplete Predicate definition accepted: %#v", got.Diagnostics)
 	}
@@ -452,7 +452,7 @@ func TestPredicateEvaluatorAndObservationContractsAreStrict(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			files := source("strict-predicate", "run", "procedures:\n  run:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n")
 			files = append(files, File{Path: "skills/strict-predicate/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("strict-predicate", tc.predicates))})
-			got := Build(Request{Files: files})
+			got := Build(BuildRequest{Files: files})
 			if got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") {
 				t.Fatalf("unsupported Predicate declaration was accepted: %#v", got.Diagnostics)
 			}
@@ -463,7 +463,7 @@ func TestPredicateEvaluatorAndObservationContractsAreStrict(t *testing.T) {
 func TestPredicateSetAllowsStandardEnvelopeFields(t *testing.T) {
 	files := source("predicate-envelope", "run", "procedures:\n  run:\n    start: check\n    nodes:\n      check: {verify: ready}\n")
 	files = append(files, File{Path: "skills/predicate-envelope/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("predicate-envelope", "predicates:\n  ready: {evaluator: {type: cel, expression: 'true'}}\n"))})
-	if got := Build(Request{Files: files}); !got.Success {
+	if got := Build(BuildRequest{Files: files}); !got.Success {
 		t.Fatalf("standard PredicateSet envelope was rejected: %#v", got.Diagnostics)
 	}
 }
@@ -486,7 +486,7 @@ func TestScriptPredicateEvaluatorUsesPackageRelativeReference(t *testing.T) {
 		File{Path: "lib/host/evidence.yaml", Bytes: []byte("type: object\n")},
 		File{Path: "lib/observations/context.yaml", Bytes: []byte("type: object\n")},
 	)
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if !got.Success {
 		t.Fatalf("package-relative Predicate Script should compile: %#v", got.Diagnostics)
 	}
@@ -504,7 +504,7 @@ func TestScriptPredicateEvaluatorUsesPackageRelativeReference(t *testing.T) {
 			files[i].Bytes = []byte(predicateSetSource("pred", "predicates:\n  allowed:\n    evaluator: {type: script, ref: skill.evaluate-allowed}\n"))
 		}
 	}
-	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") {
+	if got := Build(BuildRequest{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") {
 		t.Fatalf("non-path Predicate Script identity was accepted: %#v", got.Diagnostics)
 	}
 }
@@ -533,7 +533,7 @@ func TestContractPredicateGroupsAndEntriesAreValidated(t *testing.T) {
 					files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "  entryProcedure: run\n", "  entryProcedure: run\n  "+tc.field+"\n", 1))
 				}
 			}
-			got := Build(Request{Files: files})
+			got := Build(BuildRequest{Files: files})
 			if got.Success || (!findDiagnostic(got.Diagnostics, "PREDICATE_SOURCE_INCOMPLETE") && !findDiagnostic(got.Diagnostics, "CONTRACT_SPEC")) {
 				t.Fatalf("malformed contract Predicate declaration was accepted: %#v", got.Diagnostics)
 			}
@@ -548,7 +548,7 @@ func TestUnknownContractPredicateReferenceIsDiagnosed(t *testing.T) {
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "  entryProcedure: run\n", "  entryProcedure: run\n  preconditions: [{predicate: absent}]\n", 1))
 		}
 	}
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "PREDICATE_NOT_FOUND") {
 		t.Fatalf("unknown contract Predicate reference was accepted: %#v", got.Diagnostics)
 	}
@@ -556,7 +556,7 @@ func TestUnknownContractPredicateReferenceIsDiagnosed(t *testing.T) {
 
 func TestLocalProcedureInvocationCycleFails(t *testing.T) {
 	files := source("cycle", "a", "procedures:\n  a:\n    start: call-b\n    nodes:\n      call-b: {procedure: b}\n  b:\n    start: call-a\n    nodes:\n      call-a: {procedure: a}\n")
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_CYCLE") {
 		t.Fatalf("recursive Procedure graph accepted: %#v", got.Diagnostics)
 	}
@@ -564,7 +564,7 @@ func TestLocalProcedureInvocationCycleFails(t *testing.T) {
 
 func TestSkillDependencyCycleFails(t *testing.T) {
 	files := append(source("root", "start", "procedures:\n  start:\n    start: invoke-child\n    nodes:\n      invoke-child: {procedure: {skill: child, procedure: run}}\n"), source("child", "run", "procedures:\n  run:\n    start: invoke-root\n    nodes:\n      invoke-root: {procedure: {skill: root, procedure: start}}\n")...)
-	got := Build(Request{Files: files, Targets: []string{"root"}})
+	got := Build(BuildRequest{Files: files, Targets: []string{"root"}})
 	if got.Success || !findDiagnostic(got.Diagnostics, "DEPENDENCY_CYCLE") {
 		t.Fatalf("Skill dependency cycle accepted: %#v", got.Diagnostics)
 	}
@@ -575,11 +575,11 @@ func TestDuplicateOperationFails(t *testing.T) {
 	two := toolCatalog()
 	two.Path = "lib/tools/duplicate.yaml"
 	files = append(files, two)
-	d := Check(Request{Files: files})
+	d := Check(BuildRequest{Files: files})
 	if !findDiagnostic(d, "LIB_OPERATION_DUPLICATE") {
 		t.Fatalf("missing duplicate diagnostic: %#v", d)
 	}
-	inspected := InspectLibraries(Request{Files: files})
+	inspected := InspectLibraries(BuildRequest{Files: files})
 	for _, tool := range inspected.Tools {
 		if tool.OperationID == "demo.read" {
 			t.Fatal("ambiguous Operation was selected for inspection")
@@ -590,7 +590,7 @@ func TestDuplicateOperationFails(t *testing.T) {
 func TestNonNormalizedAndDuplicatePathsFail(t *testing.T) {
 	input := testProject()
 	input = append(input, File{Path: "skills/../escape.txt", Bytes: []byte("bad")}, input[0])
-	result := Build(Request{Files: input})
+	result := Build(BuildRequest{Files: input})
 	if !findDiagnostic(result.Diagnostics, "PROJECT_PATH_INVALID") || !findDiagnostic(result.Diagnostics, "PROJECT_DUPLICATE_FILE") || result.Success {
 		t.Fatalf("unsafe input accepted: %#v", result.Diagnostics)
 	}
@@ -603,7 +603,7 @@ func TestMissingEntryProcedureFails(t *testing.T) {
 			files[i].Bytes = []byte(strings.ReplaceAll(string(files[i].Bytes), "entryProcedure: start", "entryProcedure: missing"))
 		}
 	}
-	d := Check(Request{Files: files})
+	d := Check(BuildRequest{Files: files})
 	if !findDiagnostic(d, "ENTRY_NOT_FOUND") {
 		t.Fatalf("missing entry diagnostic: %#v", d)
 	}
@@ -624,7 +624,7 @@ func TestSkillMarkdownFrontmatterIsValidated(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			files := source("run", "p", "procedures:\n  p:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n")
 			files[0].Bytes = []byte(tc.md)
-			if got := Check(Request{Files: files}); !findDiagnostic(got, tc.code) {
+			if got := Check(BuildRequest{Files: files}); !findDiagnostic(got, tc.code) {
 				t.Fatalf("frontmatter error %s was not diagnosed: %#v", tc.code, got)
 			}
 		})
@@ -634,12 +634,12 @@ func TestSkillMarkdownFrontmatterIsValidated(t *testing.T) {
 func TestBuildRequestTargetsAreUniqueAndBounded(t *testing.T) {
 	files := source("request", "run", "procedures:\n  run:\n    start: done\n    nodes: {done: {terminal: SUCCEEDED}}\n")
 	for _, targets := range [][]string{{"request", "request"}, {strings.Repeat("x", 81)}, {strings.Repeat("界", 81)}} {
-		got := Build(Request{Files: files, Targets: targets})
+		got := Build(BuildRequest{Files: files, Targets: targets})
 		if got.Success || !findDiagnostic(got.Diagnostics, "REQUEST_INVALID") || len(got.OutputFiles) != 0 {
 			t.Fatalf("invalid target vector accepted or yielded partial output: %#v", got)
 		}
 	}
-	if got := Build(Request{}); got.Success || !findDiagnostic(got.Diagnostics, "REQUEST_INVALID") {
+	if got := Build(BuildRequest{}); got.Success || !findDiagnostic(got.Diagnostics, "REQUEST_INVALID") {
 		t.Fatalf("empty file vector accepted: %#v", got)
 	}
 }
@@ -660,7 +660,7 @@ func TestBuildResultFileLimitRejectsPartialPackage(t *testing.T) {
 	for i := 0; i < extra; i++ {
 		files = append(files, File{Path: filepath.ToSlash(filepath.Join("skills", "normalize", "references", "limit", strconv.Itoa(i)+".txt")), Bytes: []byte("fixture")})
 	}
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "OUTPUT_LIMIT") || len(got.OutputFiles) != 0 {
 		t.Fatalf("generated file beyond the v0.1 output limit was accepted or returned partially: success=%v outputs=%d diags=%#v", got.Success, len(got.OutputFiles), got.Diagnostics)
 	}
@@ -669,12 +669,12 @@ func TestBuildResultFileLimitRejectsPartialPackage(t *testing.T) {
 func TestToolCatalogRejectsUnknownFieldsAndRequiresMetadata(t *testing.T) {
 	catalog := toolCatalog()
 	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "metadata: {name: test, owner: tests}", "metadata: {name: test, owner: tests, version: latest}", 1))
-	got := InspectLibraries(Request{Files: []File{catalog}})
+	got := InspectLibraries(BuildRequest{Files: []File{catalog}})
 	if !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
 		t.Fatalf("unknown ToolCatalog metadata field was silently accepted: %#v", got)
 	}
 	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "metadata: {name: test, owner: tests, version: latest}\n", "", 1))
-	got = InspectLibraries(Request{Files: []File{catalog}})
+	got = InspectLibraries(BuildRequest{Files: []File{catalog}})
 	if !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
 		t.Fatalf("ToolCatalog without owner metadata was accepted: %#v", got)
 	}
@@ -683,12 +683,12 @@ func TestToolCatalogRejectsUnknownFieldsAndRequiresMetadata(t *testing.T) {
 func TestToolCatalogEnforcesWireStringLimits(t *testing.T) {
 	catalog := toolCatalog()
 	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "operation: demo.read", "operation: "+strings.Repeat("a", 161), 1))
-	if got := InspectLibraries(Request{Files: []File{catalog}}); !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") || len(got.Tools) != 0 {
+	if got := InspectLibraries(BuildRequest{Files: []File{catalog}}); !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") || len(got.Tools) != 0 {
 		t.Fatal("Operation ID beyond the contract limit was accepted")
 	}
 	catalog = toolCatalog()
 	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "operation: demo.read", "operation: demo.read\n    description: "+strings.Repeat("d", 8193), 1))
-	if got := InspectLibraries(Request{Files: []File{catalog}}); !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") || len(got.Tools) != 0 {
+	if got := InspectLibraries(BuildRequest{Files: []File{catalog}}); !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") || len(got.Tools) != 0 {
 		t.Fatal("Tool description beyond the contract limit was accepted")
 	}
 }
@@ -712,7 +712,7 @@ func TestReconcileRequiresEarlierToolNodeWithDeclaredSchema(t *testing.T) {
       done: {terminal: done}
 `)
 	files = append(files, toolCatalog())
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
 		t.Fatalf("reconcile without Tool reconcileOutputSchema should fail: %#v", got.Diagnostics)
 	}
@@ -722,7 +722,7 @@ func TestReconcileRequiresEarlierToolNodeWithDeclaredSchema(t *testing.T) {
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "outputSchema: {type: object}", "outputSchema: {type: object}\n    reconcileOutputSchema: {type: object, required: [state], properties: {state: {type: string, minLength: 1}}}", 1))
 		}
 	}
-	got = Build(Request{Files: files})
+	got = Build(BuildRequest{Files: files})
 	if !got.Success {
 		t.Fatalf("valid earlier reconcile target rejected: %#v", got.Diagnostics)
 	}
@@ -739,7 +739,7 @@ func TestReconcileCannotReferenceLaterNode(t *testing.T) {
         call: demo.read
 `)
 	files = append(files, toolCatalog())
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "NODE_TARGET_UNKNOWN") {
 		t.Fatalf("reconcile target declared later should fail: %#v", got.Diagnostics)
 	}
@@ -784,32 +784,32 @@ spec:
 `)
 	requestSchema := File{Path: "skills/child/schemas/request.yaml", Bytes: []byte("type: object\nproperties:\n  name: {type: string}\n")}
 	files := append(append(append(root, child...), catalog), requestSchema)
-	if got := Build(Request{Files: files}); !got.Success {
+	if got := Build(BuildRequest{Files: files}); !got.Success {
 		t.Fatalf("valid cross-Skill Procedure input rejected: %#v", got.Diagnostics)
 	}
 
 	missing := strings.Replace(string(root[2].Bytes), "        with:\n          value: {from: lookup.output.result}\n", "", 1)
 	broken := append([]File(nil), files...)
 	broken[2].Bytes = []byte(missing)
-	if got := Build(Request{Files: broken}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNRESOLVED") {
+	if got := Build(BuildRequest{Files: broken}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNRESOLVED") {
 		t.Fatalf("missing required Procedure input was not diagnosed: %#v", got.Diagnostics)
 	}
 
 	extra := append([]File(nil), files...)
 	extra[2].Bytes = []byte(strings.Replace(string(extra[2].Bytes), "          value: {from: lookup.output.result}\n", "          value: {from: lookup.output.result}\n          unexpected: {value: extra}\n", 1))
-	if got := Build(Request{Files: extra}); got.Success || !findDiagnostic(got.Diagnostics, "SOURCE_FIELD_UNKNOWN") {
+	if got := Build(BuildRequest{Files: extra}); got.Success || !findDiagnostic(got.Diagnostics, "SOURCE_FIELD_UNKNOWN") {
 		t.Fatalf("unknown Procedure input was not diagnosed: %#v", got.Diagnostics)
 	}
 
 	wrong := append([]File(nil), files...)
 	wrong[2].Bytes = []byte(strings.Replace(string(wrong[2].Bytes), "lookup.output.result", "lookup.output.missing", 1))
-	if got := Build(Request{Files: wrong}); got.Success || !findDiagnostic(got.Diagnostics, "SOURCE_FIELD_UNKNOWN") {
+	if got := Build(BuildRequest{Files: wrong}); got.Success || !findDiagnostic(got.Diagnostics, "SOURCE_FIELD_UNKNOWN") {
 		t.Fatalf("unknown Procedure input producer field was not diagnosed: %#v", got.Diagnostics)
 	}
 
 	typeMismatch := append([]File(nil), files...)
 	typeMismatch[2].Bytes = []byte(strings.Replace(string(typeMismatch[2].Bytes), "lookup.output.result", "lookup.output", 1))
-	if got := Build(Request{Files: typeMismatch}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
+	if got := Build(BuildRequest{Files: typeMismatch}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
 		t.Fatalf("Procedure input type mismatch was not diagnosed: %#v", got.Diagnostics)
 	}
 
@@ -819,7 +819,7 @@ spec:
 			untyped[i].Bytes = []byte(strings.Replace(string(untyped[i].Bytes), "value: {type: string, from: context.request.name}", "value: {from: context.request.name}", 1))
 		}
 	}
-	if got := Build(Request{Files: untyped}); !got.Success {
+	if got := Build(BuildRequest{Files: untyped}); !got.Success {
 		t.Fatalf("Procedure input without optional type assertion should use its Producer Schema: %#v", got.Diagnostics)
 	}
 
@@ -829,7 +829,7 @@ spec:
 			constrained[i].Bytes = []byte(strings.Replace(string(constrained[i].Bytes), "name: {type: string}", "name: {type: string, minLength: 5}", 1))
 		}
 	}
-	if got := Build(Request{Files: constrained}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
+	if got := Build(BuildRequest{Files: constrained}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
 		t.Fatalf("cross-Skill Procedure call must honor the callee's full Producer Schema: %#v", got.Diagnostics)
 	}
 }
@@ -880,7 +880,7 @@ spec:
 `)}
 	request := File{Path: "skills/child/schemas/request.yaml", Bytes: []byte("type: object\nproperties:\n  name: {type: string}\n")}
 	files := append(append(append(root, child...), catalog), request)
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_SOURCE_UNAVAILABLE") {
 		t.Fatalf("Procedure call accepted a Producer from only one incoming branch: %#v", got.Diagnostics)
 	}
@@ -906,7 +906,7 @@ func TestProcedureInputTypeAssertionIsOptionalButProducerSchemaIsRequired(t *tes
 		File{Path: "skills/optional-input/schemas/request.yaml", Bytes: []byte("type: object\nproperties:\n  name: {type: string, minLength: 1}\n")},
 		toolCatalog(),
 	)
-	if got := Build(Request{Files: files}); !got.Success {
+	if got := Build(BuildRequest{Files: files}); !got.Success {
 		t.Fatalf("Procedure input without type must resolve its real Producer Schema: %#v", got.Diagnostics)
 	}
 	for i := range files {
@@ -914,7 +914,7 @@ func TestProcedureInputTypeAssertionIsOptionalButProducerSchemaIsRequired(t *tes
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "from: context.request.name", "from: context.request.missing", 1))
 		}
 	}
-	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "SOURCE_FIELD_UNKNOWN") {
+	if got := Build(BuildRequest{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "SOURCE_FIELD_UNKNOWN") {
 		t.Fatalf("optional type must not replace the authoritative Producer Schema: %#v", got.Diagnostics)
 	}
 }
@@ -934,7 +934,7 @@ func TestProcedureNodeOutputWithoutDeclaredSchemaIsUnresolved(t *testing.T) {
       done: {terminal: SUCCEEDED}
 `)
 	files = append(files, toolCatalog())
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNRESOLVED") {
 		t.Fatalf("Procedure output without an authoritative Schema was accepted: %#v", got.Diagnostics)
 	}
@@ -1031,7 +1031,7 @@ func TestNullableSchemaBindingsRespectEveryAllowedType(t *testing.T) {
 	catalog := toolCatalog()
 	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "ref: *ref", `ref: {type: [string, "null"]}`, 1))
 	files = append(files, catalog)
-	if got := Build(Request{Files: files}); !got.Success {
+	if got := Build(BuildRequest{Files: files}); !got.Success {
 		t.Fatalf("nullable literal binding should compile: %#v", got.Diagnostics)
 	}
 	for i := range files {
@@ -1039,7 +1039,7 @@ func TestNullableSchemaBindingsRespectEveryAllowedType(t *testing.T) {
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "value: null", "value: 3", 1))
 		}
 	}
-	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
+	if got := Build(BuildRequest{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
 		t.Fatalf("nonnullable literal binding should fail against nullable string Schema: %#v", got.Diagnostics)
 	}
 }
@@ -1087,7 +1087,7 @@ spec:
           value: {type: [string, "null"]}
 `
 	files = append(files, File{Path: "lib/tools/nullable.yaml", Bytes: []byte(catalog)})
-	if got := Build(Request{Files: files}); !got.Success {
+	if got := Build(BuildRequest{Files: files}); !got.Success {
 		t.Fatalf("nullable Producer output should bind to nullable Tool input: %#v", got.Diagnostics)
 	}
 	narrowConsumer := strings.Replace(catalog, `operation: demo.write
@@ -1107,7 +1107,7 @@ spec:
 		t.Fatal("test mutation did not narrow the consumer Schema")
 	}
 	files[len(files)-1].Bytes = []byte(narrowConsumer)
-	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
+	if got := Build(BuildRequest{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
 		t.Fatalf("nullable Producer output must not bind to a nonnullable Tool input: %#v", got.Diagnostics)
 	}
 }
@@ -1355,7 +1355,7 @@ properties:
   name: {type: string}
 `)}
 	files := append(append(root, child...), requestSchema)
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "SOURCE_FIELD_UNKNOWN") {
 		t.Fatalf("unused Procedure input with an unknown producer field was accepted: %#v", got.Diagnostics)
 	}
@@ -1366,7 +1366,7 @@ properties:
 			wrongType[i].Bytes = []byte(strings.Replace(string(wrongType[i].Bytes), "type: string, from: context.request.missing", "type: integer, from: context.request.name", 1))
 		}
 	}
-	got = Build(Request{Files: wrongType})
+	got = Build(BuildRequest{Files: wrongType})
 	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
 		t.Fatalf("unused Procedure input with a mismatched declared type was accepted: %#v", got.Diagnostics)
 	}
@@ -1385,7 +1385,7 @@ func TestProcedureInputSourceCyclesFailWithoutRecursing(t *testing.T) {
         with: {ref: {from: input.first}}
 `)
 	files = append(files, toolCatalog())
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNRESOLVED") {
 		t.Fatalf("cyclic Procedure input source should fail with a link diagnostic: %#v", got.Diagnostics)
 	}
@@ -1403,7 +1403,7 @@ func TestExplicitSelfSkillProcedureReferenceIsLinked(t *testing.T) {
     nodes:
       done: {terminal: SUCCEEDED}
 `)
-	if got := Build(Request{Files: files}); !got.Success {
+	if got := Build(BuildRequest{Files: files}); !got.Success {
 		t.Fatalf("valid explicit self-Skill Procedure reference rejected: %#v", got.Diagnostics)
 	}
 
@@ -1412,7 +1412,7 @@ func TestExplicitSelfSkillProcedureReferenceIsLinked(t *testing.T) {
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "procedure: helper", "procedure: missing", 1))
 		}
 	}
-	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_NOT_FOUND") {
+	if got := Build(BuildRequest{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_NOT_FOUND") {
 		t.Fatalf("unknown explicit self-Skill Procedure was not diagnosed: %#v", got.Diagnostics)
 	}
 }
@@ -1426,7 +1426,7 @@ func TestMalformedActionShapeFailsClosed(t *testing.T) {
         call: {operation: demo.read}
 `)
 	files = append(files, toolCatalog())
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
 		t.Fatalf("mapping-valued call action should be rejected: %#v", got.Diagnostics)
 	}
@@ -1446,7 +1446,7 @@ func TestMalformedProcedureContainerShapesAreDiagnosed(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			files := source("shape", "run", tc.procedure)
-			got := Build(Request{Files: files})
+			got := Build(BuildRequest{Files: files})
 			if got.Success || !findDiagnostic(got.Diagnostics, tc.code) {
 				t.Fatalf("malformed Procedure shape was accepted or misdiagnosed: %#v", got.Diagnostics)
 			}
@@ -1467,7 +1467,7 @@ func TestNestedVerifyStepReportsMissingRequestSchemaForBindings(t *testing.T) {
               with: {value: {from: context.request.value}}
         terminal: SUCCEEDED
 `)
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "EXTERNAL_SCHEMA_MISSING") {
 		t.Fatalf("verify binding without a request Schema was not reported: %#v", got.Diagnostics)
 	}
@@ -1487,7 +1487,7 @@ func TestNestedStepRejectsEmptyExtraActionField(t *testing.T) {
         terminal: SUCCEEDED
 `)
 	files = append(files, toolCatalog())
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
 		t.Fatalf("nested step with an empty extra action field was accepted: %#v", got.Diagnostics)
 	}
@@ -1509,7 +1509,7 @@ func TestProcedureIdentifiersAndActionsRequireStrings(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			files := source("string-identifiers", "run", tc.procedure)
-			got := Build(Request{Files: files})
+			got := Build(BuildRequest{Files: files})
 			if got.Success || !findDiagnostic(got.Diagnostics, "PROCEDURE_UNSUPPORTED") {
 				t.Fatalf("non-string or incomplete Procedure syntax was accepted: %#v", got.Diagnostics)
 			}
@@ -1528,7 +1528,7 @@ func TestBindingFieldNamesMustBeStrings(t *testing.T) {
           7: {value: sample}
 `)
 	files = append(files, toolCatalog())
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
 		t.Fatalf("non-string binding field name was accepted: %#v", got.Diagnostics)
 	}
@@ -1547,7 +1547,7 @@ func TestBindingSourcesMustBeStrings(t *testing.T) {
           ref: {from: `+value+`}
 `)
 			files = append(files, toolCatalog())
-			got := Build(Request{Files: files})
+			got := Build(BuildRequest{Files: files})
 			if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
 				t.Fatalf("non-string binding source %s was accepted: %#v", value, got.Diagnostics)
 			}
@@ -1599,7 +1599,7 @@ func TestUnsupportedBindingSchemasAreNotReportedAsTypeMismatches(t *testing.T) {
 			if !changed {
 				t.Fatal("test mutation did not apply")
 			}
-			got := Build(Request{Files: files})
+			got := Build(BuildRequest{Files: files})
 			if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
 				t.Fatalf("unsupported binding Schema was not reported explicitly: %#v", got.Diagnostics)
 			}
@@ -1623,7 +1623,7 @@ func TestScriptInputProjectionUsesExactProducerWithoutConsumerSchema(t *testing.
 	if !changed {
 		t.Fatal("test mutation did not apply")
 	}
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if !got.Success {
 		t.Fatalf("a Script input projection should carry the exact Producer Schema without inventing a consumer constraint: %#v", got.Diagnostics)
 	}
@@ -1679,7 +1679,7 @@ spec:
     inputSchema: {type: object, required: [ref], properties: {ref: {type: string}}}
     outputSchema: {type: object, properties: {result: {type: integer}}}
 `)})
-	if got := Build(Request{Files: files}); !got.Success {
+	if got := Build(BuildRequest{Files: files}); !got.Success {
 		t.Fatalf("pre/postcondition outputs leaked across scopes: %#v", got.Diagnostics)
 	}
 }
@@ -1699,7 +1699,7 @@ func TestScriptBindingsRejectNonJSONValuesAndUnknownBindingFields(t *testing.T) 
 `)},
 		{Path: "skills/s/scripts/out.py", Bytes: []byte("from typing import TypedDict\nclass Output(TypedDict):\n    value: str\ndef main(input: dict) -> Output:\n    return {}\n")},
 	}
-	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
+	if got := Build(BuildRequest{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
 		t.Fatalf("YAML timestamp accepted as JSON binding literal: %#v", got.Diagnostics)
 	}
 	for i := range files {
@@ -1707,7 +1707,7 @@ func TestScriptBindingsRejectNonJSONValuesAndUnknownBindingFields(t *testing.T) 
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "date: {value: 2026-11-11}", "date: {value: sample, mode: dynamic}", 1))
 		}
 	}
-	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
+	if got := Build(BuildRequest{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
 		t.Fatalf("unknown binding descriptor field was ignored: %#v", got.Diagnostics)
 	}
 }
@@ -1719,7 +1719,7 @@ func TestInvalidYAMLFails(t *testing.T) {
 			files[i].Bytes = []byte("kind: [")
 		}
 	}
-	d := Check(Request{Files: files})
+	d := Check(BuildRequest{Files: files})
 	if !findDiagnostic(d, "YAML_PARSE") {
 		t.Fatalf("missing YAML diagnostic: %#v", d)
 	}
@@ -1727,21 +1727,21 @@ func TestInvalidYAMLFails(t *testing.T) {
 
 func TestDuplicateYAMLKeyFails(t *testing.T) {
 	files := []File{{Path: "lib/tools/bad.yaml", Bytes: []byte("kind: ToolCatalog\nkind: ToolCatalog\nspec: {contracts: [{operation: demo.read, inputSchema: {type: object}, effect: READ}]}\n")}}
-	if got := InspectLibraries(Request{Files: files}); !findDiagnostic(got.Diagnostics, "YAML_DUPLICATE_KEY") {
+	if got := InspectLibraries(BuildRequest{Files: files}); !findDiagnostic(got.Diagnostics, "YAML_DUPLICATE_KEY") {
 		t.Fatalf("duplicate YAML key accepted: %#v", got.Diagnostics)
 	}
 }
 
 func TestRecursiveYAMLAliasFailsWithoutPanic(t *testing.T) {
 	files := []File{{Path: "lib/tools/cycle.yaml", Bytes: []byte("kind: ToolCatalog\nspec: {contracts: []}\nx: &x [*x]\n")}}
-	got := InspectLibraries(Request{Files: files})
+	got := InspectLibraries(BuildRequest{Files: files})
 	if !findDiagnostic(got.Diagnostics, "YAML_LIMIT") {
 		t.Fatalf("recursive YAML alias was not bounded: %#v", got.Diagnostics)
 	}
 }
 
 func TestDeterminismAndJSONWire(t *testing.T) {
-	req := Request{Files: testProject()}
+	req := BuildRequest{Files: testProject()}
 	one, two := Build(req), Build(req)
 	if !reflect.DeepEqual(one, two) {
 		t.Fatalf("nondeterministic result")
@@ -1750,7 +1750,7 @@ func TestDeterminismAndJSONWire(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var parsed Result
+	var parsed BuildResult
 	if err := json.Unmarshal(b, &parsed); err != nil {
 		t.Fatal(err)
 	}
@@ -1765,7 +1765,7 @@ func TestFileInputOrderDoesNotChangeDiagnosticsOrOutputs(t *testing.T) {
 	for left, right := 0, len(reversed)-1; left < right; left, right = left+1, right-1 {
 		reversed[left], reversed[right] = reversed[right], reversed[left]
 	}
-	one, two := Build(Request{Files: files}), Build(Request{Files: reversed})
+	one, two := Build(BuildRequest{Files: files}), Build(BuildRequest{Files: reversed})
 	if !reflect.DeepEqual(one, two) {
 		t.Fatalf("file ordering changed compiler result:\n%#v\n%#v", one, two)
 	}
@@ -1779,13 +1779,13 @@ func TestFileInputOrderDoesNotChangeDiagnosticsOrOutputs(t *testing.T) {
 	for left, right := 0, len(badReverse)-1; left < right; left, right = left+1, right-1 {
 		badReverse[left], badReverse[right] = badReverse[right], badReverse[left]
 	}
-	if !reflect.DeepEqual(Check(Request{Files: bad}), Check(Request{Files: badReverse})) {
+	if !reflect.DeepEqual(Check(BuildRequest{Files: bad}), Check(BuildRequest{Files: badReverse})) {
 		t.Fatal("file ordering changed diagnostics")
 	}
 }
 
 func TestReadonlyLibraryInspectionHasNoSourceLifecycleState(t *testing.T) {
-	got := InspectLibraries(Request{Files: []File{toolCatalog()}})
+	got := InspectLibraries(BuildRequest{Files: []File{toolCatalog()}})
 	if len(got.Diagnostics) != 0 || len(got.Tools) != 1 || got.Tools[0].DeclaredEffect != "READ" {
 		t.Fatalf("unexpected library inspection: %#v", got)
 	}
@@ -1808,7 +1808,7 @@ func TestV01RejectsLegacyLocalToolGrantField(t *testing.T) {
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "capabilities: [demo.read]", "capabilities: [demo.read]\n    localTools: [legacy.script]", 1))
 		}
 	}
-	if got := Build(Request{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "CONTRACT_SPEC") {
+	if got := Build(BuildRequest{Files: files}); got.Success || !findDiagnostic(got.Diagnostics, "CONTRACT_SPEC") {
 		t.Fatalf("v0 localTools compatibility field was accepted: %#v", got.Diagnostics)
 	}
 }
@@ -1820,7 +1820,7 @@ func TestGeneratedStrictScriptOutput(t *testing.T) {
 		{Path: "skills/s/assurance/procedure.yaml", Bytes: []byte("procedures:\n  p:\n    start: n\n    nodes:\n      n:\n        script: scripts/out.py\n        with: {}\n")},
 		{Path: "skills/s/scripts/out.py", Bytes: []byte("from typing import TypedDict, Literal, NotRequired, Annotated\nclass Child(TypedDict):\n    ok: Literal[True]\nclass Output(TypedDict):\n    label: Annotated[str, {\"minLength\": 1}]\n    child: Child\n    extra: NotRequired[int]\ndef main(input: dict) -> Output:\n    return {}\n")},
 	}
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if !got.Success {
 		t.Fatalf("build failed: %#v", got.Diagnostics)
 	}
@@ -1843,7 +1843,7 @@ func TestGeneratedOutputPathRejectsFileDirectoryCollisions(t *testing.T) {
 		{Path: "skills/s/scripts/out.py", Bytes: []byte("from typing import TypedDict\nclass Output(TypedDict):\n    value: str\ndef main(input: dict) -> Output:\n    return {}\n")},
 		{Path: "skills/s/schemas/generated/out.output.schema.json/child.txt", Bytes: []byte("collision")},
 	}
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if got.Success || !findDiagnostic(got.Diagnostics, "PROJECT_DUPLICATE_FILE") {
 		t.Fatalf("generated file/directory collision was not rejected: %#v", got.Diagnostics)
 	}
@@ -2038,7 +2038,7 @@ func TestCurrentProcedureVerifyStepsMayBeUnnamedAndAcceptBindings(t *testing.T) 
 			files[i].Bytes = []byte(src)
 		}
 	}
-	if got := Check(Request{Files: files}); !findDiagnostic(got, "EXTERNAL_SCHEMA_MISSING") || findDiagnostic(got, "PROCEDURE_UNSUPPORTED") {
+	if got := Check(BuildRequest{Files: files}); !findDiagnostic(got, "EXTERNAL_SCHEMA_MISSING") || findDiagnostic(got, "PROCEDURE_UNSUPPORTED") {
 		t.Fatalf("current unnamed verify step should parse, while its missing consumer Schema stays explicit: %#v", got)
 	}
 	for i := range files {
@@ -2046,14 +2046,14 @@ func TestCurrentProcedureVerifyStepsMayBeUnnamedAndAcceptBindings(t *testing.T) 
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "read.output.value", "read.output.unknown", 1))
 		}
 	}
-	if got := Check(Request{Files: files}); !findDiagnostic(got, "SOURCE_FIELD_UNKNOWN") {
+	if got := Check(BuildRequest{Files: files}); !findDiagnostic(got, "SOURCE_FIELD_UNKNOWN") {
 		t.Fatalf("verify binding must resolve against its producer schema: %#v", got)
 	}
 }
 
 func TestPinnedOfficialToolCatalogInspection(t *testing.T) {
 	files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "ca-skills-v0.2"))
-	got := InspectLibraries(Request{Files: files})
+	got := InspectLibraries(BuildRequest{Files: files})
 	if len(got.Diagnostics) != 0 {
 		t.Fatalf("catalog inspection diagnostics: %#v", got.Diagnostics)
 	}
@@ -2093,7 +2093,7 @@ func TestCurrentOfficialCaSkillsSnapshotParsesAndKeepsOwnerGaps(t *testing.T) {
 		t.Fatalf("expected checksums for 61 official Skill files and one ToolCatalog, got %d", verified)
 	}
 	files := loadProjectFilesForTest(t, root)
-	pdu := Build(Request{Files: files, Targets: []string{"establish-pdu-session"}})
+	pdu := Build(BuildRequest{Files: files, Targets: []string{"establish-pdu-session"}})
 	if pdu.Success || !findDiagnostic(pdu.Diagnostics, "EXTERNAL_SCHEMA_MISSING") {
 		t.Fatalf("official PDU source must retain explicit Owner/Tool contract gaps: %#v", pdu.Diagnostics)
 	}
@@ -2102,7 +2102,7 @@ func TestCurrentOfficialCaSkillsSnapshotParsesAndKeepsOwnerGaps(t *testing.T) {
 			t.Errorf("official PDU source form was not parsed according to Skill Language v0.2 (%s): %#v", unsupported, pdu.Diagnostics)
 		}
 	}
-	mas := Build(Request{Files: files, Targets: []string{"establish-pdu-session-mas"}})
+	mas := Build(BuildRequest{Files: files, Targets: []string{"establish-pdu-session-mas"}})
 	if mas.Success || !findDiagnostic(mas.Diagnostics, "LIB_OPERATION_UNKNOWN") || !findDiagnostic(mas.Diagnostics, "EXTERNAL_SCHEMA_MISSING") {
 		t.Fatalf("MAS source must retain missing approved Tool/Owner contract diagnostics: %#v", mas.Diagnostics)
 	}
@@ -2120,7 +2120,7 @@ func TestBindingRejectsUnknownProducerField(t *testing.T) {
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "with: {ref: {value: sample}}", "with: {ref: {from: lookup.output.missing}}", 1))
 		}
 	}
-	if got := Check(Request{Files: files}); !findDiagnostic(got, "SOURCE_FIELD_UNKNOWN") {
+	if got := Check(BuildRequest{Files: files}); !findDiagnostic(got, "SOURCE_FIELD_UNKNOWN") {
 		t.Fatalf("unknown producer field was accepted: %#v", got)
 	}
 }
@@ -2132,7 +2132,7 @@ func TestBindingRequiresImportedHostSchema(t *testing.T) {
 			files[i].Bytes = []byte(strings.Replace(string(files[i].Bytes), "with: {ref: {value: sample}}", "with: {ref: {from: context.facts.unowned}}", 1))
 		}
 	}
-	if got := Check(Request{Files: files}); !findDiagnostic(got, "EXTERNAL_SCHEMA_MISSING") {
+	if got := Check(BuildRequest{Files: files}); !findDiagnostic(got, "EXTERNAL_SCHEMA_MISSING") {
 		t.Fatalf("missing Host contract was accepted: %#v", got)
 	}
 }
@@ -2147,7 +2147,7 @@ func TestMinimalFixtureNativeOutputOrder(t *testing.T) {
 		}
 		files = append(files, File{Path: p, Bytes: b})
 	}
-	got := Build(Request{Files: files})
+	got := Build(BuildRequest{Files: files})
 	if !got.Success {
 		t.Fatalf("minimal project build failed: %#v", got.Diagnostics)
 	}

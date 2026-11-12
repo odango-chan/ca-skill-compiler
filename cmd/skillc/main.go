@@ -61,13 +61,13 @@ func run(args []string) int {
 		fmt.Fprintln(os.Stderr, "input:", err)
 		return 1
 	}
-	req := compiler.Request{Files: files}
+	req := compiler.BuildRequest{Files: files}
 	if target != "" {
 		req.Targets = []string{target}
 	}
-	var result compiler.Result
+	var result compiler.BuildResult
 	if command == "check" {
-		result = compiler.Result{Diagnostics: compiler.Check(req)}
+		result = compiler.BuildResult{Diagnostics: compiler.Check(req)}
 		result.Success = true
 		for _, d := range result.Diagnostics {
 			if d.Severity == "error" {

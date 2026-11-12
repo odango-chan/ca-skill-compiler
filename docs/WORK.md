@@ -73,7 +73,7 @@ Updated: 2026-11-12. Implementation branch: `feat/compiler-v01-implementation-20
 
 | Area | Status | Evidence / remaining work |
 |---|---|---|
-| Build API and input validation | PARTIAL | Shared Go Core accepts explicit `{files, targets?}`, applies request/output limits, validates names and paths, and returns no partial package on errors. Re-run wire-schema and Native/WASM checks after current changes. |
+| Build API and input validation | PARTIAL | Shared Go Core exposes breaking `BuildRequest`/`BuildResult` Go types for explicit `{files, targets?}`, applies request/output limits, validates names and paths, and returns no partial package on errors. The old generic `Request`/`Result` names are removed without aliases. Re-run wire-schema and Native/WASM checks after current changes. |
 | Language parser and AST | PARTIAL | Official ca-skills v0.2 `SKILL.md`, SkillContract, Procedure, PredicateSet, Case and ToolCatalog forms are parsed; typed AST drives Procedure output and dependency linking. Outcome domains, full nested constraints, and uncommon source forms remain. |
 | Library and Schema linking | PARTIAL | Strict ToolCatalog envelope, unique Operation IDs, local refs, aliases, and exact string limits are supported. There is no Compiler manifest or source lifecycle metadata. Full Draft 2020-12 keyword coverage remains. |
 | Binding and dataflow | PARTIAL | Request/Host/Tool/Script/Procedure sources and Predicate `with` subject projection are linked. Node outputs require dominance across explicit route edges; named phase-step outputs respect execution order. Full nested Procedure input alias and all schema compatibility coverage remain. |
