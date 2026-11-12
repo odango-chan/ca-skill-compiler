@@ -48,7 +48,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 240,
-          "pattern": "^skills/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+(?:/(?!\\\\.{1,2}(?:/|$))[^/\\\\\\\\:]+)*$",
+          "pattern": "^skills/(?!\\.{1,2}(?:/|$))[^/\\\\:]+(?:/(?!\\.{1,2}(?:/|$))[^/\\\\:]+)*$",
           "description": "Normalized authored Skill or generated Skill artifact path. Imported dependency files are not copied into outputFiles."
         },
         "bytes": {
