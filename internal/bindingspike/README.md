@@ -105,3 +105,10 @@ See [Semantic Binding Resolver — Compiler Integration Design](../../docs/seman
 The official ca-skills main SkillContracts already declare the logical Owner paths (`lib/host/subject.schema.yaml`, `lib/host/facts.schema.yaml`, `lib/observations/context-observations.schema.yaml`; conventional 5GC also declares `lib/host/evidence.schema.yaml`). But those externally owned files are not present in the current ca-skills shared `lib/` snapshot. The older Compiler PR #5 demo copies are also stale and omit the `context.schemas` declarations. See `ca-skills/docs/schema-ownership.md`.
 
 This means a full compiler-pipeline auto-binding test must wait for the actual Host/Observation owners to supply the schemas (or use explicitly labeled test-only schemas). The current source-fixture comparison does not establish that missing external contract. Never fabricate these files inside a Skill to make compilation pass.
+
+
+## Candidate-only compiler integration prototype
+
+The branch now also includes a separate compiler-package prototype in `internal/compiler/semantic_bindings.go` and a narrow call-site hook in `internal/compiler/bindings.go`. It reads IDs from already resolved Procedure-input Producer schemas and Operation-input Consumer properties, proposes only missing required inputs, and passes them into the existing `checkBindings`. The existing schema/CFG checker is the sole proof authority. Compiler-package tests are in `internal/compiler/semantic_bindings_test.go`.
+
+This code has been committed but **not executed**. The package in this directory remains an isolated feasibility model and is not the production algorithm to maintain independently; if the compiler-package path is accepted, the standalone package should be retired after test coverage is ported.
