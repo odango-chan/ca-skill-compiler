@@ -1,6 +1,6 @@
 # Schema Engine Migration v0.1
 
-**Status:** Proposed implementation plan; design review required. No production migration is authorized by this document.
+**Status:** PAUSED — sequencing decision frozen; production migration waits for ca-skills vNext language/contract freeze. This document is a provisional technical plan, not an implementation authorization.
 **Date:** 2026-11-12
 **Repository:** odango-chan/ca-skill-compiler
 **Production baseline:** PR #5 checkpoint 49753ce345f8cf99654566995dd3b5aff070f844
@@ -377,3 +377,21 @@ Migration is complete only when:
 Stop after the migration PR(s) are ready for review. Do not merge or change main without explicit authorization.
 
 **Design decision:** CONDITIONAL ADOPT San v6.0.3 with the tested regexp2 configuration for the trusted Demo input scope. Issue #9 is deferred hardening, not a v0.1 migration blocker. No production implementation has been authorized by this document.
+
+
+## 13. Sequencing freeze — language first, Schema Engine second
+
+The implementation order is now frozen by [Schema Engine Migration Sequencing Decision v0.1](schema-engine-migration-sequencing-v0.1.md).
+
+**Do not start WP0–WP6 production migration yet.** The ca-skills vNext proposal is still in design review and explicitly says its syntax is not frozen. Its open decisions change Compiler inputs and semantics, including Context Projection, Predicate READ scheduling, exceptional binding placement, Semantic Field Identity, Capability/Operation membership, Evidence, and dependency identity.
+
+Before this plan can become the production implementation contract:
+
+1. Freeze the canonical ca-skills language and semantic contracts.
+2. Complete owner-published schemas and source-backed READ/acquisition contracts for the executable conventional 5GC Skill. MAS remains design-only.
+3. Align the Compiler BuildRequest with Skill Studio's Plugin-managed immutable dependency snapshots; do not encode physical lib/ paths or introduce a second dependency manifest.
+4. Re-review this migration design and resolve the outstanding review findings: occurrence-aware YAML Anchor/Alias source mapping, the explicit Compiler Schema profile, reference ownership compatibility, ToolCatalog maturity/MAS NOT_READY, and the final Binding Plan / BuildRequest boundary.
+
+PR #8 remains an isolated technical Spike with a CONDITIONAL ADOPT candidate decision. It is evidence for a later migration, not a production dependency. PR #7 remains an unverified Binding Resolver experiment and must not be merged into production before its semantic identity and owner contracts are frozen.
+
+Until the gates above pass, current v0.2 Skill source and Compiler/Runtime behavior remain authoritative. Do not change production code, go.mod/go.sum, bindings.go, Schema validation, reference resolution, or current Skill source as part of this paused migration.
