@@ -1,3 +1,5 @@
+> **Historical compatibility design.** This document describes the current v0 `{files,targets}` + `skills/**` / `lib/**` implementation. It is superseded as the target architecture by [Compiler v0.1 Contract](compiler-contract-v0.1.md): Skill source files and Studio-resolved immutable dependency snapshots are separate BuildRequest inputs; no physical or global `lib/**` namespace is required. Keep this document only to explain the existing v0 behavior until the breaking v0.1 migration is implemented.
+
 # Skill Compiler · Product and Architecture Brief
 
 **Status:** Product boundary accepted; v0 implementation remains partial. The normative v0.1 contract is [compiler-contract-v0.1.md](compiler-contract-v0.1.md). The normative Skill language is owned by [ca-skills](https://github.com/odango-chan/ca-skills).
