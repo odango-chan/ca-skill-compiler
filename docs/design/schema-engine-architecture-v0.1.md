@@ -635,3 +635,53 @@ After the audit:
 - Once Chromium, measurement, and report are complete, create the isolated Spike PR and stop for review.
 
 **Decision:** Santhosh v6.0.3 is the only admitted candidate for the remaining spike under the current Go 1.23 baseline. This is not yet production adoption.
+
+
+## 17. Final Spike decision and migration plan
+
+This section supersedes earlier candidate-selection and spike-planning statements in §§5, 7, 10, and 14–16 where they conflict with the completed PR #8 evidence.
+
+### 17.1 Final candidate decision
+
+PR #8 (`3558a2a2c965a6c063fea0d9fdcea3ae0c887b1f`) completed the isolated Spike and is Ready for Review, not merged.
+
+**Decision: CONDITIONAL ADOPT** `santhosh-tekuri/jsonschema/v6@v6.0.3` with the tested `regexp2@v1.11.0` ECMAScript/Unicode configuration.
+
+Evidence:
+- 25/25 shared semantic vectors and 8/8 closed-reference security vectors.
+- Native and Node WASM pass.
+- Three actual Chromium Worker runs pass the same semantic and reference vectors.
+- Pinned Draft 2020-12 Required suite: 1,319 PASS, 0 FAIL, 475 SKIP.
+- Optional suite limitations and exact failures remain recorded in the Spike report.
+- Source mapping, stable Compiler diagnostics, actual production artifact footprint, and final production dependency review remain migration work.
+
+Format assertion remains disabled; Draft 2020-12 Format is treated as annotation under the current contract. No claim of full ECMA-262 or all optional Format-Assertion conformance is made.
+
+### 17.2 Demo trust boundary and deferred regex hardening
+
+For the current Demo, Schema files are trusted, project-controlled assets. Regex timeout/ReDoS hardening is not a v0.1 migration blocker. Issue #9 records the future enhancement and its trigger: accepting untrusted/external Schema patterns or moving to a multi-tenant execution model.
+
+This deferral does not weaken the deterministic project-resource boundary: references still resolve only from the caller-supplied in-memory BuildRequest, with no network or filesystem loader.
+
+### 17.3 Migration design
+
+The concrete migration design is recorded separately in:
+
+`docs/design/schema-engine-migration-v0.1.md`
+
+It specifies:
+- the internal Schema Engine Adapter and exact dependency boundary;
+- lossless YAML-to-JSON conversion and JSON Pointer to YAML source mapping;
+- a BuildRequest-backed Project Schema Registry and dependency tracking;
+- the distinction between standard Draft 2020-12 reference semantics and the Compiler's narrower binding-only projection;
+- the exact responsibilities retained in Producer/Consumer analysis;
+- file-by-file migration dispositions and WP0–WP6 acceptance gates;
+- PR stacking and stop conditions.
+
+A critical correction: valid recursive JSON Schema references are supported Schema semantics and must not be rejected as invalid reference cycles. Cyclic YAML aliases remain rejected. If the Compiler's bounded binding projection cannot reason about recursive/dynamic references, it reports BINDING_UNSUPPORTED only when a binding requires that proof.
+
+### 17.4 Current authorization state
+
+The Spike is complete and awaiting review. The migration design is proposed for review. No production dependency, production code, BuildRequest/BuildResult contract, CLI, WASM public API, or main branch has been changed by this decision.
+
+Production implementation may begin only after the migration design and Spike review are accepted. The migration branch must start from PR #5 head `49753ce345f8cf99654566995dd3b5aff070f844` and must not import the isolated Spike harness as a production package.
