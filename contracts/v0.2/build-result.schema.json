@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/odango-chan/ca-skill-compiler/blob/main/contracts/v0.2/build-result.schema.json",
+  "title": "Skill Compiler BuildResult v0.2 proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "success",
+    "diagnostics",
+    "dependencyClosure",
+    "outputFiles"
+  ],
+  "properties": {
+    "success": {
+      "type": "boolean"
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/diagnostic"
+      }
+    },
+    "outputFiles": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "$ref": "#/$defs/file"
+      }
+    },
+    "dependencyClosure": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "$ref": "#/$defs/dependency"
+      }
+    }
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^skills/(?!\\.{1,2}(?:/|$))[^/\\\\:]+(?:/(?!\\.{1,2}(?:/|$))[^/\\\\:]+)*$",
+          "description": "Normalized authored Skill or generated Skill artifact path. Imported dependency files are not copied into outputFiles."
+        },
+        "bytes": {
+          "type": "string",
+          "contentEncoding": "base64",
+          "maxLength": 2796204
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "code",
+        "path",
+        "message"
+      ],
+      "properties": {
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "path": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dependencyId"
+      ],
+      "properties": {
+        "dependencyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        }
+      }
+    }
+  },
+  "description": "Build output reports which dependency aliases were used, but does not export snapshot digests. Snapshot digests remain Studio lock/input integrity metadata."
+}
