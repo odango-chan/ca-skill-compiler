@@ -5,7 +5,7 @@
 - [build-request.schema.json](build-request.schema.json) — in-memory input: Skill source files, resolved immutable dependency snapshots, and optional targets.
 - [build-result.schema.json](build-result.schema.json) — deterministic diagnostics, used dependency closure, and generated Skill file tree.
 - [tool-catalog.schema.json](tool-catalog.schema.json) — imported ToolCatalog YAML data model (`ca-agent-demo.tool/v1`).
-- [library-inspection.schema.json](library-inspection.schema.json) — read-only projection of Operations found in supplied dependency snapshots.
+- [dependency-inspection.schema.json](library-inspection.schema.json) — read-only projection of Operations found in supplied dependency snapshots.
 
 Normative responsibilities and boundaries: [Skill Compiler Language & Linking Contract v0.1](../../docs/design/compiler-contract-v0.1.md).
 
