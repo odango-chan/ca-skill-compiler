@@ -3,7 +3,7 @@
 **Status:** Proposed architecture for review; design only. No implementation migration is authorized by this document.
 **Date:** 2026-11-12
 **Scope:** `ca-skill-compiler` v0.1 Core, based on the implementation in PR #5.
-**Parent implementation:** `feat/compiler-v01-implementation-20261111` at the reviewed snapshot.
+**Reviewed implementation snapshot:** PR #5 head `49753ce345f8cf99654566995dd3b5aff070f844` (2026-11-12 pause checkpoint). Earlier PR #5 snapshots cited below are historical; implementation decisions must be checked against this checkpoint before migration.
 
 ## 1. Decision summary
 
@@ -32,7 +32,7 @@ The reviewed PR #5 implementation has these relevant components:
 | `internal/compiler/scripts.go` | Static Python contract parsing and generated Script Output Schema | Preserve. Generated output remains ordinary Draft 2020-12 JSON Schema represented in the existing artifact format. |
 | `internal/compiler/library.go` and ToolCatalog parsing | Import caller-supplied YAML ToolCatalog and expose Operations | Preserve the caller-supplied catalog model. Do not create or fetch a second ToolCatalog source. |
 
-At the reviewed snapshot, `go.mod` directly requires `gopkg.in/yaml.v3`; no JSON Schema engine is currently a direct dependency. The hand-written structural validator recognizes a substantial keyword set, while the binding matrix explicitly marks multiple applicators and other features unsupported for implication proof. This distinction must remain visible in diagnostics and documentation.
+At checkpoint `49753ce3`, `go.mod` directly requires `gopkg.in/yaml.v3`; no JSON Schema engine is currently a direct dependency. `schema_validation.go` still combines several concerns: Draft keyword/shape checks, YAML-node validation, exact-number parsing, and concrete literal checks. `schema_refs.go` handles project-local reference expansion/policy. `bindings.go` performs producer discovery, source availability/dominance, projection, and a bounded compatibility proof. The current support matrix records standard structural coverage separately from binding-proof coverage. The migration must split these responsibilities before removing code; deleting `schema_validation.go` wholesale would also delete non-engine boundary and literal behavior.
 
 ## 3. Ownership and source of truth
 
@@ -322,3 +322,107 @@ Before implementation, reviewers should explicitly confirm:
 7. Current PR #5 implementation work is not interrupted or overwritten; this document defines a follow-on design/migration workstream.
 
 **Decision:** Proposed. Design review required before Phase 1/2 implementation. No code migration is authorized by this document.
+
+
+## 11. Review addendum — checkpoint 49753ce3
+
+This addendum records the design review against the actual paused PR #5 checkpoint. It supersedes any earlier assumptions based on the initial `85ffce61` snapshot.
+
+### 11.1 What the current code actually combines
+
+At `49753ce345f8cf99654566995dd3b5aff070f844`:
+
+- `schema_validation.go` is not merely a Schema-shape validator. It also contains YAML-node-specific validation, exact decimal parsing/constraint handling, and concrete JSON-literal checks. These responsibilities must be separated before replacing the standard Schema engine.
+- `schema_refs.go` combines project-local reference lookup/expansion with path, ownership, cycle, and external-resolution policy. The library must not be allowed to bypass those policy checks.
+- `bindings.go` combines Producer discovery, Procedure/Step source visibility, dominance, projections, literal handling, and a bounded Producer-to-Consumer proof. Only the standard Schema interpretation should be delegated; Skill data-flow and implication remain Compiler-owned.
+- `scripts.go` statically derives Script Output Schema from the pinned Python Script Contract. It remains Compiler-owned, but generated Schema must pass through the same adapter and validation path as imported Schema.
+
+Consequently, the migration unit is **not** “replace schema_validation.go with a library call.” It is a staged extraction of standard Schema semantics from mixed-responsibility code.
+
+### 11.2 Corrected ToolCatalog maturity boundary
+
+PR #5's current work report says the Library importer can inspect both the traditional 12-operation catalog and a 16-operation MAS candidate catalog. These are not equivalent maturity levels.
+
+- The traditional 12-operation catalog from `ca-agent-demo/tools/contracts/createdsession.tool.yaml` is the currently approved Agent-facing ToolCatalog baseline.
+- The 16-operation MAS catalog is proposed/not-ready material. It may be parsed and surfaced by read-only inspection with its maturity preserved, but it MUST NOT become an approved callable Operation set or make MAS compile as ready.
+- The Compiler consumes caller-supplied catalog documents. It does not fetch `ca-agent-demo` at build time, duplicate the operation schemas, or treat Runtime registration/adapter data as a ToolCatalog.
+- Tests must assert that proposed Operations remain marked proposed and cannot silently satisfy an executable Skill's required Operation references.
+
+This is a maturity/eligibility rule at the ToolCatalog/Compiler contract boundary, not a JSON Schema engine feature.
+
+### 11.3 YAML-to-JSON value conversion is a first-class boundary
+
+The existing compiler uses YAML AST nodes and exact numeric helpers. A library adapter must not convert YAML through generic `interface{}` plus `float64` if that loses integer or decimal precision.
+
+The conversion contract is:
+
+1. YAML syntax is parsed once, with source locations retained.
+2. Only values representable in the JSON data model are admitted.
+3. Duplicate mapping keys, non-string object keys, custom tags, timestamps, non-finite numbers, and cyclic/unsafe aliases are rejected explicitly.
+4. Integer and decimal values retain their exact mathematical value through conversion, engine compilation, literal validation, and Native/WASM execution.
+5. If the candidate library cannot consume exact JSON numbers without lossy conversion, the adapter must use a lossless representation or the candidate fails the spike.
+
+The design must distinguish JSON Schema *Schema document compilation* from validating a concrete instance. A valid Schema may include annotations and applicators that the binding prover does not understand; that is not a reason to reject the Schema document if the selected Draft and vocabulary permit it.
+
+### 11.4 Reference resolution must have one policy gate
+
+The Project Schema Registry is the sole authority for resource eligibility. The library may interpret standard reference semantics only after the registry has approved the target resource.
+
+Required behavior:
+
+- The registry receives the referencing document identity and raw reference URI.
+- It canonicalizes and checks the URI against the supplied BuildRequest file set and ownership rules.
+- It returns immutable in-memory bytes/value only for an approved resource.
+- Any network, filesystem, environment, absolute-path, traversal, unapproved cross-owner, missing, or unsupported URI is rejected before a loader can access it.
+- The library's default loaders/resolvers must be disabled or replaced; merely testing a remote `$ref` that happens not to resolve is insufficient.
+- Tests must prove no outbound request or filesystem read is attempted, using an instrumented resolver/loader and a deliberately unreachable remote URI.
+- Draft 2020-12 `$ref` sibling semantics and recursive references must be tested. The current eager JSON-Pointer expansion must not silently erase valid sibling keywords or accidentally broaden the supported reference model.
+
+YAML aliases and JSON Schema references are separate mechanisms and require separate cycle/resource limits.
+
+### 11.5 Separate three outcomes, not two
+
+The adapter and binding analyzer must not collapse these states:
+
+1. **Schema invalid** — the Schema document violates the selected Draft/vocabulary or the YAML-to-JSON boundary.
+2. **Binding proven incompatible** — a supported proof establishes that some Producer value may violate the Consumer.
+3. **Binding unproven** — the Schema is valid, but the Compiler's bounded implication analyzer cannot establish compatibility.
+
+Only state 2 produces a type-mismatch diagnostic. State 3 produces an explicit unsupported/unproven diagnostic and is never PASS. A Schema that is valid but outside the binding proof subset remains a valid Schema.
+
+### 11.6 Refined responsibility table
+
+| Concern | Owner |
+| --- | --- |
+| YAML syntax, duplicate-key detection, source locations, JSON-value conversion | Compiler source boundary |
+| Draft 2020-12 Schema compilation and concrete instance validation | Selected Go Schema library behind adapter |
+| Project file membership, URI canonicalization, ownership, no-network/no-filesystem policy | Compiler Project Schema Registry |
+| ToolCatalog maturity and callable Operation eligibility | Compiler ToolCatalog contract layer, using source maturity metadata |
+| Producer discovery, Scope, dominance, aliases, Procedure linking | Compiler semantic analyzer |
+| Producer ⊆ Consumer proof within an explicit supported subset | Compiler binding analyzer |
+| Python static parsing and Script Output Schema generation | Compiler Script Contract implementation |
+| Native/WASM shared execution and diagnostics | Existing shared Go Core and parity harness |
+
+### 11.7 Design review decisions
+
+The following decisions are recommended for approval:
+
+- **D1 — Keep YAML:** no conversion of authored Skill or ToolCatalog files to JSON.
+- **D2 — One Schema dialect:** Draft 2020-12; no proprietary YAML Schema DSL.
+- **D3 — Library for standard semantics:** adopt only after Native, actual Chromium Worker, exact-number, resolver-closure, conformance, footprint, and performance gates.
+- **D4 — No general implication engine:** keep a conservative, explicitly bounded Compiler proof subset.
+- **D5 — Preserve source and owner policy:** a library cannot decide project ownership or resource eligibility.
+- **D6 — Preserve catalog maturity:** 12 approved traditional Operations and 16 proposed MAS candidate Operations remain distinct.
+- **D7 — No production migration in the spike:** spike is isolated and does not change BuildRequest, BuildResult, PR #5 production behavior, or public CLI/WASM API.
+- **D8 — Remove duplication only after parity:** old code may temporarily serve as a test oracle, but two active production validators are not allowed.
+
+### 11.8 Open questions that the spike must answer
+
+1. Can the candidate library consume lossless exact integer/decimal values without float64 conversion?
+2. Can its resolver be made strictly in-memory and closed, including nested references and base URI handling?
+3. Does it implement the required Draft 2020-12 behavior, including `$ref` siblings and recursive references?
+4. Can the same dependency and configuration run in the actual Chromium Worker, not merely compile to WASM or run under Node?
+5. What is the incremental WASM size, initialization cost, peak memory, and compile/validation latency on representative and adversarial inputs?
+6. Can its diagnostics be mapped deterministically to Compiler error codes and source locations without exposing unstable library error strings as the public contract?
+
+**Review disposition:** The architecture is directionally sound, but the above clarifications are required before implementation authorization. PR #5 remains paused at checkpoint `49753ce3`; no production Schema code is changed by this addendum.
