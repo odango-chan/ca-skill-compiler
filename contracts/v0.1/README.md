@@ -9,6 +9,8 @@
 
 Normative responsibilities and boundaries: [Skill Compiler Language & Linking Contract v0.1](../../docs/design/compiler-contract-v0.1.md).
 
+The imported ToolCatalog contract requires operation-level `inputSchema`, `outputSchema`, and `reconcileOutputSchema` roots to be objects. Local `x-common` entries are Schema fragments and may be objects or boolean Schemas; they can be used in nested subschema positions. The generic Schema shape validator also accepts boolean roots, but that does not widen the ToolCatalog operation envelope.
+
 The `lib/**` prefix is a **logical Compiler input namespace**. Studio/callers may assemble these files in memory from any source; no physical `lib/` workspace folder is required. `outputFiles` are BuildResult values; no physical `output/` folder is required.
 
 The current Go/WASM v0 implementation still exposes `{files,targets}`; this v0.1 contract freezes that small input shape and clarifies its semantics. This PR is design-only and does not claim the implementation has been migrated or fully accepted.

@@ -224,6 +224,97 @@ func toolCatalog() File {
 		"apiVersion: ca-agent-demo.tool/v1\nkind: ToolCatalog\nmetadata: {name: test, owner: tests}\nx-common:\n  ref: &ref {type: string, minLength: 1}\nspec:\n  contracts:\n  - operation: demo.read\n    effect: READ\n    inputSchema:\n      type: object\n      required: [ref]\n      properties:\n        ref: *ref\n    outputSchema: {type: object}\n")}
 }
 
+func TestToolCatalogRootSchemaContractMatchesImporter(t *testing.T) {
+	for _, tc := range []struct {
+		file   string
+		fields [][]string
+	}{
+		{
+			file: "../../contracts/v0.1/tool-catalog.schema.json",
+			fields: [][]string{
+				{"$defs", "operation", "properties", "inputSchema"},
+				{"$defs", "operation", "properties", "outputSchema"},
+				{"$defs", "operation", "properties", "reconcileOutputSchema"},
+			},
+		},
+		{
+			file: "../../contracts/v0.1/library-inspection.schema.json",
+			fields: [][]string{
+				{"$defs", "tool", "properties", "inputSchema"},
+				{"$defs", "tool", "properties", "outputSchema"},
+				{"$defs", "tool", "properties", "reconcileOutputSchema"},
+			},
+		},
+	} {
+		t.Run(filepath.Base(tc.file), func(t *testing.T) {
+			data, err := os.ReadFile(tc.file)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var document map[string]any
+			if err := json.Unmarshal(data, &document); err != nil {
+				t.Fatalf("machine contract is invalid JSON: %v", err)
+			}
+			for _, path := range tc.fields {
+				var current any = document
+				for _, part := range path {
+					current = current.(map[string]any)[part]
+				}
+				if schemaType, _ := current.(map[string]any)["type"].(string); schemaType != "object" {
+					t.Errorf("%s must remain object-only under the imported ToolCatalog contract, got %#v", strings.Join(path, "/"), current)
+				}
+			}
+		})
+	}
+	toolCatalogContract, err := os.ReadFile("../../contracts/v0.1/tool-catalog.schema.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var toolCatalogDocument map[string]any
+	if err := json.Unmarshal(toolCatalogContract, &toolCatalogDocument); err != nil {
+		t.Fatal(err)
+	}
+	xCommon := toolCatalogDocument["properties"].(map[string]any)["x-common"].(map[string]any)
+	fragmentSchema := xCommon["additionalProperties"].(map[string]any)
+	branches := fragmentSchema["anyOf"].([]any)
+	fragmentTypes := map[string]bool{}
+	for _, branch := range branches {
+		fragmentTypes[branch.(map[string]any)["type"].(string)] = true
+	}
+	if !fragmentTypes["object"] || !fragmentTypes["boolean"] {
+		t.Fatalf("x-common fragments must allow object or boolean Schemas: %#v", fragmentSchema)
+	}
+
+	catalog := toolCatalog()
+	oldInput := "inputSchema:\n      type: object\n      required: [ref]\n      properties:\n        ref: *ref"
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), oldInput, "inputSchema: false", 1))
+	if got := InspectLibraries(BuildRequest{Files: []File{catalog}}); !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
+		t.Fatal("ToolCatalog boolean root inputSchema must be rejected by its object-only contract")
+	}
+	catalog = toolCatalog()
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "outputSchema: {type: object}", "outputSchema: true", 1))
+	if got := InspectLibraries(BuildRequest{Files: []File{catalog}}); !findDiagnostic(got.Diagnostics, "LIB_SCHEMA_INVALID") {
+		t.Fatal("ToolCatalog boolean root outputSchema must be rejected by its object-only contract")
+	}
+}
+
+func TestToolCatalogAllowsBooleanSchemaFragmentsInXCommon(t *testing.T) {
+	catalog := toolCatalog()
+	catalog.Bytes = []byte(strings.Replace(string(catalog.Bytes), "ref: &ref {type: string, minLength: 1}", "ref: &ref false", 1))
+	got := InspectLibraries(BuildRequest{Files: []File{catalog}})
+	if len(got.Diagnostics) != 0 || len(got.Tools) != 1 {
+		t.Fatalf("boolean x-common Schema fragment should be accepted when nested in an object Schema: %#v", got)
+	}
+	input, ok := got.Tools[0].InputSchema.(map[string]any)
+	if !ok {
+		t.Fatalf("object input Schema was not preserved: %#v", got.Tools[0].InputSchema)
+	}
+	properties, ok := input["properties"].(map[string]any)
+	if !ok || properties["ref"] != false {
+		t.Fatalf("boolean x-common fragment did not survive inspection: %#v", got.Tools[0].InputSchema)
+	}
+}
+
 func testProject() []File {
 	parent := source("root", "start",
 		"procedures:\n  start:\n    start: lookup\n    nodes:\n      lookup:\n        call: demo.read\n        with: {ref: {value: sample}}\n      nested:\n        procedure: {skill: child, procedure: run}\n")

@@ -40,7 +40,14 @@
     "x-common": {
       "type": "object",
       "additionalProperties": {
-        "type": "object"
+        "anyOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
       }
     },
     "spec": {
