@@ -175,7 +175,7 @@ Linking rules:
 - Local references are resolved within their containing contract/snapshot according to the contract format. Stable exported Schema `$id` references may be resolved across supplied snapshots only by exact identity. Remote `$ref`, network lookup and source discovery are outside Compiler scope.
 - inspectDependencies may return a read-only projection of imported Operation IDs, dependency IDs, snapshot-relative source paths, Effects and Schemas for Studio display. It does not maintain source maturity, package status, manifests or lifecycle state.
 
-There is **no** Compiler-side `lib/manifest.yaml`, sourceStatus, package manifest, dependency resolver or lifecycle state. Dependency IDs and snapshot digests are normalized inputs from Studio's locked Workspace Configuration; they do not encode source acquisition or permission. If Studio needs labels such as imported or read-only, those are Studio presentation metadata, not Compiler input.
+There is **no** Compiler-side `lib/manifest.yaml`, sourceStatus, package manifest, dependency resolver or lifecycle state. Dependency aliases and snapshot digests are normalized inputs from Studio's locked Workspace Configuration; aliases qualify exported contract references, while digests verify input integrity. Neither encodes source acquisition or permission. If Studio needs labels such as imported or read-only, those are Studio presentation metadata, not Compiler input.
 
 The conventional 5GC ToolCatalog is supplied as a resolved dependency snapshot from the approved Tool Owner source. MAS remains excluded from executable acceptance until an approved MAS ToolCatalog and runnable end-to-end evidence exist.
 
@@ -215,7 +215,7 @@ Current known external blockers in the official PDU source are the Host Subject/
 
 ## 7. Compiler outputs and determinism
 
-The current compatibility response shape is [BuildResult v0.1](../../contracts/v0.1/build-result.schema.json). The proposed v0.2 response shape [BuildResult v0.2](../../contracts/v0.2/build-result.schema.json) reports used dependency aliases only and does not export digests. DependencyInspection remains a separate inspection response.
+The proposed response shape is [BuildResult v0.1](../../contracts/v0.1/build-result.schema.json). Its dependencyClosure reports used dependency aliases only; snapshot digests are verified BuildRequest inputs and are not exported. DependencyInspection remains a separate inspection response.
 
 - check and build share the same static analysis.
 - On any ERROR, Build returns success: false with empty dependencyClosure and outputFiles arrays.
