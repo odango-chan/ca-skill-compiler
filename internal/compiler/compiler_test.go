@@ -1987,6 +1987,28 @@ func TestNestedProcedureBindingsAreCheckedAgainstSchemas(t *testing.T) {
 	}
 }
 
+func TestUnconstrainedSchemaAcceptsAnyJSONValue(t *testing.T) {
+	anyValue := schemaNode(map[string]any{"title": "extension payload"})
+	stringSchema := schemaNode(map[string]any{"type": "string"})
+	objectSchema := schemaNode(map[string]any{"type": "object"})
+	if !schemaIsUnconstrained(anyValue) || !projectionSchemaSupported(anyValue) {
+		t.Fatal("annotation-only Schema should be recognized as unconstrained")
+	}
+	if !schemasCompatible(stringSchema, anyValue) || !schemasCompatible(objectSchema, anyValue) {
+		t.Fatal("a constrained Producer should be assignable to an unconstrained Consumer")
+	}
+	if schemasCompatible(anyValue, stringSchema) || schemasCompatible(anyValue, objectSchema) {
+		t.Fatal("an unconstrained Producer must not be assigned to a constrained Consumer")
+	}
+	if !literalMatchesSchema(schemaNode([]any{1, "extension"}), anyValue) {
+		t.Fatal("an unconstrained Consumer should accept any JSON literal")
+	}
+	if schemaIsUnconstrained(schemaNode(map[string]any{"type": "object"})) ||
+		schemaIsUnconstrained(schemaNode(map[string]any{"pattern": "^x"})) {
+		t.Fatal("assertion keywords must not be treated as unconstrained annotations")
+	}
+}
+
 func TestCurrentProcedureVerifyStepsMayBeUnnamedAndAcceptBindings(t *testing.T) {
 	files := loadProjectFilesForTest(t, filepath.Join("..", "..", "examples", "script-contract-project"))
 	files = append(files, File{Path: "skills/normalize/assurance/predicates.yaml", Bytes: []byte(predicateSetSource("normalize", "predicates:\n  demo.result:\n    evaluator: {type: cel, expression: 'true'}\n"))})

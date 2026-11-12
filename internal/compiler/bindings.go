@@ -455,7 +455,16 @@ func schemaTypeCompatible(source, target string) bool {
 
 func schemasCompatible(source, target *yaml.Node) bool {
 	source, target = unalias(source), unalias(target)
-	if source == nil || target == nil || !projectionSchemaSupported(source) || !projectionSchemaSupported(target) {
+	if source == nil || target == nil {
+		return false
+	}
+	// An unconstrained JSON Schema accepts every JSON value. Imported catalogs
+	// commonly use this for optional extension fields; requiring a type
+	// annotation there would reject safe Producer-to-Consumer assignments.
+	if schemaIsUnconstrained(target) {
+		return true
+	}
+	if schemaIsUnconstrained(source) || !projectionSchemaSupported(source) || !projectionSchemaSupported(target) {
 		return false
 	}
 	if values, finite := finiteSchemaValues(source); finite {
@@ -604,7 +613,13 @@ func schemaBoolean(schema *yaml.Node, value bool) bool {
 
 func projectionSchemaSupported(schema *yaml.Node) bool {
 	schema = unalias(schema)
-	if schema == nil || !supportedStaticSchema(schema) {
+	if schema == nil {
+		return false
+	}
+	if schemaIsUnconstrained(schema) {
+		return true
+	}
+	if !supportedStaticSchema(schema) {
 		return false
 	}
 	types, ok := schemaTypeNames(child(schema, "type"))
@@ -644,6 +659,27 @@ func projectionSchemaSupported(schema *yaml.Node) bool {
 			}
 		case "string", "integer", "number", "boolean", "null":
 		default:
+			return false
+		}
+	}
+	return true
+}
+
+// schemaIsUnconstrained recognizes JSON Schemas containing only annotations
+// and dialect metadata. An empty Schema means "any JSON value"; it is not the
+// same as an object Schema with an open property map.
+func schemaIsUnconstrained(schema *yaml.Node) bool {
+	schema = unalias(schema)
+	if schema == nil || schema.Kind != yaml.MappingNode {
+		return false
+	}
+	annotations := map[string]bool{
+		"$schema": true, "$id": true,
+		"title": true, "description": true, "default": true, "examples": true,
+		"deprecated": true, "readOnly": true, "writeOnly": true,
+	}
+	for _, key := range mapKeys(schema) {
+		if !annotations[key] {
 			return false
 		}
 	}
@@ -762,6 +798,9 @@ func literalMatchesSchema(value, schema *yaml.Node) bool {
 	value, schema = unalias(value), unalias(schema)
 	if value == nil || schema == nil || !validJSONLiteral(value) {
 		return false
+	}
+	if schemaIsUnconstrained(schema) {
+		return true
 	}
 	if schema.Kind == yaml.ScalarNode && schema.Tag == "!!bool" {
 		return scalar(schema) == "true"
