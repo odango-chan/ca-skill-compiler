@@ -241,7 +241,7 @@ The following responsibilities remain in internal/compiler/bindings.go:
 - node-output dominance;
 - source path resolution;
 - projection through object properties;
-- the bounded Producer subset Consumer proof;
+- the bounded Producer ⊆ Consumer proof;
 - exact rational comparisons for numeric implication;
 - explicit outcomes: proven compatible, proven incompatible, and unproven.
 
