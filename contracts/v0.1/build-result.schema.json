@@ -103,21 +103,18 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "dependencyId",
-        "digest"
+        "dependencyId"
       ],
       "properties": {
         "dependencyId": {
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "pattern": "^[a-z][a-z0-9._-]*$"
-        },
-        "digest": {
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+          "pattern": "^[a-z][a-z0-9._-]*$",
+          "description": "Stable dependency alias / reference namespace used by qualified Skill contract references."
         }
       }
     }
-  }
+  },
+  "description": "Compiler BuildResult reports diagnostics, the dependency aliases actually used, and generated Skill files. Snapshot digests are BuildRequest input integrity metadata owned by Studio and are not exported here."
 }
