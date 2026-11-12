@@ -147,3 +147,14 @@ Do not introduce `dependency:` source locator fields in SkillContract, `skill-pr
 Compiler Draft #4 currently accepts only `BuildRequest{files,targets}` with a caller-mounted `skills/**` + logical `lib/**` file namespace. Although this does not require a physical workspace `lib/` folder, it still models imported dependencies as path-mounted files and does not carry dependency snapshot identity/digest as a first-class input. Skill Studio PR #150 freezes a different boundary: Workspace Configuration owns dependencies/lock/snapshot storage, and the Compiler defines the canonical normalized input/digest contract while receiving already-pinned snapshots and logical Tool references, with no `lib/` fallback.
 
 These contracts are not yet aligned. Before declaring Compiler v0.1 implementation-ready, update its machine BuildRequest contract and cross-language golden vectors to accept resolved immutable dependency snapshots without making their workspace storage path part of Skill syntax or Compiler identity. Preserve the existing `{files,targets}` implementation only as the current compatibility baseline; do not claim it satisfies the frozen Plugin-managed design.
+
+
+## 12. Capability membership is mandatory for Tool linking
+
+A Tool Operation is not an independent permission. The imported ToolCatalog declares the exact callable Operation contract (schemas and declared Effect); the independently owned CapabilityContracts declares Capability -> owner -> Operation membership and expected Effect. The Skill grants Capability IDs, while Procedure calls exact Operation IDs (qualified by dependency alias where necessary to avoid source collisions). Compiler must prove each called Operation belongs to exactly one Capability granted by the Skill and cross-check the two Effect declarations. No Capability may be inferred from an Operation name. The current 5GC Skill lists Operation IDs in allowedResources.capabilities as a compatibility-era representation; the vNext language migration must convert these to actual Capability IDs while preserving exact call coverage.
+
+Observation acquisition follows the same rule: a read-only Observation is exposed through a READ Operation that belongs to a Capability; it is not a parallel unowned tool namespace.
+
+## 13. BuildResult does not export dependency digests
+
+Snapshot digest remains a BuildRequest input integrity check. Compiler verifies it before parsing/linking, but the proposed v0.2 BuildResult does not export digest values. It reports the dependency aliases used by the selected build, diagnostics and generated Skill files. Studio alone owns lock/digest persistence and display. The compatibility v0.1 BuildResult schema remains unchanged until the v0.2 contract is accepted.
