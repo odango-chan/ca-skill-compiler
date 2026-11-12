@@ -43,21 +43,34 @@ The wire contract is [build-request.schema.json](../../contracts/v0.1/build-requ
 
 ~~~typescript
 type File = { path: string; bytes: Uint8Array };
-type BuildRequest = { files: File[]; targets?: string[] };
+type ResolvedDependency = {
+  dependencyId: string;
+  digest: `sha256:${string}`;
+  files: Array<{ path: string; bytes: Uint8Array }>;
+};
+type BuildRequest = {
+  files: File[];                         // Skill source only: skills/**
+  resolvedDependencies: ResolvedDependency[];
+  targets?: string[];
+};
 ~~~
 
 For JSON/WASM transport, Go []byte is represented as a base64 string. Native callers pass raw bytes.
 
-- files contains every input byte needed for this compilation: official Skill source and imported Tool/Host/Observation Owner contracts.
-- targets omitted or empty means all Skills; a non-empty list selects those Skills and their transitive Skill dependencies.
-- File paths are project-relative Compiler input paths, not instructions to read the physical filesystem.
-- Accepted namespaces are skills/** and lib/**. skills/** is authored Skill source. lib/** is the logical namespace for caller-supplied imported contracts.
-- A Studio Host may assemble lib/** entries in memory from files, MCP import results or built-in contracts. Compiler does not know or care where the bytes came from. A physical lib/ directory is not required in the user's workspace.
-- output/ is never an input namespace. Build returns outputFiles; Studio decides whether and where to export them. No physical output/ directory is required.
+- `files` contains authored Skill source only. Every path is rooted in `skills/**`.
+- `resolvedDependencies` contains immutable, already-resolved snapshots supplied by Studio. Each dependency has a stable Workspace Configuration identity, a canonical content digest, and its own snapshot-relative file set. No `lib/` prefix or workspace path is used.
+- `dependencyId` is an opaque stable identity/alias from Studio's resource-scoped Workspace Configuration. It is not a source URL, repository, revision, path, exported Schema ID, or Skill-authored reference. Skill source never names it.
+- Exported contracts are discovered and linked from the supplied snapshot contents: exact Operation IDs from ToolCatalogs and stable Schema IDs from Schema `$id`. No separate dependency manifest or exports list is introduced.
+- Duplicate dependency IDs, duplicate paths within one snapshot, digest mismatches, duplicate/ambiguous exported contract identities, missing exports and incompatible schemas are errors. Source order must never select a winner.
+- `targets` omitted or empty means all Skills; a non-empty list selects those Skills and their transitive Skill dependencies.
+- All file paths are normalized relative paths inside their own namespace/snapshot. They are data labels, never instructions to read the physical filesystem.
+- `output/` is never an input namespace. Build returns `outputFiles`; Studio decides whether and where to export them. No physical output directory is required.
 
-There is no separate Project, DependencyDeclaration, ResolvedDependency, DependencyLock, LibraryManifest, SnapshotStore or ProjectContext object in the Compiler API.
+There is no Compiler-side Project, Dependency Resolver, DependencyLock, LibraryManifest, SnapshotStore, cache or ProjectContext lifecycle. Studio owns acquisition, source selection, revision pinning, lock state, immutable persistence, refresh/Update Lock, export and cache. Compiler only verifies the supplied snapshot bytes/digests and links their exported contracts.
 
-Compiler validates normalized relative paths, duplicate paths, file/count/aggregate size limits and namespace boundaries before parsing. It never opens a path from the request.
+The request is bounded by the existing limits: at most 512 files across Skill source and all dependency snapshots, 128 dependency snapshots, 2 MiB per file and 16 MiB aggregate raw bytes; duplicate paths are rejected within each namespace/snapshot. Compiler validates normalized relative paths, duplicate IDs/paths, digest integrity, aggregate size limits and namespace boundaries before parsing. It never opens a path from the request.
+
+Canonical snapshot digest is specified in [dependency-snapshot-digest-v0.1.md](dependency-snapshot-digest-v0.1.md). The Studio and Compiler implementations must pass the same golden vectors before this contract is considered implemented.
 
 ## 4. Current Skill Language v0.2 semantics
 
