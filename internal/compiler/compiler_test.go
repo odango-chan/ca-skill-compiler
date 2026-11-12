@@ -1251,6 +1251,17 @@ func TestProcedureInputTypeAssertionIsOptionalButProducerSchemaIsRequired(t *tes
 	}
 }
 
+func TestProcedureInputTypeAssertionNeverSubstitutesForProducerSchema(t *testing.T) {
+	procedure := schemaNode(map[string]any{"inputs": map[string]any{
+		"value": map[string]any{"type": "string", "from": "context.request.value"},
+	}})
+	inputSchema := procedureInputSchema(procedure, nil)
+	valueSchema := schemaProperty(inputSchema, "value")
+	if valueSchema == nil || child(valueSchema, "type") != nil {
+		t.Fatalf("unresolved Producer inherited the Procedure input type assertion: %#v", valueSchema)
+	}
+}
+
 func TestProcedureNodeOutputWithoutDeclaredSchemaIsUnresolved(t *testing.T) {
 	files := source("procedure-output", "run", `procedures:
   run:

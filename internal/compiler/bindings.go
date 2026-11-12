@@ -471,15 +471,12 @@ func procedureInputSchema(proc *yaml.Node, sources map[string]*yaml.Node) *yaml.
 	properties := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
 	required := &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq"}
 	for _, name := range mapKeys(inputs) {
-		input := child(inputs, name)
 		producer := sources[name]
 		if producer == nil {
-			typ := scalar(child(input, "type"))
-			if validProcedureInputType(typ) {
-				producer = schemaNode(map[string]any{"type": typ})
-			} else {
-				producer = schemaNode(map[string]any{})
-			}
+			// A declared Procedure input type is an assertion about its resolved
+			// Producer, never a substitute contract. Keep an unresolved Producer
+			// unconstrained here; the missing source is diagnosed independently.
+			producer = schemaNode(map[string]any{})
 		}
 		properties.Content = append(properties.Content, stringNode(name), producer)
 		required.Content = append(required.Content, stringNode(name))
