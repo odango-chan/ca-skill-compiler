@@ -157,5 +157,23 @@
     }
   ],
   "untypedConstBinding": [],
-  "booleanTrueSchemaBinding": []
+  "booleanTrueSchemaBinding": [],
+  "patternPropertiesUnsupported": [
+    {
+      "severity": "error",
+      "code": "BINDING_UNSUPPORTED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 8,
+      "message": "Producer or consumer Schema uses constraints unsupported by static binding validation: context.request.dnn"
+    }
+  ],
+  "containsUnsupported": [
+    {
+      "severity": "error",
+      "code": "BINDING_UNSUPPORTED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 8,
+      "message": "Producer or consumer Schema uses constraints unsupported by static binding validation: context.request.dnn"
+    }
+  ]
 }

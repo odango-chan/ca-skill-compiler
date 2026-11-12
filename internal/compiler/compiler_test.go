@@ -76,6 +76,8 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 		MalformedProcedureYAML       []Diagnostic `json:"malformedProcedureYAML"`
 		UntypedConstBinding          []Diagnostic `json:"untypedConstBinding"`
 		BooleanTrueSchemaBinding     []Diagnostic `json:"booleanTrueSchemaBinding"`
+		PatternPropertiesUnsupported []Diagnostic `json:"patternPropertiesUnsupported"`
+		ContainsUnsupported          []Diagnostic `json:"containsUnsupported"`
 	}
 	data, err := os.ReadFile(filepath.Join("..", "..", "web", "diagnostics-golden.json"))
 	if err != nil {
@@ -95,6 +97,14 @@ func TestNativeDiagnosticResultsMatchBrowserGoldens(t *testing.T) {
 	booleanSchema := mutateProjectFile(t, files, "lib/tools/demo.tool.yaml", "key: *text", "key: true")
 	if got := Check(BuildRequest{Files: booleanSchema}); !reflect.DeepEqual(got, golden.BooleanTrueSchemaBinding) {
 		t.Fatalf("Native boolean Schema diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.BooleanTrueSchemaBinding)
+	}
+	patternProperties := mutateProjectFile(t, files, "lib/tools/demo.tool.yaml", "key: *text", `key: {type: object, patternProperties: {"^x-": {type: string}}}`)
+	if got := Check(BuildRequest{Files: patternProperties}); !reflect.DeepEqual(got, golden.PatternPropertiesUnsupported) {
+		t.Fatalf("Native patternProperties diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.PatternPropertiesUnsupported)
+	}
+	contains := mutateProjectFile(t, files, "lib/tools/demo.tool.yaml", "key: *text", "key: {type: array, items: {type: string}, contains: {type: string}}")
+	if got := Check(BuildRequest{Files: contains}); !reflect.DeepEqual(got, golden.ContainsUnsupported) {
+		t.Fatalf("Native contains diagnostics differ from browser golden:\ngot  %#v\nwant %#v", got, golden.ContainsUnsupported)
 	}
 	invalidBinding := make([]File, len(files))
 	for i, file := range files {
@@ -1742,6 +1752,32 @@ func TestObjectLiteralBindingsHonorAdditionalProperties(t *testing.T) {
 	}
 }
 
+func TestObjectCountAndUniqueItemBindingSemantics(t *testing.T) {
+	objectSchema := schemaNode(map[string]any{"type": "object", "minProperties": 2, "maxProperties": 3})
+	if literalMatchesSchema(schemaNode(map[string]any{"one": 1}), objectSchema) || !literalMatchesSchema(schemaNode(map[string]any{"one": 1, "two": 2}), objectSchema) {
+		t.Fatal("object literal property-count constraints were not enforced")
+	}
+	if !schemasCompatible(
+		schemaNode(map[string]any{"type": "object", "minProperties": 3}),
+		schemaNode(map[string]any{"type": "object", "minProperties": 2}),
+	) {
+		t.Fatal("a stronger explicit Producer property-count bound should satisfy the Consumer")
+	}
+	if schemasCompatible(
+		schemaNode(map[string]any{"type": "object", "properties": map[string]any{"one": map[string]any{"type": "string"}}}),
+		schemaNode(map[string]any{"type": "object", "minProperties": 1}),
+	) {
+		t.Fatal("the binder must not infer minProperties from optional named properties")
+	}
+	uniqueArray := func(unique bool) *yaml.Node {
+		return schemaNode(map[string]any{"type": "array", "items": map[string]any{"type": "integer"}, "uniqueItems": unique})
+	}
+	consumer := schemaNode(map[string]any{"type": "array", "items": map[string]any{"type": "number"}, "uniqueItems": true})
+	if !schemasCompatible(uniqueArray(true), consumer) || schemasCompatible(uniqueArray(false), consumer) {
+		t.Fatal("uniqueItems Producer implication was not checked")
+	}
+}
+
 func TestScriptInputProjectionRejectsUnsupportedNestedSchemas(t *testing.T) {
 	unsupported := schemaNode(map[string]any{
 		"type":       "object",
@@ -1759,22 +1795,25 @@ func TestScriptInputProjectionRejectsUnsupportedNestedSchemas(t *testing.T) {
 func TestUnsupportedDraftKeywordsFailBindingWithExplicitDiagnostic(t *testing.T) {
 	cases := []struct {
 		name, typ string
-		keyword   string
-		value     any
+		keywords  map[string]any
 	}{
-		{"prefixItems", "array", "prefixItems", []any{map[string]any{"type": "string"}}},
-		{"allOf", "string", "allOf", []any{map[string]any{"minLength": 1}}},
-		{"anyOf", "string", "anyOf", []any{map[string]any{"type": "string"}}},
-		{"oneOf", "string", "oneOf", []any{map[string]any{"type": "string"}}},
-		{"not", "string", "not", map[string]any{"type": "null"}},
-		{"if", "string", "if", map[string]any{"type": "string"}},
-		{"then", "string", "then", map[string]any{"minLength": 1}},
-		{"else", "string", "else", map[string]any{"maxLength": 4}},
-		{"dependentRequired", "object", "dependentRequired", map[string]any{"flag": []any{"value"}}},
-		{"dependentSchemas", "object", "dependentSchemas", map[string]any{"flag": map[string]any{"required": []any{"value"}}}},
-		{"propertyNames", "object", "propertyNames", map[string]any{"type": "string"}},
-		{"unevaluatedProperties", "object", "unevaluatedProperties", false},
-		{"unevaluatedItems", "array", "unevaluatedItems", false},
+		{"prefixItems", "array", map[string]any{"prefixItems": []any{map[string]any{"type": "string"}}}},
+		{"patternProperties", "object", map[string]any{"patternProperties": map[string]any{"^x-": map[string]any{"type": "string"}}}},
+		{"contains", "array", map[string]any{"contains": map[string]any{"type": "string"}}},
+		{"minContains", "array", map[string]any{"contains": map[string]any{"type": "string"}, "minContains": 2}},
+		{"maxContains", "array", map[string]any{"contains": map[string]any{"type": "string"}, "maxContains": 2}},
+		{"allOf", "string", map[string]any{"allOf": []any{map[string]any{"minLength": 1}}}},
+		{"anyOf", "string", map[string]any{"anyOf": []any{map[string]any{"type": "string"}}}},
+		{"oneOf", "string", map[string]any{"oneOf": []any{map[string]any{"type": "string"}}}},
+		{"not", "string", map[string]any{"not": map[string]any{"type": "null"}}},
+		{"if", "string", map[string]any{"if": map[string]any{"type": "string"}}},
+		{"then", "string", map[string]any{"then": map[string]any{"minLength": 1}}},
+		{"else", "string", map[string]any{"else": map[string]any{"maxLength": 4}}},
+		{"dependentRequired", "object", map[string]any{"dependentRequired": map[string]any{"flag": []any{"value"}}}},
+		{"dependentSchemas", "object", map[string]any{"dependentSchemas": map[string]any{"flag": map[string]any{"required": []any{"value"}}}}},
+		{"propertyNames", "object", map[string]any{"propertyNames": map[string]any{"type": "string"}}},
+		{"unevaluatedProperties", "object", map[string]any{"unevaluatedProperties": false}},
+		{"unevaluatedItems", "array", map[string]any{"unevaluatedItems": false}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1803,7 +1842,11 @@ func TestUnsupportedDraftKeywordsFailBindingWithExplicitDiagnostic(t *testing.T)
 			}
 			files = append(files, File{Path: "skills/schema-boundary/schemas/request.yaml", Bytes: requestSchema})
 			catalog := toolCatalog()
-			consumerSchema, err := json.Marshal(map[string]any{"type": tc.typ, tc.keyword: tc.value})
+			consumer := map[string]any{"type": tc.typ}
+			for key, value := range tc.keywords {
+				consumer[key] = value
+			}
+			consumerSchema, err := json.Marshal(consumer)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1811,10 +1854,10 @@ func TestUnsupportedDraftKeywordsFailBindingWithExplicitDiagnostic(t *testing.T)
 			files = append(files, catalog)
 			got := Build(BuildRequest{Files: files})
 			if got.Success || !findDiagnostic(got.Diagnostics, "BINDING_UNSUPPORTED") {
-				t.Fatalf("unsupported %s binding did not fail explicitly: %#v", tc.keyword, got.Diagnostics)
+				t.Fatalf("unsupported %s binding did not fail explicitly: %#v", tc.name, got.Diagnostics)
 			}
 			if findDiagnostic(got.Diagnostics, "BINDING_TYPE_MISMATCH") {
-				t.Fatalf("unsupported %s binding was mislabeled as a mismatch: %#v", tc.keyword, got.Diagnostics)
+				t.Fatalf("unsupported %s binding was mislabeled as a mismatch: %#v", tc.name, got.Diagnostics)
 			}
 		})
 	}
