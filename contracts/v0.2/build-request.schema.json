@@ -76,7 +76,7 @@
           "minLength": 1,
           "maxLength": 128,
           "pattern": "^[a-z][a-z0-9._-]*$",
-          "description": "Stable dependency alias used as a logical namespace by qualified Skill contract references. Not a source locator."
+          "description": "Stable Workspace Configuration alias. Skill references may qualify exported contract IDs with this alias; it is not a source locator."
         },
         "digest": {
           "type": "string",
