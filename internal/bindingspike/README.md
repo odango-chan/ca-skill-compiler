@@ -91,3 +91,10 @@ The semantic IDs are still test-side proposed annotations, NOT read from or adde
 **Verification caveat:** the first isolated algorithm test passed locally; these new pinned-YAML fixture tests have been committed for verification but a new full Go test execution / remote CI result has not yet been obtained. Do not label them PASS until they run.
 
 Related semantic-identity draft: `ca-skills` PR #24 `docs/design/semantic-field-identity-vnext.md`.
+
+
+## Compiler integration finding
+
+The existing Compiler already implements the authoritative schema and control-flow checks in `internal/compiler/bindings.go`: `schemasCompatible`, `bindingSourceAvailable` / `nodeOutputDominates`, and `checkBindings`. The production Resolver should therefore generate candidate bindings only, then pass the in-memory result through `checkBindings`; it must not ship its own weaker type/CFG verifier.
+
+See [Semantic Binding Resolver — Compiler Integration Design](../../docs/semantic-binding-integration-vnext.md) for the proposed call-site, scope, test gates, and the important finding that the checked-in Compiler MAS/5GC SkillContract fixtures do not yet include the authoritative Context Owner Schemas referenced by their Procedures. A true compiler-pipeline integration test must supply those schemas explicitly rather than inventing them.
