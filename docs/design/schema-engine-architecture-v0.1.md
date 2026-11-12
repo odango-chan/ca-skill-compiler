@@ -561,3 +561,20 @@ No production migration begins automatically after a successful spike. A separat
 - Go/no-go recommendation.
 
 **Stop condition:** when the report and reproducible evidence are complete, stop. Do not modify production Compiler code, merge PR #5, or start the migration without a separate explicit instruction.
+
+
+## 15. Updated candidate assessment after source-level documentation check
+
+The candidate comparison was rechecked against upstream READMEs and package documentation on 2026-11-12.
+
+- **santhosh-tekuri v6.0.3:** upstream explicitly lists a custom regex-engine extension point and introspectable validation errors. The project also documents its JSON-Schema-Test-Suite coverage boundary. This makes it the strongest first candidate for this Compiler, provided the spike supplies and verifies a regex engine/configuration that meets the required ECMA-262 subset. Do not infer that the default regex path is automatically conformant merely because the hook exists.
+- **kaptinlin v0.9.10:** upstream explicitly documents encoding/json.Number preservation, but also states HTTP and HTTPS loaders are pre-registered and must be replaced or removed for untrusted schemas. Its regex path is Go regexp/syntax-based, so it is a weaker fit if ECMA-262 pattern behavior is a required contract. It remains useful as a numeric-fidelity comparison, not an equal default choice.
+- The official Draft 2020-12 specification describes regular-expression syntax in terms of ECMA-262 and recommends Unicode support. The spike must test actual constructs and report the supported subset; it must not label RE2 behavior fully conformant.
+
+Sources:
+- https://github.com/santhosh-tekuri/jsonschema
+- https://pkg.go.dev/github.com/santhosh-tekuri/jsonschema/v6
+- https://github.com/kaptinlin/jsonschema
+- https://json-schema.org/draft/2020-12
+
+**Revised preliminary recommendation:** start the isolated spike with santhosh-tekuri v6.0.3 as the primary candidate and keep kaptinlin as a focused exact-number/reference-loader comparison. If the primary candidate cannot meet regex and Chromium requirements without disproportionate custom code or bundle cost, reject it rather than expanding Compiler scope.
