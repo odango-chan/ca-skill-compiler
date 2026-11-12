@@ -32,7 +32,11 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 		} else if parsedNode.Action == ActionVerify && child(n, "with") != nil {
 			expected = a.contextConsumerSchema(s, "subject", path, child(n, "with").Line)
 		}
-		a.checkBindings(s, proc, path, child(n, "with"), expected, nodeID, "main", -1, outputs, stepOutputs[nodeID], stepOutputs)
+		with := child(n, "with")
+		if parsedNode.Action == ActionCall {
+			with = a.addSemanticProcedureInputBindings(proc, with, expected, path, nodeID)
+		}
+		a.checkBindings(s, proc, path, with, expected, nodeID, "main", -1, outputs, stepOutputs[nodeID], stepOutputs)
 		for _, scope := range []string{"preconditions", "postconditions"} {
 			for stepIndex, step := range sequence(child(child(n, scope), "steps")) {
 				op := scalar(child(step, "call"))
@@ -42,7 +46,11 @@ func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.No
 				} else if child(step, "verify") != nil && child(step, "with") != nil {
 					target = a.contextConsumerSchema(s, "subject", path, child(step, "with").Line)
 				}
-				a.checkBindings(s, proc, path, child(step, "with"), target, nodeID, scope, stepIndex, outputs, stepOutputs[nodeID], stepOutputs)
+				with := child(step, "with")
+				if op != "" {
+					with = a.addSemanticProcedureInputBindings(proc, with, target, path, nodeID)
+				}
+				a.checkBindings(s, proc, path, with, target, nodeID, scope, stepIndex, outputs, stepOutputs[nodeID], stepOutputs)
 			}
 		}
 	}
@@ -1228,6 +1236,7 @@ func supportedStaticSchema(schema *yaml.Node) bool {
 		"multipleOf": true, "minItems": true, "maxItems": true,
 		"minProperties": true, "maxProperties": true, "uniqueItems": true,
 		"const": true, "enum": true,
+		"x-ca-semanticId": true,
 	}
 	for _, key := range mapKeys(schema) {
 		if !known[key] || key == "$ref" {
