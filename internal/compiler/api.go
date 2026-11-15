@@ -27,12 +27,14 @@ type File struct {
 
 // BuildRequest contains the caller-supplied project files and optional targets.
 type BuildRequest struct {
-	Files   []File   `json:"files"`
-	Targets []string `json:"targets,omitempty"`
+	Files          []File   `json:"files"`
+	Targets        []string `json:"targets,omitempty"`
+	LanguageTarget string   `json:"languageTarget,omitempty"` // explicit CA-SL v1alpha4 selector
 }
 
 type Diagnostic struct {
 	Severity string `json:"severity"`
+	Phase    string `json:"phase,omitempty"` // present for v1alpha4 (C_STATIC / R_RUNTIME)
 	Code     string `json:"code"`
 	Path     string `json:"path"`
 	Line     int    `json:"line,omitempty"`
@@ -87,11 +89,13 @@ type analysis struct {
 }
 
 func Check(req BuildRequest) []Diagnostic {
+	if req.LanguageTarget!="" { return CheckV1Alpha4(req) }
 	result := analyze(req, false)
 	return result.Diagnostics
 }
 
 func Build(req BuildRequest) BuildResult {
+	if req.LanguageTarget!="" { return validateV1Alpha4(req) }
 	return analyze(req, true)
 }
 
