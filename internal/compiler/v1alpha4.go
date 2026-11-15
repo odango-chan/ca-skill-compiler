@@ -18,14 +18,32 @@ import (
 const V1Alpha4Target = "connectionagent.io/v1alpha4"
 
 var v4NodeID = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]*$`)
-var v4ContractGate = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]*.precondition$`)
-var v4SourcePath = regexp.MustCompile(`^(context.[A-Za-z][A-Za-z0-9_]*(.[A-Za-z][A-Za-z0-9_]*)*|[A-Za-z][A-Za-z0-9_-]*.(operation|observation|precondition|postcondition).output(.[A-Za-z][A-Za-z0-9_]*)*)$`)
+var v4ContractGate = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]*[.]preconditionpackage compiler
+
+// This file is the CA-SL v1alpha4 source/graph admission slice, not the
+// v1alpha4 Compiler qualification. Owner + CapabilityContracts snapshot
+// linking and §45.2 conformance are deliberately NOT implemented here.
+//
+// Frozen language: ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d.
+
+import (
+	"path"
+	"regexp"
+	"sort"
+	"strings"
+
+	"gopkg.in/yaml.v3"
+)
+
+const V1Alpha4Target = "connectionagent.io/v1alpha4"
+
+var v4NodeID = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]*$`)
+)
 
 var v4Terminals = map[string]bool{"SUCCEEDED":true, "FAILED":true, "SAFE_STOPPED":true, "UNRESOLVED":true}
 var v4Stages = map[string]bool{"precondition":true,"operation":true,"observation":true,"postcondition":true}
 var v4ContractFields = map[string]bool{"goal":true,"precondition":true,"requestSchema":true,"contextSchema":true,"dependencies":true,"capabilities":true,"limits":true}
 var v4PredicateFields = map[string]bool{"parameters":true,"evidence":true,"evaluator":true}
-var v4OperationFields = map[string]bool{"tool":true,"script":true,"arguments":true,"routes":true,"retryOf":true}
 
 // CheckV1Alpha4 performs local source-structure checks and then fails closed
 // when exact trusted Owner/CapabilityContracts inputs are unavailable.
@@ -308,10 +326,8 @@ func v4CheckProcedure(file string,root,contract *yaml.Node,add func(string,*yaml
 					add(file,child(routes,outcome),"ROUTE_OUTCOME_UNKNOWN","OUTCOME_UNKNOWN may only safely stop")
 				}
 			}
-			// Owner Effect and OUTCOME_UNKNOWN requiredness cannot be guessed.
-			if stage=="operation" && child(body,"tool")!=nil {
-				_ = v4SourcePath // later SourcePath typechecking requires qualified Producer Schemas
-			}
+			// Owner Effect and SourcePath assignability remain unverified until exact
+			// Tool/Schema publication. No guessed Owner result classification.
 		}
 	}
 	if anySuccess&&!legalSuccess {
