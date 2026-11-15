@@ -209,7 +209,8 @@ func v4CheckPredicates(file string,root *yaml.Node,add func(string,*yaml.Node,st
 		params:=child(def,"parameters")
 		if params==nil||params.Kind!=yaml.SequenceNode {
 			add(file,params,"PREDICATE_GROUP_INVALID","parameters must be an ordered parameter list")
-		}else for _,item:=range params.Content {
+		}else {
+			for _,item:=range params.Content {
 			if item.Kind!=yaml.MappingNode||len(item.Content)!=2 {
 				add(file,item,"PREDICATE_GROUP_INVALID","Each parameter is a one-key declaration")
 			}
@@ -255,7 +256,8 @@ func v4CheckProcedure(file string,root,contract *yaml.Node,add func(string,*yaml
 				calls:=child(body,"predicates")
 				if calls==nil||calls.Kind!=yaml.SequenceNode||len(calls.Content)==0 {
 					add(file,calls,"PREDICATE_GROUP_INVALID","Stage predicates must be a nonempty ordered list")
-				}else for _,call:=range calls.Content {
+				}else {
+			for _,call:=range calls.Content {
 					v4Allowed(call,file,map[string]bool{"predicate":true,"arguments":true},add)
 					if scalar(child(call,"predicate"))=="" || child(call,"arguments")==nil || child(call,"arguments").Kind!=yaml.SequenceNode {
 						add(file,call,"PREDICATE_GROUP_INVALID","PredicateCall requires predicate and positional arguments")
@@ -268,7 +270,8 @@ func v4CheckProcedure(file string,root,contract *yaml.Node,add func(string,*yaml
 				}
 				if args:=child(body,"arguments");args==nil || args.Kind!=yaml.MappingNode {
 					add(file,body,"SOURCE_ROOT_INVALID","Tool or Script arguments must be a mapping")
-				}else for j:=1;j<len(args.Content);j+=2 {
+				}else {
+			for j:=1;j<len(args.Content);j+=2 {
 					v:=args.Content[j]
 					if v.Kind!=yaml.ScalarNode {
 						add(file,v,"SOURCE_PATH_INVALID","Arguments must be scalar SourcePaths or supported literals")
