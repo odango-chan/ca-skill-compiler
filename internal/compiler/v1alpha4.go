@@ -207,16 +207,18 @@ func v4CheckPredicates(file string,root *yaml.Node,add func(string,*yaml.Node,st
 		def:=set.Content[i+1]
 		v4Allowed(def,file,v4PredicateFields,add)
 		params:=child(def,"parameters")
-		if params==nil||params.Kind!=yaml.SequenceNode {
+		if params==nil || params.Kind!=yaml.SequenceNode {
 			add(file,params,"PREDICATE_GROUP_INVALID","parameters must be an ordered parameter list")
-		}else {
+		} else {
 			for _,item:=range params.Content {
-			if item.Kind!=yaml.MappingNode||len(item.Content)!=2 {
-				add(file,item,"PREDICATE_GROUP_INVALID","Each parameter is a one-key declaration")
+				if item.Kind!=yaml.MappingNode || len(item.Content)!=2 {
+					add(file,item,"PREDICATE_GROUP_INVALID","Each parameter is a one-key declaration")
+				}
 			}
 		}
 	}
 }
+
 func v4CheckProcedure(file string,root,contract *yaml.Node,add func(string,*yaml.Node,string,string)){
 	v4Allowed(root,file,map[string]bool{"start":true,"nodes":true},add)
 	start:=scalar(child(root,"start"))
@@ -245,36 +247,31 @@ func v4CheckProcedure(file string,root,contract *yaml.Node,add func(string,*yaml
 			if body==nil{continue}
 			allowed:=map[string]bool{"routes":true}
 			if stage=="precondition"||stage=="postcondition" {
-				allowed["predicates"]=true
-			}else{
-				allowed["tool"]=true
-				allowed["arguments"]=true
-				if stage=="operation" {allowed["script"]=true;allowed["retryOf"]=true}
-			}
-			v4Allowed(body,file,allowed,add)
-			if stage=="precondition"||stage=="postcondition" {
 				calls:=child(body,"predicates")
-				if calls==nil||calls.Kind!=yaml.SequenceNode||len(calls.Content)==0 {
+				if calls==nil || calls.Kind!=yaml.SequenceNode || len(calls.Content)==0 {
 					add(file,calls,"PREDICATE_GROUP_INVALID","Stage predicates must be a nonempty ordered list")
-				}else {
-			for _,call:=range calls.Content {
-					v4Allowed(call,file,map[string]bool{"predicate":true,"arguments":true},add)
-					if scalar(child(call,"predicate"))=="" || child(call,"arguments")==nil || child(call,"arguments").Kind!=yaml.SequenceNode {
-						add(file,call,"PREDICATE_GROUP_INVALID","PredicateCall requires predicate and positional arguments")
+				} else {
+					for _,call:=range calls.Content {
+						v4Allowed(call,file,map[string]bool{"predicate":true,"arguments":true},add)
+						args:=child(call,"arguments")
+						if scalar(child(call,"predicate"))=="" || args==nil || args.Kind!=yaml.SequenceNode {
+							add(file,call,"PREDICATE_GROUP_INVALID","PredicateCall requires predicate and positional arguments")
+						}
 					}
 				}
-			}else{
+			} else {
 				tool,script:=child(body,"tool"),child(body,"script")
 				if (tool==nil)==(script==nil) || (stage=="observation"&&script!=nil) {
 					add(file,body,"CONTROL_FLOW_AMBIGUOUS","Operation needs exactly one tool/script; Observation needs tool")
 				}
-				if args:=child(body,"arguments");args==nil || args.Kind!=yaml.MappingNode {
+				if args:=child(body,"arguments"); args==nil || args.Kind!=yaml.MappingNode {
 					add(file,body,"SOURCE_ROOT_INVALID","Tool or Script arguments must be a mapping")
-				}else {
-			for j:=1;j<len(args.Content);j+=2 {
-					v:=args.Content[j]
-					if v.Kind!=yaml.ScalarNode {
-						add(file,v,"SOURCE_PATH_INVALID","Arguments must be scalar SourcePaths or supported literals")
+				} else {
+					for j:=1;j<len(args.Content);j+=2 {
+						v:=args.Content[j]
+						if v.Kind!=yaml.ScalarNode {
+							add(file,v,"SOURCE_PATH_INVALID","Arguments must be scalar SourcePaths or supported literals")
+						}
 					}
 				}
 			}
