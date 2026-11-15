@@ -1,0 +1,24 @@
+name: CA-SL v1alpha4 source admission slice
+
+on:
+  push:
+    branches: [feat/ca-sl-v1alpha4-target-source-20261115]
+  pull_request:
+    branches: [feat/compiler-v01-implementation-20261111]
+
+permissions:
+  contents: read
+
+jobs:
+  v1alpha4-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Go v1alpha4 parser tests
+        run: go test ./internal/compiler -run '^TestV1Alpha4' -count=1 -v
+      - name: Existing Go compiler package tests
+        run: go test ./internal/compiler -count=1
