@@ -247,6 +247,14 @@ func v4CheckProcedure(file string,root,contract *yaml.Node,add func(string,*yaml
 			if body==nil{continue}
 			allowed:=map[string]bool{"routes":true}
 			if stage=="precondition"||stage=="postcondition" {
+				allowed["predicates"]=true
+			} else {
+				allowed["tool"]=true
+				allowed["arguments"]=true
+				if stage=="operation" {allowed["script"]=true; allowed["retryOf"]=true}
+			}
+			v4Allowed(body,file,allowed,add)
+			if stage=="precondition"||stage=="postcondition" {
 				calls:=child(body,"predicates")
 				if calls==nil || calls.Kind!=yaml.SequenceNode || len(calls.Content)==0 {
 					add(file,calls,"PREDICATE_GROUP_INVALID","Stage predicates must be a nonempty ordered list")
