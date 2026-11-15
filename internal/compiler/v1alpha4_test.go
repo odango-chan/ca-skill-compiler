@@ -64,11 +64,11 @@ func v4TestRequest(contract,procedure,predicates,schema string) BuildRequest {
 	return BuildRequest{
 		LanguageTarget:V1Alpha4Target,
 		Files:[]File{
-			{Path:"skills/pdu/SKILL.md",Bytes:[]byte("---
+			{Path:"skills/pdu/SKILL.md",Bytes:[]byte(`---
 name: pdu
 description: PDU v4
 ---
-")},
+`)},
 			{Path:"skills/pdu/assurance/contract.yaml",Bytes:[]byte(contract)},
 			{Path:"skills/pdu/assurance/procedure.yaml",Bytes:[]byte(procedure)},
 			{Path:"skills/pdu/assurance/predicates.yaml",Bytes:[]byte(predicates)},
@@ -106,21 +106,20 @@ func TestV1Alpha4RejectsLegacyAuthorFieldsAndUnknownTarget(t *testing.T){
 }
 func TestV1Alpha4RejectsBypassAndCycle(t *testing.T){
 	req:=v4TestRequest(v4TestContract,strings.Replace(v4TestProcedure,"PASS: SUCCEEDED","PASS: FAILED",1)+
-		"  unsafe:
+		`  unsafe:
     operation:
       tool: ca::example.mutate
       arguments: {}
       routes:
         SUCCEEDED: SUCCEEDED
         OUTCOME_UNKNOWN: SAFE_STOPPED
-",v4TestPredicates,v4TestSchema)
+`,v4TestPredicates,v4TestSchema)
 	if !v4HasCode(Check(req),"FINAL_POSTCONDITION_MISSING"){t.Fatal("failed to reject non-final success edge")}
 	req=v4TestRequest(v4TestContract,strings.Replace(v4TestProcedure,"SUCCEEDED: final","SUCCEEDED: check",1),v4TestPredicates,v4TestSchema)
 	if !v4HasCode(Check(req),"CONTROL_FLOW_CYCLE"){t.Fatal("failed to reject cycle")}
 }
 func TestV1Alpha4DuplicateKeyAndForbiddenSchemaKeyword(t *testing.T){
-	req:=v4TestRequest(v4TestContract,strings.Replace(v4TestProcedure,"start: check","start: check
-start: read",1),
+	req:=v4TestRequest(v4TestContract,strings.Replace(v4TestProcedure,"start: check","start: check\nstart: read",1),
 		v4TestPredicates,v4TestSchema)
 	if !v4HasCode(Check(req),"YAML_PARSE_ERROR"){t.Fatal("duplicate YAML key escaped guard")}
 	req=v4TestRequest(v4TestContract,v4TestProcedure,v4TestPredicates,
