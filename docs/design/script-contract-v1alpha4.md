@@ -22,7 +22,7 @@ def main(input: InputTypedDict) -> OutputTypedDict:
     ...
 ~~~
 
-- Exactly one synchronous main.
+- Exactly one main entry point.
 - Exactly one positional argument named input.
 - Input and return annotations must be statically resolvable strict TypedDict types.
 - The return type is nonempty and fully declared.
