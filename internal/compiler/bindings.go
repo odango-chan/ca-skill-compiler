@@ -1,3 +1,5 @@
+//go:build legacy_v01
+
 package compiler
 
 import (

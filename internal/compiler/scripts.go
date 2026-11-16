@@ -1,3 +1,5 @@
+//go:build legacy_v01
+
 package compiler
 
 import (
@@ -20,9 +22,6 @@ var (
 	mainRE            = regexp.MustCompile(`(?m)^def main\(input:\s*dict\)\s*->\s*([A-Za-z_][A-Za-z0-9_]*):`)
 	mainDeclRE        = regexp.MustCompile(`(?m)^(?:async\s+)?def main\b`)
 )
-
-type pyField struct{ name, typ string }
-type pyClass struct{ fields []pyField }
 
 func (a *analysis) compileScripts(selected map[string]bool) {
 	for _, skill := range sortedStringMapKeys(selected) {

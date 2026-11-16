@@ -1,3 +1,5 @@
+//go:build legacy_v01
+
 package compiler
 
 import yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"

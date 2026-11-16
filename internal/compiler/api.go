@@ -1,3 +1,5 @@
+//go:build legacy_v01
+
 // Package compiler implements stateless, side-effect-free Skill project compilation.
 // It neither executes scripts/tools nor opens files, databases, or network sockets.
 package compiler
