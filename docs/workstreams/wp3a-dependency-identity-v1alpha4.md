@@ -1,7 +1,7 @@
 # WP3A — Dependency Snapshot Identity and Trust Binding
 
 **Task ID:** `WP3A-DEPENDENCY-IDENTITY-001`  
-**Status:** READY FOR DEEPSEEK IMPLEMENTATION  
+**Status:** IMPLEMENTED — Draft PR #15 under maintainer review; all 10 fixture-plan entries execute PASS locally (see the PR description for the run record).\
 **Scope:** Compiler / static linking only  
 **Task branch:** `feat/compiler-v1alpha4-wp3a-dependency-identity-20261116`  
 **Required PR base:** `feat/compiler-v1alpha4-wp2-yaml-ast-20261116`

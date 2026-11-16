@@ -1,0 +1,12 @@
+predicates:
+  example.ue.registered:
+    parameters:
+      - registration: ca::urn:example:ca:registration:v1
+    evidence:
+      requires:
+        registration: [ca::ue.registration-state]
+    evaluator:
+      type: cel
+      expression: >-
+        registration.state == "REGISTERED" &&
+        registration.accessState == "ACTIVE"

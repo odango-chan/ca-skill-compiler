@@ -1,0 +1,19 @@
+start: inspect-registration
+nodes:
+  inspect-registration:
+    observation:
+      tool: ca::ue.registration.current
+      arguments:
+        ueRef: context.ueRef
+      routes:
+        FAILED: FAILED
+        UNKNOWN: UNRESOLVED
+    postcondition:
+      predicates:
+        - predicate: example.ue.registered
+          arguments:
+            - inspect-registration.observation.output
+      routes:
+        PASS: SUCCEEDED
+        FAIL: FAILED
+        UNKNOWN: UNRESOLVED

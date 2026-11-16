@@ -1,0 +1,17 @@
+ue.registration-state:
+  authority: example-ue-owner
+  fact: ue.registration
+  producers:
+    - owner: example-ue-owner
+      kind: observation
+      id: ue.registration.current
+      outcome: SUCCEEDED
+      path: output
+  scope:
+    subject: {record: scope.subject, equals: query.ueRef}
+  correlation:
+    invocation: {record: invocationId, equals: execution.invocationId}
+    producerInvocation: {record: producerInvocationId, equals: execution.producerInvocationId}
+  factValue: value
+  selection: {mode: latest, orderBy: observedAt}
+  freshness: {timestamp: observedAt, maxAgeMs: 10000}

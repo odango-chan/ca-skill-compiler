@@ -1,0 +1,7 @@
+goal: ue.registration_verified
+contextSchema: ca-context::urn:example:ca:invocation-context:v1
+dependencies:
+  ca-context: urn:example:ca:host-context
+  ca: urn:example:ca:tools
+capabilities:
+  - example.registration-read

@@ -133,10 +133,10 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 					v4CheckSchema(schemaPath, schemaRoot, errorAt)
 				}
 			}
-			if contractAST.Dependencies != nil {
-				errorAt(contractPath, contractAST.Dependencies, "DEPENDENCY_IDENTITY_UNVERIFIED",
-					"DependencySnapshot linking is not yet implemented; no dependency identity is inferred")
-			}
+			// WP3A: prove Alias -> snapshot digest -> trusted binding -> Stable
+			// Package ID for the selected Skill only. Later stages stay fail-closed.
+			identity := validateV1Alpha4DependencyIdentity(req, sourceAST)
+			diagnostics = append(diagnostics, identity.Diagnostics...)
 			if contractAST.Capabilities != nil {
 				errorAt(contractPath, contractAST.Capabilities, "CAPABILITY_INPUT_UNTRUSTED",
 					"CapabilityContracts linking is not yet implemented; trusted deployment data is not treated as linked")
@@ -150,7 +150,9 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		}
 	}
 
-	if len(diagnostics) == 0 {
+	// A warning alone must not hide the later-stage fail-closed boundary: no
+	// successful Build may be returned while WP3B-WP12 semantics are unimplemented.
+	if !hasErrorDiagnostic(diagnostics) {
 		errorAt("", nil, "CAPABILITY_INPUT_UNTRUSTED",
 			"v1alpha4 semantic linking and Owner qualification are not yet implemented; compilation fails closed")
 	}

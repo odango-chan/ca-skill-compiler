@@ -1,7 +1,7 @@
 {
   "schemaVersion": "connectionagent.io/compiler-conformance-fixture-plan/v1alpha4",
   "taskId": "WP3A-DEPENDENCY-IDENTITY-001",
-  "status": "PLANNED_NOT_EXECUTED",
+  "status": "PASS",
   "normativeAuthority": {
     "repository": "odango-chan/ca-skills",
     "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
@@ -30,7 +30,10 @@
         "The resolved identity tuple is exactly (ca, measuredDigest, P).",
         "Reordering source files, snapshot files, ResolvedDependencies and DependencyBindings does not change the result.",
         "Later unimplemented compiler stages still fail closed; Build is not expected to succeed."
-      ]
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A001PositiveIdentityAndPermutationStability",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
     },
     {
       "id": "WP3A-002",
@@ -48,7 +51,10 @@
         "The primary diagnostic is DEPENDENCY_ID_MISMATCH/C_STATIC.",
         "The diagnostic is attached to the Contract dependency value node.",
         "No filename, package display name or URI-prefix fallback is attempted."
-      ]
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A002DependencyPackageIDMismatch",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
     },
     {
       "id": "WP3A-003",
@@ -66,7 +72,10 @@
         "The primary diagnostic is DEPENDENCY_IDENTITY_UNVERIFIED/C_STATIC.",
         "The diagnostic is attributed to trusted BuildRequest metadata (empty path, line 0, column 0).",
         "No identity is inferred from ToolCatalog metadata or the snapshot contents."
-      ]
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A003MissingTrustedBinding",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
     },
     {
       "id": "WP3A-004",
@@ -83,7 +92,10 @@
       "assertions": [
         "The primary diagnostic is DEPENDENCY_IDENTITY_UNVERIFIED/C_STATIC.",
         "The compiler matches both dependencyId and measured digest; matching dependencyId alone is insufficient."
-      ]
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A004BindingDigestMismatchIsUnverified",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
     },
     {
       "id": "WP3A-005",
@@ -100,7 +112,10 @@
       "assertions": [
         "The primary diagnostic is DEPENDENCY_SNAPSHOT_MISSING/C_STATIC.",
         "Do not replace it with EXPORT_ID_MISSING or SCHEMA_MISSING."
-      ]
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A005UsedAliasSnapshotMissing",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
     },
     {
       "id": "WP3A-006",
@@ -117,7 +132,10 @@
       "assertions": [
         "The primary diagnostic is DEPENDENCY_DUPLICATE/C_STATIC.",
         "Do not select the first matching item or depend on input order."
-      ]
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A006DuplicateSnapshotAndBinding",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
     },
     {
       "id": "WP3A-007",
@@ -134,7 +152,10 @@
       "assertions": [
         "The primary diagnostic is DEPENDENCY_REQUIREMENT_INVALID/C_STATIC.",
         "The diagnostic retains the original Contract YAML key/value source location."
-      ]
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A007DependencyRequirementInvalid",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
     },
     {
       "id": "WP3A-008",
@@ -151,7 +172,10 @@
       "assertions": [
         "The primary diagnostic is DEPENDENCY_ALIAS_MISSING/C_STATIC.",
         "Only frozen source positions are scanned; arbitrary strings containing :: are ignored."
-      ]
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A008UndeclaredAliasReference",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
     },
     {
       "id": "WP3A-009",
@@ -165,7 +189,10 @@
         "The extra snapshot is not parsed, indexed or exposed as a source of callable/Schema exports in WP3A.",
         "The extra snapshot does not create an error solely because it is outside the selected Skill dependency closure.",
         "Request-level raw-byte integrity and resource limits still apply to every supplied snapshot."
-      ]
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A009UnreferencedExtraSnapshot",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
     },
     {
       "id": "WP3A-010",
@@ -183,7 +210,10 @@
         "The diagnostic severity is warning and phase is C_WARNING.",
         "The warning does not independently block Build.",
         "The unused Alias does not enter the selected dependency closure."
-      ]
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A010UnusedDependencyWarning",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
     }
   ]
 }
