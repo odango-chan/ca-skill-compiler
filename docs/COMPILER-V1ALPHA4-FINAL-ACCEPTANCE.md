@@ -81,3 +81,17 @@ Last updated on the WP6 branch; this document must be regenerated as each WP com
 - Machine-readable executed coverage (tests/conformance/v1alpha4/executed-coverage.json) and remaining-work inventory (docs/workstreams/REMAINING-WORK-v1alpha4.json).
 
 All increments verified locally with Go 1.27.4 (test/vet/native/WASM/diff --check = 0). Build remains fail-closed; no v1alpha4 conformance or Owner qualification is claimed.
+
+
+## 8. WP9/WP10 progress after maintainer resume (branch feat/compiler-v1alpha4-wp9-script-abi-20261116, Draft PR #24)
+
+Stack base: WP6 branch at 30f71ca. Commits: 4ebfd56 (WP9 slice 1), 351028d (WP9 slice 2), cfda6d0 (WP9 slice 3), 3f1fd9c (WP10 slice 1), plus status commit.
+
+- WP9 PARTIAL: gositter v0.2.0 Python CST adapter (internal/pythoncst, Python grammar package only, no Python execution, source/node/stall budgets); Script ABI derivation for main(input: InputTypedDict) -> OutputTypedDict with strict nonempty TypedDict output, F.6 Literal/Annotated/NotRequired subset, rejection of untyped input, missing return annotation, extra parameters, duplicates, fields with defaults, 	otal=, broad/unknown types; SCRIPT_CONTRACT_INVALID wiring; Procedure Script call-site required/unknown keys (INPUT_REQUIRED_MISSING / INPUT_TYPE_MISMATCH, E67); F.5 typing of Script argument SourcePaths against the derived input Schema. NOT DONE: PredicateInput projection from parameters + Evidence, Python body key-access (literal existence, NotRequired guards, dynamic-key rejection), PredicateEvaluationResult semantic checks, generated output Schema emission into Build.
+- WP10 PARTIAL: internal/artifact implements the frozen Artifact Contract tree/manifest with JCS (gowebpki/jcs v1.0.2), exact generated Script Output Schema path and  derivation (contract example golden), duplicate/collision rejection, byte-deterministic output, frozen manifest schema validation via San. NOT DONE: assembly is not yet wired into a successful Build (Build remains intentionally fail-closed), and no BuildResult-level artifact determinism test exists yet.
+- Resolved maintainer decision implemented: inline object/array Expression argument values are SOURCE_PATH_INVALID / C_STATIC; legal empty outer rguments: {} / rguments: [] are not rejected.
+- Remaining scoped BLOCKED_NORMATIVE_MAPPING fixtures (Owner observation illegal ownerOutcomes; empty/duplicate evidence.requires; unsupported evaluator.type) stay blocked per ca-skills #59; no diagnostic was invented.
+
+Local evidence (Go 1.27.4): go test ./...=0, go vet=0, Native build=0, Go/WASM build=0, git diff --check=0.
+
+Overall Compiler: INCOMPLETE, NOT_QUALIFIED, Build fail-closed. Next slices: WP9 PredicateInput/key-access, WP10 artifact wiring + determinism through BuildResult, then WP8/WP7 independent checks, WP11 parity, WP12 Studio.
