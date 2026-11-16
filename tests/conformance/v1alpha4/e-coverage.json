@@ -4,8 +4,8 @@
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 53,
-    "notRun": 67,
+    "partial": 60,
+    "notRun": 60,
     "passed": 0
   },
   "cases": [
@@ -119,9 +119,9 @@
     },
     {
       "id": "E19",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "catalog without provides -> PREDICATE_EVIDENCE_UNSATISFIABLE (predicate_evidence_static_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E20",
@@ -305,9 +305,9 @@
     },
     {
       "id": "E50",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "duplicate PredicateId call members are legal (e_route_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E51",
@@ -461,9 +461,9 @@
     },
     {
       "id": "E76",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "non-last READ normal auto-advance legal; last READ missing SUCCEEDED or Owner FAILED route -> ROUTE_OUTCOME_MISSING (e_route_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E77",
@@ -509,15 +509,15 @@
     },
     {
       "id": "E84",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "unpublished NOT_COMMITTED and unlinked Reconcile COMMITTED route keys -> ROUTE_OUTCOME_UNKNOWN (e_route_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E85",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "retry bypass edge and second-generation retryOf -> RETRY_CONTRACT_INVALID (e_route_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E86",
@@ -545,9 +545,9 @@
     },
     {
       "id": "E90",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "invalid GoalId -> IDENTIFIER_INVALID; bare context argument -> SOURCE_PATH_INVALID (e_route_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E91",
@@ -623,9 +623,9 @@
     },
     {
       "id": "E103",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "dependency snapshot digest stable under file order and rejects newline/encoding changes (dependency_snapshot_digest_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E104",
@@ -731,8 +731,8 @@
     }
   ],
   "dispositionSummary": {
-    "partialStaticEvidence": 53,
-    "pendingStaticConformance": 24,
+    "partialStaticEvidence": 60,
+    "pendingStaticConformance": 17,
     "notApplicableToCompiler": 43,
     "claimedPass": 0,
     "note": "PENDING_STATIC_CONFORMANCE means the frozen case lists the compiler as an owner but no executed fixture variant exists yet. NOT_APPLICABLE_TO_COMPILER means the case is Host/Runtime-only. No case is claimed PASS."
