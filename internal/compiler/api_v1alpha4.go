@@ -312,6 +312,10 @@ func validateBuildRequest(req BuildRequest) []Diagnostic {
 	var total totals
 	validateFileSet := func(files []File, source bool, scope string) bool {
 		valid := true
+		if len(files) > maxFiles {
+			add("INPUT_LIMIT", "", scope+" exceeds the 512-file per-set limit")
+			valid = false
+		}
 		seen := make(map[string]bool, len(files))
 		for _, file := range files {
 			total.files++
