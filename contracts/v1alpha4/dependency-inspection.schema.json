@@ -30,8 +30,7 @@
           "severity": {
             "enum": [
               "error",
-              "warning",
-              "info"
+              "warning"
             ]
           },
           "code": {
@@ -62,7 +61,47 @@
             "minLength": 1,
             "maxLength": 8192
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "phase": {
+                  "const": "C_STATIC"
+                }
+              },
+              "required": [
+                "phase"
+              ]
+            },
+            "then": {
+              "properties": {
+                "severity": {
+                  "const": "error"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "phase": {
+                  "const": "C_WARNING"
+                }
+              },
+              "required": [
+                "phase"
+              ]
+            },
+            "then": {
+              "properties": {
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "callables": {
