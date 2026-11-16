@@ -52,6 +52,12 @@ After the Tool contract exists:
 
 A Capability is a deployment authorization grouping of exact callable identities and Effects. It is not a 3GPP Service Operation and it is not the Skill's business workflow.
 
+### 4.1 Local processing and Host-internal coordination
+
+A 3GPP procedure step labelled **Local processing** is not automatically a missing Tool or Capability. If it is deterministic selection, validation, transformation or construction of the next external Request, represent it as a Skill-owned Procedure Script under the same relevant business Node (or a distinct Node only where it is a genuine business-step boundary). The Script's output is then bound explicitly to the next Operation's arguments. Do not invent a Capability just to make local computation appear as an external call.
+
+Host-internal coordination primitives such as hold/reservation, lease bookkeeping, Invocation state, authorization checks, Action Budget accounting and the dedicated Mutation reconciliation mechanism are not 3GPP service operations and are not author-visible Procedure stages or Nodes. They remain Host/Runtime implementation details governed by Owner and Host contracts. In particular, do not add a visible `hold` Node, an author `wait` stage, or an artificial 3GPP request/response to represent internal coordination. The Procedure graph should show the SMF's standard external interactions and the local computation that prepares them—not the Host's internal machinery.
+
 ## 5. Required traceability record
 
 For each Tool export, maintain an Owner-side mapping record containing:
