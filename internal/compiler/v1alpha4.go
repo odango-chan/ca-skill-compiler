@@ -125,6 +125,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			if scalar(contractAST.Goal) == "" {
 				errorAt(contractPath, contract, "SOURCE_ROOT_INVALID", "Contract requires goal")
 			}
+			validateV1Alpha4ContractLimits(contractPath, contractAST, errorAt)
 			if gate := contractAST.Precondition; gate != nil {
 				if gate.Kind != yaml.ScalarNode || gate.Tag != "!!str" || !v4ContractGate.MatchString(gate.Value) {
 					errorAt(contractPath, gate, "ENTRY_PRECONDITION_REF_INVALID", "precondition is one scalar node.precondition, not a list")
