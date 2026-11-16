@@ -209,6 +209,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
 			v4CheckPredicateCEL(predicatesPath, sourceAST.Predicates, errorAt)
 			validateV1Alpha4EvidenceRequirements(predicatesPath, sourceAST.Predicates, errorAt)
+			validateV1Alpha4IndependenceGroups(predicatesPath, sourceAST.Predicates, errorAt)
 			validateV1Alpha4PredicateScriptEvaluators(sourceAST, files, predicatesPath, errorAt)
 			validateV1Alpha4InlineArgumentExpressions(sourceAST, procedurePath, errorAt)
 			validateV1Alpha4ScriptArguments(sourceAST, scriptSchemas.Inputs, procedurePath, errorAt)

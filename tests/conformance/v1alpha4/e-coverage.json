@@ -4,8 +4,8 @@
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 23,
-    "notRun": 97,
+    "partial": 24,
+    "notRun": 96,
     "passed": 0
   },
   "cases": [
@@ -536,8 +536,8 @@
     },
     {
       "id": "E106",
-      "status": "NOT_RUN",
-      "evidence": ""
+      "status": "PARTIAL",
+      "evidence": "independence-group structural linking: valid pairs, pair outside requires, single-member group, duplicate member -> EVIDENCE_GUARANTEE_LINK_INVALID; runtime same-record UNKNOWN is Host-side"
     },
     {
       "id": "E107",
