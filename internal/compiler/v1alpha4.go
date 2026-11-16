@@ -19,109 +19,127 @@ var v4Terminals = map[string]bool{"SUCCEEDED":true,"FAILED":true,"SAFE_STOPPED":
 var v4Stages = map[string]bool{"precondition":true,"operation":true,"observation":true,"postcondition":true}
 var v4ContractFields = map[string]bool{"goal":true,"precondition":true,"requestSchema":true,"contextSchema":true,"dependencies":true,"capabilities":true,"limits":true}
 var v4PredicateFields = map[string]bool{"parameters":true,"evidence":true,"evaluator":true}
-// CheckV1Alpha4 performs local source-structure checks and then fails closed
-// when exact trusted Owner/CapabilityContracts inputs are unavailable.
-// It is called only for an explicit BuildRequest.LanguageTarget.
+// CheckV1Alpha4 is a convenience wrapper around the only accepted v1alpha4 API.
 func CheckV1Alpha4(req BuildRequest) []Diagnostic {
-	return validateV1Alpha4(req).Diagnostics
+	return Check(req)
 }
 
 func validateV1Alpha4(req BuildRequest) BuildResult {
-	diagnostics:=make([]Diagnostic,0)
-	errorAt:=func(file string,n *yaml.Node,code,message string){
-		line,column:=0,0
-		if n!=nil {line,column=n.Line,n.Column}
-		diagnostics=append(diagnostics,Diagnostic{
-			Severity:"error",Phase:"C_STATIC",Code:code,
-			Path:limitDiagnosticPath(file),Line:line,Column:column,
-			Message:limitDiagnosticMessage(message),
+	diagnostics := make([]Diagnostic, 0)
+	errorAt := func(file string, n *yaml.Node, code, message string) {
+		line, column := 0, 0
+		if n != nil {
+			line, column = n.Line, n.Column
+		}
+		diagnostics = append(diagnostics, Diagnostic{
+			Severity: "error",
+			Phase:    "C_STATIC",
+			Code:     code,
+			Path:     limitDiagnosticPath(file),
+			Line:     line,
+			Column:   column,
+			Message:  limitDiagnosticMessage(message),
 		})
 	}
-	if req.LanguageTarget!=V1Alpha4Target {
-		errorAt("",nil,"LANGUAGE_TARGET_UNSUPPORTED","Unsupported CA-SL target: "+req.LanguageTarget)
-		return BuildResult{Success:false,Diagnostics:diagnostics,OutputFiles:[]File{}}
+	if req.LanguageTarget != V1Alpha4Target {
+		errorAt("", nil, "LANGUAGE_TARGET_UNSUPPORTED", "Unsupported CA-SL target: "+req.LanguageTarget)
+		return failedBuildResult(diagnostics)
 	}
-	files:=map[string][]byte{}
-	skillNames:=map[string]bool{}
-	for _,file:=range req.Files {
-		if !validPath(file.Path) || path.Clean(file.Path)!=file.Path {
-			errorAt(file.Path,nil,"PACKAGE_PATH_INVALID","Input must use normalized logical skills/<name> or declared dependency paths")
+
+	files := make(map[string][]byte, len(req.Files))
+	skillNames := make(map[string]bool)
+	for _, file := range req.Files {
+		if !validSourcePath(file.Path) {
+			errorAt(file.Path, nil, "PACKAGE_PATH_INVALID", "Input must use a normalized skills/<skill-name>/... source path")
 			continue
 		}
-		if _,ok:=files[file.Path];ok {
-			errorAt(file.Path,nil,"YAML_PARSE_ERROR","Duplicate input file path")
+		if _, exists := files[file.Path]; exists {
+			errorAt(file.Path, nil, "PACKAGE_PATH_INVALID", "Duplicate source file path")
 			continue
 		}
-		if len(file.Bytes)>maxFileSize {
-			errorAt(file.Path,nil,"YAML_PARSE_ERROR","File exceeds supported size")
+		if len(file.Bytes) > maxFileSize {
+			errorAt(file.Path, nil, "INPUT_LIMIT", "File exceeds the 2 MiB raw byte limit")
 			continue
 		}
-		files[file.Path]=file.Bytes
-		parts:=strings.Split(file.Path,"/")
-		if len(parts)>2 && parts[0]=="skills" {skillNames[parts[1]]=true}
+		files[file.Path] = file.Bytes
+		parts := strings.Split(file.Path, "/")
+		skillNames[parts[1]] = true
 	}
-	if len(skillNames)==0 {
-		errorAt("",nil,"SOURCE_ROOT_INVALID","No logical Skill package rooted at skills/<name>")
+	if len(skillNames) == 0 {
+		errorAt("", nil, "SOURCE_ROOT_INVALID", "No logical Skill package rooted at skills/<name>")
 	}
-	names:=make([]string,0,len(skillNames))
-	for name:=range skillNames {names=append(names,name)}
+
+	selected := make(map[string]bool)
+	if len(req.Targets) == 0 {
+		for name := range skillNames {
+			selected[name] = true
+		}
+	} else {
+		for _, target := range req.Targets {
+			if !skillNames[target] {
+				errorAt("", nil, "SOURCE_ROOT_INVALID", "Selected Skill target does not exist in BuildRequest.files: "+target)
+				continue
+			}
+			selected[target] = true
+		}
+	}
+	names := make([]string, 0, len(selected))
+	for name := range selected {
+		names = append(names, name)
+	}
 	sort.Strings(names)
-	for _,name:=range names {
-		base:="skills/"+name+"/"
-		contractPath:=base+"assurance/contract.yaml"
-		procedurePath:=base+"assurance/procedure.yaml"
-		predicatesPath:=base+"assurance/predicates.yaml"
-		if files[base+"SKILL.md"]==nil {
-			errorAt(base+"SKILL.md",nil,"SOURCE_ROOT_INVALID","SKILL.md missing")
+
+	for _, name := range names {
+		base := "skills/" + name + "/"
+		contractPath := base + "assurance/contract.yaml"
+		procedurePath := base + "assurance/procedure.yaml"
+		predicatesPath := base + "assurance/predicates.yaml"
+		if files[base+"SKILL.md"] == nil {
+			errorAt(base+"SKILL.md", nil, "SOURCE_ROOT_INVALID", "SKILL.md missing")
 		}
-		contract:=v4ParseYAML(contractPath,files[contractPath],errorAt)
-		procedure:=v4ParseYAML(procedurePath,files[procedurePath],errorAt)
-		predicates:=v4ParseYAML(predicatesPath,files[predicatesPath],errorAt)
-		if contract!=nil {
-			v4Allowed(contract,contractPath,v4ContractFields,errorAt)
-			if scalar(child(contract,"goal"))=="" {
-				errorAt(contractPath,contract,"SOURCE_ROOT_INVALID","Contract requires goal")
+		contract := v4ParseYAML(contractPath, files[contractPath], errorAt)
+		procedure := v4ParseYAML(procedurePath, files[procedurePath], errorAt)
+		predicates := v4ParseYAML(predicatesPath, files[predicatesPath], errorAt)
+		if contract != nil {
+			v4Allowed(contract, contractPath, v4ContractFields, errorAt)
+			if scalar(child(contract, "goal")) == "" {
+				errorAt(contractPath, contract, "SOURCE_ROOT_INVALID", "Contract requires goal")
 			}
-			if gate:=child(contract,"precondition");gate!=nil {
-				if gate.Kind!=yaml.ScalarNode || gate.Tag!="!!str" || !v4ContractGate.MatchString(gate.Value) {
-					errorAt(contractPath,gate,"ENTRY_PRECONDITION_REF_INVALID","precondition is one scalar node.precondition, not a list")
+			if gate := child(contract, "precondition"); gate != nil {
+				if gate.Kind != yaml.ScalarNode || gate.Tag != "!!str" || !v4ContractGate.MatchString(gate.Value) {
+					errorAt(contractPath, gate, "ENTRY_PRECONDITION_REF_INVALID", "precondition is one scalar node.precondition, not a list")
 				}
 			}
-			if request:=child(contract,"requestSchema");request!=nil {
-				ref:=scalar(request)
-				if !strings.HasPrefix(ref,"schemas/") || files[base+ref]==nil {
-					errorAt(contractPath,request,"REQUEST_SCHEMA_MISSING","Skill-owned request Schema is missing")
-				}else{
-					v4CheckSchema(base+ref,files[base+ref],errorAt)
+			if request := child(contract, "requestSchema"); request != nil {
+				ref := scalar(request)
+				if !strings.HasPrefix(ref, "schemas/") || files[base+ref] == nil {
+					errorAt(contractPath, request, "REQUEST_SCHEMA_MISSING", "Skill-owned request Schema is missing")
+				} else {
+					v4CheckSchema(base+ref, files[base+ref], errorAt)
 				}
 			}
-			// A manifest alias string is never proof of the published Owner.
-			if child(contract,"dependencies")!=nil {
-				errorAt(contractPath,child(contract,"dependencies"),"DEPENDENCY_IDENTITY_UNVERIFIED",
-					"Trusted DependencySnapshot Package ID/Owner/digest bindings are not yet supported by this v1alpha4 Compiler slice")
+			if child(contract, "dependencies") != nil {
+				errorAt(contractPath, child(contract, "dependencies"), "DEPENDENCY_IDENTITY_UNVERIFIED",
+					"DependencySnapshot linking is not yet implemented; no dependency identity is inferred")
 			}
-			if child(contract,"capabilities")!=nil {
-				errorAt(contractPath,child(contract,"capabilities"),"CAPABILITY_INPUT_UNTRUSTED",
-					"Exact trusted v1alpha4 CapabilityContracts deployment inputs are not yet supported")
+			if child(contract, "capabilities") != nil {
+				errorAt(contractPath, child(contract, "capabilities"), "CAPABILITY_INPUT_UNTRUSTED",
+					"CapabilityContracts linking is not yet implemented; trusted deployment data is not treated as linked")
 			}
 		}
-		if predicates!=nil {v4CheckPredicates(predicatesPath,predicates,errorAt)}
-		if procedure!=nil {v4CheckProcedure(procedurePath,procedure,contract,errorAt)}
+		if predicates != nil {
+			v4CheckPredicates(predicatesPath, predicates, errorAt)
+		}
+		if procedure != nil {
+			v4CheckProcedure(procedurePath, procedure, contract, errorAt)
+		}
 	}
-	sort.Slice(diagnostics,func(i,j int)bool{
-		a,b:=diagnostics[i],diagnostics[j]
-		if a.Path!=b.Path{return a.Path<b.Path}
-		if a.Line!=b.Line{return a.Line<b.Line}
-		if a.Column!=b.Column{return a.Column<b.Column}
-		return a.Code<b.Code
-	})
-	// A good source shape is NOT a successful Build. Do not emit artifacts
-	// until the exact Owner/Schema/Evidence link closure is actually verified.
-	if len(diagnostics)==0 {
-		errorAt("",nil,"CAPABILITY_INPUT_UNTRUSTED",
-			"v1alpha4 semantic/link/Owner qualification is unavailable in this Compiler slice")
+
+	if len(diagnostics) == 0 {
+		errorAt("", nil, "CAPABILITY_INPUT_UNTRUSTED",
+			"v1alpha4 semantic linking and Owner qualification are not yet implemented; compilation fails closed")
 	}
-	return BuildResult{Success:false,Diagnostics:diagnostics,OutputFiles:[]File{}}
+	return failedBuildResult(diagnostics)
 }
 
 func v4ParseYAML(file string,data []byte,add func(string,*yaml.Node,string,string))*yaml.Node{
