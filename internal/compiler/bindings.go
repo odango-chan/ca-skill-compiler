@@ -1386,11 +1386,11 @@ func schemaNode(v any) *yaml.Node {
 	if e != nil {
 		return nil
 	}
-	var doc yaml.Node
-	if yaml.Unmarshal(b, &doc) != nil || len(doc.Content) == 0 {
+	node, err := yaml.ParseValue(b)
+	if err != nil {
 		return nil
 	}
-	return doc.Content[0]
+	return node
 }
 func schemaProperty(schema *yaml.Node, name string) *yaml.Node {
 	schema = unalias(schema)
