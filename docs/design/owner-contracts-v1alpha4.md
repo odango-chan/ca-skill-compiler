@@ -91,6 +91,14 @@ The producer must match the actual ToolCatalog callable, kind, Owner Outcome and
 
 Compiler must not invent an Evidence Descriptor from ToolCatalog output Schema or infer guarantees from a field name. Missing descriptors or missing Producer links fail closed.
 
+## 4.1 Evidence Descriptor physical-format boundary
+
+CA-SL F.0/F.3 freezes the logical Evidence Guarantee properties but does not invent a universal Evidence Descriptor apiVersion or a v1alpha4 physical file schema. The actual Evidence Owner must publish an explicitly versioned, trusted descriptor format inside its dependency package. Compiler must pin and validate that exact external format before parsing its descriptor exports.
+
+The BuildRequest-owned EvidenceTrustBindings document is a different artifact: it carries deployment authorization for IndependentDomains and cross-Owner common-fact relations. It is not the Evidence Guarantee descriptor and cannot replace it.
+
+Do not create a generic descriptor schema by guessing the shape of authority, fact, Scope, Correlation or factValue. Until a real Owner publishes a consumable descriptor format, Evidence-dependent linking remains fail-closed and cannot be marked qualified.
+
 ## 5. Identity-input provenance is not a new ToolCatalog field
 
 CA-SL §13.3/F.1 defines the logical Owner annotation needed to identify Subject, Session, Lifecycle, Correlation and resource input paths. The frozen specification explicitly does **not** define a physical identityInputs field.
