@@ -1,6 +1,6 @@
 # BuildRequest v1alpha4
 
-**Status:** proposed Compiler API transport contract for review; not yet an implemented or qualified API. Machine-readable schema: [build-request.schema.json](../../contracts/v1alpha4/build-request.schema.json).
+**Status:** FROZEN Compiler-owned API transport contract for implementation. **Implementation conformance:** NOT_QUALIFIED until executable CI evidence exists. Machine-readable schema: [build-request.schema.json](../../contracts/v1alpha4/build-request.schema.json).
 
 ## 1. Two independent versions
 
