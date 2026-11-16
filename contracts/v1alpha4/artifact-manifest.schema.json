@@ -140,10 +140,12 @@
                   "maxLength": 160
                 }
               }
-            }
+            },
+            "uniqueItems": true
           }
         }
-      }
+      },
+      "uniqueItems": true
     }
   }
 }
