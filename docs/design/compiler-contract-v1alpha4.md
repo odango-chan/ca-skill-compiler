@@ -101,20 +101,46 @@ Internal package boundaries may differ, but observable diagnostics and results m
 
 Only a final Postcondition aggregate PASS directly routed to SUCCEEDED is a successful completion path. A local Postcondition PASS is not final Goal proof.
 
-## 7. Schema semantics
+## 7. Schema and CEL semantics
 
-CA-SL v1alpha4 does not mean “accept every Draft 2020-12 keyword.” The compiler must implement exactly the supported G.4 subset:
+CA-SL v1alpha4 does not mean “accept every Draft 2020-12 keyword.” Compiler must implement exactly G.4.
+
+### 7.1 Schema allowlist
+
+The only validation keywords are:
 - $ref, type, properties, required, additionalProperties, items;
 - minItems, maxItems, minLength, maxLength;
 - minimum, maximum, exclusiveMinimum, exclusiveMaximum;
-- enum, const;
-- annotations $schema, $id, title, description, default, examples.
+- enum, const.
 
-The exact dialect URI is mandatory. $defs, definitions, JSON Pointer fragments, pattern, format, composition keywords, dynamic references, extension keywords and unknown keywords are rejected. Do not ignore unsupported keywords or use a general validator's broader acceptance as proof of CA-SL compatibility.
+The only non-assertion annotations are:
+- $schema, $id, title, description, default, examples.
 
-For a binding, prove Source ⊆ Target. Integer-to-number is allowed where the normative rule permits it; reverse coercion, string/number coercion, implicit defaults and nullable-to-nonnullable binding are not. Required keys, optional keys, enum/const, ranges, string limits and array constraints must be checked conservatively.
+Every participating Schema root MUST explicitly declare the exact Draft 2020-12 dialect URI. The type value is one scalar type or exactly [T, "null"]; arbitrary unions are forbidden. required is a unique subset of properties. additionalProperties is only true or false; a SourcePath-addressable object must be closed. items is one Schema, not a tuple array. A $ref is an independent reference object and may only be accompanied by the permitted annotations.
 
-The Schema Engine implementation is deliberately not selected by this document. PR #8's library spike is technical evidence, not production adoption. Do not add a production Schema dependency or broaden the supported keyword set without a separate reviewed decision.
+Reject $defs, definitions, JSON Pointer fragments, allOf, anyOf, oneOf, not, if/then/else, pattern, patternProperties, unevaluatedProperties, contains, prefixItems, format, dynamic references, extension keywords and every unknown keyword. Do not ignore unsupported keywords or use a general validator's broader acceptance as proof of CA-SL compatibility.
+
+For a binding, prove Source ⊆ Target. Integer-to-number is allowed for JSON Schema assignment where F.5 permits it; reverse coercion, string/number coercion, implicit defaults and nullable-to-nonnullable binding are not. Required keys, optional keys, enum/const, ranges, string limits and array constraints must be checked conservatively. Default is annotation only and never materializes a value.
+
+### 7.2 CEL subset and type checking
+
+CEL is not “whatever the selected CEL library accepts.” The exact v1alpha4 expression subset is:
+- declared parameters and deterministic scalar constants;
+- static field dot access;
+- parentheses;
+- boolean !, && and ||;
+- equality / inequality;
+- same-numeric-type ordering comparisons;
+- has(x.field);
+- size(x) for string / array.
+
+Reject other calls, macros, comprehensions, loops, array indexing, object construction, dynamic member names, reflection, time, randomness and external data. The expression's result type must be statically boolean.
+
+Compiler must statically check every field path and operand type. Optional fields may be read only when the same short-circuit expression proves presence with has. Nullable fields require a non-null guard. A Predicate PASS does not narrow an optional field for later SourcePath use.
+
+CEL int is signed 64-bit; CEL double is finite IEEE-754 binary64. CEL int and double do not mix implicitly. When an integer JSON Schema source is bound to a CEL number parameter, Compiler must prove it lies in the exact safe-integer range required by G.4. Runtime overflow, non-finite values, unverified numeric serialization or evaluation exceptions produce UNKNOWN, never PASS.
+
+The Schema Engine and CEL parser/evaluator implementation choices are not selected by this contract. They must implement this exact language profile and pass the pinned fixtures. PR #8's Schema library spike is technical evidence, not production adoption. Do not add a production Schema dependency or broaden the supported keyword/expression set without a separately reviewed decision.
 
 ## 8. Tool and Capability semantics
 
