@@ -205,6 +205,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			validateV1Alpha4ProcedureStageRoutes(procedurePath, sourceAST.Procedure, errorAt)
 			validateV1Alpha4ScriptPaths(sourceAST, files, procedurePath, errorAt)
 			validateV1Alpha4RetryContracts(sourceAST, procedurePath, errorAt)
+			validateV1Alpha4QualifiedCallableReferences(sourceAST, procedurePath, errorAt)
 			validateV1Alpha4SourcePaths(procedurePath, sourceAST, errorAt)
 		}
 	}
