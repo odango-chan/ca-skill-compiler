@@ -19,6 +19,21 @@
       "expectedDigest": "sha256:f9a26e8cceb4db7d36eb7e3905c73b1b166ff03bcb96a77297571e715020bfbc"
     },
     {
+      "name": "same-file-set-reversed-input-order",
+      "dependencyId": "renamed-alias",
+      "files": [
+        {
+          "path": "schemas/a.json",
+          "bytes": "eyJ0eXBlIjoic3RyaW5nIn0K"
+        },
+        {
+          "path": "tools/catalog.yaml",
+          "bytes": "YXBpVmVyc2lvbjogdjEK"
+        }
+      ],
+      "expectedDigest": "sha256:f9a26e8cceb4db7d36eb7e3905c73b1b166ff03bcb96a77297571e715020bfbc"
+    },
+    {
       "name": "empty-file-content-is-valid",
       "dependencyId": "empty-fixture",
       "files": [
