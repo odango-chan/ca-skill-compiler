@@ -27,9 +27,10 @@ Compiler MUST accept only the frozen v1alpha4 shape:
 Reject duplicate YAML keys, duplicate stages, unknown fields, invalid identifiers, invalid qualified references and noncanonical scalar literals.
 
 Do not accept or translate:
-- call, with, target;
-- operation.reconcile, operation.resolve, standalone Reconcile nodes;
-- postconditions / preconditions as alternate field spellings;
+- legacy v0.2 call / with / implicit verify constructs (diagnose the exact recognized legacy construct as UNSUPPORTED_V02_SYNTAX);
+- Wait / Await control structures (UNSUPPORTED_WAIT);
+- operation.target, observation.target, operation.reconcile and operation.resolve (UNKNOWN_FIELD; do not rewrite target as tool or expose Host reconciliation as an author stage);
+- postconditions / preconditions as alternate field spellings (UNKNOWN_FIELD);
 - Node-level goal;
 - per-Predicate route maps;
 - implicit previous-node outputs, implicit global Context or dynamic path expressions.
