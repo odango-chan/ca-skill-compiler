@@ -176,7 +176,7 @@ Do not implement these in WP3A:
 - `internal/compiler/dependency_identity_integration_test.go` (new, if needed);
 - `tests/conformance/v1alpha4/fixtures/dependency-identity/**` (new fixture files);
 - `tests/conformance/v1alpha4/wp3a-fixture-plan.json` (update status/actual fixture paths only; do not change expected semantics);
-- `docs/workstreams/wp3a-dependency-identity-v1alpha4.md` (update implementation status and run record only).
+- `docs/workstreams/wp3a-dependency-identity-v1alpha4.md` (update implementation status only; put the run record in the Draft PR description).
 
 ### Forbidden paths
 
