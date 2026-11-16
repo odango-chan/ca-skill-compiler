@@ -13,9 +13,18 @@ spec:
         $ref: urn:example:ca:registration-query:v1
       outputSchema:
         $ref: urn:example:ca:registration:v1
+      receiptSchema:
+        $ref: urn:example:ca:registration:v1
       mutation:
+        commitProof:
+          schema: urn:example:ca:registration:v1
+          path: receipt.commit
+          bind: originalInvocationId
         reconcile:
           callable: example.session.reconcile
+          bind: originalInvocationId
+          proofSchema: urn:example:ca:registration:v1
+          proofPath: receipt.commit
     - kind: operation
       id: example.session.reconcile
       effect: READ
@@ -23,4 +32,6 @@ spec:
       inputSchema:
         $ref: urn:example:ca:registration-query:v1
       outputSchema:
+        $ref: urn:example:ca:registration:v1
+      receiptSchema:
         $ref: urn:example:ca:registration:v1

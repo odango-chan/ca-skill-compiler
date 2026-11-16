@@ -38,6 +38,9 @@ type linkedExport struct {
 	// ReconcileTarget is the same-snapshot dedicated Reconcile READ ExportId
 	// declared by a Mutation contract. It is never an ordinary author callable.
 	ReconcileTarget string
+	// MutationProblem records the first missing/invalid Mutation-contract identity
+	// requirement (WP8 slice 1); empty means the identity requirements are present.
+	MutationProblem string
 }
 
 type ownerLinkingResult struct {
@@ -401,6 +404,7 @@ func parseToolCatalogCallable(node *yaml.Node, owner, sourcePath string) (linked
 					export.ReconcileTarget = target
 				}
 			}
+			export.MutationProblem = mutationContractProblem(node)
 		}
 	case "observation":
 		queryContextSchemaID, ok := schemaRefID(child(node, "queryContextSchema"))
