@@ -33,6 +33,9 @@ func TestNoLegacyYAMLParser(t *testing.T) {
 		if !strings.HasSuffix(path, ".go") {
 			return nil
 		}
+		if strings.HasSuffix(path, "single_parser_test.go") {
+			return nil
+		}
 		content, err := os.ReadFile(path)
 		if err != nil {
 			return err
