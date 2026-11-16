@@ -1,6 +1,6 @@
 package compiler
 
-import "gopkg.in/yaml.v3"
+import yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 
 // SourceSpan is the source location retained by the parsed Skill AST.
 type SourceSpan struct {
