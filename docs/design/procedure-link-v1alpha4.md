@@ -141,7 +141,7 @@ If trusted IndependentDomains / common-fact bindings are required and unavailabl
 
 ## 8. Mutation, Reconcile and retry
 
-The Skill author writes a normal operation.tool and, only where allowed, retryOf. There is no author-level Reconcile operation or third stage.
+The Skill author writes a normal operation.tool and, only where the frozen retry rules permit it, retryOf on a distinct later Mutation Node. A retry must follow the original Mutation's proven NOT_COMMITTED edge, preserve the original business identity / Scope / Correlation / Lifecycle binding, target a compatible callable and consume the one permitted retry for that logical Mutation family. A retry Node cannot itself be retried. There is no author-level Reconcile operation or third stage.
 
 The Tool Owner publishes Mutation receipt/commit/failure/resource/reconcile contracts. Compiler validates:
 - receipt Schema roots and the receipt. / output. channel anchors;
