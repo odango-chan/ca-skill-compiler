@@ -1,3 +1,7 @@
+> **HISTORICAL — NOT A v1alpha4 CONTRACT.** The schemas in this directory remain for reproducibility of the former v0.1 design only. New integrations MUST use [contracts/v1alpha4](../v1alpha4/README.md). No v0.1 fallback or automatic conversion is supported.
+
+---
+
 # Skill Compiler v0.1 machine contracts
 
 **Compiler-only contract.** No project settings, dependency resolver, package manager, source acquisition, lockfile, snapshot store or cache API is defined here.
