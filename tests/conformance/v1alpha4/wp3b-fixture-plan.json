@@ -1,0 +1,210 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-fixture-plan/v1alpha4",
+  "taskId": "WP3B-OWNER-EXPORT-001",
+  "status": "PASS",
+  "note": "Agent-proposed bounded WP3B envelope; see docs/workstreams/wp3b-owner-export-linking-v1alpha4.md. Frozen Harness profile still lists WP3B as maintainer-queued; this inventory records the executed fixtures for Draft PR review.",
+  "normativeAuthority": {
+    "repository": "odango-chan/ca-skills",
+    "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
+    "file": "docs/skill-language-spec.v1alpha4.zh-CN.md",
+    "blob": "b70064c5737b8ee2b3d1435fe496357f44b42773"
+  },
+  "rules": {
+    "expectedDiagnosticIdentity": "exact (Code, Phase)",
+    "compilerErrorPhase": "C_STATIC",
+    "importedContractDiagnosticsUseEmptyPathAndZeroLocation": true,
+    "skillReferenceDiagnosticsRetainOriginalYamlLocation": true,
+    "noNewDiagnosticCodes": true,
+    "positiveCasesDoNotQualifyWholeCompiler": true
+  },
+  "fixtures": [
+    {
+      "id": "WP3B-001",
+      "title": "Positive ToolCatalog/Schema export identity and trusted Owner attribution",
+      "appendixE": "E01",
+      "category": "positive",
+      "input": "Appendix E.1-E.4 baseline with one accepted single-Owner Host Context snapshot and one accepted single-Owner ToolCatalog snapshot.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "No WP3B diagnostic is emitted.",
+        "Every referenced callable, Schema and Evidence Guarantee export is indexed exactly once with its trusted Owner.",
+        "Callable kind, Effect, Schema references and Owner Outcomes are retained for later work packages.",
+        "Later unimplemented stages still fail closed; Build is not expected to succeed.",
+        "Snapshot file ordering does not change attribution or diagnostics."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3B001PositiveExportIdentity",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3B-002",
+      "title": "ToolCatalog metadata.owner is not a trusted authorized Owner",
+      "appendixE": "E05",
+      "category": "negative",
+      "input": "Change the ToolCatalog metadata.owner to example-untrusted-owner; recompute the snapshot digest and binding digest.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_OWNER_MISMATCH",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one DEPENDENCY_OWNER_MISMATCH/C_STATIC is emitted.",
+        "The diagnostic uses an empty path and zero line/column (imported-contract failure).",
+        "No Owner is inferred from a filename or display name.",
+        "Build remains failure-atomic."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3B002OwnerNotAuthorizedE05",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3B-003",
+      "title": "Multi-Owner snapshot lacks attribution for a referenced export",
+      "appendixE": "E39",
+      "category": "negative",
+      "input": "Use the Appendix E multi-Owner baseline (two authorized Owners plus explicit attribution for every referenced export), then remove the attribution for the referenced registration Schema.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_EXPORT_OWNER_UNVERIFIED",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "The valid multi-Owner baseline links without a WP3B diagnostic.",
+        "Exactly one DEPENDENCY_EXPORT_OWNER_UNVERIFIED/C_STATIC is emitted for the missing attribution.",
+        "The diagnostic uses an empty path and zero line/column.",
+        "First-match or single-Owner fallback is not attempted."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3B003MultiOwnerMissingAttributionE39",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3B-004",
+      "title": "Unique trusted attribution names an unauthorized Owner",
+      "appendixE": "E43",
+      "category": "negative",
+      "input": "Use the Appendix E multi-Owner baseline and change the registration Schema attribution Owner to example-untrusted-owner.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_OWNER_MISMATCH",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one DEPENDENCY_OWNER_MISMATCH/C_STATIC is emitted.",
+        "The diagnostic uses an empty path and zero line/column.",
+        "The unauthorized Owner is not silently accepted because the export was uniquely attributed."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3B004MultiOwnerUnauthorizedOwnerE43",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3B-005",
+      "title": "Duplicate callable ID across ToolCatalog files in one snapshot",
+      "appendixE": "E91",
+      "category": "negative",
+      "input": "Add a second valid ToolCatalog file to the trusted ca snapshot declaring the same callable ID ue.registration.current with a different kind.",
+      "expectedDiagnostics": [
+        {
+          "code": "EXPORT_ID_AMBIGUOUS",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one EXPORT_ID_AMBIGUOUS/C_STATIC is emitted.",
+        "Duplicate identity is not resolved by kind, Owner or file order.",
+        "The ambiguous identity is not also reported as missing."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3B005DuplicateCallableIDE91",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3B-006",
+      "title": "Referenced callable export does not exist",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Change observation.tool to ca::ue.registration.missing while the trusted snapshot is valid.",
+      "expectedDiagnostics": [
+        {
+          "code": "EXPORT_ID_MISSING",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one EXPORT_ID_MISSING/C_STATIC is emitted.",
+        "The diagnostic retains the original procedure.yaml source path/line/column.",
+        "No ExportId is guessed from the catalog file or a prefix."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3B006MissingCallableExport",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3B-007",
+      "title": "Referenced Schema $id does not exist in the selected snapshot",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Change the Predicate parameter QualifiedSchemaId to ca::urn:example:ca:missing:v1.",
+      "expectedDiagnostics": [
+        {
+          "code": "SCHEMA_MISSING",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one SCHEMA_MISSING/C_STATIC is emitted.",
+        "The diagnostic retains the original predicates.yaml source path/line/column.",
+        "Schema identity is matched by exact $id, not by file name."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3B007MissingSchemaExport",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3B-008",
+      "title": "Callable exists but not with the required kind",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Change the catalog callable from kind observation to kind operation and observation.tool keeps referencing it.",
+      "expectedDiagnostics": [
+        {
+          "code": "EXPORT_ID_MISSING",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one EXPORT_ID_MISSING/C_STATIC is emitted.",
+        "An operation export cannot satisfy an Observation reference.",
+        "No new diagnostic code is invented for the kind mismatch."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3B008CallableKindMismatch",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3B-009",
+      "title": "Duplicate Schema $id in one selected snapshot",
+      "appendixE": "E91",
+      "category": "negative",
+      "input": "Add a second Schema file to the trusted ca snapshot with the same exact $id urn:example:ca:registration:v1.",
+      "expectedDiagnostics": [
+        {
+          "code": "EXPORT_ID_AMBIGUOUS",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one EXPORT_ID_AMBIGUOUS/C_STATIC is emitted.",
+        "Duplicate Schema identity is not resolved by file order.",
+        "The ambiguous Schema is not also reported as missing."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3B009DuplicateSchemaIDE91",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    }
+  ]
+}

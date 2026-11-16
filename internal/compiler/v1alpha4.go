@@ -137,6 +137,10 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			// Package ID for the selected Skill only. Later stages stay fail-closed.
 			identity := validateV1Alpha4DependencyIdentity(req, sourceAST)
 			diagnostics = append(diagnostics, identity.Diagnostics...)
+			// WP3B: index the verified snapshots' exact callable/Schema exports and
+			// prove trusted Owner attribution for the references the Skill uses.
+			ownerLinking := validateV1Alpha4OwnerLinking(req, sourceAST, identity)
+			diagnostics = append(diagnostics, ownerLinking.Diagnostics...)
 			if contractAST.Capabilities != nil {
 				errorAt(contractPath, contractAST.Capabilities, "CAPABILITY_INPUT_UNTRUSTED",
 					"CapabilityContracts linking is not yet implemented; trusted deployment data is not treated as linked")
