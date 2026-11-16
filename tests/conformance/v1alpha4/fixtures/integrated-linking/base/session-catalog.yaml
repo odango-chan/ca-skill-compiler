@@ -1,0 +1,26 @@
+apiVersion: connectionagent.io/toolcatalog/v1alpha4
+kind: ToolCatalog
+metadata:
+  name: example-session-mutation
+  owner: example-ue-owner
+spec:
+  contracts:
+    - kind: operation
+      id: example.session.create
+      effect: MUTATION
+      ownerOutcomes: [SUCCEEDED, NOT_COMMITTED]
+      inputSchema:
+        $ref: urn:example:ca:registration-query:v1
+      outputSchema:
+        $ref: urn:example:ca:registration:v1
+      mutation:
+        reconcile:
+          callable: example.session.reconcile
+    - kind: operation
+      id: example.session.reconcile
+      effect: READ
+      ownerOutcomes: [SUCCEEDED, FAILED]
+      inputSchema:
+        $ref: urn:example:ca:registration-query:v1
+      outputSchema:
+        $ref: urn:example:ca:registration:v1

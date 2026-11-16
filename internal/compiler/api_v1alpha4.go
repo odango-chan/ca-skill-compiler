@@ -12,27 +12,27 @@ import (
 )
 
 const (
-	BuildRequestAPIVersion          = "connectionagent.io/compiler-build-request/v1alpha4"
-	BuildResultAPIVersion           = "connectionagent.io/compiler-build-result/v1alpha4"
-	DependencyInspectionAPIVersion  = "connectionagent.io/compiler-dependency-inspection/v1alpha4"
-	maxResolvedDependencies         = 128
-	maxSelectedTargets              = 256
-	maxPathBytes                    = 240
-	maxTargetRunes                  = 80
-	maxDependencyIDBytes            = 128
-	maxOwnerIDRunes                 = 160
-	maxExportIDRunes                = 240
+	BuildRequestAPIVersion         = "connectionagent.io/compiler-build-request/v1alpha4"
+	BuildResultAPIVersion          = "connectionagent.io/compiler-build-result/v1alpha4"
+	DependencyInspectionAPIVersion = "connectionagent.io/compiler-dependency-inspection/v1alpha4"
+	maxResolvedDependencies        = 128
+	maxSelectedTargets             = 256
+	maxPathBytes                   = 240
+	maxTargetRunes                 = 80
+	maxDependencyIDBytes           = 128
+	maxOwnerIDRunes                = 160
+	maxExportIDRunes               = 240
 )
 
 // BuildRequest is the only accepted Compiler input API. Byte slices use
 // base64 on JSON/WASM transports and remain raw bytes for native Go callers.
 type BuildRequest struct {
-	APIVersion           string                `json:"apiVersion"`
-	LanguageTarget       string                `json:"languageTarget"`
-	Files                []File                `json:"files"`
-	ResolvedDependencies []ResolvedDependency  `json:"resolvedDependencies"`
-	Targets              []string              `json:"targets,omitempty"`
-	TrustedBuildContext  *TrustedBuildContext  `json:"trustedBuildContext,omitempty"`
+	APIVersion           string               `json:"apiVersion"`
+	LanguageTarget       string               `json:"languageTarget"`
+	Files                []File               `json:"files"`
+	ResolvedDependencies []ResolvedDependency `json:"resolvedDependencies"`
+	Targets              []string             `json:"targets,omitempty"`
+	TrustedBuildContext  *TrustedBuildContext `json:"trustedBuildContext,omitempty"`
 }
 
 type ResolvedDependency struct {
@@ -42,11 +42,11 @@ type ResolvedDependency struct {
 }
 
 type TrustedDependencyBinding struct {
-	DependencyID    string        `json:"dependencyId"`
-	Digest          string        `json:"digest"`
-	StablePackageID string        `json:"stablePackageId"`
-	AuthorizedOwners []string     `json:"authorizedOwners"`
-	ExportOwners    []ExportOwner `json:"exportOwners,omitempty"`
+	DependencyID     string        `json:"dependencyId"`
+	Digest           string        `json:"digest"`
+	StablePackageID  string        `json:"stablePackageId"`
+	AuthorizedOwners []string      `json:"authorizedOwners"`
+	ExportOwners     []ExportOwner `json:"exportOwners,omitempty"`
 }
 
 type ExportOwner struct {
@@ -63,10 +63,10 @@ type CapabilityContractsBundle struct {
 }
 
 type EvidenceTrustBindingsBundle struct {
-	DeploymentID  string `json:"deploymentId"`
-	PublisherID   string `json:"publisherId"`
+	DeploymentID   string `json:"deploymentId"`
+	PublisherID    string `json:"publisherId"`
 	SnapshotDigest string `json:"snapshotDigest"`
-	Files         []File `json:"files"`
+	Files          []File `json:"files"`
 }
 
 type DeploymentAuthorization struct {
@@ -76,9 +76,9 @@ type DeploymentAuthorization struct {
 }
 
 type TrustedBuildContext struct {
-	DependencyBindings       []TrustedDependencyBinding  `json:"dependencyBindings,omitempty"`
-	CapabilityContracts      *CapabilityContractsBundle  `json:"capabilityContracts,omitempty"`
-	DeploymentAuthorizations *[]DeploymentAuthorization  `json:"deploymentAuthorizations,omitempty"`
+	DependencyBindings       []TrustedDependencyBinding   `json:"dependencyBindings,omitempty"`
+	CapabilityContracts      *CapabilityContractsBundle   `json:"capabilityContracts,omitempty"`
+	DeploymentAuthorizations *[]DeploymentAuthorization   `json:"deploymentAuthorizations,omitempty"`
 	EvidenceTrustBindings    *EvidenceTrustBindingsBundle `json:"evidenceTrustBindings,omitempty"`
 }
 
@@ -93,24 +93,24 @@ type Diagnostic struct {
 }
 
 type BuildResult struct {
-	APIVersion       string       `json:"apiVersion"`
-	Success          bool         `json:"success"`
-	Diagnostics      []Diagnostic `json:"diagnostics"`
-	DependencyClosure []string    `json:"dependencyClosure"`
-	OutputFiles      []File       `json:"outputFiles"`
+	APIVersion        string       `json:"apiVersion"`
+	Success           bool         `json:"success"`
+	Diagnostics       []Diagnostic `json:"diagnostics"`
+	DependencyClosure []string     `json:"dependencyClosure"`
+	OutputFiles       []File       `json:"outputFiles"`
 }
 
 type InspectedCallable struct {
-	DependencyID       string `json:"dependencyId"`
-	Owner              string `json:"owner"`
-	Kind               string `json:"kind"`
-	ID                 string `json:"id"`
-	Effect             string `json:"effect"`
-	SourcePath         string `json:"sourcePath"`
-	InputSchemaID      string `json:"inputSchemaId,omitempty"`
+	DependencyID         string `json:"dependencyId"`
+	Owner                string `json:"owner"`
+	Kind                 string `json:"kind"`
+	ID                   string `json:"id"`
+	Effect               string `json:"effect"`
+	SourcePath           string `json:"sourcePath"`
+	InputSchemaID        string `json:"inputSchemaId,omitempty"`
 	QueryContextSchemaID string `json:"queryContextSchemaId,omitempty"`
-	OutputSchemaID    string `json:"outputSchemaId"`
-	ReceiptSchemaID   string `json:"receiptSchemaId,omitempty"`
+	OutputSchemaID       string `json:"outputSchemaId"`
+	ReceiptSchemaID      string `json:"receiptSchemaId,omitempty"`
 }
 
 type InspectedSchema struct {
@@ -234,30 +234,13 @@ func Build(req BuildRequest) BuildResult {
 	return validateV1Alpha4(req)
 }
 
-// InspectDependencies exposes the frozen v1alpha4 output shape. The dependency
-// linker is implemented in WP3; until then, nonempty snapshots fail closed
-// rather than returning a misleading partial inventory.
+// InspectDependencies is a read-only, snapshot-scoped inventory projection. It
+// validates the supplied immutable snapshots and trusted dependency/Owner
+// bindings, then lists only exports whose identity and Owner can be established.
+// It never resolves Skill author references, evaluates Capability Grants or
+// authorizes invocation.
 func InspectDependencies(req BuildRequest) DependencyInspection {
-	diagnostics := validateBuildRequest(req)
-	if len(diagnostics) == 0 && len(req.ResolvedDependencies) > 0 {
-		diagnostics = append(diagnostics, Diagnostic{
-			Severity: "error",
-			Phase:    "C_STATIC",
-			Code:     "DEPENDENCY_IDENTITY_UNVERIFIED",
-			Path:     "",
-			Message:  "DependencyInspection cannot publish a trusted inventory until the v1alpha4 dependency linker is implemented",
-		})
-	}
-	sortDiagnostics(diagnostics)
-	if diagnostics == nil {
-		diagnostics = []Diagnostic{}
-	}
-	return DependencyInspection{
-		APIVersion:  DependencyInspectionAPIVersion,
-		Diagnostics: diagnostics,
-		Callables:   []InspectedCallable{},
-		Schemas:     []InspectedSchema{},
-	}
+	return inspectDependencies(req)
 }
 
 func failedBuildResult(diagnostics []Diagnostic) BuildResult {
@@ -268,9 +251,9 @@ func failedBuildResult(diagnostics []Diagnostic) BuildResult {
 	return BuildResult{
 		APIVersion:        BuildResultAPIVersion,
 		Success:           false,
-		Diagnostics:      diagnostics,
+		Diagnostics:       diagnostics,
 		DependencyClosure: []string{},
-		OutputFiles:      []File{},
+		OutputFiles:       []File{},
 	}
 }
 

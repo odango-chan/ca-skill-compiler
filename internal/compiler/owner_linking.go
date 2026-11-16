@@ -35,6 +35,9 @@ type linkedExport struct {
 	OutputSchemaID       string
 	OwnerOutcomes        []string
 	Effect               string
+	// ReconcileTarget is the same-snapshot dedicated Reconcile READ ExportId
+	// declared by a Mutation contract. It is never an ordinary author callable.
+	ReconcileTarget string
 }
 
 type ownerLinkingResult struct {
@@ -94,6 +97,7 @@ func validateV1Alpha4OwnerLinking(req BuildRequest, skill *V1Alpha4SkillAST, ide
 	})
 
 	indexes := make(map[string]snapshotExportIndex, len(snapshots))
+	dedicatedReconcile := make(map[string]map[string]bool, len(snapshots))
 	catalogOwners := make(map[string]map[string]bool) // alias -> catalog path -> untrusted already reported
 	for _, alias := range sortedStringMapKeys(snapshots) {
 		index, catalogDocuments, ambiguity := buildSnapshotExportIndex(snapshots[alias])
@@ -116,12 +120,27 @@ func validateV1Alpha4OwnerLinking(req BuildRequest, skill *V1Alpha4SkillAST, ide
 			}
 		}
 		catalogOwners[alias] = flagged
+		dedicated := make(map[string]bool)
+		for _, records := range index.callables {
+			for _, record := range records {
+				if record.ReconcileTarget != "" {
+					dedicated[record.ReconcileTarget] = true
+				}
+			}
+		}
+		dedicatedReconcile[alias] = dedicated
 	}
 	seenExports := make(map[string]bool, len(references))
 	for _, reference := range references {
 		alias := reference.alias
 		binding := identity.Bindings[alias]
 		index := indexes[alias]
+		if reference.exportKind == "operation" && dedicatedReconcile[alias][reference.exportID] {
+			result.Diagnostics = append(result.Diagnostics, dependencyDiagnostic(
+				"error", "C_STATIC", "RECONCILE_CONTRACT_INVALID", reference.path, reference.node,
+				"A dedicated same-snapshot Reconcile READ callable cannot be called as an ordinary operation.tool: "+reference.exportID))
+			continue
+		}
 		var matched linkedExport
 		switch reference.exportKind {
 		case "operation", "observation":
@@ -375,6 +394,14 @@ func parseToolCatalogCallable(node *yaml.Node, owner, sourcePath string) (linked
 			return linkedExport{}, false
 		}
 		export.InputSchemaID = inputSchemaID
+		if effect == "MUTATION" {
+			// G.2.1: the same-snapshot dedicated Reconcile READ callable.
+			if reconcile := child(child(node, "mutation"), "reconcile"); reconcile != nil {
+				if target := scalar(child(reconcile, "callable")); validExportID(target) && len(target) <= maxExportIDRunes {
+					export.ReconcileTarget = target
+				}
+			}
+		}
 	case "observation":
 		queryContextSchemaID, ok := schemaRefID(child(node, "queryContextSchema"))
 		if !ok {
