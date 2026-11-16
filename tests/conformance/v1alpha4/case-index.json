@@ -1,0 +1,1219 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-case-index/v1alpha4",
+  "source": {
+    "repository": "odango-chan/ca-skills",
+    "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
+    "path": "docs/skill-language-spec.v1alpha4.zh-CN.md",
+    "blob": "b70064c5737b8ee2b3d1435fe496357f44b42773",
+    "section": "Appendix K.1 / E01-E120"
+  },
+  "purpose": "Inventory only. This file is not an executable fixture suite and does not assert that any case has passed.",
+  "initialStatus": "NOT_IMPLEMENTED",
+  "cases": [
+    {
+      "id": "E01",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4230,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E02",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4231,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E03",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4232,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E04",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4233,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E05",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4234,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E06",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4235,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E07",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4236,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E08",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4237,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E09",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4238,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E10",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4239,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E11",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4240,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E12",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4241,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E13",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4242,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E14",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4243,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E15",
+      "responsibility": "业务评审",
+      "owners": [
+        "human-review"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4244,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E16",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4245,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E17",
+      "responsibility": "静态+Host 恢复模拟（两个成功 Producer 变体）",
+      "owners": [
+        "compiler",
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4246,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E18",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4247,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E19",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4248,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E20",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4249,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E21",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4250,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E22",
+      "responsibility": "静态+运行",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4251,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E23",
+      "responsibility": "Host/Runtime 运行模拟（Owner 资源责任 Fixture）",
+      "owners": [
+        "host-runtime",
+        "owner-integration"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4252,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E24",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4253,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E25",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4254,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E26",
+      "responsibility": "Owner 集成评审",
+      "owners": [
+        "owner-integration"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4255,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E27",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4256,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E28",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4257,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E29",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4258,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E30",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4259,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E31",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4260,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E32",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4261,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E33",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4262,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E34",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4263,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E35",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4264,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E36",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4265,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E37",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4266,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E38",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4267,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E39",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4268,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E40",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4269,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E41",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4270,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E42",
+      "responsibility": "静态+运行",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4271,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E43",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4272,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E44",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4273,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E45",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4274,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E46",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4275,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E47",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4276,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E48",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4277,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E49",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4278,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E50",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4279,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E51",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4280,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E52",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4281,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E53",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4282,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E54",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4283,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E55",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4284,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E56",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4285,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E57",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4286,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E58",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4287,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E59",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4288,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E60",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4289,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E61",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4290,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E62",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4291,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E63",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4292,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E64",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4293,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E65",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4294,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E66",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4295,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E67",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4296,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E68",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4297,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E69",
+      "responsibility": "静态+运行",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4298,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E70",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4299,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E71",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4300,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E72",
+      "responsibility": "静态+运行",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4301,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E73",
+      "responsibility": "Compiler 内部单测",
+      "owners": [
+        "compiler-internal"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4302,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E74",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4303,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E75",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4304,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E76",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4305,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E77",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4306,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E78",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4307,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E79",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4308,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E80",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4309,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E81",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4310,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E82",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4311,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E83",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4312,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E84",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4313,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E85",
+      "responsibility": "静态+运行",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4314,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E86",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4315,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E87",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4316,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E88",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4317,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E89",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4318,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E90",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4319,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E91",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4320,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E92",
+      "responsibility": "Compiler 内部单测",
+      "owners": [
+        "compiler-internal"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4321,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E93",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4322,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E94",
+      "responsibility": "Compiler 内部单测",
+      "owners": [
+        "compiler-internal"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4323,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E95",
+      "responsibility": "Compiler 内部单测",
+      "owners": [
+        "compiler-internal"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4324,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E96",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4325,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E97",
+      "responsibility": "Host/Runtime 运行模拟（Owner 责任摘要 Fixture）",
+      "owners": [
+        "host-runtime",
+        "owner-integration"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4326,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E98",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4327,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E99",
+      "responsibility": "Compiler 内部单测",
+      "owners": [
+        "compiler-internal"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4328,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E100",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4329,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E101",
+      "responsibility": "静态+运行",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4330,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E102",
+      "responsibility": "静态+运行",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4331,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E103",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4332,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E104",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4333,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E105",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4334,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E106",
+      "responsibility": "静态+运行",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4335,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E107",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4336,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E108",
+      "responsibility": "Host 恢复归并及 Producer/Evidence 模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4337,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E109",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4338,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E110",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4339,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E111",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4340,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E112",
+      "responsibility": "运行模拟",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4341,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E113",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4342,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E114",
+      "responsibility": "静态链接",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4343,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E115",
+      "responsibility": "静态链接 + Runtime 三态",
+      "owners": [
+        "compiler",
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4344,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E116",
+      "responsibility": "Runtime 三态聚合",
+      "owners": [
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4345,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E117",
+      "responsibility": "静态链接 + Goal 运行复核",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4346,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E118",
+      "responsibility": "静态参数/类型/Evidence",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4347,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E119",
+      "responsibility": "静态结构负例与诊断优先级",
+      "owners": [
+        "compiler"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4348,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    },
+    {
+      "id": "E120",
+      "responsibility": "单数全局门禁、汇合 AND 与最终成功直达检查",
+      "owners": [
+        "compiler",
+        "host-runtime"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "specLine": 4349,
+      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+    }
+  ]
+}
