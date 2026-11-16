@@ -18,8 +18,8 @@ const (
 	maxTotal    = 16 << 20
 )
 
-// File is a project-root-relative input or output file.
-// The caller owns file IO, authorization, and archive creation.
+// File carries original bytes and a logical path. The containing BuildRequest
+// field defines whether the path is Skill-rooted or snapshot-relative.
 type File struct {
 	Path  string `json:"path"`
 	Bytes []byte `json:"bytes"`
