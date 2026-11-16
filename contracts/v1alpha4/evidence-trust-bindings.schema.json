@@ -202,5 +202,17 @@
       }
     }
   },
-  "description": "Trusted deployment relation document. The surrounding BuildRequest evidenceTrustBindings bundle supplies raw files, snapshotDigest and publisher/deployment binding. Owner self-declaration alone is not trust."
+  "description": "Trusted deployment relation document. The surrounding BuildRequest evidenceTrustBindings bundle supplies raw files, snapshotDigest and publisher/deployment binding. Owner self-declaration alone is not trust.",
+  "anyOf": [
+    {
+      "required": [
+        "independentDomains"
+      ]
+    },
+    {
+      "required": [
+        "commonFacts"
+      ]
+    }
+  ]
 }
