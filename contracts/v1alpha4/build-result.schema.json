@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/odango-chan/ca-skill-compiler/blob/main/contracts/v1alpha4/build-result.schema.json",
+  "$id": "urn:connectionagent:ca-skill-compiler:compiler-api:build-result:v1alpha4",
   "title": "Compiler BuildResult v1alpha4",
   "type": "object",
   "additionalProperties": false,
