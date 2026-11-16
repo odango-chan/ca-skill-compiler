@@ -71,7 +71,7 @@ Compiler must:
 3. reject duplicate membership within one Capability;
 4. permit consistent membership across different Capabilities;
 5. require at least one matching member in a Skill-granted Capability;
-6. resolve every matching granted Scope policy and use their intersection;
+6. resolve every matching granted Scope policy and use their intersection; unresolved policy is CAPABILITY_SCOPE_UNRESOLVED and a statically empty intersection is CAPABILITY_SCOPE_EMPTY_INTERSECTION;
 7. reject missing, ambiguous or empty Scope intersections.
 
 A Skill Grant is a requested authorization, not proof that deployment policy has granted it. CapabilityContracts is a separate trusted BuildRequest input and must not be inferred from ordinary dependency snapshots or Skill source.
