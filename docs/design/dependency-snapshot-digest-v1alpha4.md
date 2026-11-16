@@ -2,7 +2,7 @@
 
 **Status:** proposed normative Compiler/Studio interoperability algorithm for BuildRequest v1alpha4; freeze together with the BuildRequest API review.
 
-This document deliberately preserves the already-proposed v0.1 digest preimage byte-for-byte. The language target changed; the snapshot hashing algorithm did not. Its algorithm identity is the domain separator below, not the CA-SL language version.
+This document proposes the snapshot integrity algorithm owned by the BuildRequest v1alpha4 transport contract. It makes no compatibility claim with Compiler v0.1: that earlier design explicitly left digest protocol out of scope. The algorithm identity is the domain separator below, not the CA-SL language version.
 
 ## 1. Digest value
 
@@ -64,5 +64,7 @@ Machine-readable vectors: [dependency-snapshot-digest-vectors.json](../../contra
 Required tests: reversed file order yields the same digest; changing one content byte or path changes it; changing only dependencyId does not; duplicate paths, traversal paths, invalid UTF-8 and invalid base64 are rejected; Native Go and WASM match every vector byte-for-byte.
 
 ## 5. Ownership and versioning
+
+This digest is only an integrity check for the exact immutable snapshot bytes supplied by the trusted caller. It is not a resolver, package manager, lock lifecycle, registry, cache or release feature. Studio / the trusted snapshot source computes and retains the digest with its immutable snapshot record; Compiler recomputes it before linking. Compiler does not persist it or return it in BuildResult.
 
 Compiler owns this algorithm and golden vectors. Studio implements the exact same algorithm for immutable dependency snapshots and locks. No side may change path normalization, sorting, framing or content-byte handling under this algorithm identity. Any change requires a new digest domain separator and coordinated BuildRequest contract revision.
