@@ -14,7 +14,8 @@ nodes:
       tool: ca::ue.registration.current
       arguments: {}
       routes:
-        SUCCEEDED: retry
+        NOT_COMMITTED: retry
+        SUCCEEDED: FAILED
         FAILED: FAILED
   retry:
     operation:
@@ -71,5 +72,13 @@ func TestRetryContractSecondGeneration(t *testing.T) {
 	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
 	if !v4HasCode(Check(request), "RETRY_CONTRACT_INVALID") {
 		t.Fatalf("second-generation retry chain accepted: %+v", Check(request))
+	}
+}
+
+func TestRetryReachabilityRequiresNotCommittedEdge(t *testing.T) {
+	procedure := strings.Replace(retryProcedureTemplate, "        NOT_COMMITTED: retry\n        SUCCEEDED: FAILED", "        SUCCEEDED: retry", 1)
+	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
+	if !v4HasCode(Check(request), "RETRY_CONTRACT_INVALID") {
+		t.Fatalf("retry reached through SUCCEEDED edge accepted: %+v", Check(request))
 	}
 }
