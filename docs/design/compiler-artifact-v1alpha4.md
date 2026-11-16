@@ -39,9 +39,9 @@ The generated skills/<skill>/generated/artifact-manifest.json has:
 - generator name, semantic version and immutable build commit (when available);
 - sorted sourceFiles list;
 - sorted generatedFiles list, excluding the manifest itself;
-- sorted dependencyClosure containing only dependency aliases used by that Skill.
+- sorted dependencyClosure entries containing the used dependency alias, exact Stable Package ID and the exact exported identities actually referenced by that Skill (export kind, export ID and trusted Owner). The closure preserves references but does not embed dependency bytes.
 
-The manifest MUST NOT export dependency digests, Git revisions, source locations, credentials or deployment authorization tokens. Studio retains dependency lock / digest state. The manifest records logical aliases only; the original Contract retains alias → Stable Package ID.
+The manifest MUST NOT export dependency digests, Git revisions, source locations, credentials or deployment authorization tokens. Studio retains dependency lock / digest state. The manifest records only the exact logical package identity and reachable export references; the original Contract remains the authoring source for alias → Stable Package ID.
 
 For a multi-Skill Build, each Skill receives its own manifest. BuildResult's top-level dependencyClosure is the sorted union of aliases actually used by selected Skills.
 
