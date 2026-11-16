@@ -184,9 +184,10 @@ func v4Allowed(node *yaml.Node,file string,allowed map[string]bool,add func(stri
 		}
 	}
 }
-func v4CheckSchema(file string,data []byte,add func(string,*yaml.Node,string,string)){
-	root:=v4ParseYAML(file,data,add)
-	if root==nil{return}
+func v4CheckSchema(file string, root *yaml.Node, add func(string,*yaml.Node,string,string)) {
+	if root == nil {
+		return
+	}
 	if scalar(child(root,"$schema"))!="https://json-schema.org/draft/2020-12/schema" {
 		add(file,root,"SCHEMA_INVALID","Schema dialect must be Draft 2020-12")
 	}
@@ -215,7 +216,11 @@ func v4CheckSchema(file string,data []byte,add func(string,*yaml.Node,string,str
 	}
 	walk(root)
 }
-func v4CheckPredicates(file string,root *yaml.Node,add func(string,*yaml.Node,string,string)){
+func v4CheckPredicates(file string, source *V1Alpha4PredicateSetAST, add func(string,*yaml.Node,string,string)) {
+	if source == nil || source.Raw == nil {
+		return
+	}
+	root := source.Raw
 	v4Allowed(root,file,map[string]bool{"predicates":true},add)
 	set:=child(root,"predicates")
 	if set==nil || set.Kind!=yaml.MappingNode {
@@ -238,10 +243,14 @@ func v4CheckPredicates(file string,root *yaml.Node,add func(string,*yaml.Node,st
 	}
 }
 
-func v4CheckProcedure(file string,root,contract *yaml.Node,add func(string,*yaml.Node,string,string)){
+func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alpha4ContractAST, add func(string,*yaml.Node,string,string)) {
+	if source == nil || source.Raw == nil {
+		return
+	}
+	root := source.Raw
 	v4Allowed(root,file,map[string]bool{"start":true,"nodes":true},add)
-	start:=scalar(child(root,"start"))
-	nodes:=child(root,"nodes")
+	start:=scalar(source.Start)
+	nodes:=source.Nodes
 	if nodes==nil||nodes.Kind!=yaml.MappingNode {
 		add(file,nodes,"SOURCE_ROOT_INVALID","Procedure.nodes must be a mapping")
 		return
@@ -359,12 +368,12 @@ func v4CheckProcedure(file string,root,contract *yaml.Node,add func(string,*yaml
 	}
 	if ids[start] {visit(start)}
 	if cycle {add(file,root,"CONTROL_FLOW_CYCLE","Procedure must be a DAG")}
-	if contract!=nil {
-		gate:=scalar(child(contract,"precondition"))
+	if contract!=nil && contract.Precondition!=nil {
+		gate:=scalar(contract.Precondition)
 		if gate!="" {
 			parts:=strings.Split(gate,".")
 			if len(parts)!=2 || !ids[parts[0]]||child(child(nodes,parts[0]),"precondition")==nil {
-				add(file,child(contract,"precondition"),"ENTRY_PRECONDITION_REF_INVALID","Contract precondition must resolve to a declared Precondition stage")
+				add(file,contract.Precondition,"ENTRY_PRECONDITION_REF_INVALID","Contract precondition must resolve to a declared Precondition stage")
 			}
 		}
 	}
