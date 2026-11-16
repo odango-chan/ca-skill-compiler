@@ -69,3 +69,15 @@ All currently PASS (`0` exit): `GOWORK=off go test ./... -count=1`, `GOWORK=off 
 - Chromium Worker parity and Studio integration are NOT_IMPLEMENTED.
 
 Last updated on the WP6 branch; this document must be regenerated as each WP completes.
+
+
+## 7. Recent verified increments (stack on WP6 branch, local gates PASS)
+
+- Contract: limits.maxActions (ACTION_LIMIT_INVALID / UNKNOWN_FIELD), GoalId grammar (IDENTIFIER_INVALID), contextSchema QualifiedSchemaId (QUALIFIED_REFERENCE_INVALID).
+- Predicate: parameter name Identifier grammar (IDENTIFIER_INVALID); evaluator script shape/presence (SCRIPT_CONTRACT_INVALID); Alias::ExportId tool references (QUALIFIED_REFERENCE_INVALID).
+- Procedure Script LocalScriptPath + file presence (SCRIPT_CONTRACT_INVALID); retryOf reference validity and retry-chain rejection (RETRY_CONTRACT_INVALID).
+- Mutation contract identity requirements across the selected snapshot closure (RECONCILE_CONTRACT_INVALID).
+- Determinism/diagnostic-contract gates; single-YAML-parser guard.
+- Machine-readable executed coverage (tests/conformance/v1alpha4/executed-coverage.json) and remaining-work inventory (docs/workstreams/REMAINING-WORK-v1alpha4.json).
+
+All increments verified locally with Go 1.27.4 (test/vet/native/WASM/diff --check = 0). Build remains fail-closed; no v1alpha4 conformance or Owner qualification is claimed.
