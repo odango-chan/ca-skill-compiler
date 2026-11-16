@@ -46,7 +46,7 @@ func TestWireRequestSizeGuard(t *testing.T) {
 			case "inspect":
 				var result compiler.DependencyInspection
 				if err := json.Unmarshal(wire, &result); err != nil || len(result.Diagnostics) != 1 || len(result.Callables) != 0 || len(result.Schemas) != 0 {
-					t.Fatalf("inspect error response must be a LibraryResult: %s (%v)", wire, err)
+					t.Fatalf("inspect error response must be a DependencyInspection: %s (%v)", wire, err)
 				}
 			}
 		})
