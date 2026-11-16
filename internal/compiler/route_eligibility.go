@@ -95,6 +95,15 @@ func checkRouteKeys(path string, routes *yaml.Node, tool, script *yaml.Node, lin
 			add(path, routes, "ROUTE_OUTCOME_MISSING", "Required route key is missing: "+key)
 		}
 	}
+	if export, ok := linked[scalar(unalias(tool))]; ok && script == nil && export.Effect == "MUTATION" {
+		if targetNode, present := declared["OUTCOME_UNKNOWN"]; present {
+			target := scalar(unalias(targetNode))
+			if target != "UNRESOLVED" && target != "SAFE_STOPPED" {
+				add(path, targetNode, "RECONCILE_CONTRACT_INVALID",
+					"Mutation OUTCOME_UNKNOWN may only route to UNRESOLVED or SAFE_STOPPED, not "+target)
+			}
+		}
+	}
 }
 
 func containsString(values []string, wanted string) bool {
