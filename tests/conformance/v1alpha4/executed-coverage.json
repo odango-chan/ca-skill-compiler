@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-executed-coverage/v1alpha4",
+  "status": "PARTIAL_NOT_QUALIFIED",
+  "normativeAuthority": {
+    "repository": "odango-chan/ca-skills",
+    "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
+    "file": "docs/skill-language-spec.v1alpha4.zh-CN.md",
+    "blob": "b70064c5737b8ee2b3d1435fe496357f44b42773"
+  },
+  "acceptanceMethod": "Local reproducible commands only (maintainer instruction: GitHub Actions not an acceptance dependency).",
+  "executedFixtureInventory": [
+    { "task": "WP3A", "plan": "tests/conformance/v1alpha4/wp3a-fixture-plan.json", "executed": 10, "status": "PASS" },
+    { "task": "WP3B", "plan": "tests/conformance/v1alpha4/wp3b-fixture-plan.json", "executed": 9, "status": "PASS" },
+    { "task": "WP3C", "plan": "tests/conformance/v1alpha4/wp3c-fixture-plan.json", "executed": 11, "status": "PASS" },
+    { "task": "WP3D", "plan": "tests/conformance/v1alpha4/wp3d-fixture-plan.json", "executed": 7, "status": "PASS" },
+    { "task": "WP4A", "plan": "tests/conformance/v1alpha4/wp4a-fixture-plan.json", "executed": 9, "status": "PASS" },
+    { "task": "WP4B", "plan": "tests/conformance/v1alpha4/wp4b-fixture-plan.json", "executed": 6, "status": "PASS" },
+    { "task": "WP4C", "plan": "tests/conformance/v1alpha4/wp4c-fixture-plan.json", "executed": 6, "status": "PASS" },
+    { "task": "WP4D", "plan": "tests/conformance/v1alpha4/wp4d-fixture-plan.json", "executed": 5, "status": "PASS" },
+    { "task": "WP5", "plan": "tests/conformance/v1alpha4/wp5-fixture-plan.json", "executed": 7, "status": "PASS" },
+    { "task": "WP6", "plan": "tests/conformance/v1alpha4/wp6-fixture-plan.json (slices 1-6; inventory maintained in PR #23)", "executed": 22, "status": "PASS" }
+  ],
+  "specCasesWithExecutableCoverage": ["E03", "E04", "E05", "E06", "E07", "E16", "E24/partial", "E25", "E39", "E43", "E44/partial", "E51/partial", "E91", "E110/schema-subset"],
+  "specCasesNotCovered": "E01-E120 is NOT satisfied; cases without an executable fixture remain NOT_IMPLEMENTED/NOT_RUN.",
+  "diagnosticCodesWithExecutableEvidence": [
+    "DEPENDENCY_REQUIREMENT_INVALID", "DEPENDENCY_ALIAS_MISSING", "DEPENDENCY_SNAPSHOT_MISSING",
+    "DEPENDENCY_IDENTITY_UNVERIFIED", "DEPENDENCY_ID_MISMATCH", "DEPENDENCY_DUPLICATE", "UNUSED_DEPENDENCY",
+    "EXPORT_ID_MISSING", "EXPORT_ID_AMBIGUOUS", "SCHEMA_MISSING", "SCHEMA_INVALID",
+    "DEPENDENCY_OWNER_MISMATCH", "DEPENDENCY_EXPORT_OWNER_UNVERIFIED",
+    "CAPABILITY_INPUT_UNTRUSTED", "CAPABILITY_DEFINITION_CONFLICT", "CAPABILITY_MEMBERSHIP_DUPLICATE",
+    "CAPABILITY_MAPPING_MISSING", "EFFECT_MISMATCH", "CAPABILITY_NOT_GRANTED", "CAPABILITY_SCOPE_UNRESOLVED",
+    "IDENTIFIER_INVALID", "CONTEXT_REQUEST_COLLISION", "CONTEXT_SCHEMA_UNDECLARED", "REQUEST_SCHEMA_MISSING",
+    "UNREACHABLE_NODE", "ENTRY_PRECONDITION_BYPASSED", "ROUTE_NORMAL_OUTCOME_NOT_ALLOWED",
+    "ROUTE_OUTCOME_MISSING", "ROUTE_OUTCOME_UNKNOWN",
+    "SOURCE_PATH_INVALID", "SOURCE_NOT_AVAILABLE", "INPUT_REQUIRED_MISSING", "INPUT_TYPE_MISMATCH",
+    "INPUT_NULLABILITY_MISMATCH", "PREDICATE_TYPE_MISMATCH", "PREDICATE_ARITY_MISMATCH",
+    "PREDICATE_GROUP_INVALID", "CEL_INVALID", "RECONCILE_CONTRACT_INVALID"
+  ],
+  "diagnosticCodesNotYetEmittedOrTested": [
+    "EVIDENCE_GUARANTEE_LINK_INVALID", "PREDICATE_EVIDENCE_REQUIRED", "PREDICATE_EVIDENCE_UNSATISFIABLE",
+    "CAPABILITY_SCOPE_EMPTY_INTERSECTION", "RETRY_CONTRACT_INVALID",
+    "SCRIPT_CONTRACT_INVALID", "CAPABILITY_SCOPE_UNRESOLVED/Runtime-scope", "Artifact and Runtime identities"
+  ],
+  "localAcceptanceCommands": [
+    "GOWORK=off go test ./... -count=1",
+    "GOWORK=off go vet ./...",
+    "CGO_ENABLED=0 GOWORK=off go build ./...",
+    "CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm",
+    "git diff --check"
+  ],
+  "localAcceptanceResult": "ALL_PASS",
+  "notClaims": [
+    "Not full v1alpha4 conformance.",
+    "Not E01-E120 coverage.",
+    "Not a successful Build/Artifact (Build stays fail-closed).",
+    "Not a real Owner or Deployment qualification; WP13 is BLOCKED (external).",
+    "Chromium Worker and Skill Studio acceptance are NOT_IMPLEMENTED."
+  ]
+}
