@@ -586,7 +586,7 @@ func IsScalarLiteralStyle(node *Node) bool {
 }
 
 func ParseIntegerLexeme(value string) (int64, error) {
-	if !regexp.MustCompile(`^-?(?:0|[1-9][0-9]*)$`).MatchString(value) {
+	if !integerPattern.MatchString(value) {
 		return 0, fmt.Errorf("unsupported integer lexeme")
 	}
 	return strconv.ParseInt(value, 10, 64)
@@ -600,7 +600,9 @@ func ParseFiniteFloatLexeme(value string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	nonZero := strings.TrimLeft(strings.NewReplacer("-", "", "+", "", ".", "", "e", "", "E", "").Replace(value), "0") != ""
+	mantissa := strings.SplitN(strings.ReplaceAll(value, "E", "e"), "e", 2)[0]
+	mantissa = strings.NewReplacer("-", "", ".", "").Replace(mantissa)
+	nonZero := strings.TrimLeft(mantissa, "0") != ""
 	if parsed == 0 && nonZero {
 		return 0, fmt.Errorf("nonzero float underflows to zero")
 	}
@@ -608,4 +610,40 @@ func ParseFiniteFloatLexeme(value string) (float64, error) {
 		return 0, fmt.Errorf("float must be finite")
 	}
 	return parsed, nil
+}
+
+func ValidateScalarLiteral(node *Node) error {
+	node = unalias(node)
+	if node == nil || node.Kind != ScalarNode {
+		return fmt.Errorf("ScalarLiteral must be a YAML scalar")
+	}
+	switch node.Style {
+	case SingleQuotedStyle, DoubleQuotedStyle:
+		if strings.ContainsAny(node.Raw, "\r\n") {
+			return fmt.Errorf("quoted ScalarLiteral must be one line")
+		}
+		return nil
+	case PlainStyle:
+		switch node.Tag {
+		case "!!null":
+			if node.Value != "null" {
+				return fmt.Errorf("bare null must be lowercase null")
+			}
+		case "!!bool":
+			if node.Value != "true" && node.Value != "false" {
+				return fmt.Errorf("bare Boolean must be lowercase true or false")
+			}
+		case "!!int":
+			_, err := ParseIntegerLexeme(node.Value)
+			return err
+		case "!!float":
+			_, err := ParseFiniteFloatLexeme(node.Value)
+			return err
+		default:
+			return fmt.Errorf("bare strings are valid only as SourcePath expressions")
+		}
+		return nil
+	default:
+		return fmt.Errorf("ScalarLiteral does not allow block scalars, aliases or explicit tags")
+	}
 }
