@@ -24,8 +24,8 @@ func nodeValue(n *yaml.Node) any {
 	if n == nil {
 		return nil
 	}
-	var value any
-	if n.Decode(&value) != nil {
+	value, err := yaml.ToValue(n)
+	if err != nil {
 		return nil
 	}
 	return value
