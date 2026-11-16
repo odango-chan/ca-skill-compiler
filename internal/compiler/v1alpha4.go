@@ -322,6 +322,10 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 		add(file, goalNode, "SOURCE_ROOT_INVALID", "Procedure must not declare a goal; the goal belongs to the Contract")
 		procedureFields["goal"] = true
 	}
+	if inputsNode := child(root, "inputs"); inputsNode != nil {
+		add(file, inputsNode, "SOURCE_ROOT_INVALID", "Procedure root must not declare the removed inputs field")
+		procedureFields["inputs"] = true
+	}
 	v4Allowed(root, file, procedureFields, add)
 	start := scalar(source.Start)
 	nodes := source.Nodes

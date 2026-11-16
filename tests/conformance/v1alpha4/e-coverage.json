@@ -4,8 +4,8 @@
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 34,
-    "notRun": 86,
+    "partial": 44,
+    "notRun": 76,
     "passed": 0
   },
   "cases": [
@@ -209,9 +209,9 @@
     },
     {
       "id": "E34",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "removed root inputs -> SOURCE_ROOT_INVALID; input.ueRef -> SOURCE_PATH_INVALID; context Node ID -> NODE_ID_RESERVED (e_mid_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E35",
@@ -221,15 +221,15 @@
     },
     {
       "id": "E36",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "bare string argument -> SOURCE_PATH_INVALID (e_mid_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E37",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "optional producer output field -> SOURCE_NOT_AVAILABLE (e_mid_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E38",
@@ -251,15 +251,15 @@
     },
     {
       "id": "E41",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "Postcondition-only start PASS->SUCCEEDED establishes Goal without a goal field (e_mid_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E42",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "Precondition PASS to SUCCEEDED without final Postcondition -> FINAL_POSTCONDITION_MISSING; final Postcondition PASS accepted (e_mid_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E43",
@@ -287,9 +287,9 @@
     },
     {
       "id": "E47",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "same-Node Precondition reading its own Observation output -> SOURCE_NOT_AVAILABLE (e_mid_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E48",
@@ -329,21 +329,21 @@
     },
     {
       "id": "E54",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "non-last stage normal Outcome route -> ROUTE_NORMAL_OUTCOME_NOT_ALLOWED (procedure_stages_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E55",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "missing last-stage normal Outcome route -> ROUTE_OUTCOME_MISSING (procedure_stages_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E56",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "terminal spelling as Node ID -> NODE_ID_RESERVED; terminal as start -> PROCEDURE_START_MISSING (v1alpha4_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E57",
@@ -359,9 +359,9 @@
     },
     {
       "id": "E59",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "OUTCOME_UNKNOWN to FAILED/business Mutation -> RECONCILE_CONTRACT_INVALID (route_unknown_target_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E60",
@@ -731,8 +731,8 @@
     }
   ],
   "dispositionSummary": {
-    "partialStaticEvidence": 34,
-    "pendingStaticConformance": 43,
+    "partialStaticEvidence": 44,
+    "pendingStaticConformance": 33,
     "notApplicableToCompiler": 43,
     "claimedPass": 0,
     "note": "PENDING_STATIC_CONFORMANCE means the frozen case lists the compiler as an owner but no executed fixture variant exists yet. NOT_APPLICABLE_TO_COMPILER means the case is Host/Runtime-only. No case is claimed PASS."
