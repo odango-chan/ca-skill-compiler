@@ -3,6 +3,7 @@ package compiler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"path"
 	"sort"
@@ -130,6 +131,52 @@ type DependencyInspection struct {
 // decoded request reaches the Compiler Core. encoding/json decodes []byte
 // fields from base64 and DisallowUnknownFields rejects undeclared properties.
 func DecodeBuildRequestJSON(data []byte) (BuildRequest, error) {
+	var object map[string]json.RawMessage
+	if err := json.Unmarshal(data, &object); err != nil {
+		return BuildRequest{}, err
+	}
+	if object == nil {
+		return BuildRequest{}, fmt.Errorf("BuildRequest must be a JSON object")
+	}
+	if err := rejectJSONNullProperties(object, "targets", "trustedBuildContext"); err != nil {
+		return BuildRequest{}, err
+	}
+	if contextJSON, ok := object["trustedBuildContext"]; ok {
+		var contextObject map[string]json.RawMessage
+		if err := json.Unmarshal(contextJSON, &contextObject); err != nil {
+			return BuildRequest{}, err
+		}
+		if contextObject == nil {
+			return BuildRequest{}, fmt.Errorf("trustedBuildContext must be an object")
+		}
+		if err := rejectJSONNullProperties(contextObject, "dependencyBindings", "capabilityContracts", "deploymentAuthorizations", "evidenceTrustBindings"); err != nil {
+			return BuildRequest{}, err
+		}
+		if bundleJSON, ok := contextObject["capabilityContracts"]; ok {
+			var bundle map[string]json.RawMessage
+			if err := json.Unmarshal(bundleJSON, &bundle); err != nil {
+				return BuildRequest{}, err
+			}
+			if bundle == nil {
+				return BuildRequest{}, fmt.Errorf("trustedBuildContext.capabilityContracts must be an object")
+			}
+			if err := rejectJSONNullProperties(bundle, "files"); err != nil {
+				return BuildRequest{}, err
+			}
+		}
+		if bundleJSON, ok := contextObject["evidenceTrustBindings"]; ok {
+			var bundle map[string]json.RawMessage
+			if err := json.Unmarshal(bundleJSON, &bundle); err != nil {
+				return BuildRequest{}, err
+			}
+			if bundle == nil {
+				return BuildRequest{}, fmt.Errorf("trustedBuildContext.evidenceTrustBindings must be an object")
+			}
+			if err := rejectJSONNullProperties(bundle, "files"); err != nil {
+				return BuildRequest{}, err
+			}
+		}
+	}
 	var req BuildRequest
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
@@ -144,6 +191,15 @@ func DecodeBuildRequestJSON(data []byte) (BuildRequest, error) {
 		return BuildRequest{}, err
 	}
 	return req, nil
+}
+
+func rejectJSONNullProperties(object map[string]json.RawMessage, names ...string) error {
+	for _, name := range names {
+		if raw, ok := object[name]; ok && bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+			return fmt.Errorf("%s must not be null when present", name)
+		}
+	}
+	return nil
 }
 
 func Check(req BuildRequest) []Diagnostic {
