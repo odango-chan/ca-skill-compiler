@@ -1,6 +1,6 @@
 # Compiler v1alpha4 Development Profile — DeepSeek Harness / Flash Low
 
-**Status:** FROZEN development workflow. This document does not claim Compiler conformance and does not itself authorize implementation work.
+**Status:** FROZEN development workflow. The first bounded execution package is prepared in [DeepSeek Handoff](deepseek-handoff-v1alpha4.md) and [WP3A](wp3a-dependency-identity-v1alpha4.md). This does not claim Compiler conformance.
 
 ## 1. Purpose and authority
 
@@ -62,14 +62,14 @@ If a task lacks any required item, the model MUST report the missing item and st
 
 ## 5. Implementation work-package sequence
 
-The sequence below is the frozen default order. A work package may be split into smaller tasks, but tasks MUST NOT silently combine independent packages or bypass a dependency.
+The sequence below is the frozen default order. WP3 is split into four independently reviewable tasks. A work package may be split further, but tasks MUST NOT silently combine independent packages or bypass a dependency. The only task currently authorized for DeepSeek is WP3A; later WP3 slices remain queued.
 
 | WP | Scope | Dependency / boundary |
 |---|---|---|
 | WP0 | OSS dependency and toolchain selection | Completed by the [OSS Dependency Selection ADR](../design/oss-dependency-selection-v1alpha4.md); adapter integration remains in the consuming WPs |
 | WP1 | BuildRequest envelope, version checks, byte decoding, path/resource limits, DependencySnapshot digest, Check/Build/Inspect output APIs | Uses the frozen API and digest contracts |
 | WP2 | YAML 1.2 safe parser, duplicate-key detection, scalar handling, Contract / Procedure / PredicateSet AST | goccy/go-yaml v1.19.2 AST/token adapter; must reject unknown and legacy syntax; no compatibility conversion |
-| WP3 | DependencySnapshot integrity, Stable Package ID, trusted Owner attribution, ToolCatalog and CapabilityContracts linking | Must fail closed when trusted bindings are absent |
+| WP3A | DependencySnapshot raw-byte integrity, Alias selection, trusted dependency binding and exact Stable Package ID match | First DeepSeek task; no Owner export or Capability linking |\n| WP3B | ToolCatalog contract parsing/indexing, callable/Schema export identity and trusted Owner/export attribution | Depends on WP3A; covers E05/E39/E43 and export identity diagnostics |\n| WP3C | CapabilityContracts trusted bundle, deployment authorization, exact membership, Effect consistency and Scope intersection | Depends on WP3B; never infer deployment authorization |\n| WP3D | Integrate selected Skill references with dependency/callable/schema indexes and DependencyInspection | Depends on WP3A–WP3C; enforce selected-Skill closure and Reconcile-only anti-bypass |
 | WP4 | Schema registry, exact G.4 subset, F.5 assignability and CEL subset/type checking | San v6.0.3 + cel-go v0.33.2; exact local-only Schema and CEL profiles from the ADR |
 | WP5 | Procedure graph, stage cardinality/order, DAG, routes, terminal handling, global Precondition and final Postcondition proof | Must follow the frozen Procedure Linker contract |
 | WP6 | SourcePath, Producer dominance, per-path availability, argument typing and identity-input provenance | Missing physical identity-input publication remains fail-closed |
@@ -149,11 +149,21 @@ Baseline commands, adjusted only when the repository's pinned build scripts requ
 GOWORK=off go test ./... -count=1
 GOWORK=off go vet ./...
 CGO_ENABLED=0 GOWORK=off go build ./...
-CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm
+CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm-wasm
 git diff --check
 ~~~
 
 A command that was not run MUST be reported as NOT_RUN. A passing unit test does not establish full v1alpha4 conformance, Native/WASM parity, real Owner qualification or live 5GC acceptance.
+
+
+
+### 9.1 Work-package-specific browser gate
+
+Chromium Worker execution is mandatory when a task changes the browser Worker, WASM wire boundary, or the shared Core's observable behavior in the browser. It is not a mandatory local gate for every internal package-only task.
+
+For WP3A, Chromium is **NOT_APPLICABLE**: the task changes internal dependency identity validation only and does not change the WASM wire contract or browser Worker. The Go/WASM build remains required. Do not invent or claim a Chromium command. WP11 must add and pin a repository-owned Chromium Worker runner and make browser parity a required gate.
+
+A task that changes browser-visible diagnostics, DependencyInspection results or WASM transport must identify the checked-in runner and execute it; if no runner exists, stop and include runner creation in a separately bounded WP11 task.
 
 ## 10. Run record
 
