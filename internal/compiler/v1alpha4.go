@@ -342,8 +342,13 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 					for _, call := range calls.Content {
 						v4Allowed(call, file, map[string]bool{"predicate": true, "arguments": true}, add)
 						args := child(call, "arguments")
-						if scalar(child(call, "predicate")) == "" || args == nil || args.Kind != yaml.SequenceNode {
+						predicateNode := child(call, "predicate")
+						if scalar(predicateNode) == "" || args == nil || args.Kind != yaml.SequenceNode {
 							add(file, call, "PREDICATE_GROUP_INVALID", "PredicateCall requires predicate and positional arguments")
+							continue
+						}
+						if !validExportID(scalar(predicateNode)) {
+							add(file, predicateNode, "IDENTIFIER_INVALID", "PredicateCall predicate must satisfy the frozen PredicateId (DottedId) grammar")
 						}
 					}
 				}
