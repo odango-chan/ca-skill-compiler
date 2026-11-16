@@ -107,7 +107,7 @@ Therefore:
 - do not add identityInputs to the ToolCatalog schema in this PR;
 - do not infer identity paths from Schema names, property names or values;
 - consume a separately versioned trusted Owner publication when available;
-- if a callable requires this provenance and the publication cannot be consumed, use the frozen CALLABLE_ARGUMENT_PROVENANCE_INVALID diagnostic and fail closed;
+- if a callable requires this provenance and the publication cannot be consumed, use the frozen CALLABLE_ARGUMENT_PROVENANCE_INVALID diagnostic and fail closed; if Runtime cannot verify the original Invocation binding, it uses CALLABLE_ARGUMENT_PROVENANCE_UNVERIFIED;
 - Runtime's inability to verify the original Invocation binding remains a Runtime concern.
 
 Cross-snapshot Reconcile association is also not inferred from README text, callable names or a separate READ Grant. If the required versioned trusted association contract is unavailable, reject that interop case rather than guessing.
