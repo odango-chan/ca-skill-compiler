@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/odango-chan/ca-skill-compiler/blob/main/contracts/v1alpha4/build-result.schema.json",
+  "title": "Compiler BuildResult v1alpha4",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "success",
+    "diagnostics",
+    "dependencyClosure",
+    "outputFiles"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "connectionagent.io/compiler-build-result/v1alpha4"
+    },
+    "success": {
+      "type": "boolean"
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "code",
+          "phase",
+          "path",
+          "message"
+        ],
+        "properties": {
+          "severity": {
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "phase": {
+            "enum": [
+              "C_STATIC",
+              "C_WARNING"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "column": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8192
+          }
+        }
+      }
+    },
+    "dependencyClosure": {
+      "type": "array",
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "pattern": "^[a-z][a-z0-9._-]*$"
+      }
+    },
+    "outputFiles": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "bytes"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240,
+            "pattern": "^skills/"
+          },
+          "bytes": {
+            "type": "string",
+            "contentEncoding": "base64",
+            "maxLength": 2796204
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "success": {
+            "const": false
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "then": {
+        "properties": {
+          "dependencyClosure": {
+            "maxItems": 0
+          },
+          "outputFiles": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ]
+}
