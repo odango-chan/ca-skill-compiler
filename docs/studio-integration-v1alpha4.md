@@ -1,6 +1,6 @@
 # Skill Studio ↔ Skill Compiler v1alpha4 Integration
 
-**Status:** target integration contract; not a claim that the current Studio build already implements it.
+**Status:** FROZEN target integration contract; not a claim that the current Studio build already implements it.
 
 ## 1. Ownership
 
