@@ -584,3 +584,61 @@ func ValidateScalarLiteral(node *Node) error {
 		return fmt.Errorf("ScalarLiteral does not allow block scalars, aliases or explicit tags")
 	}
 }
+
+func ToValue(node *Node) (any, error) {
+	if node == nil {
+		return nil, nil
+	}
+	if node.Kind == AliasNode {
+		if node.Alias == nil {
+			return nil, fmt.Errorf("unresolved YAML alias")
+		}
+		return ToValue(node.Alias)
+	}
+	switch node.Kind {
+	case ScalarNode:
+		switch node.Tag {
+		case "!!str":
+			return node.Value, nil
+		case "!!bool":
+			return strconv.ParseBool(strings.ToLower(node.Value))
+		case "!!int":
+			if value, err := strconv.ParseInt(node.Value, 10, 64); err == nil {
+				return value, nil
+			}
+			return strconv.ParseUint(node.Value, 10, 64)
+		case "!!float":
+			return strconv.ParseFloat(node.Value, 64)
+		case "!!null":
+			return nil, nil
+		default:
+			return nil, fmt.Errorf("unsupported YAML scalar tag %q", node.Tag)
+		}
+	case SequenceNode:
+		values := make([]any, 0, len(node.Content))
+		for _, child := range node.Content {
+			value, err := ToValue(child)
+			if err != nil {
+				return nil, err
+			}
+			values = append(values, value)
+		}
+		return values, nil
+	case MappingNode:
+		values := make(map[string]any, len(node.Content)/2)
+		for i := 0; i+1 < len(node.Content); i += 2 {
+			key := unalias(node.Content[i])
+			if key == nil || key.Kind != ScalarNode || key.Tag != "!!str" {
+				return nil, fmt.Errorf("YAML mapping key must be a string")
+			}
+			value, err := ToValue(node.Content[i+1])
+			if err != nil {
+				return nil, err
+			}
+			values[key.Value] = value
+		}
+		return values, nil
+	default:
+		return nil, fmt.Errorf("unsupported YAML AST node kind %d", node.Kind)
+	}
+}
