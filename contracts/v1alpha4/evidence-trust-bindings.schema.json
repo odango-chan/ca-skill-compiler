@@ -32,14 +32,16 @@
       "maxItems": 256,
       "items": {
         "$ref": "#/$defs/independentDomains"
-      }
+      },
+      "minItems": 1
     },
     "commonFacts": {
       "type": "array",
       "maxItems": 256,
       "items": {
         "$ref": "#/$defs/commonFact"
-      }
+      },
+      "minItems": 1
     }
   },
   "$defs": {
