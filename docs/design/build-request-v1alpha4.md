@@ -1,6 +1,6 @@
 # BuildRequest v1alpha4
 
-**Status:** Compiler API contract. Machine-readable schema: [build-request.schema.json](../../contracts/v1alpha4/build-request.schema.json).
+**Status:** proposed Compiler API transport contract for review; not yet an implemented or qualified API. Machine-readable schema: [build-request.schema.json](../../contracts/v1alpha4/build-request.schema.json).
 
 ## 1. Two independent versions
 
