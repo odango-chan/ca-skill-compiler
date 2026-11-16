@@ -80,7 +80,7 @@ A WASM startup test is not parity evidence. A single positive fixture is not dia
 
 Script tests must include positive and negative cases for the gositter v0.2.0 Python CST adapter against the pinned tree-sitter-python v0.25.0 grammar, exact main signatures, Procedure call-site derived input TypedDict, Predicate-generated virtual PredicateInput, nested and functional TypedDict, Literal, Required / NotRequired and supported Annotated constraints, optional-key guard behavior, unknown literal and dynamic key rejection, forbidden Any/open dict/union/unsupported metadata, malformed/pathological source limits, generated Output Schema and runtime output validation contract. Never execute Python in Compiler tests.
 
-Schema tests must not silently widen G.4. A general Draft 2020-12 library passing a keyword is not proof that CA-SL accepts it. Production Schema Engine adoption remains a separately reviewed implementation choice; PR #8's spike is not production adoption.
+Schema tests must not silently widen G.4. A general Draft 2020-12 library passing a keyword is not proof that CA-SL accepts it. San v6.0.3 is the selected engine, but production adapter conformance remains NOT_QUALIFIED until the exact G.4 allowlist, local-only reference closure, security and Native/WASM gates pass. PR #8's spike is technical evidence, not production conformance.
 
 
 ### 6.1 Selected dependency adapter gates
