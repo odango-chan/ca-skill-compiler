@@ -262,8 +262,17 @@ func v4Allowed(node *yaml.Node, file string, allowed map[string]bool, add func(s
 		return
 	}
 	for i := 0; i+1 < len(node.Content); i += 2 {
-		if !allowed[node.Content[i].Value] {
-			add(file, node.Content[i], "UNKNOWN_FIELD", "Unsupported v1alpha4 author field "+node.Content[i].Value)
+		name := node.Content[i].Value
+		if allowed[name] {
+			continue
+		}
+		switch v4LegacyFieldClass(name) {
+		case "wait":
+			add(file, node.Content[i], "UNSUPPORTED_WAIT", "Wait/Await control structures are not part of CA-SL v1alpha4")
+		case "v02":
+			add(file, node.Content[i], "UNSUPPORTED_V02_SYNTAX", "Recognized legacy v0.2 syntax is not part of CA-SL v1alpha4")
+		default:
+			add(file, node.Content[i], "UNKNOWN_FIELD", "Unsupported v1alpha4 author field "+name)
 		}
 	}
 }
