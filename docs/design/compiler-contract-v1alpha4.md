@@ -68,7 +68,7 @@ For Go/WASM transport, byte arrays are base64 JSON strings. Native Go callers pa
 
 1. **Request envelope:** validate BuildRequest API version, exact language target, limits, duplicate paths, path normalization and base64 decoding.
 2. **Source inventory:** identify Skill package roots and required source files; reject generated artifacts fed back as author source.
-3. **Safe parse:** parse YAML 1.2 with duplicate-key detection, bounded depth/alias expansion, no custom tags, no cyclic aliases and no ambiguous scalar coercion.
+3. **Safe parse:** use the goccy/go-yaml v1.19.2 AST/token parser; enforce YAML 1.2 scalar rules, duplicate-key rejection, bounded depth/alias expansion, no custom tags, no cyclic aliases and no ambiguous scalar coercion. Exact dependency and adapter requirements are in the [OSS Dependency Selection ADR](oss-dependency-selection-v1alpha4.md).
 4. **Author AST:** parse Contract, Procedure and PredicateSet using the exact v1alpha4 grammar. Unknown fields are errors.
 5. **Snapshot integrity:** recompute every supplied dependency / trusted bundle digest over raw bytes before parsing or linking.
 6. **Trust binding:** bind each declared Dependency Alias to exactly one snapshot and trusted Stable Package ID; validate authorized Owner and export-owner attribution. Validate separate deployment CapabilityContracts and required Evidence trust relations.
@@ -78,7 +78,7 @@ For Go/WASM transport, byte arrays are base64 JSON strings. Native Go callers pa
 10. **Procedure linking:** validate Node stages, route keys/targets, terminal edges, reachability, acyclicity, global Precondition dominance and final Postcondition success paths.
 11. **Dataflow/type checking:** resolve SourcePaths per reachable path; prove Producer dominance and Source-to-Target Schema assignability; validate identity and Scope provenance.
 12. **Evidence checking:** link each Guarantee to its real Producer and output path; validate Scope, Correlation, Freshness, sourceIdentity and trusted factIdentity / IndependentDomains when used.
-13. **Script analysis:** statically parse the approved Python subset, derive Procedure call-site input types and Script Output Schemas, and validate Predicate Script stubs. Never execute Python.
+13. **Script analysis:** parse with the selected gositter v0.2.0 Python grammar through the internal CST adapter; statically analyze only the approved Python subset, derive Procedure call-site input types and Script Output Schemas, and validate Predicate Script stubs. Never execute Python.
 14. **Result:** sort diagnostics deterministically. If there are no errors, emit the complete artifact. Otherwise emit no artifact and no partial dependency closure.
 
 Internal package boundaries may differ, but observable diagnostics and results may not.
@@ -143,7 +143,7 @@ Compiler must statically check every field path and operand type. Optional field
 
 CEL int is signed 64-bit; CEL double is finite IEEE-754 binary64. CEL int and double do not mix implicitly. When an integer JSON Schema source is bound to a CEL number parameter, Compiler must prove it lies in the exact safe-integer range [-9007199254740991, 9007199254740991]. Runtime overflow, non-finite values, unverified numeric serialization or evaluation exceptions produce UNKNOWN, never PASS.
 
-The Schema Engine and CEL parser/evaluator implementation choices are not selected by this contract. They must implement this exact language profile and pass the pinned fixtures. PR #8's Schema library spike is technical evidence, not production adoption. Do not add a production Schema dependency or broaden the supported keyword/expression set without a separately reviewed decision.
+The selected Schema Engine and CEL parser/type-checker versions are recorded in the [OSS Dependency Selection ADR](oss-dependency-selection-v1alpha4.md): San v6.0.3 and cel-go v0.33.2. These generic engines MUST implement only the exact language profiles above and pass the pinned fixtures. PR #8's San spike remains technical evidence, not production conformance. The selected libraries do not broaden the supported Schema keyword or CEL expression set.
 
 ## 8. Tool and Capability semantics
 
