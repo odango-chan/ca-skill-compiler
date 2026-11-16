@@ -48,4 +48,16 @@ A BuildRequest API version is not a substitute for languageTarget; ToolCatalog a
 - Compiler PR #11 adds a v1alpha4 source/graph admission slice and deliberately fails closed when trusted Owner / CapabilityContracts inputs are unavailable.
 - This document set defines the next implementation target. It does **not** claim Compiler v1alpha4 conformance, complete linking, Native/WASM parity, Owner qualification or live 5GC acceptance.
 
+## Status and review boundary
+
+| Item | Status |
+|---|---|
+| CA-SL language v1alpha4 | FROZEN upstream at the immutable commit above |
+| ToolCatalog / CapabilityContracts v1alpha4 abstract shape | Normative in CA-SL F.1 / F.2; these machine schemas are implementation mirrors |
+| BuildRequest / BuildResult physical API | Proposed Compiler transport contract; review before implementation lock |
+| EvidenceTrustBindings physical transport | Proposed BuildRequest-owned encoding of §34.0.2 trusted relations |
+| Compiler Artifact physical format | Proposed independent artifact contract; review before implementation lock |
+| Compiler implementation | NOT_QUALIFIED; PR #11 is only the source/graph admission slice |
+| Real 5GC Owner / deployment publications | NOT_QUALIFIED until actual v1alpha4 releases and §45.2 evidence exist |
+
 The old v0.1 documents and schemas remain historical records. They are not fallback contracts and must not be silently reused for v1alpha4.
