@@ -50,7 +50,7 @@ A BuildRequest API version is not a substitute for languageTarget; ToolCatalog a
 - Compiler PR #5 is the Go v0.1 implementation base.
 - Compiler PR #11 adds a v1alpha4 source/graph admission slice and deliberately fails closed when trusted Owner / CapabilityContracts inputs are unavailable.
 - This document set defines the frozen Compiler v1alpha4 implementation target, the selected OSS dependency set and the DeepSeek Harness / Flash Low development workflow. The OSS choices are accepted for implementation but are not yet integrated or qualified. This document set does **not** claim Compiler v1alpha4 conformance, complete linking, Native/WASM parity, Owner qualification or live 5GC acceptance.
-- No model pilot is required or included. Implementation starts only when separately authorized.
+- No model pilot is required or included. The user has authorized continuing the v1alpha4 implementation plan; WP1 and all later work packages remain NOT_QUALIFIED until their own implementation and acceptance evidence exists.
 
 ## Status and review boundary
 
