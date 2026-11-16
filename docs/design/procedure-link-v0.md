@@ -1,3 +1,7 @@
+> **HISTORICAL — SUPERSEDED FOR NEW DEVELOPMENT.** This linker note targets the former v0.1 / Skill Language v0.2 contract. The active linker contract is [Procedure Linker v1alpha4](procedure-link-v1alpha4.md). Retained only as design history; no legacy syntax is accepted by the v1alpha4 target.
+
+---
+
 # Procedure / Binding / Library Link Contract v0.1
 
 **Status:** Compiler implementation notes, subordinate to the normative [ca-skills Skill Language v0.2](https://github.com/odango-chan/ca-skills/blob/codex/semantic-token-contract-v01/docs/skill-language-spec.md). This document defines linker behavior only; it must not become a second grammar authority.
