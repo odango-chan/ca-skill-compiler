@@ -41,6 +41,9 @@ type linkedExport struct {
 	// MutationProblem records the first missing/invalid Mutation-contract identity
 	// requirement (WP8 slice 1); empty means the identity requirements are present.
 	MutationProblem string
+	// MutationFields carries the trusted Mutation-contract identities used by the
+	// deeper WP8 static checks (receipt/commit-proof/Reconcile/recoverable).
+	MutationFields mutationContractFields
 }
 
 type ownerLinkingResult struct {
@@ -404,6 +407,7 @@ func parseToolCatalogCallable(node *yaml.Node, owner, sourcePath string) (linked
 					export.ReconcileTarget = target
 				}
 			}
+			export.MutationFields = parseMutationContractFields(node)
 			export.MutationProblem = mutationContractProblem(node)
 		}
 	case "observation":
