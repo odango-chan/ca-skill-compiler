@@ -119,9 +119,10 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		}
 
 		sourceAST := parseV1Alpha4SkillAST(name, parsedFiles)
+		identity := validateV1Alpha4DependencyIdentity(req, sourceAST)
 		// WP9: derive the Python Script ABI and input Schemas once per Skill so
 		// Procedure argument typing and Predicate Script checks share them.
-		scriptSchemas := validateV1Alpha4ScriptABI(sourceAST, files, procedurePath, predicatesPath, errorAt)
+		scriptSchemas := validateV1Alpha4ScriptABI(req, identity, sourceAST, files, procedurePath, predicatesPath, errorAt)
 		contractAST := sourceAST.Contract
 		if contractAST != nil && contractAST.Raw != nil {
 			contract := contractAST.Raw
@@ -167,7 +168,6 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			}
 			// WP3A: prove Alias -> snapshot digest -> trusted binding -> Stable
 			// Package ID for the selected Skill only. Later stages stay fail-closed.
-			identity := validateV1Alpha4DependencyIdentity(req, sourceAST)
 			diagnostics = append(diagnostics, identity.Diagnostics...)
 			// WP3B: index the verified snapshots' exact callable/Schema exports and
 			// prove trusted Owner attribution for the references the Skill uses.

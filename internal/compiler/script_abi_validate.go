@@ -6,16 +6,19 @@ package compiler
 // never executed.
 
 import (
+	"sort"
+
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
 type scriptSchemaSet struct {
-	Inputs  map[string]map[string]any
-	Outputs map[string]map[string]any
+	Inputs          map[string]map[string]any
+	Outputs         map[string]map[string]any
+	PredicateInputs map[string]map[string]any
 }
 
-func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte, procedurePath, predicatesPath string, add func(string, *yaml.Node, string, string)) scriptSchemaSet {
-	schemas := scriptSchemaSet{Inputs: map[string]map[string]any{}, Outputs: map[string]map[string]any{}}
+func validateV1Alpha4ScriptABI(req BuildRequest, identity dependencyIdentityResult, skill *V1Alpha4SkillAST, files map[string][]byte, procedurePath, predicatesPath string, add func(string, *yaml.Node, string, string)) scriptSchemaSet {
+	schemas := scriptSchemaSet{Inputs: map[string]map[string]any{}, Outputs: map[string]map[string]any{}, PredicateInputs: map[string]map[string]any{}}
 	if skill == nil {
 		return schemas
 	}
@@ -55,6 +58,7 @@ func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte,
 		}
 	}
 	if skill.Predicates != nil {
+		registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
 		for _, predicateID := range sortedStringMapKeys(skill.Predicates.Definitions) {
 			predicate := skill.Predicates.Definitions[predicateID]
 			if predicate == nil || predicate.Evaluator == nil {
@@ -78,6 +82,7 @@ func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte,
 				continue
 			}
 			allowed := map[string]bool{}
+			predicateProperties := map[string]any{}
 			for _, parameter := range sequence(predicate.Parameters) {
 				parameter = unalias(parameter)
 				if parameter == nil || parameter.Kind != yaml.MappingNode {
@@ -86,13 +91,32 @@ func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte,
 				for i := 0; i+1 < len(parameter.Content); i += 2 {
 					if name := scalar(unalias(parameter.Content[i])); name != "" {
 						allowed[name] = true
+						if schema := predicateParameterSchema(parameter.Content[i+1], registry); schema != nil {
+							predicateProperties[name] = nodeValue(schema)
+						}
 					}
 				}
 			}
 			if err := validateScriptInputKeyAccess(source, allowed, false); err != nil {
 				add(predicatesPath, scriptNode, "SCRIPT_CONTRACT_INVALID", "Predicate Script input access: "+err.Error())
+				continue
+			}
+			if len(predicateProperties) == len(allowed) {
+				schemas.PredicateInputs[base+script] = map[string]any{
+					"type": "object", "additionalProperties": false,
+					"properties": predicateProperties, "required": sortedAnyMapKeys(predicateProperties),
+				}
 			}
 		}
 	}
 	return schemas
+}
+
+func sortedAnyMapKeys(values map[string]any) []string {
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }

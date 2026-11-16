@@ -33,7 +33,7 @@ func TestArtifactAssemblyDeterministic(t *testing.T) {
 	}
 	identity := validateV1Alpha4DependencyIdentity(req, ast)
 	ownerLinking := validateV1Alpha4OwnerLinking(req, ast, identity)
-	scripts := validateV1Alpha4ScriptABI(ast, files, "skills/pdu/assurance/procedure.yaml", "skills/pdu/assurance/predicates.yaml", add)
+	scripts := validateV1Alpha4ScriptABI(req, identity, ast, files, "skills/pdu/assurance/procedure.yaml", "skills/pdu/assurance/predicates.yaml", add)
 	if len(scripts.Outputs) != 1 {
 		t.Fatalf("expected one derived Script Output Schema, got %d", len(scripts.Outputs))
 	}
