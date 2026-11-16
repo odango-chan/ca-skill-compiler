@@ -37,7 +37,7 @@ nodes:
 
 func TestWP9ScriptPathPositive(t *testing.T) {
 	request := v4TestRequest(v4TestContract, scriptProcedure("scripts/compute.py"), v4TestPredicates, v4TestSchema)
-	request.Files = append(request.Files, File{Path: "skills/pdu/scripts/compute.py", Bytes: []byte("def main(input):\n    return {}\n")})
+	request.Files = append(request.Files, File{Path: "skills/pdu/scripts/compute.py", Bytes: []byte(procedureScriptABI)})
 	if v4HasCode(Check(request), "SCRIPT_CONTRACT_INVALID") {
 		t.Fatalf("valid LocalScriptPath rejected: %+v", Check(request))
 	}

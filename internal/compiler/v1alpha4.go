@@ -199,6 +199,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			v4CheckPredicateCEL(predicatesPath, sourceAST.Predicates, errorAt)
 			validateV1Alpha4EvidenceRequirements(predicatesPath, sourceAST.Predicates, errorAt)
 			validateV1Alpha4PredicateScriptEvaluators(sourceAST, files, predicatesPath, errorAt)
+			validateV1Alpha4ScriptABI(sourceAST, files, procedurePath, predicatesPath, errorAt)
 		}
 		if sourceAST.Procedure != nil && sourceAST.Procedure.Raw != nil {
 			v4CheckProcedure(procedurePath, sourceAST.Procedure, contractAST, errorAt)
