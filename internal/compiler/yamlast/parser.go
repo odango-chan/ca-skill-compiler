@@ -1,5 +1,86 @@
 package yamlast
 
+import (
+	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+	"unicode/utf8"
+
+	goccyast "github.com/goccy/go-yaml/ast"
+	"github.com/goccy/go-yaml/lexer"
+	"github.com/goccy/go-yaml/parser"
+	"github.com/goccy/go-yaml/token"
+)
+
+type Kind uint8
+
+const (
+	ScalarNode Kind = iota + 1
+	SequenceNode
+	MappingNode
+	AliasNode
+	UnsupportedNode
+)
+
+type ScalarStyle uint8
+
+const (
+	PlainStyle ScalarStyle = iota
+	SingleQuotedStyle
+	DoubleQuotedStyle
+	LiteralStyle
+	FoldedStyle
+	TaggedStyle
+	AliasStyle
+)
+
+const (
+	maxDocumentBytes = 2 << 20
+	maxTokenCount    = 80000
+	maxNodeCount     = 20000
+	maxDepth         = 64
+	maxAliasCount    = 4096
+)
+
+type Node struct {
+	Kind    Kind
+	Tag     string
+	Value   string
+	Raw     string
+	Style   ScalarStyle
+	Line    int
+	Column  int
+	Content []*Node
+	Alias   *Node
+}
+
+type ParseErrorKind string
+
+const (
+	SyntaxError ParseErrorKind = "syntax"
+	RootError   ParseErrorKind = "root"
+	LimitError  ParseErrorKind = "limit"
+)
+
+type ParseError struct {
+	Kind    ParseErrorKind
+	Message string
+	Line    int
+	Column  int
+}
+
+func (e *ParseError) Error() string {
+	if e == nil {
+		return ""
+	}
+	return e.Message
+}
+
+var sourcePositionPattern = regexp.MustCompile("\\[(\\d+):(\\d+)\\]")
+var finiteDecimalPattern = regexp.MustCompile("^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$")
+var integerPattern = regexp.MustCompile("^-?(?:0|[1-9][0-9]*)$")
+
 func Parse(data []byte) (*Node, error) {
 	if len(data) == 0 {
 		return nil, &ParseError{Kind: RootError, Message: "YAML document is empty"}
