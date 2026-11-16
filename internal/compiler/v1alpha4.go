@@ -177,6 +177,8 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			diagnostics = append(diagnostics, producerSourcePathDiagnostics...)
 			argumentKeyDiagnostics := validateV1Alpha4ArgumentKeys(req, sourceAST, identity, ownerLinking, procedurePath)
 			diagnostics = append(diagnostics, argumentKeyDiagnostics...)
+			argumentValueDiagnostics := validateV1Alpha4ArgumentValueTypes(req, sourceAST, identity, ownerLinking, procedurePath)
+			diagnostics = append(diagnostics, argumentValueDiagnostics...)
 		}
 		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
 			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
