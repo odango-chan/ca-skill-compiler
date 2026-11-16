@@ -154,6 +154,13 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 					validateV1Alpha4RequestSchemaRoot(schemaPath, parsedFiles[schemaPath], errorAt)
 				}
 			}
+			if context := contractAST.ContextSchema; context != nil {
+				ref := scalar(context)
+				if !validQualifiedSchemaReference(ref) {
+					errorAt(contractPath, context, "QUALIFIED_REFERENCE_INVALID",
+						"Contract.contextSchema must be an exact Alias::absolute-Schema-URI reference")
+				}
+			}
 			// WP3A: prove Alias -> snapshot digest -> trusted binding -> Stable
 			// Package ID for the selected Skill only. Later stages stay fail-closed.
 			identity := validateV1Alpha4DependencyIdentity(req, sourceAST)

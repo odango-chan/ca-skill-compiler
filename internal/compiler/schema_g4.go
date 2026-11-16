@@ -434,3 +434,15 @@ func validateV1Alpha4RequestSchemaRoot(file string, root *yaml.Node, add func(st
 		add(file, root, "SCHEMA_INVALID", "Request Schema root must be closed with additionalProperties: false")
 	}
 }
+
+// validQualifiedSchemaReference validates the Contract.contextSchema shape:
+// exactly Alias::absolute-Schema-URI (G.1 QualifiedSchemaId).
+func validQualifiedSchemaReference(ref string) bool {
+	index := strings.Index(ref, "::")
+	if index <= 0 {
+		return false
+	}
+	alias := ref[:index]
+	uri := ref[index+2:]
+	return validDependencyID(alias) && validStablePackageID(uri) && !strings.Contains(uri, "::")
+}
