@@ -77,7 +77,7 @@ Schema tests must not silently widen G.4. A general Draft 2020-12 library passin
 The only executable 5GC baseline is the conventional establish-pdu-session flow after it is migrated to v1alpha4 and supplied with real, approved Owner contracts.
 
 Required gates:
-- real ToolCatalog v1alpha4 and CapabilityContracts v1alpha4 publications;
+- real ToolCatalog v1alpha4 and CapabilityContracts v1alpha4 publications, plus an explicitly versioned trusted Evidence Descriptor publication for any Evidence-dependent Skill;
 - actual Host Context, Tool Input/Output, Observation, Evidence and responsibility Schemas;
 - Owner confirmation for the three asynchronous-completion Operations required by the frozen spec;
 - complete static compile and exact diagnostic closure;
