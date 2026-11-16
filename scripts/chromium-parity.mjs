@@ -38,6 +38,7 @@ function buildWasm() {
   copyFileSync(path.join(goroot, 'lib', 'wasm', 'wasm_exec.js'), path.join(webRoot, 'wasm_exec.js'));
   copyFileSync(path.join(repoRoot, 'web', 'skillc-worker.js'), path.join(webRoot, 'skillc-worker.js'));
   copyFileSync(path.join(repoRoot, 'web', 'parity.html'), path.join(webRoot, 'parity.html'));
+  copyFileSync(path.join(repoRoot, 'web', 'studio.html'), path.join(webRoot, 'studio.html'));
 }
 
 function collectFiles(directory, prefix = '') {
@@ -113,7 +114,7 @@ async function startServer() {
   return { server, port: server.address().port };
 }
 
-async function cdpEvaluate(discoveryUrl, pageUrl) {
+async function cdpEvaluate(discoveryUrl, pageUrl, globalName = '__parity') {
   const version = await (await fetch(discoveryUrl)).json();
   const socket = new WebSocket(version.webSocketDebuggerUrl);
   const pending = new Map();
@@ -147,7 +148,7 @@ async function cdpEvaluate(discoveryUrl, pageUrl) {
     while (Date.now() < deadline) {
       await new Promise(resolve => setTimeout(resolve, 250));
       const outcome = await send('Runtime.evaluate', {
-        expression: 'window.__parity ? JSON.stringify(window.__parity) : null',
+        expression: `window.${globalName} ? JSON.stringify(window.${globalName}) : null`,
         returnByValue: true,
       }, true);
       const value = outcome.result?.value;
@@ -189,6 +190,22 @@ async function main() {
     const browserPaths = (browser.build.outputFiles || []).map(file => file.path);
     compare('build.outputFiles.paths', nativePaths, browserPaths);
     compare('inspect', native.inspect, browser.inspect);
+
+    const studio = await cdpEvaluate(`http://127.0.0.1:${debugPort}/json/version`, `http://127.0.0.1:${port}/studio.html`, '__studio');
+    if (!studio.ok) fail(`Studio integration error: ${studio.error}`);
+    const expectedDiagnostics = (native.build.diagnostics || []).map(diagnostic => ({
+      code: diagnostic.code, phase: diagnostic.phase, path: diagnostic.path,
+      line: diagnostic.line ?? 0, column: diagnostic.column ?? 0,
+    }));
+    compare('studio.diagnostics', expectedDiagnostics, studio.diagnostics);
+    compare('studio.buildSuccess', native.build.success, studio.buildSuccess);
+    compare('studio.artifactPaths', nativePaths, studio.artifactPaths);
+    if (!studio.artifactReadOnly) fail('Studio artifact view must be read-only');
+    if (studio.renderedRows !== expectedDiagnostics.length) {
+      fail(`Studio rendered ${studio.renderedRows} diagnostic rows, expected ${expectedDiagnostics.length}`);
+    }
+    if (studio.reimplementedParser) fail('Studio must not reimplement the compiler parser');
+    console.log('ok: studio diagnostics/artifact read-only integration identical');
     console.log('PASS: Native and real Chromium Worker projections are identical');
   } finally {
     chrome.kill();
