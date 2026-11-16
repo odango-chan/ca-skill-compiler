@@ -77,7 +77,7 @@ type DeploymentAuthorization struct {
 type TrustedBuildContext struct {
 	DependencyBindings       []TrustedDependencyBinding  `json:"dependencyBindings,omitempty"`
 	CapabilityContracts      *CapabilityContractsBundle  `json:"capabilityContracts,omitempty"`
-	DeploymentAuthorizations []DeploymentAuthorization   `json:"deploymentAuthorizations,omitempty"`
+	DeploymentAuthorizations *[]DeploymentAuthorization  `json:"deploymentAuthorizations,omitempty"`
 	EvidenceTrustBindings    *EvidenceTrustBindingsBundle `json:"evidenceTrustBindings,omitempty"`
 }
 
@@ -302,7 +302,11 @@ func validateBuildRequest(req BuildRequest) []Diagnostic {
 
 	if req.TrustedBuildContext != nil {
 		ctx := req.TrustedBuildContext
-		if len(ctx.DependencyBindings) > maxResolvedDependencies || len(ctx.DeploymentAuthorizations) > 128 {
+		authorizations := []DeploymentAuthorization(nil)
+		if ctx.DeploymentAuthorizations != nil {
+			authorizations = *ctx.DeploymentAuthorizations
+		}
+		if len(ctx.DependencyBindings) > maxResolvedDependencies || len(authorizations) > 128 {
 			add("INPUT_LIMIT", "", "TrustedBuildContext exceeds the binding or authorization count limit")
 		}
 		seenBindings := make(map[string]bool, len(ctx.DependencyBindings))
@@ -365,7 +369,7 @@ func validateBuildRequest(req BuildRequest) []Diagnostic {
 		if (ctx.CapabilityContracts != nil || ctx.EvidenceTrustBindings != nil) && ctx.DeploymentAuthorizations == nil {
 			add("REQUEST_INVALID", "", "TrustedBuildContext.deploymentAuthorizations is required when a trusted deployment bundle is supplied")
 		}
-		for _, authorization := range ctx.DeploymentAuthorizations {
+		for _, authorization := range authorizations {
 			if !validURIIdentity(authorization.DeploymentID) || !validURIIdentity(authorization.PublisherID) || !validURIIdentity(authorization.AuthorizationRef) {
 				add("CAPABILITY_INPUT_UNTRUSTED", "", "Deployment authorization binding is incomplete or malformed")
 			}
