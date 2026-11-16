@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-fixture-plan/v1alpha4",
+  "taskId": "WP4C-ASSIGNABILITY-001",
+  "status": "PASS",
+  "note": "Agent-proposed bounded WP4C envelope (slice 3 of WP4); see docs/workstreams/wp4c-assignability-v1alpha4.md. Engine only; call sites land in WP6/WP7.",
+  "normativeAuthority": {
+    "repository": "odango-chan/ca-skills",
+    "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
+    "file": "docs/skill-language-spec.v1alpha4.zh-CN.md",
+    "blob": "b70064c5737b8ee2b3d1435fe496357f44b42773"
+  },
+  "rules": {
+    "conservativeOnly": true,
+    "noCoercion": true,
+    "noDefaultMaterialization": true,
+    "unresolvedRefsNeverGuessed": true,
+    "noNewDiagnosticCodes": true
+  },
+  "fixtures": [
+    {
+      "id": "WP4C-001",
+      "title": "Numeric and same-type assignability",
+      "appendixE": null,
+      "category": "positive/negative",
+      "input": "integer->number, number->integer, string->integer, same-type pairs.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "integer is assignable to number.",
+        "number is not assignable to integer.",
+        "string is not assignable to integer.",
+        "No coercion is performed."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4CAssignability",
+      "actualFixturePath": "internal/compiler/schema_assignability_test.go"
+    },
+    {
+      "id": "WP4C-002",
+      "title": "enum/const value containment",
+      "appendixE": null,
+      "category": "positive/negative",
+      "input": "Source enum subset, non-subset enum, matching and mismatching const.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "All Source enum/const values must be accepted by Target.",
+        "Non-subset enum and mismatching const are rejected."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4CAssignability",
+      "actualFixturePath": "internal/compiler/schema_assignability_test.go"
+    },
+    {
+      "id": "WP4C-003",
+      "title": "Nullability rule",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Nullable Source bound to non-nullable Target.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "The engine returns NULLABILITY_MISMATCH for the caller to map to INPUT_NULLABILITY_MISMATCH.",
+        "No implicit non-null narrowing is assumed."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4CAssignability",
+      "actualFixturePath": "internal/compiler/schema_assignability_test.go"
+    },
+    {
+      "id": "WP4C-004",
+      "title": "Object required/extra/closed-key rules",
+      "appendixE": null,
+      "category": "positive/negative",
+      "input": "Target required missing from Source, extra Source key against closed Target, valid matching object, optional Target property.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "Target required keys must be guaranteed by Source required keys.",
+        "Extra Source keys are rejected by a closed Target.",
+        "Nested property assignment is recursive and conservative."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4CAssignability",
+      "actualFixturePath": "internal/compiler/schema_assignability_test.go"
+    },
+    {
+      "id": "WP4C-005",
+      "title": "String/number/array bound implication",
+      "appendixE": null,
+      "category": "positive/negative",
+      "input": "Tighter and looser length/range/array bounds and item types.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "Source bounds must imply Target bounds.",
+        "Looser bounds and incompatible item types are rejected."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4CAssignability",
+      "actualFixturePath": "internal/compiler/schema_assignability_test.go"
+    },
+    {
+      "id": "WP4C-006",
+      "title": "Unresolved $ref is never guessed",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Source or Target root containing $ref, or a Schema without the G.4 dialect.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "UNRESOLVED is returned for $ref pairs.",
+        "Schemas without the exact G.4 dialect are never used for assignability.",
+        "The caller must resolve references and re-run."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4CAssignabilityRequiresG4Dialect",
+      "actualFixturePath": "internal/compiler/schema_assignability_test.go"
+    }
+  ]
+}
