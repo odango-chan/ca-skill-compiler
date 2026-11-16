@@ -152,6 +152,24 @@ func DecodeBuildRequestJSON(data []byte) (BuildRequest, error) {
 		if err := rejectJSONNullProperties(contextObject, "dependencyBindings", "capabilityContracts", "deploymentAuthorizations", "evidenceTrustBindings"); err != nil {
 			return BuildRequest{}, err
 		}
+		if bindingsJSON, ok := contextObject["dependencyBindings"]; ok {
+			var bindings []json.RawMessage
+			if err := json.Unmarshal(bindingsJSON, &bindings); err != nil {
+				return BuildRequest{}, err
+			}
+			for index, bindingJSON := range bindings {
+				var binding map[string]json.RawMessage
+				if err := json.Unmarshal(bindingJSON, &binding); err != nil {
+					return BuildRequest{}, err
+				}
+				if binding == nil {
+					return BuildRequest{}, fmt.Errorf("trustedBuildContext.dependencyBindings[%d] must be an object", index)
+				}
+				if err := rejectJSONNullProperties(binding, "exportOwners"); err != nil {
+					return BuildRequest{}, err
+				}
+			}
+		}
 		if bundleJSON, ok := contextObject["capabilityContracts"]; ok {
 			var bundle map[string]json.RawMessage
 			if err := json.Unmarshal(bundleJSON, &bundle); err != nil {
@@ -361,6 +379,9 @@ func validateBuildRequest(req BuildRequest) []Diagnostic {
 		authorizations := []DeploymentAuthorization(nil)
 		if ctx.DeploymentAuthorizations != nil {
 			authorizations = *ctx.DeploymentAuthorizations
+		}
+		if ctx.DeploymentAuthorizations != nil && authorizations == nil {
+			add("REQUEST_INVALID", "", "TrustedBuildContext.deploymentAuthorizations must be an array, not null")
 		}
 		if len(ctx.DependencyBindings) > maxResolvedDependencies || len(authorizations) > 128 {
 			add("INPUT_LIMIT", "", "TrustedBuildContext exceeds the binding or authorization count limit")
