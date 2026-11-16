@@ -16,12 +16,14 @@ Do not use floating main, old v0.2 language docs, or old v0.1 Compiler contracts
 |---|---|
 | [Compiler Contract v1alpha4](docs/design/compiler-contract-v1alpha4.md) | Scope, pipeline, semantics and acceptance boundary |
 | [BuildRequest v1alpha4](docs/design/build-request-v1alpha4.md) | Source, dependency snapshots and trusted build context |
+| [Compiler Output API v1alpha4](docs/design/compiler-output-contract-v1alpha4.md) | Check, BuildResult, DependencyInspection, failure atomicity and deterministic ordering |
 | [Owner Contract Linking v1alpha4](docs/design/owner-contracts-v1alpha4.md) | ToolCatalog, CapabilityContracts, Evidence and trusted Owner attribution |
 | [Procedure Linker v1alpha4](docs/design/procedure-link-v1alpha4.md) | AST, graph, SourcePath, Schema and Capability linking |
 | [Script Contract v1alpha4](docs/design/script-contract-v1alpha4.md) | Procedure / Predicate Script ABI and derived Schemas |
 | [Compiler Artifact v1alpha4](docs/design/compiler-artifact-v1alpha4.md) | Deterministic output tree and generated Schema serialization |
 | [Dependency digest](docs/design/dependency-snapshot-digest-v1alpha4.md) | Cross-language immutable snapshot digest |
 | [Conformance plan](docs/workstreams/conformance-v1alpha4.md) | E01–E120, H diagnostics, Native/WASM and 5GC gates |
+| [DeepSeek Harness development profile](docs/workstreams/deepseek-harness-v1alpha4.md) | Frozen task envelope, work-package sequence, Low reasoning guardrails and acceptance workflow |
 | [5GC SMF Profile](docs/profiles/5gc-smf-procedure-profile.md) | 3GPP → Tool → Skill traceability; outside generic Compiler semantics |
 | [Studio integration](docs/studio-integration-v1alpha4.md) | Go/WASM and Studio boundary |
 | [Machine contracts](contracts/v1alpha4/README.md) | JSON Schemas and golden vectors |
@@ -46,17 +48,20 @@ A BuildRequest API version is not a substitute for languageTarget; ToolCatalog a
 
 - Compiler PR #5 is the Go v0.1 implementation base.
 - Compiler PR #11 adds a v1alpha4 source/graph admission slice and deliberately fails closed when trusted Owner / CapabilityContracts inputs are unavailable.
-- This document set defines the next implementation target. It does **not** claim Compiler v1alpha4 conformance, complete linking, Native/WASM parity, Owner qualification or live 5GC acceptance.
+- This document set defines the frozen Compiler v1alpha4 implementation target and the DeepSeek Harness / Flash Low development workflow. It does **not** claim Compiler v1alpha4 conformance, complete linking, Native/WASM parity, Owner qualification or live 5GC acceptance.
+- No model pilot is required or included. Implementation starts only when separately authorized.
 
 ## Status and review boundary
 
 | Item | Status |
 |---|---|
 | CA-SL language v1alpha4 | FROZEN upstream at the immutable commit above |
-| ToolCatalog / CapabilityContracts v1alpha4 abstract shape | Normative in CA-SL F.1 / F.2; these machine schemas are implementation mirrors |
-| BuildRequest / BuildResult physical API | Proposed Compiler transport contract; review before implementation lock |
-| EvidenceTrustBindings physical transport | Proposed BuildRequest-owned encoding of §34.0.2 trusted relations |
-| Compiler Artifact physical format | Proposed independent artifact contract; review before implementation lock |
+| ToolCatalog / CapabilityContracts v1alpha4 abstract shape | Normative in CA-SL F.1 / F.2; machine schemas are frozen implementation mirrors |
+| BuildRequest / BuildResult / DependencyInspection physical APIs | FROZEN for implementation in this PR |
+| EvidenceTrustBindings physical transport | FROZEN BuildRequest-owned format; not a universal Evidence Descriptor API |
+| Dependency snapshot digest | FROZEN Compiler / Studio interoperability algorithm |
+| Compiler Artifact physical format | FROZEN for implementation in this PR |
+| Compiler development workflow | FROZEN DeepSeek Harness / Flash Low profile; no pilot |
 | Compiler implementation | NOT_QUALIFIED; PR #11 is only the source/graph admission slice |
 | Real 5GC Owner / deployment publications | NOT_QUALIFIED until actual v1alpha4 releases and §45.2 evidence exist |
 
