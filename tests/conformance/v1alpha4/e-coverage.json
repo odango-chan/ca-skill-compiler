@@ -4,8 +4,8 @@
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 22,
-    "notRun": 98,
+    "partial": 23,
+    "notRun": 97,
     "passed": 0
   },
   "cases": [
@@ -541,8 +541,8 @@
     },
     {
       "id": "E107",
-      "status": "NOT_RUN",
-      "evidence": ""
+      "status": "PARTIAL",
+      "evidence": "Reconcile kind/effect/proofPath variants via Check; extra-writable-input and capability-only-original variants covered by capability/Schema slices"
     },
     {
       "id": "E108",
@@ -557,12 +557,12 @@
     {
       "id": "E110",
       "status": "PARTIAL",
-      "evidence": "G.4 Schema subset checks"
+      "evidence": "unsupported anyOf/pattern/dynamic-ref Schema variants (schema_g4_test)"
     },
     {
       "id": "E111",
       "status": "PARTIAL",
-      "evidence": "CEL_INVALID cases"
+      "evidence": "CEL guard/has/null-guard/index variants (cel_check_test)"
     },
     {
       "id": "E112",
