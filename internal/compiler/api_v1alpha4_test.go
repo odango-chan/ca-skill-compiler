@@ -3,6 +3,7 @@ package compiler
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -241,5 +242,145 @@ func TestDecodeBuildRequestJSONIsStrictAndDecodesBase64(t *testing.T) {
 	}
 	if _, err := DecodeBuildRequestJSON([]byte(wire + ` {}`)); err == nil {
 		t.Fatal("trailing JSON value accepted")
+	}
+}
+
+func TestBuildRequestEnforcesAllAggregateResourceLimits(t *testing.T) {
+	req := validEnvelopeRequest()
+	req.Files = make([]File, maxFiles+1)
+	for i := range req.Files {
+		req.Files[i] = File{Path: fmt.Sprintf("skills/demo/file-%03d", i), Bytes: []byte{}}
+	}
+	if got := Check(req); !hasCode(got, "INPUT_LIMIT") {
+		t.Fatalf("aggregate file count limit was not enforced: %+v", got)
+	}
+
+	req = validEnvelopeRequest()
+	req.Files[0].Bytes = make([]byte, maxFileSize+1)
+	if got := Check(req); !hasCode(got, "INPUT_LIMIT") {
+		t.Fatalf("per-file byte limit was not enforced: %+v", got)
+	}
+
+	req = validEnvelopeRequest()
+	req.Files = make([]File, 9)
+	for i := range req.Files {
+		req.Files[i] = File{Path: fmt.Sprintf("skills/demo/file-%02d", i), Bytes: make([]byte, maxFileSize)}
+	}
+	if got := Check(req); !hasCode(got, "INPUT_LIMIT") {
+		t.Fatalf("aggregate byte limit was not enforced: %+v", got)
+	}
+
+	req = validEnvelopeRequest()
+	req.ResolvedDependencies = make([]ResolvedDependency, maxResolvedDependencies+1)
+	for i := range req.ResolvedDependencies {
+		files := []File{{Path: "catalog.yaml", Bytes: []byte{}}}
+		digest, err := ComputeDependencySnapshotDigest(files)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.ResolvedDependencies[i] = ResolvedDependency{
+			DependencyID: fmt.Sprintf("dep-%03d", i),
+			Digest:       digest,
+			Files:        files,
+		}
+	}
+	if got := Check(req); !hasCode(got, "INPUT_LIMIT") {
+		t.Fatalf("dependency snapshot count limit was not enforced: %+v", got)
+	}
+
+	req = validEnvelopeRequest()
+	req.Targets = make([]string, maxSelectedTargets+1)
+	for i := range req.Targets {
+		req.Targets[i] = fmt.Sprintf("skill-%03d", i)
+	}
+	if got := Check(req); !hasCode(got, "INPUT_LIMIT") {
+		t.Fatalf("selected target count limit was not enforced: %+v", got)
+	}
+}
+
+func TestBuildRequestRejectsInvalidPathEncodingAndNilBytes(t *testing.T) {
+	req := validEnvelopeRequest()
+	req.Files[0].Path = "skills/demo/" + strings.Repeat("x", maxPathBytes)
+	if got := Check(req); !hasCode(got, "PACKAGE_PATH_INVALID") {
+		t.Fatalf("overlong path was accepted: %+v", got)
+	}
+
+	req = validEnvelopeRequest()
+	req.Files[0].Path = string([]byte{0xff})
+	if got := Check(req); !hasCode(got, "PACKAGE_PATH_INVALID") {
+		t.Fatalf("invalid UTF-8 path was accepted: %+v", got)
+	}
+
+	req = validEnvelopeRequest()
+	req.Files[0].Bytes = nil
+	if got := Check(req); !hasCode(got, "REQUEST_INVALID") {
+		t.Fatalf("null/missing file bytes were accepted: %+v", got)
+	}
+}
+
+func TestBuildRequestRecomputesTrustedBundleDigests(t *testing.T) {
+	capabilityFiles := []File{{Path: "capabilities/contracts.yaml", Bytes: []byte("capabilities: []\n")}}
+	capabilityDigest, err := ComputeDependencySnapshotDigest(capabilityFiles)
+	if err != nil {
+		t.Fatal(err)
+	}
+	evidenceFiles := []File{{Path: "evidence/bindings.yaml", Bytes: []byte("bindings: []\n")}}
+	evidenceDigest, err := ComputeDependencySnapshotDigest(evidenceFiles)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := validEnvelopeRequest()
+	req.TrustedBuildContext = &TrustedBuildContext{
+		CapabilityContracts: &CapabilityContractsBundle{
+			DeploymentID: "urn:deployment:demo",
+			PublisherID:  "urn:publisher:demo",
+			Digest:       capabilityDigest,
+			Files:        capabilityFiles,
+		},
+		EvidenceTrustBindings: &EvidenceTrustBindingsBundle{
+			DeploymentID:  "urn:deployment:demo",
+			PublisherID:   "urn:publisher:demo",
+			SnapshotDigest: evidenceDigest,
+			Files:         evidenceFiles,
+		},
+		DeploymentAuthorizations: []DeploymentAuthorization{{
+			DeploymentID:     "urn:deployment:demo",
+			PublisherID:      "urn:publisher:demo",
+			AuthorizationRef: "urn:authorization:demo",
+		}},
+	}
+	if got := Check(req); hasCode(got, "CAPABILITY_INPUT_DIGEST_MISMATCH") || hasCode(got, "EVIDENCE_GUARANTEE_LINK_INVALID") {
+		t.Fatalf("valid trusted bundle digests were rejected: %+v", got)
+	}
+
+	req.TrustedBuildContext.CapabilityContracts.Digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+	if got := Check(req); !hasCode(got, "CAPABILITY_INPUT_DIGEST_MISMATCH") {
+		t.Fatalf("CapabilityContracts digest tampering was not rejected: %+v", got)
+	}
+
+	req.TrustedBuildContext.CapabilityContracts.Digest = capabilityDigest
+	req.TrustedBuildContext.EvidenceTrustBindings.SnapshotDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+	if got := Check(req); !hasCode(got, "EVIDENCE_GUARANTEE_LINK_INVALID") {
+		t.Fatalf("EvidenceTrustBindings digest tampering was not rejected: %+v", got)
+	}
+}
+
+func TestBuildRequestRequiresDeploymentAuthorizationForTrustedBundles(t *testing.T) {
+	files := []File{{Path: "capabilities/contracts.yaml", Bytes: []byte("capabilities: []\n")}}
+	digest, err := ComputeDependencySnapshotDigest(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := validEnvelopeRequest()
+	req.TrustedBuildContext = &TrustedBuildContext{
+		CapabilityContracts: &CapabilityContractsBundle{
+			DeploymentID: "urn:deployment:demo",
+			PublisherID:  "urn:publisher:demo",
+			Digest:       digest,
+			Files:        files,
+		},
+	}
+	if got := Check(req); !hasCode(got, "REQUEST_INVALID") {
+		t.Fatalf("missing deploymentAuthorizations was accepted: %+v", got)
 	}
 }
