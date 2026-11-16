@@ -201,6 +201,64 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "success": {
+            "const": false
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "then": {
+        "properties": {
+          "diagnostics": {
+            "contains": {
+              "properties": {
+                "severity": {
+                  "const": "error"
+                }
+              },
+              "required": [
+                "severity"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "diagnostics": {
+            "not": {
+              "contains": {
+                "properties": {
+                  "severity": {
+                    "const": "error"
+                  }
+                },
+                "required": [
+                  "severity"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "diagnostics"
+        ]
+      },
+      "then": {
+        "properties": {
+          "success": {
+            "const": true
+          }
+        }
+      }
     }
   ]
 }
