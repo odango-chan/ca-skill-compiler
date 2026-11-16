@@ -25,7 +25,7 @@ type File struct {
 	Bytes []byte `json:"bytes"`
 }
 
-type LibraryTool struct {
+type libraryTool struct {
 	OperationID           string `json:"operationId"`
 	SourcePath            string `json:"sourcePath"`
 	DeclaredEffect        string `json:"declaredEffect"`
