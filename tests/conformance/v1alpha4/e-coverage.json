@@ -12,602 +12,729 @@
     {
       "id": "E01",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E02",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E03",
       "status": "PARTIAL",
-      "evidence": "dependency snapshot digest original-byte tests"
+      "evidence": "dependency snapshot digest original-byte tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E04",
       "status": "PARTIAL",
-      "evidence": "trusted binding digest mismatch/identity tests"
+      "evidence": "trusted binding digest mismatch/identity tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E05",
       "status": "PARTIAL",
-      "evidence": "dependency alias/snapshot resolution tests"
+      "evidence": "dependency alias/snapshot resolution tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E06",
       "status": "PARTIAL",
-      "evidence": "stable package id exact match tests"
+      "evidence": "stable package id exact match tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E07",
       "status": "PARTIAL",
-      "evidence": "capability/effect membership tests"
+      "evidence": "capability/effect membership tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E08",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E09",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E10",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E11",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E12",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E13",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E14",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E15",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E16",
       "status": "PARTIAL",
-      "evidence": "unused dependency warning test"
+      "evidence": "unused dependency warning test",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E17",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E18",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E19",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E20",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E21",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E22",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E23",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E24",
       "status": "PARTIAL",
-      "evidence": "Schema registry closure subset"
+      "evidence": "Schema registry closure subset",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E25",
       "status": "PARTIAL",
-      "evidence": "F.5 assignability tests"
+      "evidence": "F.5 assignability tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E26",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E27",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E28",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E29",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E30",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E31",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E32",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E33",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E34",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E35",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E36",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E37",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E38",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E39",
       "status": "PARTIAL",
-      "evidence": "procedure graph reachability tests"
+      "evidence": "procedure graph reachability tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E40",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E41",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E42",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E43",
       "status": "PARTIAL",
-      "evidence": "route obligation tests"
+      "evidence": "route obligation tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E44",
       "status": "PARTIAL",
-      "evidence": "source path typing subset"
+      "evidence": "source path typing subset",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E45",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E46",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E47",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E48",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E49",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E50",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E51",
       "status": "PARTIAL",
-      "evidence": "procedure script ABI subset"
+      "evidence": "procedure script ABI subset",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E52",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E53",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E54",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E55",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E56",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E57",
       "status": "PARTIAL",
-      "evidence": "CONTROL_FLOW_DANGLING fixture"
+      "evidence": "CONTROL_FLOW_DANGLING fixture",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E58",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E59",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E60",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E61",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E62",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E63",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E64",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E65",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E66",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E67",
       "status": "PARTIAL",
-      "evidence": "Procedure Script call-site arguments and key access"
+      "evidence": "Procedure Script call-site arguments and key access",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E68",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E69",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E70",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E71",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E72",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E73",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E74",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E75",
       "status": "PARTIAL",
-      "evidence": "Predicate Script input projection"
+      "evidence": "Predicate Script input projection",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E76",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E77",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E78",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E79",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E80",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E81",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E82",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E83",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E84",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E85",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E86",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E87",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E88",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E89",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E90",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E91",
       "status": "PARTIAL",
-      "evidence": "CEL subset checks"
+      "evidence": "CEL subset checks",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E92",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E93",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E94",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E95",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E96",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E97",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E98",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E99",
       "status": "PARTIAL",
-      "evidence": "internal reachable-stage graph invariant unit test"
+      "evidence": "internal reachable-stage graph invariant unit test",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E100",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E101",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E102",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E103",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E104",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E105",
       "status": "PARTIAL",
-      "evidence": "PredicateId/Alias/ExportId/QualifiedSchemaId variants; LocalScriptPath variant covered by Script path tests"
+      "evidence": "PredicateId/Alias/ExportId/QualifiedSchemaId variants; LocalScriptPath variant covered by Script path tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E106",
       "status": "PARTIAL",
-      "evidence": "independence-group structural linking: valid pairs, pair outside requires, single-member group, duplicate member -> EVIDENCE_GUARANTEE_LINK_INVALID; runtime same-record UNKNOWN is Host-side"
+      "evidence": "independence-group structural linking: valid pairs, pair outside requires, single-member group, duplicate member -> EVIDENCE_GUARANTEE_LINK_INVALID; runtime same-record UNKNOWN is Host-side",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E107",
       "status": "PARTIAL",
-      "evidence": "Reconcile kind/effect/proofPath variants via Check; extra-writable-input and capability-only-original variants covered by capability/Schema slices"
+      "evidence": "Reconcile kind/effect/proofPath variants via Check; extra-writable-input and capability-only-original variants covered by capability/Schema slices",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E108",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E109",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "PENDING_STATIC_CONFORMANCE"
     },
     {
       "id": "E110",
       "status": "PARTIAL",
-      "evidence": "unsupported anyOf/pattern/dynamic-ref Schema variants (schema_g4_test)"
+      "evidence": "unsupported anyOf/pattern/dynamic-ref Schema variants (schema_g4_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E111",
       "status": "PARTIAL",
-      "evidence": "CEL guard/has/null-guard/index variants (cel_check_test)"
+      "evidence": "CEL guard/has/null-guard/index variants (cel_check_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E112",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E113",
       "status": "PARTIAL",
-      "evidence": "Host Root / requestSchema closure: REQUEST_SCHEMA_MISSING, CONTEXT_REQUEST_COLLISION (schema_registry_test, source_path_schema_test, schema_g4_test)"
+      "evidence": "Host Root / requestSchema closure: REQUEST_SCHEMA_MISSING, CONTEXT_REQUEST_COLLISION (schema_registry_test, source_path_schema_test, schema_g4_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E114",
       "status": "PARTIAL",
-      "evidence": "PACKAGE_PATH_INVALID: traversal/duplicate/legacy-lib (api_v1alpha4_test) plus absolute, backslash, case-fold collision fixtures (e114_test)"
+      "evidence": "PACKAGE_PATH_INVALID: traversal/duplicate/legacy-lib (api_v1alpha4_test) plus absolute, backslash, case-fold collision fixtures (e114_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E115",
       "status": "PARTIAL",
-      "evidence": "single-member and two-member Pre/Postcondition predicates lists link structurally (e115_test)"
+      "evidence": "single-member and two-member Pre/Postcondition predicates lists link structurally (e115_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E116",
       "status": "NOT_RUN",
-      "evidence": ""
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E117",
       "status": "PARTIAL",
-      "evidence": "static subset: final Postcondition PASS->SUCCEEDED required edge and FINAL_POSTCONDITION_MISSING / SUCCESS_BYPASSES_FINAL_POSTCONDITION fixtures; runtime Goal re-check remains Host-side"
+      "evidence": "static subset: final Postcondition PASS->SUCCEEDED required edge and FINAL_POSTCONDITION_MISSING / SUCCESS_BYPASSES_FINAL_POSTCONDITION fixtures; runtime Goal re-check remains Host-side",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E118",
       "status": "PARTIAL",
-      "evidence": "static argument source/type/Evidence checks: F.5 typing, SourcePath availability, Predicate Evidence satisfiability fixtures"
+      "evidence": "static argument source/type/Evidence checks: F.5 typing, SourcePath availability, Predicate Evidence satisfiability fixtures",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E119",
       "status": "PARTIAL",
-      "evidence": "structural negatives: empty predicates list, member missing arguments, member carrying routes, removed Postcondition goal field (PREDICATE_GROUP_INVALID / UNKNOWN_FIELD priority)"
+      "evidence": "structural negatives: empty predicates list, member missing arguments, member carrying routes, removed Postcondition goal field (PREDICATE_GROUP_INVALID / UNKNOWN_FIELD priority)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E120",
       "status": "PARTIAL",
-      "evidence": "static subset: ENTRY_PRECONDITION_BYPASSED when a SUCCEEDED path skips the singular global gate; gated all-paths variant produces no false bypass (e120_test); Runtime join-AND execution remains Host-side"
+      "evidence": "static subset: ENTRY_PRECONDITION_BYPASSED when a SUCCEEDED path skips the singular global gate; gated all-paths variant produces no false bypass (e120_test); Runtime join-AND execution remains Host-side",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     }
-  ]
+  ],
+  "dispositionSummary": {
+    "partialStaticEvidence": 29,
+    "pendingStaticConformance": 48,
+    "notApplicableToCompiler": 43,
+    "claimedPass": 0,
+    "note": "PENDING_STATIC_CONFORMANCE means the frozen case lists the compiler as an owner but no executed fixture variant exists yet. NOT_APPLICABLE_TO_COMPILER means the case is Host/Runtime-only. No case is claimed PASS."
+  }
 }

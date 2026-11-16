@@ -238,3 +238,7 @@ GitHub Actions is not used as an acceptance gate in this run (Actions billing bl
 - WP8 cross-snapshot Reconcile association, Owner retryability proof, Runtime retry admission/resource responsibility: outside Compiler or fail-closed.
 - WP13 real 5GC qualification: **NOT_QUALIFIED** (no confirmed real Owner/Deployment publications; MAS not runnable). No synthetic fixture is presented as real deployment evidence.
 - Overall Compiler status: **INCOMPLETE / NOT_QUALIFIED**.
+
+### 11.6 E-case disposition (owner-classified)
+
+The frozen case index lists per-case owners. Of the 120 cases, the current machine-readable disposition is: 29 PARTIAL (executed static evidence exists), 48 PENDING_STATIC_CONFORMANCE (the compiler is a listed owner but no executed fixture variant exists yet), 43 NOT_APPLICABLE_TO_COMPILER (Host/Runtime-only cases), 0 claimed PASS. This classification is generated from tests/conformance/v1alpha4/e-coverage.json + case-index.json and does not change any normative expectation; it only makes the remaining conformance debt explicit and prevents Runtime-only cases from being counted as missing Compiler work.
