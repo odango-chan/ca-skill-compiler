@@ -13,7 +13,7 @@ type toolEntry struct {
 	source              string
 	line                int
 	effect              string
-	tool                LibraryTool
+	tool                libraryTool
 	inputNode           *yaml.Node
 	outputNode          *yaml.Node
 	reconcileOutputNode *yaml.Node
