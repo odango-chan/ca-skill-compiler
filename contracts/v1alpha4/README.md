@@ -7,7 +7,7 @@ All files in this directory are versioned Compiler / imported-contract schemas. 
 - dependency-inspection.schema.json — read-only projection of callable and Schema exports for Studio.
 - tool-catalog.schema.json — exact ToolCatalog v1alpha4 imported Owner contract.
 - capability-contracts.schema.json — exact CapabilityContracts v1alpha4 deployment input.
-- evidence-trust-bindings.schema.json — BuildRequest v1alpha4 transport document for trusted IndependentDomains and common-fact relations.
+- evidence-trust-bindings.schema.json — BuildRequest v1alpha4-owned embedded transport document for trusted IndependentDomains and common-fact relations; not an Evidence Descriptor API version.
 - artifact-manifest.schema.json — generated per-Skill Compiler Artifact manifest.
 - dependency-snapshot-digest-vectors.json — cross-language golden vectors.
 
