@@ -1,6 +1,6 @@
 # Procedure Linker v1alpha4
 
-**Status:** Compiler implementation contract subordinate to the frozen CA-SL specification.
+**Status:** FROZEN Compiler implementation contract subordinate to the frozen CA-SL specification.
 
 Normative authority: [CA-SL v1alpha4, immutable commit](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md).
 
@@ -11,6 +11,8 @@ The linker builds one typed, scope-aware graph from the Skill Contract, Procedur
 The author graph has one Procedure root with start/nodes; one Node per named business interaction; up to four ordered stages per Node (precondition, operation, observation, postcondition); stage-level outcome routes; a single Contract Goal and optional single global Precondition reference.
 
 The stages execute in this order when declared. Precondition/Postcondition are ordered Predicate groups whose members have no individual routes, Node IDs or Action Budget entries; Operation is a Tool or local Script; Observation is an Owner-published READ query. Repeated Predicate IDs are legal when each call has its own explicit arguments.
+
+**Node cardinality is fixed:** a Node has at most one Operation stage and at most one Observation stage. The Operation stage selects exactly one of tool or script; it is not a list of calls. The Observation stage selects exactly one Owner-published Observation Tool. A Node may contain both stages only in the frozen stage order. If a business interaction requires multiple sequential Operations, represent them as separate Nodes unless the real Owner publishes one actual composite callable. A local Script that prepares a later external request and that external Tool call are separate Nodes. Do not use a multi-call Node abstraction to compress independent effects or hide failure / Evidence boundaries.
 
 ## 2. Exact source grammar and rejected legacy syntax
 
