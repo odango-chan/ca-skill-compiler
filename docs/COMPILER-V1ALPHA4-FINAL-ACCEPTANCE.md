@@ -164,3 +164,77 @@ Overall Compiler: INCOMPLETE, NOT_QUALIFIED, Build fail-closed. Next slices: WP9
 - E120 static subset: fixtures show ENTRY_PRECONDITION_BYPASSED when a reachable SUCCEEDED path skips the singular global Precondition gate, and no false bypass when every success path passes the gate. Runtime join-AND aggregation remains Host-side. e-coverage.json marks E120 PARTIAL.
 
 - E119/E117 conformance slice: Postcondition stages now classify the removed goal field as the frozen PREDICATE_GROUP_INVALID (dedicated identity instead of UNKNOWN_FIELD); E119 fixtures also cover empty predicates lists, members missing arguments and members carrying routes. E117 is mapped to the existing final-Postcondition PASS->SUCCEEDED, FINAL_POSTCONDITION_MISSING and SUCCESS_BYPASSES_FINAL_POSTCONDITION fixtures; the Runtime Goal re-check remains Host-side. e-coverage.json marks both PARTIAL.
+
+## 11. Deliverable evidence snapshot (round 100)
+
+### 11.1 PR stack (open, unmerged, dependency order)
+
+| PR | Scope | State |
+|---|---|---|
+| #11 | v1alpha4 source admission / fail-closed target | open (Draft) |
+| #12 | frozen contracts, OSS ADR, Harness | open |
+| #13 | WP1 BuildRequest / digest | open |
+| #14 | WP2 normalized YAML AST | open |
+| #15 | WP3A dependency snapshot identity | open (Draft) |
+| #16 | WP3B ToolCatalog export identity / Owner attribution | open (Draft) |
+| #17 | WP3C trusted CapabilityContracts linking | open (Draft) |
+| #18 | WP3D integrated dependency linking + inspection | open (Draft) |
+| #19 | WP4A/WP4B Schema G.4 + registry | open (Draft) |
+| #20 | WP4C F.5 assignability | open (Draft) |
+| #21 | WP4D CEL subset + Predicate signatures | open (Draft) |
+| #22 | WP5 Procedure graph / routes | open (Draft) |
+| #23 | WP6 SourcePath / dominance / availability | open (Draft) |
+| #24 | WP9-WP12 continuation: Script ABI, Build success, Artifact, Chromium parity, Studio read-only, WP7/WP8 static slices, conformance | open (Draft, base = WP6 branch) |
+
+No PR is merged; no force-push or history rewrite was performed.
+
+### 11.2 Latest commit heads (PR #24 branch)
+
+WP9-WP12 continuation head was `e5628e2` at the time of this snapshot. Recent slices:
+
+- `e5628e2` Postcondition removed `goal` field -> PREDICATE_GROUP_INVALID (E119)
+- `798a3e7` E120 global Precondition dominance fixtures
+- `8482002` E115 predicate-stage member counts, E118 mapping
+- `632f87a` case-folded package path collision rejection (E114), E113 mapping
+- `6489d27` Evidence independence-group structural linking (E106)
+- `6798330` E107 Reconcile variants, E110/E111 evidence mapping
+- `0ac16a1` E105 identifier/qualified-reference fixtures
+- `93804ba` in-Worker artifact integrity verification (Chromium)
+- `62a88dd` CLI verifies artifact integrity before writing output
+- `d7e3137` artifact tree integrity verification
+- `0c777f7` static Predicate Evidence satisfiability
+- `369f0b2` per-path producer output availability
+- `f089423` legacy pre-v1alpha4 pipeline isolated behind `legacy_v01`
+- `57f4e17` legacy Wait / v0.2 syntax diagnostic priority
+- `2588cfd` dangling route target uses CONTROL_FLOW_DANGLING
+- `1637340` Mutation OUTCOME_UNKNOWN restricted to safe terminals
+- `68642da` route-key eligibility from trusted Owner outcomes
+- `a76f956` retry reachability requires NOT_COMMITTED edge
+- `adb6b5f` trusted Mutation/Reconcile Schema semantics
+
+### 11.3 Local acceptance results (executed, Go 1.27.4, head `e5628e2`)
+
+| Command | Result |
+|---|---|
+| `go test ./... -count=1` | PASS (exit 0) |
+| `go vet ./...` | PASS (exit 0) |
+| `CGO_ENABLED=0 go build ./...` | PASS (exit 0) |
+| `CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -o dist/skillc.wasm ./cmd/skillc-wasm` | PASS (exit 0) |
+| `git diff --check` | PASS (exit 0) |
+| `CHROMIUM_PARITY=1 go test ./internal/parity -run TestChromiumWorkerParity -v` | PASS (headless Chrome, includes in-Worker artifact verification and successful-Build artifact byte parity) |
+
+GitHub Actions is not used as an acceptance gate in this run (Actions billing blocker remains unresolved and is only recorded, never reported as PASS).
+
+### 11.4 Diagnostics and conformance evidence
+
+- Every error/warning identity emitted by the active (untagged) v1alpha4 sources is in the frozen Appendix H index, plus the documented API-envelope `REQUEST_INVALID` / `INPUT_LIMIT`.
+- The legacy pre-v1alpha4 pipeline is excluded from the active build and is not reachable from public APIs.
+- Still unreferenced frozen `C_STATIC` identities and their recorded reasons: `CALLABLE_ARGUMENT_PROVENANCE_INVALID` (unfrozen identity-input publication format), `CAPABILITY_SCOPE_EMPTY_INTERSECTION` (deployment Scope algebra absent from frozen CapabilityContracts), `DUPLICATE_ID` (internal-only IR uniqueness invariant).
+- `tests/conformance/v1alpha4/e-coverage.json`: 29 PARTIAL, 91 NOT_RUN, 0 PASS. PARTIAL means at least one sub-branch has executed evidence; it is not a whole-case PASS.
+
+### 11.5 Unresolved items and external qualification
+
+- WP7 Evidence Descriptor content, Producer/Scope/Correlation/Freshness trusted relations: NOT_IMPLEMENTED / fail-closed (no frozen physical format).
+- WP8 cross-snapshot Reconcile association, Owner retryability proof, Runtime retry admission/resource responsibility: outside Compiler or fail-closed.
+- WP13 real 5GC qualification: **NOT_QUALIFIED** (no confirmed real Owner/Deployment publications; MAS not runnable). No synthetic fixture is presented as real deployment evidence.
+- Overall Compiler status: **INCOMPLETE / NOT_QUALIFIED**.
