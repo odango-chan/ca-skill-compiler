@@ -36,7 +36,7 @@ These identifiers are independent and must be checked explicitly:
 - DependencyInspection API: connectionagent.io/compiler-dependency-inspection/v1alpha4
 - ToolCatalog: connectionagent.io/toolcatalog/v1alpha4
 - CapabilityContracts: connectionagent.io/capability-contracts/v1alpha4
-- Evidence trust bindings: connectionagent.io/evidence-trust-bindings/v1alpha4
+- EvidenceTrustBindings: BuildRequest v1alpha4-owned embedded trust-relation format (not a separate Owner Evidence Descriptor API)
 - Compiler Artifact: connectionagent.io/compiler-artifact/v1alpha4
 - Dependency snapshot digest framing: CA-SKILL-DEPENDENCY-SNAPSHOT\0v1\0
 
