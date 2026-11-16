@@ -401,7 +401,7 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 			for _, outcome := range mapKeys(routes) {
 				target := scalar(child(routes, outcome))
 				if target == "" || (!ids[target] && !v4Terminals[target]) {
-					add(file, child(routes, outcome), "ROUTE_TARGET_INVALID", "Unknown route target")
+					add(file, child(routes, outcome), "CONTROL_FLOW_DANGLING", "Route value is neither a terminal nor an existing Node")
 				} else if ids[target] {
 					adjacency[id] = append(adjacency[id], target)
 				}
