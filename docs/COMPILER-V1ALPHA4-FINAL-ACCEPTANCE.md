@@ -254,3 +254,15 @@ The frozen case index lists per-case owners. Of the 120 cases, the current machi
 - Final E-case batch: new executed fixtures cover E01 (full trusted baseline links cleanly), E69 (Mutation must route OUTCOME_UNKNOWN) and E98 (published guarantee path must cover the referenced value). E17/E72/E78/E93 are mapped to their existing executed availability/capability/Reconcile/digest tests. The seven cases that genuinely depend on unfrozen external publications (E38/E46/E68/E87/E101/E102/E109) are now recorded with disposition BLOCKED_EXTERNAL_CONTRACT instead of being counted as missing static work. e-coverage.json: 67 PARTIAL, 10 PENDING_STATIC_CONFORMANCE, 7 BLOCKED_EXTERNAL_CONTRACT, 43 NOT_APPLICABLE_TO_COMPILER, 0 PASS.
 
 - E-case disposition finalized: no case remains NOT_RUN. tests/conformance/v1alpha4/e-coverage.json now records 68 PARTIAL (executed static evidence), 9 BLOCKED (7 BLOCKED_EXTERNAL_CONTRACT for the unfrozen Owner Evidence descriptor / deployment Scope algebra / identity-input publication; 2 BLOCKED_NORMATIVE_MAPPING for E71/E74 where the frozen expected code cannot be distinguished unambiguously), 43 NOT_APPLICABLE (Host/Runtime-only), 0 claimed PASS. E89 is mapped to the same frozen optional-output-property rule as E37.
+
+
+## 12. Blocked conditions (maintainer decision required)
+
+The Compiler's independent static work is exhausted at head e86eb95. The remaining path to the Goal's completion criteria is blocked by conditions that cannot be resolved by further independent implementation without violating the frozen-authority rules:
+
+1. **Unfrozen external contract formats.** Seven conformance cases (E38/E46/E68/E87/E101/E102/E109) and the positive WP7 Evidence / WP8 cross-snapshot Reconcile paths require the physical Owner Evidence Descriptor publication, deployment Scope policy algebra and identity-input trusted publication format. None is frozen or supplied; inventing them is prohibited, so those branches remain fail-closed and BLOCKED_EXTERNAL_CONTRACT.
+2. **Two ambiguous normative mappings.** E71 and E74 require PREDICATE_EVIDENCE_REQUIRED, while the only implemented unambiguous trigger emits PREDICATE_EVIDENCE_UNSATISFIABLE; the frozen text does not distinguish the triggers precisely enough to implement without guessing. Recorded as BLOCKED_NORMATIVE_MAPPING.
+3. **WP13 real 5GC qualification.** No confirmed real v1alpha4 Owner/Deployment publications and no runnable MAS baseline exist; WP13 stays NOT_QUALIFIED and cannot be changed to QUALIFIED.
+4. **CI acceptance.** The Goal's completion criterion asks for CI PASS, but GitHub Actions remains blocked by account billing. Per the maintainer's round-12 instruction, CI is not used as an acceptance gate; only local commands are executed and recorded.
+
+Nothing above is a difficulty or an unspecified future feature: each item requires an external frozen publication, a normative clarification, or real infrastructure access that the maintainer owns. All independent static, artifact, Native/WASM/Chromium and Studio work continues to pass locally at this head.
