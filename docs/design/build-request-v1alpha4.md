@@ -109,7 +109,7 @@ If and only if the selected Skill uses cross-domain IndependentDomains or cross-
 - snapshotDigest for the actual relation file set;
 - raw files containing the v1alpha4 EvidenceTrustBindings documents.
 
-The documents use apiVersion connectionagent.io/evidence-trust-bindings/v1alpha4. Compiler recomputes the digest, validates deployment/publisher authorization and links exact domains, independent pairs, common namespace/fact, participating Owners, Scope mappings and comparable-value Schema identities to the referenced Evidence Guarantee descriptors. Missing, repeated, self-pairs, undeclared domains, unauthorized relations, digest mismatch or ambiguous mappings use the existing Evidence link diagnostic.
+The embedded EvidenceTrustBindings document shape is owned and versioned by this BuildRequest v1alpha4 contract; it is not a new Evidence Descriptor apiVersion or a standalone Owner API. Compiler recomputes the bundle digest, validates deployment/publisher authorization and links exact domains, independent pairs, common namespace/fact, participating Owners, Scope mappings and comparable-value Schema identities to the referenced Evidence Guarantee descriptors. Missing, repeated, self-pairs, undeclared domains, unauthorized relations, digest mismatch or ambiguous mappings use the existing Evidence link diagnostic.
 
 The BuildRequest schema defines this transport; [evidence-trust-bindings.schema.json](../../contracts/v1alpha4/evidence-trust-bindings.schema.json) defines the relation document. These are trusted deployment artifacts, not Skill-authored declarations.
 
