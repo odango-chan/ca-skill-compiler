@@ -4,8 +4,8 @@
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 24,
-    "notRun": 96,
+    "partial": 25,
+    "notRun": 95,
     "passed": 0
   },
   "cases": [
@@ -571,13 +571,13 @@
     },
     {
       "id": "E113",
-      "status": "NOT_RUN",
-      "evidence": ""
+      "status": "PARTIAL",
+      "evidence": "Host Root / requestSchema closure: REQUEST_SCHEMA_MISSING, CONTEXT_REQUEST_COLLISION (schema_registry_test, source_path_schema_test, schema_g4_test)"
     },
     {
       "id": "E114",
       "status": "PARTIAL",
-      "evidence": "package path validation tests"
+      "evidence": "PACKAGE_PATH_INVALID: traversal/duplicate/legacy-lib (api_v1alpha4_test) plus absolute, backslash, case-fold collision fixtures (e114_test)"
     },
     {
       "id": "E115",

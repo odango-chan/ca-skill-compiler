@@ -317,6 +317,7 @@ func validateBuildRequest(req BuildRequest) []Diagnostic {
 			valid = false
 		}
 		seen := make(map[string]bool, len(files))
+		seenFolded := make(map[string]bool, len(files))
 		for _, file := range files {
 			total.files++
 			if file.Bytes == nil {
@@ -330,8 +331,12 @@ func validateBuildRequest(req BuildRequest) []Diagnostic {
 			if seen[file.Path] {
 				add("PACKAGE_PATH_INVALID", file.Path, "Duplicate file path within "+scope)
 				valid = false
+			} else if seenFolded[strings.ToLower(file.Path)] {
+				add("PACKAGE_PATH_INVALID", file.Path, "Case-folded file path collision within "+scope)
+				valid = false
 			}
 			seen[file.Path] = true
+			seenFolded[strings.ToLower(file.Path)] = true
 			if len(file.Bytes) > maxFileSize {
 				add("INPUT_LIMIT", file.Path, "File exceeds the 2 MiB raw byte limit")
 				valid = false
