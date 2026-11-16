@@ -445,20 +445,23 @@ func validateBounds(root *Node) error {
 			return nil
 		}
 		if depth > maxDepth {
-			return &ParseError{Kind: LimitError, Message: "YAML alias expansion or nesting exceeds 64"}
+			return &ParseError{Kind: LimitError, Message: "YAML alias expansion or nesting exceeds 64", Line: node.Line, Column: node.Column}
 		}
 		if active[node] {
-			return &ParseError{Kind: LimitError, Message: "cyclic YAML alias is not allowed"}
+			return &ParseError{Kind: LimitError, Message: "cyclic YAML alias is not allowed", Line: node.Line, Column: node.Column}
 		}
 		count++
 		if count > maxNodeCount {
-			return &ParseError{Kind: LimitError, Message: "YAML expanded AST exceeds 20000 nodes"}
+			return &ParseError{Kind: LimitError, Message: "YAML expanded AST exceeds 20000 nodes", Line: node.Line, Column: node.Column}
 		}
 		active[node] = true
 		defer delete(active, node)
 		if node.Kind == AliasNode {
 			if node.Alias == nil {
 				return &ParseError{Kind: SyntaxError, Message: "YAML alias has no resolved anchor", Line: node.Line, Column: node.Column}
+			}
+			if active[node.Alias] {
+				return &ParseError{Kind: LimitError, Message: "cyclic YAML alias is not allowed", Line: node.Line, Column: node.Column}
 			}
 			if err := walk(node.Alias, depth+1); err != nil {
 				return err
