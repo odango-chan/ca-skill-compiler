@@ -1,7 +1,7 @@
 {
   "schemaVersion": "connectionagent.io/compiler-conformance-executed-coverage/v1alpha4",
   "status": "PARTIAL_NOT_QUALIFIED",
-  "lastVerifiedCommit": "9d255ac",
+  "lastVerifiedCommit": "0c777f7",
   "normativeAuthority": {
     "repository": "odango-chan/ca-skills",
     "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
@@ -18,14 +18,15 @@
     "WP3C": "CapabilityContracts, deployment authorization, membership/Effect/scope checks.",
     "WP3D": "DependencyInspection, selected closure, Reconcile anti-bypass.",
     "WP4A-D": "G.4 subset, Schema registry/closure (San), F.5 assignability, CEL subset type checks.",
-    "WP5": "Procedure graph, reachability, entry precondition dominance, stage route obligations.",
-    "WP6": "SourcePath grammar/arity, context/request typing, producer dominance, argument key/value typing, predicate positional typing; inline Expression rule (SOURCE_PATH_INVALID).",
-    "WP7": "PARTIAL: evidence.requires parameter binding only. Guarantee linking against a real Owner Descriptor format is NOT_IMPLEMENTED and fail-closed.",
-    "WP8": "PARTIAL: Mutation contract identity requirements, retryOf reference validity, retry Mutation family rules. Deep Reconcile/commit-proof/failure-class semantics NOT_IMPLEMENTED and fail-closed.",
+    "WP5": "Procedure graph, reachability, entry precondition dominance, stage route obligations, route-key eligibility matrix (22.1), Mutation OUTCOME_UNKNOWN safe-terminal restriction, retry reachability proof, legacy-syntax priority, dangling route target, internal reachable-stage graph invariant.",
+    "WP6": "SourcePath grammar/arity, context/request typing, producer dominance and per-path availability (non-SUCCEEDED and COMMITTED-only recovery distinction), argument key/value typing, predicate positional typing; inline Expression rule (SOURCE_PATH_INVALID).",
+    "WP7": "PARTIAL: evidence.requires parameter binding, guarantee qualified-reference syntax, and static Evidence satisfiability against frozen F.1 guarantees.evidence.provides (Request/Host data and unproven producers are PREDICATE_EVIDENCE_UNSATISFIABLE). Evidence Descriptor physical content/trusted relations remain NOT_IMPLEMENTED and fail-closed.",
+    "WP8": "PARTIAL: Mutation contract identity, retry reference/family/reachability, trusted Reconcile Schema semantics (receipt/commitProof paths, same-owner READ, proof/recoverable outputs), per-path COMMITTED-only RECONCILE_OUTPUT_UNAVAILABLE. Cross-snapshot Reconcile association and Runtime retry admission remain outside Compiler or fail-closed.",
     "WP9": "PARTIAL: gositter CST adapter, Script ABI derivation, strict TypedDict output, call-site arguments, F.5 value typing, restricted key-access analysis, PredicateInput parameter projection, Predicate result shape. NotRequired guard proof and Evidence projection NOT_IMPLEMENTED.",
     "WP10": "Deterministic JCS Artifact tree/manifest, exact generated Schema paths/$ids, duplicate/collision rejection; successful Build emits real artifacts and repeated Builds are byte-identical.",
     "WP11": "Real headless Chromium Worker parity executed: check/build/inspect projections identical; successful-Build artifact files byte-identical (SHA-256).",
-    "WP12": "Read-only Studio integration surface consuming the unified Worker result; real Chromium acceptance for diagnostics + artifact presentation (failure and success fixtures)."
+    "WP12": "Read-only Studio integration surface consuming the unified Worker result; real Chromium acceptance for diagnostics + artifact presentation (failure and success fixtures).",
+    "WP7-9": "see WP7/WP8/WP9 entries"
   },
   "localAcceptanceCommands": [
     "GOWORK=off go test ./... -count=1",
@@ -35,12 +36,18 @@
     "git diff --check",
     "CHROMIUM_PARITY=1 GOTOOLCHAIN=go1.27.4 go test ./internal/parity -run TestChromiumWorkerParity -v"
   ],
-  "localAcceptanceResult": "ALL_PASS (last run: go test/vet/builds/diff-check exit 0; Chromium parity PASS in 15.1s, Chrome/158.0.8127.37)",
+  "localAcceptanceResult": "ALL_PASS (go test/vet/builds/diff-check exit 0; Chromium Worker parity PASS including successful-Build artifact byte parity).",
   "notClaims": [
     "Not full v1alpha4 conformance; E01-E120 coverage is incomplete.",
     "Not WP7 Evidence qualification; no real Evidence Descriptor publication was invented or consumed.",
     "Not deep WP8 Reconcile/commit-proof qualification.",
     "Not WP13 real 5GC qualification; real Owner/Deployment publications remain NOT_QUALIFIED.",
     "Not a full Skill Studio product; this repository provides the Compiler and a read-only integration surface."
-  ]
+  ],
+  "unreferencedFrozenStaticDiagnostics": [
+    "CALLABLE_ARGUMENT_PROVENANCE_INVALID",
+    "CAPABILITY_SCOPE_EMPTY_INTERSECTION",
+    "DUPLICATE_ID"
+  ],
+  "unreferencedReason": "These three H C_STATIC identities depend respectively on an unfrozen identity-input publication format (WP6 13.3/F.1), deployment Scope policy algebra not present in the frozen CapabilityContracts surface, and an internal-only IR uniqueness invariant that author sources cannot express. They are recorded as BLOCKED_NORMATIVE_MAPPING / internal invariant rather than implemented with a guessed trigger."
 }
