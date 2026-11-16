@@ -1,6 +1,6 @@
 # Dependency Snapshot Digest v1
 
-**Status:** normative Compiler/Studio interoperability algorithm for BuildRequest v1alpha4.
+**Status:** proposed normative Compiler/Studio interoperability algorithm for BuildRequest v1alpha4; freeze together with the BuildRequest API review.
 
 This document deliberately preserves the already-proposed v0.1 digest preimage byte-for-byte. The language target changed; the snapshot hashing algorithm did not. Its algorithm identity is the domain separator below, not the CA-SL language version.
 
