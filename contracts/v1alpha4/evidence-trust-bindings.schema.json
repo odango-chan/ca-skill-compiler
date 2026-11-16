@@ -5,15 +5,11 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "apiVersion",
     "kind",
     "deploymentId",
     "publisherId"
   ],
   "properties": {
-    "apiVersion": {
-      "const": "connectionagent.io/evidence-trust-bindings/v1alpha4"
-    },
     "kind": {
       "const": "EvidenceTrustBindings"
     },
