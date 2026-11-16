@@ -116,7 +116,7 @@ The trusted authorization record is a caller-supplied trusted input. The compile
 
 ### EvidenceTrustBindings bundle
 
-The wrapper includes deploymentId, publisherId, snapshotDigest and raw files. The documents use connectionagent.io/evidence-trust-bindings/v1alpha4 and the schema in [evidence-trust-bindings.schema.json](../../contracts/v1alpha4/evidence-trust-bindings.schema.json).
+The wrapper includes deploymentId, publisherId, snapshotDigest and raw files. The embedded documents use the BuildRequest v1alpha4-owned EvidenceTrustBindings shape, validated by [evidence-trust-bindings.schema.json](../../contracts/v1alpha4/evidence-trust-bindings.schema.json). This is not a new Evidence Descriptor apiVersion or an Owner-published descriptor format.
 
 It carries:
 - IndependentDomains: deployment, publisher, unique absolute domain URI set and unordered, nonduplicate, non-reflexive independent pairs;
