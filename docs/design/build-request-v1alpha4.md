@@ -99,7 +99,7 @@ trustedBuildContext.capabilityContracts contains deploymentId, publisherId, the 
 
 Compiler recomputes the digest, parses every document, requires exact apiVersion connectionagent.io/capability-contracts/v1alpha4, and validates the capability/callable structure. The matching deploymentAuthorizations entry must authorize that exact publisher for that exact deployment and include a trusted authorizationRef. No Skill field, ordinary dependency snapshot or Capability name can substitute for this deployment input.
 
-The authorization records and TrustedBuildContext are supplied by the authenticated/trusted build entry, not read from the Skill workspace. Compiler verifies the supplied identities and references; it does not contact an authorization server or create a trust root. Host/Runtime MUST re-check deployment authorization at admission and dispatch.
+The authorization records and TrustedBuildContext are supplied by the authenticated/trusted build entry, not read from the Skill workspace. authorizationRef is an opaque identifier for the caller-verified authorization record; Compiler MUST NOT dereference it, fetch a URL or treat a syntactically valid URI as proof of authorization. Compiler verifies that the trusted caller supplied a consistent deployment/publisher binding; it does not contact an authorization server or create a trust root. Host/Runtime MUST re-check deployment authorization at admission and dispatch.
 
 ### 5.3 Evidence trust bindings
 
