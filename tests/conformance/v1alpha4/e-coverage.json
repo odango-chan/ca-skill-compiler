@@ -1,0 +1,613 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-e-coverage/v1alpha4",
+  "status": "PARTIAL_NOT_QUALIFIED",
+  "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
+  "summary": {
+    "total": 120,
+    "partial": 21,
+    "notRun": 99,
+    "passed": 0
+  },
+  "cases": [
+    {
+      "id": "E01",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E02",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E03",
+      "status": "PARTIAL",
+      "evidence": "dependency snapshot digest original-byte tests"
+    },
+    {
+      "id": "E04",
+      "status": "PARTIAL",
+      "evidence": "trusted binding digest mismatch/identity tests"
+    },
+    {
+      "id": "E05",
+      "status": "PARTIAL",
+      "evidence": "dependency alias/snapshot resolution tests"
+    },
+    {
+      "id": "E06",
+      "status": "PARTIAL",
+      "evidence": "stable package id exact match tests"
+    },
+    {
+      "id": "E07",
+      "status": "PARTIAL",
+      "evidence": "capability/effect membership tests"
+    },
+    {
+      "id": "E08",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E09",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E10",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E11",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E12",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E13",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E14",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E15",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E16",
+      "status": "PARTIAL",
+      "evidence": "unused dependency warning test"
+    },
+    {
+      "id": "E17",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E18",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E19",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E20",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E21",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E22",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E23",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E24",
+      "status": "PARTIAL",
+      "evidence": "Schema registry closure subset"
+    },
+    {
+      "id": "E25",
+      "status": "PARTIAL",
+      "evidence": "F.5 assignability tests"
+    },
+    {
+      "id": "E26",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E27",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E28",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E29",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E30",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E31",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E32",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E33",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E34",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E35",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E36",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E37",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E38",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E39",
+      "status": "PARTIAL",
+      "evidence": "procedure graph reachability tests"
+    },
+    {
+      "id": "E40",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E41",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E42",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E43",
+      "status": "PARTIAL",
+      "evidence": "route obligation tests"
+    },
+    {
+      "id": "E44",
+      "status": "PARTIAL",
+      "evidence": "source path typing subset"
+    },
+    {
+      "id": "E45",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E46",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E47",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E48",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E49",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E50",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E51",
+      "status": "PARTIAL",
+      "evidence": "procedure script ABI subset"
+    },
+    {
+      "id": "E52",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E53",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E54",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E55",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E56",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E57",
+      "status": "PARTIAL",
+      "evidence": "CONTROL_FLOW_DANGLING fixture"
+    },
+    {
+      "id": "E58",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E59",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E60",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E61",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E62",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E63",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E64",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E65",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E66",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E67",
+      "status": "PARTIAL",
+      "evidence": "Procedure Script call-site arguments and key access"
+    },
+    {
+      "id": "E68",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E69",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E70",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E71",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E72",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E73",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E74",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E75",
+      "status": "PARTIAL",
+      "evidence": "Predicate Script input projection"
+    },
+    {
+      "id": "E76",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E77",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E78",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E79",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E80",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E81",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E82",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E83",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E84",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E85",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E86",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E87",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E88",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E89",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E90",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E91",
+      "status": "PARTIAL",
+      "evidence": "CEL subset checks"
+    },
+    {
+      "id": "E92",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E93",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E94",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E95",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E96",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E97",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E98",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E99",
+      "status": "PARTIAL",
+      "evidence": "internal reachable-stage graph invariant unit test"
+    },
+    {
+      "id": "E100",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E101",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E102",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E103",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E104",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E105",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E106",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E107",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E108",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E109",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E110",
+      "status": "PARTIAL",
+      "evidence": "G.4 Schema subset checks"
+    },
+    {
+      "id": "E111",
+      "status": "PARTIAL",
+      "evidence": "CEL_INVALID cases"
+    },
+    {
+      "id": "E112",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E113",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E114",
+      "status": "PARTIAL",
+      "evidence": "package path validation tests"
+    },
+    {
+      "id": "E115",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E116",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E117",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E118",
+      "status": "NOT_RUN",
+      "evidence": ""
+    },
+    {
+      "id": "E119",
+      "status": "PARTIAL",
+      "evidence": "removed v1alpha3 field remains UNKNOWN_FIELD"
+    },
+    {
+      "id": "E120",
+      "status": "NOT_RUN",
+      "evidence": ""
+    }
+  ]
+}

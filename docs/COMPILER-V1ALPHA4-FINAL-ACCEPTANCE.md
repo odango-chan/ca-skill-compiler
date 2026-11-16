@@ -121,3 +121,18 @@ Overall Compiler: INCOMPLETE, NOT_QUALIFIED, Build fail-closed. Next slices: WP9
 - WP1/WP2 slice (§24.1 errata): recognized legacy syntax now takes priority over UNKNOWN_FIELD. Wait/Await-style control fields report UNSUPPORTED_WAIT; known v0.2 legacy fields (Node verify, steps, localTools, manifest) report UNSUPPORTED_V02_SYNTAX; removed v1alpha3-only fields such as operation.target remain UNKNOWN_FIELD. Dedicated fixtures added; the frozen H index entries for these two diagnostics are now emitted by the v1alpha4 pipeline.
 
 - Internal graph invariant (E99-style): the expanded Procedure analysis graph is checked so that a reachable non-entry stage without a reachable incoming edge is reported as REACHABLE_STAGE_NO_INCOMING_EDGE (Compiler internal invariant, not an author error). A unit test injects the inconsistent graph; an integration check asserts valid sources never trigger it.
+
+## 10. Consolidated status snapshot (branch feat/compiler-v1alpha4-wp9-script-abi-20261116)
+
+- WP0-WP6: implemented with executable fixtures; WP5/6 advanced through route-key eligibility (§22.1), Mutation OUTCOME_UNKNOWN safe-terminal restriction, retry reachability, legacy-syntax priority, and the internal reachable-stage graph invariant.
+- WP7: PARTIAL. evidence.requires/independence parameter binding, guarantee qualified-reference syntax. Descriptor content, Producer/Scope/Correlation/Freshness and trusted relations remain NOT_IMPLEMENTED and fail-closed (no frozen Evidence Descriptor physical format).
+- WP8: PARTIAL. Mutation contract identity, retry reference/family/reachability, trusted Reconcile Schema semantics (receipt/commitProof paths, same-owner READ, proof/recoverable outputs). Cross-snapshot Reconcile association, Owner retryability proof and Runtime retry admission remain outside Compiler or fail-closed.
+- WP9: PARTIAL (near complete). gositter v0.2.0 Python CST adapter, typed-input/strict-output Script ABI, call-site required/unknown keys, F.5 value typing, restricted key access, NotRequired guard proof, PredicateInput parameter projection, Predicate Evaluation Result shape. Evidence projection remains blocked.
+- WP10: deterministic JCS Artifact tree/manifest, generated Schema identities, collision rejection; successful Build emits real artifacts and repeated Builds are byte-identical.
+- WP11: real headless Chromium Worker parity PASS for check/build/inspect and for successful-Build artifact bytes (SHA-256).
+- WP12: read-only Studio integration surface consumes the unified Worker result; real Chromium acceptance for diagnostics with positions and read-only artifact presentation (failure and success fixtures).
+- WP13: NOT_QUALIFIED (external real Owner/Deployment publications unavailable; MAS not runnable).
+- E01-E120: machine-readable view in tests/conformance/v1alpha4/e-coverage.json - 21 cases PARTIAL, 99 NOT_RUN, 0 claimed PASS.
+- Frozen C_STATIC diagnostics not yet referenced by the v1alpha4 pipeline: CALLABLE_ARGUMENT_PROVENANCE_INVALID, CAPABILITY_SCOPE_EMPTY_INTERSECTION, CONTEXT_SCHEMA_MISMATCH, DUPLICATE_ID, PREDICATE_EVIDENCE_UNSATISFIABLE, RECONCILE_OUTPUT_UNAVAILABLE. Each depends on unfrozen external publications, internal-only IR uniqueness, or cross-cutting Scope computation; recorded rather than invented.
+- Legacy pre-v1alpha4 pipeline files remain present but are unreachable from the public v1alpha4 APIs; removal is a recorded cleanup task.
+- Build is fail-closed only for semantics still marked fail-closed (WP7 Evidence, deep WP8 reconcile/retry admission); all other validated Skills produce a real deterministic Artifact.
