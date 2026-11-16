@@ -95,3 +95,5 @@ Stack base: WP6 branch at 30f71ca. Commits: 4ebfd56 (WP9 slice 1), 351028d (WP9 
 Local evidence (Go 1.27.4): go test ./...=0, go vet=0, Native build=0, Go/WASM build=0, git diff --check=0.
 
 Overall Compiler: INCOMPLETE, NOT_QUALIFIED, Build fail-closed. Next slices: WP9 PredicateInput/key-access, WP10 artifact wiring + determinism through BuildResult, then WP8/WP7 independent checks, WP11 parity, WP12 Studio.
+
+- WP8 slice 3 (retry family): retryOf target and retry Node must link to MUTATION callables; at most one new dispatch per original Mutation family; a retry Node must not use the dedicated Reconcile READ callable. All map to RETRY_CONTRACT_INVALID. Unit-tested core plus pipeline wiring; full retry failure-class/path-coverage contract remains later WP8.

@@ -198,6 +198,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			diagnostics = append(diagnostics, predicateArgumentDiagnostics...)
 			mutationContractDiagnostics := validateV1Alpha4MutationContracts(req, sourceAST, identity)
 			diagnostics = append(diagnostics, mutationContractDiagnostics...)
+			validateV1Alpha4RetryMutationFamilies(sourceAST, ownerLinking, procedurePath, errorAt)
 		}
 		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
 			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
