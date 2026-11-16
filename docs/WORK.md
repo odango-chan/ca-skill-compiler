@@ -1,3 +1,19 @@
+# Current v1alpha4 implementation freeze (2026-11-16)
+
+**Normative language:** CA-SL v1alpha4 is frozen at odango-chan/ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d (b70064c5737b8ee2b3d1435fe496357f44b42773).
+
+**Compiler-owned contracts:** BuildRequest, BuildResult, DependencyInspection, DependencySnapshot digest, ToolCatalog / CapabilityContracts machine mirrors, EvidenceTrustBindings transport, Procedure Linker, Script ABI, Artifact and Studio integration are FROZEN for implementation in PR #12. The frozen contracts do not establish implementation conformance.
+
+**Development workflow:** DeepSeek Harness with the selected DeepSeek V4 Flash / Low reasoning profile is the designated bounded implementation workflow. The task envelope, work-package sequence, stop conditions and acceptance rules are in [deepseek-harness-v1alpha4.md](workstreams/deepseek-harness-v1alpha4.md). No pilot is required. This documentation PR does not authorize implementation to start.
+
+**Conformance inventory:** [E01–E120 case index](../tests/conformance/v1alpha4/case-index.json) and [Appendix H diagnostic index](../tests/conformance/v1alpha4/diagnostic-index.json) are derived from the pinned specification. They are inventories, not passing tests or executable fixture coverage.
+
+**Current implementation status:** PR #11 remains a source/graph admission slice. Full linker, trusted inputs, Script ABI, E01–E120 fixtures, exact H diagnostics, Native/WASM/Chromium parity and real 5GC qualification remain NOT_QUALIFIED.
+
+**Explicitly unqualified external contracts:** real Evidence Descriptor publications, physical identity-input provenance, cross-snapshot Reconcile association, actual 5GC Owner / Deployment publications and MAS execution remain outside this freeze. Compiler must fail closed rather than invent these inputs.
+
+---
+
 > **Current development target (2026-11-16): CA-SL v1alpha4.** The active Compiler contract set is indexed in the repository [README](../README.md). The implementation target is defined by docs/design/*-v1alpha4.md and contracts/v1alpha4/*.json. The historical v0 / v0.1 implementation notes below are retained for traceability; they are not current language or API authority and do not establish v1alpha4 conformance. Current status: PR #11 is a source/graph admission slice; full linker, trusted inputs, Script ABI, Artifact, E01–E120 and Native/WASM parity remain unqualified.
 
 ---
