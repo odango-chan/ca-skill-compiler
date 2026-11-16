@@ -25,8 +25,6 @@ type File struct {
 	Bytes []byte `json:"bytes"`
 }
 
-// LibraryTool is retained as an internal migration type until the old
-// dependency inspector is removed in WP3. It is not part of the v1alpha4 API.
 type LibraryTool struct {
 	OperationID           string `json:"operationId"`
 	SourcePath            string `json:"sourcePath"`
@@ -35,21 +33,6 @@ type LibraryTool struct {
 	InputSchema           any    `json:"inputSchema"`
 	OutputSchema          any    `json:"outputSchema,omitempty"`
 	ReconcileOutputSchema any    `json:"reconcileOutputSchema,omitempty"`
-}
-
-type LibraryTool struct {
-	OperationID           string `json:"operationId"`
-	SourcePath            string `json:"sourcePath"`
-	DeclaredEffect        string `json:"declaredEffect"`
-	Description           string `json:"description,omitempty"`
-	InputSchema           any    `json:"inputSchema"`
-	OutputSchema          any    `json:"outputSchema,omitempty"`
-	ReconcileOutputSchema any    `json:"reconcileOutputSchema,omitempty"`
-}
-
-type LibraryResult struct {
-	Diagnostics []Diagnostic  `json:"diagnostics"`
-	Tools       []LibraryTool `json:"tools"`
 }
 
 // The old library inspection entry point is intentionally not exported. The
