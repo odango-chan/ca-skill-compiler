@@ -4,16 +4,17 @@
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 60,
-    "notRun": 60,
-    "passed": 0
+    "partial": 67,
+    "notRun": 46,
+    "passed": 0,
+    "blocked": 7
   },
   "cases": [
     {
       "id": "E01",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "full E.1-E.4 baseline with trusted deployment input links without dependency/authorization errors (e_final2_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E02",
@@ -107,9 +108,9 @@
     },
     {
       "id": "E17",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "static subset: normal single Producer and non-SUCCEEDED-path SOURCE_NOT_AVAILABLE priority (source_path_paths_test/E10 evidence); recovery dual-Producer variants are Host-side",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E18",
@@ -233,9 +234,9 @@
     },
     {
       "id": "E38",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "BLOCKED",
+      "evidence": "provides references a nonexistent guarantee descriptor -> requires the unfrozen Owner Evidence descriptor publication",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
     },
     {
       "id": "E39",
@@ -281,9 +282,9 @@
     },
     {
       "id": "E46",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "BLOCKED",
+      "evidence": "descriptor scope.subject root misuse -> requires the unfrozen Owner Evidence descriptor publication",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
     },
     {
       "id": "E47",
@@ -413,15 +414,15 @@
     },
     {
       "id": "E68",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "BLOCKED",
+      "evidence": "authoritative/Freshness rule duplication -> requires the unfrozen Owner Evidence descriptor publication",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
     },
     {
       "id": "E69",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "Mutation missing OUTCOME_UNKNOWN route -> ROUTE_OUTCOME_MISSING (e_final2_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E70",
@@ -437,9 +438,9 @@
     },
     {
       "id": "E72",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "second same-effect Capability member / duplicate membership -> EFFECT_MISMATCH / CAPABILITY_MEMBERSHIP_DUPLICATE (capability_linking_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E73",
@@ -473,9 +474,9 @@
     },
     {
       "id": "E78",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "Reconcile association changed off the original invocation -> RECONCILE_CONTRACT_INVALID (e_late_test E60 bind variant)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E79",
@@ -527,9 +528,9 @@
     },
     {
       "id": "E87",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "BLOCKED",
+      "evidence": "Capability Scope intersection/modelling -> deployment Scope policy algebra is not present in frozen CapabilityContracts",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
     },
     {
       "id": "E88",
@@ -563,9 +564,9 @@
     },
     {
       "id": "E93",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "capability input digest mismatch / untrusted publisher -> CAPABILITY_INPUT_DIGEST_MISMATCH / CAPABILITY_INPUT_UNTRUSTED (api_v1alpha4_test, capability_linking_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E94",
@@ -593,9 +594,9 @@
     },
     {
       "id": "E98",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "provides path must cover the referenced value; narrow path bound to wider value -> PREDICATE_EVIDENCE_UNSATISFIABLE (e_final2_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E99",
@@ -611,15 +612,15 @@
     },
     {
       "id": "E101",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "BLOCKED",
+      "evidence": "identity-input provenance -> requires the unfrozen identity-input trusted publication format",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
     },
     {
       "id": "E102",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "BLOCKED",
+      "evidence": "cross-domain independence / factIdentity mapping -> requires the unfrozen Owner Evidence descriptor and trusted-relation publication",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
     },
     {
       "id": "E103",
@@ -659,9 +660,9 @@
     },
     {
       "id": "E109",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "BLOCKED",
+      "evidence": "Reconcile Evidence Producer lineage -> requires the unfrozen Owner Evidence descriptor publication",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
     },
     {
       "id": "E110",
@@ -731,10 +732,11 @@
     }
   ],
   "dispositionSummary": {
-    "partialStaticEvidence": 60,
-    "pendingStaticConformance": 17,
+    "partialStaticEvidence": 67,
+    "pendingStaticConformance": 3,
     "notApplicableToCompiler": 43,
     "claimedPass": 0,
-    "note": "PENDING_STATIC_CONFORMANCE means the frozen case lists the compiler as an owner but no executed fixture variant exists yet. NOT_APPLICABLE_TO_COMPILER means the case is Host/Runtime-only. No case is claimed PASS."
+    "note": "PENDING_STATIC_CONFORMANCE means the frozen case lists the compiler as an owner but no executed fixture variant exists yet. NOT_APPLICABLE_TO_COMPILER means the case is Host/Runtime-only. No case is claimed PASS.",
+    "blockedExternalContract": 7
   }
 }
