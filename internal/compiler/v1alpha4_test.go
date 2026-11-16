@@ -62,7 +62,9 @@ properties:
 
 func v4TestRequest(contract,procedure,predicates,schema string) BuildRequest {
 	return BuildRequest{
-		LanguageTarget:V1Alpha4Target,
+		APIVersion: BuildRequestAPIVersion,
+		LanguageTarget: V1Alpha4Target,
+		ResolvedDependencies: []ResolvedDependency{},
 		Files:[]File{
 			{Path:"skills/pdu/SKILL.md",Bytes:[]byte(`---
 name: pdu
