@@ -150,8 +150,10 @@ The Tool Owner publishes Mutation receipt/commit/failure/resource/reconcile cont
 - receipt Schema roots and the receipt. / output. channel anchors;
 - commit proof and original Invocation binding;
 - failure classes, Owner Outcome membership, no-side-effect and retryable constraints;
-- Reconcile callable identity, same Owner, READ Effect, independent Capability/Scope and exact proof paths;
-- optional recoverable output Schema/path pairing;
+- Reconcile callable identity, same Owner, READ Effect, independent Capability/Scope and exact proof paths; its inputSchema is a closed object containing only required nonempty originalInvocationId, materialized by Host from the persisted original Invocation;
+- original Mutation proof paths resolve against the original Mutation receiptSchema; Reconcile proofPath resolves against the Reconcile READ's own receiptSchema;
+- optional recoverable output Schema/path pairing, exact optional subobject Schema identity and assignability to the original Mutation output Schema;
+- same-snapshot dedicated Reconcile READ anti-bypass checks across all published Mutation contracts, plus a separately versioned trusted association for any cross-snapshot Reconcile link;
 - resource responsibility output paths and schemas.
 
 A Reconcile READ is an operation export with Effect READ where required by the frozen contract; it is not an author-visible Observation substitute. The Reconcile response/receipt is never exposed as a normal Producer. Only a fully verified recovered business object may be merged into the original Mutation's SUCCEEDED output, with provenance retained.
