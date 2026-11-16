@@ -20,6 +20,7 @@ func validateV1Alpha4ProducerSourcePaths(req BuildRequest, skill *V1Alpha4SkillA
 	start := scalar(skill.Procedure.Start)
 	dominators := procedureDominators(graph, start)
 	outputSchemas := producerOutputSchemas(skill, ownerLinking, registry)
+	reachabilityCache := map[string]map[string]map[string]bool{}
 
 	for _, nodeID := range sortedStringMapKeys(skill.Procedure.ByID) {
 		consumer := skill.Procedure.ByID[nodeID]
@@ -40,7 +41,16 @@ func validateV1Alpha4ProducerSourcePaths(req BuildRequest, skill *V1Alpha4SkillA
 					continue
 				}
 				if !strings.HasPrefix(value.Value, "context.") {
-					diagnostics = append(diagnostics, checkProducerPath(value, nodeID, stage, registry, outputSchemas, dominators, procedurePath)...)
+					reachability := reachabilityCache[value.Value]
+					if reachability == nil {
+						producerID := value.Value
+						if index := strings.Index(producerID, "."); index > 0 {
+							producerID = producerID[:index]
+						}
+						reachability = producerKeyReachability(skill, producerID)
+						reachabilityCache[value.Value] = reachability
+					}
+					diagnostics = append(diagnostics, checkProducerPath(value, nodeID, stage, registry, outputSchemas, dominators, reachability, procedurePath)...)
 				}
 			}
 		}
@@ -70,7 +80,16 @@ func validateV1Alpha4ProducerSourcePaths(req BuildRequest, skill *V1Alpha4SkillA
 						continue
 					}
 					if !strings.HasPrefix(value.Value, "context.") {
-						diagnostics = append(diagnostics, checkProducerPath(value, nodeID, stageName, registry, outputSchemas, dominators, procedurePath)...)
+						reachability := reachabilityCache[value.Value]
+						if reachability == nil {
+							producerID := value.Value
+							if index := strings.Index(producerID, "."); index > 0 {
+								producerID = producerID[:index]
+							}
+							reachability = producerKeyReachability(skill, producerID)
+							reachabilityCache[value.Value] = reachability
+						}
+						diagnostics = append(diagnostics, checkProducerPath(value, nodeID, stageName, registry, outputSchemas, dominators, reachability, procedurePath)...)
 					}
 				}
 			}
@@ -81,8 +100,10 @@ func validateV1Alpha4ProducerSourcePaths(req BuildRequest, skill *V1Alpha4SkillA
 }
 
 type producerOutput struct {
-	node   string
-	schema *yaml.Node
+	node        string
+	schema      *yaml.Node
+	effect      string
+	recoverable bool
 }
 
 func producerOutputSchemas(skill *V1Alpha4SkillAST, ownerLinking ownerLinkingResult, registry schemaRegistry) map[string]producerOutput {
@@ -95,7 +116,10 @@ func producerOutputSchemas(skill *V1Alpha4SkillAST, ownerLinking ownerLinkingRes
 		if problem != "" {
 			continue
 		}
-		linked[export.DependencyAlias+"::"+export.ExportID] = producerOutput{schema: unalias(resource.node)}
+		linked[export.DependencyAlias+"::"+export.ExportID] = producerOutput{
+			schema: unalias(resource.node), effect: export.Effect,
+			recoverable: export.MutationFields.RecoverableSchemaID != "",
+		}
 	}
 	outputs := map[string]producerOutput{}
 	if skill == nil || skill.Procedure == nil {
@@ -121,7 +145,7 @@ func producerOutputSchemas(skill *V1Alpha4SkillAST, ownerLinking ownerLinkingRes
 	return outputs
 }
 
-func checkProducerPath(value *yaml.Node, consumerID, consumerStage string, registry schemaRegistry, outputs map[string]producerOutput, dominators map[string]map[string]bool, procedurePath string) []Diagnostic {
+func checkProducerPath(value *yaml.Node, consumerID, consumerStage string, registry schemaRegistry, outputs map[string]producerOutput, dominators map[string]map[string]bool, reachability map[string]map[string]bool, procedurePath string) []Diagnostic {
 	diagnostics := make([]Diagnostic, 0)
 	segments := strings.Split(value.Value, ".")
 	if len(segments) < 3 {
@@ -135,6 +159,19 @@ func checkProducerPath(value *yaml.Node, consumerID, consumerStage string, regis
 	}
 	if output.schema == nil {
 		return diagnostics
+	}
+	if producerID != consumerID {
+		committed, other := nonSucceededProducerPath(producerID, consumerID, reachability)
+		if committed && output.effect == "MUTATION" && !output.recoverable {
+			addSourcePathDiagnostic(&diagnostics, "error", "C_STATIC", "RECONCILE_OUTPUT_UNAVAILABLE", procedurePath, value,
+				"Producer output is only reachable through its COMMITTED path and no recoverable success output is declared")
+			return diagnostics
+		}
+		if other {
+			addSourcePathDiagnostic(&diagnostics, "error", "C_STATIC", "SOURCE_NOT_AVAILABLE", procedurePath, value,
+				"Producer output is reachable through a non-SUCCEEDED path: "+value.Value)
+			return diagnostics
+		}
 	}
 	if producerID != consumerID {
 		if !dominators[consumerID][producerID] {
