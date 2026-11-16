@@ -164,6 +164,10 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			// authorization; missing trusted deployment input fails closed.
 			capabilityLinking := validateV1Alpha4CapabilityLinking(req, sourceAST, ownerLinking)
 			diagnostics = append(diagnostics, capabilityLinking.Diagnostics...)
+			// WP4B: resolve the exact Schema reference closure and enforce the
+			// Request/Context root shape. Unresolvable references never guess.
+			schemaDiagnostics := validateV1Alpha4SchemaClosure(req, sourceAST, identity, ownerLinking)
+			diagnostics = append(diagnostics, schemaDiagnostics...)
 		}
 		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
 			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
