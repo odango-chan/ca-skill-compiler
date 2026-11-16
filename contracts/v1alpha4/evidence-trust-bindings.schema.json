@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/odango-chan/ca-skill-compiler/blob/main/contracts/v1alpha4/evidence-trust-bindings.schema.json",
+  "title": "EvidenceTrustBindings v1alpha4",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "deploymentId",
+    "publisherId"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "connectionagent.io/evidence-trust-bindings/v1alpha4"
+    },
+    "kind": {
+      "const": "EvidenceTrustBindings"
+    },
+    "deploymentId": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+    },
+    "publisherId": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+    },
+    "independentDomains": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "$ref": "#/$defs/independentDomains"
+      }
+    },
+    "commonFacts": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "$ref": "#/$defs/commonFact"
+      }
+    }
+  },
+  "$defs": {
+    "independentDomains": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domains",
+        "independentPairs"
+      ],
+      "properties": {
+        "domains": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 512,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+          }
+        },
+        "independentPairs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+              },
+              {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    },
+    "commonFact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "namespace",
+        "fact",
+        "owners",
+        "comparableValueSchemaId",
+        "scopeMappings"
+      ],
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+        },
+        "fact": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]*(\\\\.[A-Za-z][A-Za-z0-9_-]*)*$"
+        },
+        "owners": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 128,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "comparableValueSchemaId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+        },
+        "scopeMappings": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/scopeMapping"
+          }
+        }
+      }
+    },
+    "scopeMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "dimensions",
+        "valuePath",
+        "valueSchemaId"
+      ],
+      "properties": {
+        "owner": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "dimensions": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "properties": {
+            "subject": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^record\\\\."
+            },
+            "session": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^record\\\\."
+            },
+            "lifecycle": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^record\\\\."
+            },
+            "correlation": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^record\\\\."
+            },
+            "resource": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^record\\\\."
+            }
+          }
+        },
+        "valuePath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^record\\\\."
+        },
+        "valueSchemaId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+        }
+      }
+    }
+  },
+  "description": "Trusted deployment relation document. The surrounding BuildRequest evidenceTrustBindings bundle supplies raw files, snapshotDigest and publisher/deployment binding. Owner self-declaration alone is not trust."
+}
