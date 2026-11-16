@@ -100,6 +100,9 @@
               "FAILED",
               "NOT_COMMITTED"
             ]
+          },
+          "contains": {
+            "const": "SUCCEEDED"
           }
         },
         "outputSchema": {
@@ -458,6 +461,9 @@
               "SUCCEEDED",
               "FAILED"
             ]
+          },
+          "contains": {
+            "const": "SUCCEEDED"
           }
         },
         "outputSchema": {
@@ -751,6 +757,13 @@
             "required": [
               "failureClassPath"
             ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "failureClassPath"
+              ]
+            }
           }
         }
       ]
