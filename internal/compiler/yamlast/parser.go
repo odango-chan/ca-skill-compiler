@@ -82,6 +82,16 @@ var finiteDecimalPattern = regexp.MustCompile("^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)
 var integerPattern = regexp.MustCompile("^-?(?:0|[1-9][0-9]*)$")
 
 func Parse(data []byte) (*Node, error) {
+	return parse(data, true)
+}
+
+// ParseValue parses one YAML value of any root kind. It is used only for
+// already-serialized JSON values that must enter the same normalized AST.
+func ParseValue(data []byte) (*Node, error) {
+	return parse(data, false)
+}
+
+func parse(data []byte, requireMappingRoot bool) (*Node, error) {
 	if len(data) == 0 {
 		return nil, &ParseError{Kind: RootError, Message: "YAML document is empty"}
 	}
@@ -104,7 +114,7 @@ func Parse(data []byte) (*Node, error) {
 		return nil, &ParseError{Kind: SyntaxError, Message: "exactly one YAML document is required"}
 	}
 	if file.Docs[0].Body == nil {
-		return nil, &ParseError{Kind: RootError, Message: "YAML document must have a mapping root"}
+		return nil, &ParseError{Kind: RootError, Message: "YAML document must not be empty"}
 	}
 
 	converter := converter{anchors: make(map[string]*Node)}
@@ -112,7 +122,10 @@ func Parse(data []byte) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	if root == nil || root.Kind != MappingNode {
+	if root == nil {
+		return nil, &ParseError{Kind: RootError, Message: "YAML document must not be empty"}
+	}
+	if requireMappingRoot && root.Kind != MappingNode {
 		line, column := rootPosition(file.Docs[0].Body)
 		return nil, &ParseError{Kind: RootError, Message: "YAML document must have a mapping root", Line: line, Column: column}
 	}
