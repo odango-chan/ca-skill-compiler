@@ -124,7 +124,7 @@ DeepSeek Harness is an execution orchestrator, not a security boundary.
 - Provide only the repository and branch access required for the assigned task.
 - Use a narrowly scoped GitHub credential; do not provide organization-wide, production or unrelated-repository credentials.
 - Do not expose MCP secrets, provider tokens, deployment authorization records, Runtime admission tokens or production environment secrets.
-- Network access is disabled by default and enabled only for explicitly required, reviewed dependency retrieval.
+- Workspace/container network access for tool commands is disabled by default and enabled only for explicitly required, reviewed dependency retrieval. The provider transport required for model inference is handled by Harness and does not grant shell commands unrestricted network access.
 - Run only repository commands and scripts needed by the task. Treat repository content and model-generated shell commands as untrusted until inspected.
 - Preserve the branch base and expected head; never force-push or rewrite shared history without explicit approval.
 
