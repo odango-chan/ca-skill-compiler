@@ -1,6 +1,6 @@
 # Compiler v1alpha4 Conformance and Acceptance Plan
 
-**Status:** required implementation plan; this document does not claim full v1alpha4 conformance.
+**Status:** FROZEN implementation acceptance plan; this document does not claim full v1alpha4 conformance.
 
 Normative source: [CA-SL v1alpha4 exact frozen commit](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md).
 
@@ -54,6 +54,15 @@ The test suite MUST maintain a machine-readable ledger with one row per normativ
 The ledger must never collapse multiple E variants into one green checkbox. E115–E120 in G.9 are included. A static case is not waived because a corresponding runtime case belongs elsewhere.
 
 Appendix H items marked partial / pending fixtures require a separate executable fixture for the exact (Code, Phase). The informative Appendix K gap list helps locate candidate diagnostics but does not expand E01–E120 or prove coverage.
+
+## 4.1 Machine-readable case and diagnostic indexes
+
+The repository carries two machine-readable inventories derived from the pinned normative source:
+
+- [case-index.json](../../tests/conformance/v1alpha4/case-index.json): one index row for each E01–E120 case, including the responsibility assignment recorded in Appendix K.1. Its initial status is NOT_IMPLEMENTED, matching the pinned source. It is an inventory, not an executable fixture suite.
+- [diagnostic-index.json](../../tests/conformance/v1alpha4/diagnostic-index.json): all 99 unique (Code, Phase) identities in Appendix H (98 unique Code strings; EFFECT_MISMATCH occurs in two phases). It preserves the normative coverage label and records execution as NOT_VERIFIED.
+
+Before a work package can be marked complete, its applicable E cases MUST be expanded into separate executable fixtures for every independently testable variant in Appendix E. A single case row or a test that checks only Code without Phase is insufficient. H entries marked FIXTURE_MISSING or PARTIAL require the exact missing fixture or an explicit owning Host/Runtime test reference. The indexes MUST be regenerated or updated only from the pinned normative source; they MUST NOT invent new E numbers or diagnostic identities.
 
 ## 5. Native / WASM / Studio parity
 
