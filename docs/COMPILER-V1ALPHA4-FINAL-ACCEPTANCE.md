@@ -47,7 +47,7 @@
 
 ## 3. Conformance coverage (honest)
 
-- Executed fixtures: WP3A 10, WP3B 9, WP3C 11, WP3D 7, WP4A 9, WP4B 6, WP4C 6, WP4D 5, WP5 7, WP6 22 (total 94 executed cases).
+- Executed fixtures: WP3A 10, WP3B 9, WP3C 11, WP3D 7, WP4A 9, WP4B 6, WP4C 6, WP4D 5, WP5 7, WP6 22 (total 105 executed cases).
 - Spec E-cases with executable coverage: E03, E04, E05, E06, E07, E16, E24/E44/E51 (partial), E25, E39, E43, E91, E110 (schema subset); others remain NOT_IMPLEMENTED/NOT_RUN.
 - No claim that E01–E120 are covered; `tests/conformance/v1alpha4/*-fixture-plan.json` records only the executed slices.
 
