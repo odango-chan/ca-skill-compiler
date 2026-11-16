@@ -94,6 +94,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 	}
 	sort.Strings(names)
 
+	artifactInputs := map[string]artifactInput{}
 	for _, name := range names {
 		base := "skills/" + name + "/"
 		contractPath := base + "assurance/contract.yaml"
@@ -199,6 +200,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			mutationContractDiagnostics := validateV1Alpha4MutationContracts(req, sourceAST, identity)
 			diagnostics = append(diagnostics, mutationContractDiagnostics...)
 			validateV1Alpha4RetryMutationFamilies(sourceAST, ownerLinking, procedurePath, errorAt)
+			artifactInputs[name] = artifactInput{skill: sourceAST, identity: identity, ownerLinking: ownerLinking, scripts: scriptSchemas}
 		}
 		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
 			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
@@ -218,11 +220,16 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		}
 	}
 
-	// A warning alone must not hide the later-stage fail-closed boundary: no
-	// successful Build may be returned while WP3B-WP12 semantics are unimplemented.
 	if !hasErrorDiagnostic(diagnostics) {
-		errorAt("", nil, "CAPABILITY_INPUT_UNTRUSTED",
-			"v1alpha4 semantic linking and Owner qualification are not yet implemented; compilation fails closed")
+		if reason := unsupportedSemanticsReason(artifactInputs); reason != "" {
+			errorAt("", nil, "CAPABILITY_INPUT_UNTRUSTED", "fail-closed: "+reason)
+		}
+	}
+	if hasErrorDiagnostic(diagnostics) {
+		return failedBuildResult(diagnostics)
+	}
+	if result, ok := assembleV1Alpha4SuccessResult(req, names, artifactInputs, diagnostics, errorAt); ok {
+		return result
 	}
 	return failedBuildResult(diagnostics)
 }
