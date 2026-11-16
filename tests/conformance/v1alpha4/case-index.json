@@ -38,7 +38,10 @@
       ],
       "status": "NOT_IMPLEMENTED",
       "specLine": 4232,
-      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+      "fixtureVariants": [
+        "WP3A-002"
+      ],
+      "workPackage": "WP3A"
     },
     {
       "id": "E04",
@@ -48,7 +51,11 @@
       ],
       "status": "NOT_IMPLEMENTED",
       "specLine": 4233,
-      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+      "fixtureVariants": [
+        "WP3A-003",
+        "WP3A-004"
+      ],
+      "workPackage": "WP3A"
     },
     {
       "id": "E05",
@@ -58,7 +65,10 @@
       ],
       "status": "NOT_IMPLEMENTED",
       "specLine": 4234,
-      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+      "fixtureVariants": [
+        "WP3B"
+      ],
+      "workPackage": "WP3B"
     },
     {
       "id": "E06",
@@ -168,7 +178,10 @@
       ],
       "status": "NOT_IMPLEMENTED",
       "specLine": 4245,
-      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+      "fixtureVariants": [
+        "WP3A-009"
+      ],
+      "workPackage": "WP3A"
     },
     {
       "id": "E17",
@@ -400,7 +413,10 @@
       ],
       "status": "NOT_IMPLEMENTED",
       "specLine": 4268,
-      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+      "fixtureVariants": [
+        "WP3B"
+      ],
+      "workPackage": "WP3B"
     },
     {
       "id": "E40",
@@ -440,7 +456,10 @@
       ],
       "status": "NOT_IMPLEMENTED",
       "specLine": 4272,
-      "fixtureVariants": "MUST be split from every independently testable Appendix E subcase before WP closure"
+      "fixtureVariants": [
+        "WP3B"
+      ],
+      "workPackage": "WP3B"
     },
     {
       "id": "E44",
