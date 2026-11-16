@@ -88,13 +88,23 @@ func TestParseRejectsDuplicateUndefinedAndDuplicateAnchorNames(t *testing.T) {
 	for name, source := range map[string]string{
 		"duplicate-key": "value: 1\nvalue: 2\n",
 		"undefined-alias": "value: *missing\n",
-		"duplicate-anchor": "one: &same value\ntwo: &same other\n",
 	} {
 		t.Run(name, func(t *testing.T) {
 			if _, err := Parse([]byte(source)); err == nil {
 				t.Fatalf("invalid YAML accepted: %s", source)
 			}
 		})
+	}
+}
+
+func TestParseAnchorRedefinitionUsesMostRecentPrecedingAnchor(t *testing.T) {
+	root, err := Parse([]byte("one: &same first\ntwo: &same second\ncopy: *same\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	copyNode := unalias(field(root, "copy"))
+	if copyNode == nil || copyNode.Value != "second" {
+		t.Fatalf("alias did not bind to the most recent preceding anchor: %#v", copyNode)
 	}
 }
 
