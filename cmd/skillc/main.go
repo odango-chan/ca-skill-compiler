@@ -88,6 +88,10 @@ func run(args []string) int {
 		fmt.Println("Skill project static check OK")
 		return 0
 	}
+	if err := compiler.VerifyBuildResult(result); err != nil {
+		fmt.Fprintln(os.Stderr, "artifact:", err)
+		return 1
+	}
 	if out == "" {
 		out = filepath.Join(root, "output")
 	}
