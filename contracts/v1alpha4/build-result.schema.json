@@ -116,7 +116,7 @@
         "type": "string",
         "minLength": 1,
         "maxLength": 128,
-        "pattern": "^[a-z][a-z0-9._-]*$"
+        "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
       }
     },
     "outputFiles": {
