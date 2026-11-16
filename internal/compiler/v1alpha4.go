@@ -120,7 +120,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		sourceAST := parseV1Alpha4SkillAST(name, parsedFiles)
 		// WP9: derive the Python Script ABI and input Schemas once per Skill so
 		// Procedure argument typing and Predicate Script checks share them.
-		scriptInputSchemas := validateV1Alpha4ScriptABI(sourceAST, files, procedurePath, predicatesPath, errorAt)
+		scriptSchemas := validateV1Alpha4ScriptABI(sourceAST, files, procedurePath, predicatesPath, errorAt)
 		contractAST := sourceAST.Contract
 		if contractAST != nil && contractAST.Raw != nil {
 			contract := contractAST.Raw
@@ -192,7 +192,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			diagnostics = append(diagnostics, argumentKeyDiagnostics...)
 			argumentValueDiagnostics := validateV1Alpha4ArgumentValueTypes(req, sourceAST, identity, ownerLinking, procedurePath)
 			diagnostics = append(diagnostics, argumentValueDiagnostics...)
-			scriptValueDiagnostics := validateV1Alpha4ScriptValueTypes(req, sourceAST, identity, ownerLinking, scriptInputSchemas, procedurePath)
+			scriptValueDiagnostics := validateV1Alpha4ScriptValueTypes(req, sourceAST, identity, ownerLinking, scriptSchemas.Inputs, procedurePath)
 			diagnostics = append(diagnostics, scriptValueDiagnostics...)
 			predicateArgumentDiagnostics := validateV1Alpha4PredicateArgumentTypes(req, sourceAST, identity, ownerLinking, procedurePath)
 			diagnostics = append(diagnostics, predicateArgumentDiagnostics...)
@@ -206,7 +206,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			validateV1Alpha4EvidenceRequirements(predicatesPath, sourceAST.Predicates, errorAt)
 			validateV1Alpha4PredicateScriptEvaluators(sourceAST, files, predicatesPath, errorAt)
 			validateV1Alpha4InlineArgumentExpressions(sourceAST, procedurePath, errorAt)
-			validateV1Alpha4ScriptArguments(sourceAST, scriptInputSchemas, procedurePath, errorAt)
+			validateV1Alpha4ScriptArguments(sourceAST, scriptSchemas.Inputs, procedurePath, errorAt)
 		}
 		if sourceAST.Procedure != nil && sourceAST.Procedure.Raw != nil {
 			v4CheckProcedure(procedurePath, sourceAST.Procedure, contractAST, errorAt)

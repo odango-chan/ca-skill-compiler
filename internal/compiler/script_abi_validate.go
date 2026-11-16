@@ -9,8 +9,13 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte, procedurePath, predicatesPath string, add func(string, *yaml.Node, string, string)) map[string]map[string]any {
-	schemas := map[string]map[string]any{}
+type scriptSchemaSet struct {
+	Inputs  map[string]map[string]any
+	Outputs map[string]map[string]any
+}
+
+func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte, procedurePath, predicatesPath string, add func(string, *yaml.Node, string, string)) scriptSchemaSet {
+	schemas := scriptSchemaSet{Inputs: map[string]map[string]any{}, Outputs: map[string]map[string]any{}}
 	if skill == nil {
 		return schemas
 	}
@@ -45,7 +50,8 @@ func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte,
 				add(procedurePath, scriptNode, "SCRIPT_CONTRACT_INVALID", "Procedure Script input access: "+err.Error())
 				continue
 			}
-			schemas[base+script] = abi.InputSchema
+			schemas.Inputs[base+script] = abi.InputSchema
+			schemas.Outputs[base+script] = abi.OutputSchema
 		}
 	}
 	if skill.Predicates != nil {
