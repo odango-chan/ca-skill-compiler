@@ -91,6 +91,11 @@ func validateV1Alpha4ProcedureGraph(contract *V1Alpha4ContractAST, procedure *V1
 		return diagnostics
 	}
 	reachable := reachableProcedureNodes(graph, start)
+	for _, id := range procedureReachableStagesWithoutIncomingEdge(graph, start, reachable) {
+		diagnostics = append(diagnostics, dependencyDiagnostic(
+			"error", "C_STATIC", "REACHABLE_STAGE_NO_INCOMING_EDGE", procedurePath,
+			child(graph.nodeByID[id].Raw, "id"), "Reachable non-entry stage has no reachable incoming edge: "+id))
+	}
 	for _, id := range graph.order {
 		if !reachable[id] {
 			diagnostics = append(diagnostics, dependencyDiagnostic(
@@ -201,4 +206,30 @@ func mutationToolIdentities(ownerLinking ownerLinkingResult) map[string]bool {
 		}
 	}
 	return mutations
+}
+
+// procedureReachableStagesWithoutIncomingEdge is the expanded-graph construction
+// invariant (CA-SL section 22 / 24.1, E99): every reachable non-entry stage must
+// have at least one incoming edge from a reachable stage. A violation means the
+// graph builder produced an inconsistent analysis graph, not an author error.
+func procedureReachableStagesWithoutIncomingEdge(graph procedureGraph, start string, reachable map[string]bool) []string {
+	incoming := map[string]bool{}
+	for from := range reachable {
+		for _, to := range graph.edges[from] {
+			if reachable[to] {
+				incoming[to] = true
+			}
+		}
+	}
+	missing := make([]string, 0)
+	for id := range reachable {
+		if id == start {
+			continue
+		}
+		if !incoming[id] {
+			missing = append(missing, id)
+		}
+	}
+	sort.Strings(missing)
+	return missing
 }
