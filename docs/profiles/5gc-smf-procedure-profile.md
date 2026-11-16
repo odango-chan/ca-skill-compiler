@@ -1,6 +1,6 @@
 # 5GC SMF Procedure Profile — 3GPP → Tool → Skill
 
-**Status:** architecture and traceability profile. It does not extend CA-SL syntax and does not qualify current 5GC Owner publications.
+**Status:** FROZEN architecture and traceability profile. It does not extend CA-SL syntax and does not qualify current 5GC Owner publications.
 
 ## 1. Core mapping principle
 
@@ -16,11 +16,14 @@ Skill is not the source of the interface definition; it consumes the Tool contra
 
 For a 5GC Skill whose business actor is the SMF, the Procedure is written from the **SMF's point of view**.
 
-A Procedure Node SHOULD correspond to one semantically coherent SMF interaction unit in the relevant TS 23.502 procedure:
-- usually one standard Request/Response exchange;
-- or a tightly coupled group of Request/Response exchanges that together form one indivisible SMF-side step in the standard procedure.
+A Procedure Node corresponds to one SMF-side interaction unit in the relevant TS 23.502 procedure, normally one standard Request/Response exchange. The CA-SL Node shape is authoritative for cardinality:
+- each Node has at most one Operation stage, selecting exactly one real Tool callable or one Skill-owned Script;
+- each Node has at most one Observation stage, using one real Owner-published READ callable;
+- the declared stage order is preserved; an Observation needed before an Operation belongs in a preceding Node;
+- if one 3GPP step requires multiple sequential independent Operations, model them as multiple Nodes. A broader 3GPP step may be documented as a traceability group spanning those Nodes, but that grouping does not permit multiple Operation calls in one Node;
+- one Node may use a single composite callable only when the real Owner actually publishes that composite interface and its request/response contract.
 
-This is a modeling guideline, not a claim that every Node must contain exactly one Tool call. One Node may invoke more than one Tool where the normative step genuinely requires multiple distinct interfaces or local deterministic preparation. Independent 3GPP steps should normally remain separate Nodes so that routing, failure, Evidence and recovery boundaries remain explicit.
+A local Script that prepares a subsequent external request is a separate Node from the external Tool call. Independent 3GPP interactions remain separate Nodes so routing, failure, Evidence and recovery boundaries stay explicit.
 
 The Node ID and description should make the corresponding 3GPP step recognizable. Avoid generic business labels that hide the standard interaction.
 
