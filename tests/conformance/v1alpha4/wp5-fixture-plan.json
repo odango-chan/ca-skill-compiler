@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-fixture-plan/v1alpha4",
+  "taskId": "WP5-PROCEDURE-GRAPH-001",
+  "status": "PASS",
+  "note": "Agent-proposed bounded WP5 slice 1; see docs/workstreams/wp5-procedure-graph-v1alpha4.md.",
+  "normativeAuthority": {
+    "repository": "odango-chan/ca-skills",
+    "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
+    "file": "docs/skill-language-spec.v1alpha4.zh-CN.md",
+    "blob": "b70064c5737b8ee2b3d1435fe496357f44b42773"
+  },
+  "rules": {
+    "expectedDiagnosticIdentity": "exact (Code, Phase)",
+    "warningPhase": "C_WARNING",
+    "errorPhase": "C_STATIC",
+    "mutationsOnlyFromTrustedLinkedEffect": true,
+    "noNewDiagnosticCodes": true
+  },
+  "fixtures": [
+    {
+      "id": "WP5-001",
+      "title": "Positive Procedure graph",
+      "appendixE": "E01",
+      "category": "positive",
+      "input": "Reachable single-entry graph with a valid global Precondition on every path to SUCCEEDED.",
+      "expectedDiagnostics": [],
+      "assertions": ["No UNREACHABLE_NODE or ENTRY_PRECONDITION_BYPASSED.", "Check/Build agree."],
+      "executionStatus": "PASS",
+      "testName": "TestWP5ProcedureGraphPositive",
+      "actualFixturePath": "internal/compiler/procedure_graph_test.go"
+    },
+    {
+      "id": "WP5-002",
+      "title": "Unreachable Node warning",
+      "appendixE": "E44/E65",
+      "category": "warning",
+      "input": "Declared Node not reachable from the unique start.",
+      "expectedDiagnostics": [{ "code": "UNREACHABLE_NODE", "phase": "C_WARNING" }],
+      "assertions": ["Warning severity/phase is C_WARNING.", "Procedure source path retained.", "Warning does not by itself change the fail-closed Build result."],
+      "executionStatus": "PASS",
+      "testName": "TestWP5UnreachableNodeWarning",
+      "actualFixturePath": "internal/compiler/procedure_graph_test.go"
+    },
+    {
+      "id": "WP5-003",
+      "title": "Global Precondition bypass",
+      "appendixE": "E24/E51",
+      "category": "negative",
+      "input": "Reachable path from start to SUCCEEDED that never visits the Contract global Precondition Node.",
+      "expectedDiagnostics": [{ "code": "ENTRY_PRECONDITION_BYPASSED", "phase": "C_STATIC" }],
+      "assertions": ["Real bypass is rejected.", "Contract precondition source location retained.", "Unreachable gate Node also warns but does not mask the error."],
+      "executionStatus": "PASS",
+      "testName": "TestWP5GlobalPreconditionBypass",
+      "actualFixturePath": "internal/compiler/procedure_graph_test.go"
+    }
+  ]
+}
