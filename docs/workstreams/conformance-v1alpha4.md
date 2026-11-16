@@ -29,16 +29,17 @@ Do not add or rename normative diagnostic codes. A test gap is a gap, not permis
 | Group | Required coverage | Normative anchors |
 |---|---|---|
 | Request and digest | exact versions, path validation, limits, duplicate files, digest vectors and tamper rejection | BuildRequest contract; §34 |
-| YAML / grammar | YAML 1.2 scalars, duplicate keys, unknown fields, identifier grammar, Contract/Procedure/PredicateSet structure | §§10–14; G.1 |
+| YAML / grammar | goccy/go-yaml v1.19.2 AST/token adapter; YAML 1.2 scalars, duplicate keys, aliases/depth bounds, unknown fields, identifier grammar, Contract/Procedure/PredicateSet structure | §§10–14; G.1; OSS ADR |
 | Procedure graph | Node stages, route keys, terminals, DAG, reachability, global Precondition dominance, final Postcondition direct success | §§12, 22, E01–E120 |
 | Callable linking | exact Alias/Export ID, kind, Owner, Effect, duplicate IDs across files/kinds, no fallback | §§9, 34, F.0–F.2 |
 | Capability | exact grants, all matching Effect consistency, Scope policy resolution, Scope intersection, deployment/publisher/digest trust | §9.3; F.2; §34.0.1 |
-| Schema | exact Draft 2020-12 dialect, G.4 allowlist, $ref closure, no fragments/remote/cycles, Source ⊆ Target, nullability/required/enum/ranges/arrays | G.4; F.5 |
+| Schema | San v6.0.3 engine behind G.4 allowlist; exact Draft 2020-12 dialect, local-only $ref closure, no fragments/remote/cycles, Source ⊆ Target, nullability/required/enum/ranges/arrays | G.4; F.5; OSS ADR |
+| CEL | cel-go v0.33.2 parse/check adapter; exact AST whitelist, declared parameter types, optional/null guards, int64/binary64 separation, static boolean result | §7.2; F.6; OSS ADR |
 | SourcePath | root/segment validity, Producer dominance on every path, optional-field rejection, identity and Scope provenance | §13; E101/E104 |
 | Evidence | Guarantee/Producer/output path, descriptor roots, freshness, Scope, Correlation, IndependentDomains and common-fact bindings | §17; F.3/F.4; G.3/G.3.1 |
 | Mutation | receipt channels, commit proof, failure classes, Reconcile READ, recoverable output, retryOf and resource responsibility | §§9.2.1, 12.7, 20; G.2/G.2.2 |
-| Script | both ABIs, strict TypedDict, functional TypedDict, virtual PredicateInput, optional-key access, dynamic-key rejection, generated Schema | §32; F.6 |
-| Artifact | byte-preserved source, JCS generated Schemas, manifests, sorted dependency closure, failure atomicity | Artifact Contract |
+| Script | gositter v0.2.0 / tree-sitter-python v0.25.0 CST adapter; both ABIs, strict TypedDict, functional TypedDict, virtual PredicateInput, optional-key access, dynamic-key rejection, generated Schema; no Python execution | §32; F.6; OSS ADR |
+| Artifact | gowebpki/jcs v1.0.2 RFC 8785 bytes, byte-preserved source, generated Schemas, manifests, sorted dependency closure, failure atomicity | Artifact Contract; OSS ADR |
 | Parity | Native/WASM identical diagnostics, phases, locations, file order, paths and bytes | §45.2 items 3–4 |
 
 ## 4. E01–E120 coverage ledger
@@ -77,9 +78,23 @@ A WASM startup test is not parity evidence. A single positive fixture is not dia
 
 ## 6. Script and Schema gates
 
-Script tests must include positive and negative cases for exact main signatures, Procedure call-site derived input TypedDict, Predicate-generated virtual PredicateInput, nested and functional TypedDict, Literal, Required / NotRequired and supported Annotated constraints, optional-key guard behavior, unknown literal and dynamic key rejection, forbidden Any/open dict/union/unsupported metadata, generated Output Schema and runtime output validation contract.
+Script tests must include positive and negative cases for the gositter v0.2.0 Python CST adapter against the pinned tree-sitter-python v0.25.0 grammar, exact main signatures, Procedure call-site derived input TypedDict, Predicate-generated virtual PredicateInput, nested and functional TypedDict, Literal, Required / NotRequired and supported Annotated constraints, optional-key guard behavior, unknown literal and dynamic key rejection, forbidden Any/open dict/union/unsupported metadata, malformed/pathological source limits, generated Output Schema and runtime output validation contract. Never execute Python in Compiler tests.
 
 Schema tests must not silently widen G.4. A general Draft 2020-12 library passing a keyword is not proof that CA-SL accepts it. Production Schema Engine adoption remains a separately reviewed implementation choice; PR #8's spike is not production adoption.
+
+
+### 6.1 Selected dependency adapter gates
+
+The pinned implementation dependencies and their versions / licenses are defined by the [OSS Dependency Selection ADR](../design/oss-dependency-selection-v1alpha4.md). This conformance plan does not permit substitution by an unreviewed library or floating version.
+
+- YAML: use the goccy/go-yaml AST/token API; test YAML 1.2 scalar behavior, duplicate keys, alias cycles/expansion limits, source positions and unknown fields.
+- JSON Schema: use San v6.0.3 only after G.4 pre-validation; deny all non-snapshot resource loading and prove no network or filesystem access.
+- CEL: use cel-go v0.33.2 only for parsing/type checking; disable macros and reject AST nodes outside the frozen v1alpha4 subset.
+- Python: use gositter v0.2.0 with only its Python grammar package; test the CST adapter against the Script ABI fixtures and a pinned Tree-sitter C oracle in a test-only job. The Compiler must remain CGo-free and must never execute Python.
+- JCS: use gowebpki/jcs v1.0.2 and the RFC 8785 vectors; preserve the separate Dependency Snapshot Digest algorithm unchanged.
+- All production dependencies must build with `CGO_ENABLED=0` for Native and Go/WASM. CI pins Go 1.27.4. License inventory, resource bounds and Native/WASM byte parity are release gates.
+
+The ADR selects libraries; it does not mark any adapter or Compiler work package PASS. Add each direct dependency to go.mod only in the work package that first consumes it, together with its tests.
 
 ## 7. 5GC executable acceptance
 
