@@ -4,10 +4,11 @@
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 67,
-    "notRun": 46,
+    "partial": 68,
+    "notRun": 0,
     "passed": 0,
-    "blocked": 7
+    "blocked": 9,
+    "notApplicable": 43
   },
   "cases": [
     {
@@ -84,19 +85,19 @@
     },
     {
       "id": "E13",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E14",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E15",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -126,13 +127,13 @@
     },
     {
       "id": "E20",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E21",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -144,7 +145,7 @@
     },
     {
       "id": "E23",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -162,49 +163,49 @@
     },
     {
       "id": "E26",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E27",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E28",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E29",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E30",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E31",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E32",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E33",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -246,7 +247,7 @@
     },
     {
       "id": "E40",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -276,7 +277,7 @@
     },
     {
       "id": "E45",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -294,13 +295,13 @@
     },
     {
       "id": "E48",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E49",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -324,7 +325,7 @@
     },
     {
       "id": "E53",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -354,7 +355,7 @@
     },
     {
       "id": "E58",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -372,13 +373,13 @@
     },
     {
       "id": "E61",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E62",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -402,7 +403,7 @@
     },
     {
       "id": "E66",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -426,15 +427,15 @@
     },
     {
       "id": "E70",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E71",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "BLOCKED",
+      "evidence": "ambiguous mapping: Appendix E71 expects PREDICATE_EVIDENCE_REQUIRED for an omitted guarantee declaration while E19 expects PREDICATE_EVIDENCE_UNSATISFIABLE for a removed provides entry; no unambiguous frozen trigger distinguishes them, so this is recorded instead of guessed",
+      "disposition": "BLOCKED_NORMATIVE_MAPPING"
     },
     {
       "id": "E72",
@@ -444,15 +445,15 @@
     },
     {
       "id": "E73",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E74",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "BLOCKED",
+      "evidence": "ambiguous mapping: expected PREDICATE_EVIDENCE_REQUIRED for an external Script-derived value bound without a guarantee, while the implemented satisfiability rule reports PREDICATE_EVIDENCE_UNSATISFIABLE; needs normative clarification",
+      "disposition": "BLOCKED_NORMATIVE_MAPPING"
     },
     {
       "id": "E75",
@@ -468,7 +469,7 @@
     },
     {
       "id": "E77",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -480,31 +481,31 @@
     },
     {
       "id": "E79",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E80",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E81",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E82",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E83",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -522,7 +523,7 @@
     },
     {
       "id": "E86",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -534,15 +535,15 @@
     },
     {
       "id": "E88",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E89",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "optional output property binding -> SOURCE_NOT_AVAILABLE (E37 fixture, same frozen rule)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E90",
@@ -558,7 +559,7 @@
     },
     {
       "id": "E92",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -570,25 +571,25 @@
     },
     {
       "id": "E94",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E95",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E96",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
     {
       "id": "E97",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -606,7 +607,7 @@
     },
     {
       "id": "E100",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -630,7 +631,7 @@
     },
     {
       "id": "E104",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -654,7 +655,7 @@
     },
     {
       "id": "E108",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -678,7 +679,7 @@
     },
     {
       "id": "E112",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -702,7 +703,7 @@
     },
     {
       "id": "E116",
-      "status": "NOT_RUN",
+      "status": "NOT_APPLICABLE",
       "evidence": "",
       "disposition": "NOT_APPLICABLE_TO_COMPILER"
     },
@@ -732,11 +733,12 @@
     }
   ],
   "dispositionSummary": {
-    "partialStaticEvidence": 67,
-    "pendingStaticConformance": 3,
+    "partialStaticEvidence": 68,
+    "pendingStaticConformance": 0,
     "notApplicableToCompiler": 43,
     "claimedPass": 0,
     "note": "PENDING_STATIC_CONFORMANCE means the frozen case lists the compiler as an owner but no executed fixture variant exists yet. NOT_APPLICABLE_TO_COMPILER means the case is Host/Runtime-only. No case is claimed PASS.",
-    "blockedExternalContract": 7
+    "blockedExternalContract": 7,
+    "blockedNormativeMapping": 2
   }
 }
