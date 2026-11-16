@@ -1,6 +1,6 @@
 # Dependency Snapshot Digest v1
 
-**Status:** proposed normative Compiler/Studio interoperability algorithm for BuildRequest v1alpha4; freeze together with the BuildRequest API review.
+**Status:** FROZEN Compiler/Studio interoperability algorithm for BuildRequest v1alpha4. Any framing change requires a new digest domain separator and coordinated API revision.
 
 This document proposes the snapshot integrity algorithm owned by the BuildRequest v1alpha4 transport contract. It makes no compatibility claim with Compiler v0.1: that earlier design explicitly left digest protocol out of scope. The algorithm identity is the domain separator below, not the CA-SL language version.
 
