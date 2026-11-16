@@ -25,28 +25,16 @@ type File struct {
 	Bytes []byte `json:"bytes"`
 }
 
-// BuildRequest contains the caller-supplied project files and optional targets.
-type BuildRequest struct {
-	Files          []File   `json:"files"`
-	Targets        []string `json:"targets,omitempty"`
-	LanguageTarget string   `json:"languageTarget,omitempty"` // explicit CA-SL v1alpha4 selector
-}
-
-type Diagnostic struct {
-	Severity string `json:"severity"`
-	Phase    string `json:"phase,omitempty"` // present for v1alpha4 (C_STATIC / R_RUNTIME)
-	Code     string `json:"code"`
-	Path     string `json:"path"`
-	Line     int    `json:"line,omitempty"`
-	Column   int    `json:"column,omitempty"`
-	Message  string `json:"message"`
-}
-
-// BuildResult contains deterministic diagnostics and, on success, output files.
-type BuildResult struct {
-	Success     bool         `json:"success"`
-	Diagnostics []Diagnostic `json:"diagnostics"`
-	OutputFiles []File       `json:"outputFiles"`
+// LibraryTool is retained as an internal migration type until the old
+// dependency inspector is removed in WP3. It is not part of the v1alpha4 API.
+type LibraryTool struct {
+	OperationID           string `json:"operationId"`
+	SourcePath            string `json:"sourcePath"`
+	DeclaredEffect        string `json:"declaredEffect"`
+	Description           string `json:"description,omitempty"`
+	InputSchema           any    `json:"inputSchema"`
+	OutputSchema          any    `json:"outputSchema,omitempty"`
+	ReconcileOutputSchema any    `json:"reconcileOutputSchema,omitempty"`
 }
 
 type LibraryTool struct {
@@ -64,17 +52,8 @@ type LibraryResult struct {
 	Tools       []LibraryTool `json:"tools"`
 }
 
-// InspectLibraries parses only caller-supplied ToolCatalog files.
-func InspectLibraries(req BuildRequest) LibraryResult {
-	a := newAnalysis(req)
-	a.importLibraries()
-	tools := a.libraryTools()
-	if len(tools) > maxFiles {
-		a.errorAt("lib/tools/", 0, "LIB_SCHEMA_INVALID", "library inspection exceeds the 512 Operation result limit")
-		tools = nil
-	}
-	return LibraryResult{Diagnostics: a.sortedDiagnostics(), Tools: tools}
-}
+// The old library inspection entry point is intentionally not exported. The
+// v1alpha4 public operation is InspectDependencies in api_v1alpha4.go.
 
 type analysis struct {
 	files                 map[string][]byte
@@ -86,17 +65,6 @@ type analysis struct {
 	operationSources      map[string]string
 	schemaRefs            map[string]map[string]bool
 	procedureInputSchemas map[*yaml.Node]map[string]*yaml.Node
-}
-
-func Check(req BuildRequest) []Diagnostic {
-	if req.LanguageTarget!="" { return CheckV1Alpha4(req) }
-	result := analyze(req, false)
-	return result.Diagnostics
-}
-
-func Build(req BuildRequest) BuildResult {
-	if req.LanguageTarget!="" { return validateV1Alpha4(req) }
-	return analyze(req, true)
 }
 
 func analyze(req BuildRequest, materialize bool) BuildResult {
@@ -255,7 +223,13 @@ func (a *analysis) result(output []File) BuildResult {
 	if output == nil {
 		output = []File{}
 	}
-	return BuildResult{Success: !a.hasErrors(), Diagnostics: a.diagnostics, OutputFiles: output}
+	return BuildResult{
+		APIVersion: BuildResultAPIVersion,
+		Success: !a.hasErrors(),
+		Diagnostics: a.diagnostics,
+		DependencyClosure: []string{},
+		OutputFiles: output,
+	}
 }
 
 func (a *analysis) sortedDiagnostics() []Diagnostic {
