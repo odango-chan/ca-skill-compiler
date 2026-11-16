@@ -68,7 +68,7 @@ func run(args []string) int {
 	}
 	var result compiler.BuildResult
 	if command == "check" {
-		result = compiler.BuildResult{Diagnostics: compiler.Check(req)}
+		result = compiler.BuildResult{APIVersion: compiler.BuildResultAPIVersion, Diagnostics: compiler.Check(req), DependencyClosure: []string{}, OutputFiles: []compiler.File{}}
 		result.Success = true
 		for _, d := range result.Diagnostics {
 			if d.Severity == "error" {
@@ -107,7 +107,7 @@ func readProject(root string) ([]compiler.File, error) {
 	for _, dir := range []string{"skills"} {
 		base := filepath.Join(root, dir)
 		info, err := os.Lstat(base)
-		if os.IsNotExist(err) && dir == "lib" {
+		if os.IsNotExist(err) {
 			continue
 		}
 		if err != nil {
@@ -174,7 +174,7 @@ func writeOutput(root, dest string, files []compiler.File) error {
 	for _, forbidden := range []string{root, filepath.Join(root, "skills")} {
 		rel, err := filepath.Rel(forbidden, abs)
 		if err == nil && (rel == "." || (forbidden != root && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)))) {
-			return fmt.Errorf("output path may not replace source or library: %s", dest)
+			return fmt.Errorf("output path may not replace source: %s", dest)
 		}
 	}
 	if info, err := os.Lstat(abs); err == nil {
