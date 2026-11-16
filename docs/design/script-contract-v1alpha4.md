@@ -78,7 +78,7 @@ The exact supported set is CA-SL F.6, not all Python typing features. The minimu
 - Required and NotRequired;
 - Annotated[T, {...}] only where metadata is a literal mapping to a G.4-supported Schema constraint.
 
-Functional TypedDict syntax is required to represent existing wire keys that are not Python identifiers (the current 5GC source uses 5qi). This is a Python declaration form for the same strict TypedDict / JSON object semantics, not a new CA-SL type. Annotation parsing must preserve the distinction between a missing property and a nullable property.
+Functional TypedDict syntax is required to represent existing wire keys that are not Python identifiers (the current 5GC source uses 5qi; see the pinned [current 5GC source baseline](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/current-5gc-skill-baseline.md)). This is a Python declaration form for the same strict TypedDict / JSON object semantics, not a new CA-SL value type. It is a compiler source-syntax requirement for the current 5GC baseline; if an interpretation of F.6 excludes it, resolve that contract ambiguity before claiming 5GC qualification. Annotation parsing must preserve the distinction between a missing property and a nullable property.
 
 Reject Any, open dict, object, dynamic/unresolved annotations, unsupported union/optional forms, unknown or dynamic Annotated metadata, unsupported JSON Schema keywords (including pattern and format), dynamic key reads that cannot be proven, redefinition of compiler-generated PredicateInput; imports are never executed by Compiler and annotation dependencies must be statically resolvable.
 
