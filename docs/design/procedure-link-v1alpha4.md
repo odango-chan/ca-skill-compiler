@@ -10,7 +10,7 @@ The linker builds one typed, scope-aware graph from the Skill Contract, Procedur
 
 The author graph has one Procedure root with start/nodes; one Node per named business interaction; up to four ordered stages per Node (precondition, operation, observation, postcondition); stage-level outcome routes; a single Contract Goal and optional single global Precondition reference.
 
-The stages execute in this order when declared. Precondition/Postcondition are Predicate groups, Operation is a Tool or local Script, Observation is an Owner-published READ query.
+The stages execute in this order when declared. Precondition/Postcondition are ordered Predicate groups whose members have no individual routes, Node IDs or Action Budget entries; Operation is a Tool or local Script; Observation is an Owner-published READ query. Repeated Predicate IDs are legal when each call has its own explicit arguments.
 
 ## 2. Exact source grammar and rejected legacy syntax
 
@@ -72,9 +72,11 @@ Compiler MUST validate:
 - stage order is fixed and stages are unique;
 - every route key is valid for that stage and every route target is an existing Node or allowed terminal;
 - no cycle exists;
-- every declared Node is reachable from start;
-- every nonterminal route target is reachable and structurally valid;
+- every nonterminal route target resolves to a declared Node and is structurally valid;
+- Nodes not reachable from start produce the normative UNREACHABLE_NODE warning (not a build-blocking error); their syntax, references, Owner links and static contracts are still checked;
 - required Outcome routes are present according to §§12 and 22;
+- when a later stage is declared in the same Node, that stage's normal Outcome automatically advances to the next declared stage and MUST NOT be repeated in routes; non-normal Outcomes route explicitly. A last-stage normal Outcome MUST have an explicit route;
+- Precondition/Postcondition members are evaluated in list order and aggregate to one stage Outcome: all PASS → PASS; any FAIL → FAIL; otherwise any UNKNOWN → UNKNOWN. UNKNOWN does not short-circuit later members because a later FAIL takes precedence; after the first FAIL, remaining members may be skipped and are not recorded as PASS;
 - terminal statuses satisfy §12.8;
 - only final Postcondition aggregate PASS may route directly to SUCCEEDED.
 
