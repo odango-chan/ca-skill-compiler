@@ -99,6 +99,20 @@ The BuildRequest-owned EvidenceTrustBindings document is a different artifact: i
 
 Do not create a generic descriptor schema by guessing the shape of authority, fact, Scope, Correlation or factValue. Until a real Owner publishes a consumable descriptor format, Evidence-dependent linking remains fail-closed and cannot be marked qualified.
 
+## 4.2 Exact Reconcile READ contract
+
+For every Mutation that declares mutation.reconcile:
+- The target must be a unique ToolCatalog callable with kind operation, Effect READ, the same trusted Owner as the original Mutation, ownerOutcomes containing SUCCEEDED and optionally FAILED, and its own receiptSchema.$ref.
+- Its inputSchema must resolve to a root-closed object whose only required and allowed property is originalInvocationId, a nonempty string. Host materializes this value only from the persisted original Mutation Invocation; an author cannot supply it.
+- mutation.reconcile.proofPath resolves against the Reconcile READ callable's own receiptSchema root, not the original Mutation receipt. proofSchema must exactly describe the value at that path.
+- The original Mutation's commitProof.path, failureClassPath and failureClasses[].proofPath resolve against the original Mutation callable's own receiptSchema root.
+- If recoverableOutputSchema / recoverableOutputPath are declared, both are required. recoverableOutputPath begins with output. and resolves against the Reconcile READ outputSchema root to an optional subobject; that subobject's exact Schema identity must equal recoverableOutputSchema. Compiler proves that Schema assignable to the original Mutation's normal outputSchema and that the original consumer's Evidence requirements remain satisfied.
+- The complete Reconcile READ output and receipt are never author-bindable. Only a fully verified recovered subobject may be merged into the original Mutation's successful output while retaining the Reconcile Producer and Invocation lineage.
+
+Compiler scans every Mutation contract in the selected trusted snapshot closure, not only those directly referenced by the selected Skill, to identify dedicated Reconcile READ callable identities. A dedicated Reconcile READ cannot also be called as an ordinary operation.tool; reject that bypass with RECONCILE_CONTRACT_INVALID. A Capability Grant for the READ callable does not make it an ordinary query.
+
+Cross-snapshot / cross-publication Reconcile association is accepted only when a separately versioned trusted Owner/deployment publication proves the exact Owner, original Mutation callable, dedicated Reconcile READ callable, original Invocation binding and Scope relation. Compiler must not infer this relation from names, matching originalInvocationId fields or a separate READ Grant. If the required trusted association format is unavailable, fail closed with the frozen Reconcile / dependency-link diagnostic. No new identityInputs or Reconcile association field is invented in ToolCatalog by this document.
+
 ## 5. Identity-input provenance is not a new ToolCatalog field
 
 CA-SL §13.3/F.1 defines the logical Owner annotation needed to identify Subject, Session, Lifecycle, Correlation and resource input paths. The frozen specification explicitly does **not** define a physical identityInputs field.
