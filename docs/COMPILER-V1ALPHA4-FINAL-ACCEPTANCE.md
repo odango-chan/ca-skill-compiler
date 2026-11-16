@@ -37,7 +37,7 @@
 | WP4D CEL subset | **PASS slice** | 5/5 fixtures; subset whitelist + Predicate signatures; guard proofs deferred WP6 |
 | WP5 Procedure graph | **PARTIAL** | reachability, global-gate dominance, stage-route obligations done (7/7); exact auto-advance dominance, Owner-outcome route eligibility, final-Postcondition precision remain |
 | WP6 SourcePath / data flow | **PARTIAL** | grammar/arity, context/request typing, producer dominance/availability, Tool/Predicate F.5 typing (22/22); identity-input provenance remains fail-closed (no frozen trusted publication format) |
-| WP7 Evidence | **NOT_IMPLEMENTED** | no Evidence Descriptor format frozen; must stay fail-closed |
+| WP7 Evidence | **PARTIAL** | requirement→declared-parameter binding implemented (`PREDICATE_EVIDENCE_REQUIRED`, 2/2); Descriptor/Producer/Scope/Correlation/Freshness/trusted relation remain NOT_IMPLEMENTED and fail-closed (no frozen descriptor format) |
 | WP8 Mutation / Reconcile | **PARTIAL boundary** | dedicated Reconcile READ anti-bypass + full Reconcile contract validation / retryOf remain |
 | WP9 Python Script ABI | **NOT_IMPLEMENTED** | gositter adapter not integrated; scripts remain fail-closed |
 | WP10 Artifact | **NOT_IMPLEMENTED** | deterministic tree / manifest / JCS not implemented; Build always fail-closed |
@@ -47,7 +47,7 @@
 
 ## 3. Conformance coverage (honest)
 
-- Executed fixtures: WP3A 10, WP3B 9, WP3C 11, WP3D 7, WP4A 9, WP4B 6, WP4C 6, WP4D 5, WP5 7, WP6 22 (total 92 executed cases).
+- Executed fixtures: WP3A 10, WP3B 9, WP3C 11, WP3D 7, WP4A 9, WP4B 6, WP4C 6, WP4D 5, WP5 7, WP6 22 (total 94 executed cases).
 - Spec E-cases with executable coverage: E03, E04, E05, E06, E07, E16, E24/E44/E51 (partial), E25, E39, E43, E91, E110 (schema subset); others remain NOT_IMPLEMENTED/NOT_RUN.
 - No claim that E01–E120 are covered; `tests/conformance/v1alpha4/*-fixture-plan.json` records only the executed slices.
 
