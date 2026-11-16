@@ -179,6 +179,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		if sourceAST.Procedure != nil && sourceAST.Procedure.Raw != nil {
 			v4CheckProcedure(procedurePath, sourceAST.Procedure, contractAST, errorAt)
 			validateV1Alpha4ProcedureStageRoutes(procedurePath, sourceAST.Procedure, errorAt)
+			validateV1Alpha4SourcePaths(procedurePath, sourceAST, errorAt)
 		}
 	}
 
