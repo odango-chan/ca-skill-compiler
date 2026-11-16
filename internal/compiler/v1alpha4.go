@@ -289,6 +289,9 @@ func v4CheckPredicates(file string, source *V1Alpha4PredicateSetAST, add func(st
 		return
 	}
 	for i := 0; i+1 < len(set.Content); i += 2 {
+		if key := unalias(set.Content[i]); key == nil || !validExportID(scalar(key)) {
+			add(file, key, "IDENTIFIER_INVALID", "PredicateId must satisfy the Dotted Identifier grammar")
+		}
 		def := set.Content[i+1]
 		v4Allowed(def, file, v4PredicateFields, add)
 		params := child(def, "parameters")

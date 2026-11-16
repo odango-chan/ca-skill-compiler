@@ -4,8 +4,8 @@
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 21,
-    "notRun": 99,
+    "partial": 22,
+    "notRun": 98,
     "passed": 0
   },
   "cases": [
@@ -531,8 +531,8 @@
     },
     {
       "id": "E105",
-      "status": "NOT_RUN",
-      "evidence": ""
+      "status": "PARTIAL",
+      "evidence": "PredicateId/Alias/ExportId/QualifiedSchemaId variants; LocalScriptPath variant covered by Script path tests"
     },
     {
       "id": "E106",
