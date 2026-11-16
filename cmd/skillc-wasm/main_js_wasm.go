@@ -20,13 +20,13 @@ func respond(command string) js.Func {
 		if wireRequestTooLarge(raw) {
 			return marshalResult(command, wireErrorResult(command, "INPUT_LIMIT", "BuildRequest JSON exceeds wire size limit"))
 		}
-		var req compiler.BuildRequest
-		if err := json.Unmarshal([]byte(raw), &req); err != nil {
-			return marshalResult(command, wireErrorResult(command, "REQUEST_INVALID", "invalid JSON request"))
+		req, err := compiler.DecodeBuildRequestJSON([]byte(raw))
+		if err != nil {
+			return marshalResult(command, wireErrorResult(command, "REQUEST_INVALID", "invalid BuildRequest JSON or base64 byte field"))
 		}
 		var result any
 		if command == "inspect" {
-			result = compiler.InspectLibraries(req)
+			result = compiler.InspectDependencies(req)
 		} else if command == "check" {
 			result = compiler.Check(req)
 		} else {
@@ -49,6 +49,6 @@ func main() {
 	callbacks = append(callbacks, check, build, inspect)
 	js.Global().Set("skillcCheck", check)
 	js.Global().Set("skillcBuild", build)
-	js.Global().Set("skillcInspectLibraries", inspect)
+	js.Global().Set("skillcInspectDependencies", inspect)
 	select {}
 }
