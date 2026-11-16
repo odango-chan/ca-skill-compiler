@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"gopkg.in/yaml.v3"
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
 const V1Alpha4Target = "connectionagent.io/v1alpha4"
@@ -141,39 +141,25 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 	return failedBuildResult(diagnostics)
 }
 
-func v4ParseYAML(file string,data []byte,add func(string,*yaml.Node,string,string))*yaml.Node{
-	if data==nil {
-		add(file,nil,"SOURCE_ROOT_INVALID","Required v1alpha4 author source is missing")
+func v4ParseYAML(file string, data []byte, add func(string, *yaml.Node, string, string)) *yaml.Node {
+	if data == nil {
+		add(file, nil, "SOURCE_ROOT_INVALID", "Required v1alpha4 author source is missing")
 		return nil
 	}
-	var document yaml.Node
-	if err:=yaml.Unmarshal(data,&document);err!=nil {
-		add(file,nil,"YAML_PARSE_ERROR",err.Error())
-		return nil
-	}
-	if len(document.Content)!=1 || document.Content[0].Kind!=yaml.MappingNode {
-		add(file,&document,"SOURCE_ROOT_INVALID","Expected YAML mapping source root")
-		return nil
-	}
-	root:=document.Content[0]
-	var checkDuplicate func(*yaml.Node)
-	checkDuplicate=func(node *yaml.Node){
-		if node==nil{return}
-		if node.Kind==yaml.MappingNode {
-			seen:=map[string]bool{}
-			for i:=0;i+1<len(node.Content);i+=2 {
-				key:=node.Content[i]
-				if key.Kind!=yaml.ScalarNode || key.Tag!="!!str" || seen[key.Value] {
-					add(file,key,"YAML_PARSE_ERROR","Invalid or duplicate YAML mapping key")
-				}
-				seen[key.Value]=true
-			}
+	root, err := yaml.Parse(data)
+	if err != nil {
+		line, column := yaml.ParseErrorLocation(err)
+		node := &yaml.Node{Line: line, Column: column}
+		code := "YAML_PARSE_ERROR"
+		if yaml.IsRootError(err) {
+			code = "SOURCE_ROOT_INVALID"
 		}
-		for _,item:=range node.Content {checkDuplicate(item)}
+		add(file, node, code, err.Error())
+		return nil
 	}
-	checkDuplicate(root)
 	return root
 }
+
 func v4Allowed(node *yaml.Node,file string,allowed map[string]bool,add func(string,*yaml.Node,string,string)){
 	if node==nil||node.Kind!=yaml.MappingNode {add(file,node,"SOURCE_ROOT_INVALID","Expected a mapping");return}
 	for i:=0;i+1<len(node.Content);i+=2 {
