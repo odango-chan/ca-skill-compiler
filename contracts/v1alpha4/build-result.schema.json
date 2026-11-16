@@ -128,6 +128,40 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "diagnostics": {
+            "contains": {
+              "properties": {
+                "severity": {
+                  "const": "error"
+                }
+              },
+              "required": [
+                "severity"
+              ]
+            }
+          }
+        },
+        "required": [
+          "diagnostics"
+        ]
+      },
+      "then": {
+        "properties": {
+          "success": {
+            "const": false
+          },
+          "outputFiles": {
+            "maxItems": 0
+          },
+          "dependencyClosure": {
+            "maxItems": 0
+          }
+        }
+      }
     }
   ]
 }
