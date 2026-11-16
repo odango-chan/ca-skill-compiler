@@ -81,11 +81,11 @@ The initial executable profile should use the UE-requested PDU Session Establish
 
 | SMF-side interaction | Standard reference to pin | Tool mapping to publish | Skill Node mapping |
 |---|---|---|---|
-| Receive AMF request to create SM Context and return the corresponding response | TS 23.502 §4.3.2.2.1; Nsmf_PDUSession Create SM Context in TS 29.502 | AMF→SMF interface contract / SMF Owner's exact callable and Request/Response Schemas | Node for initial SM Context admission |
-| Retrieve / subscribe to required subscription data | TS 23.502 §4.3.2.2.1; relevant Nudm_SDM service operations in TS 29.503 | UDM Owner's exact READ / subscription callable contracts and Schemas | Node(s) for subscription retrieval and subscription lifecycle |
-| Establish SM Policy Association | TS 23.502 §4.3.2.2.1; Npcf_SMPolicyControl service in TS 29.512 | PCF Owner's exact Create callable, Effect and Request/Response Schemas | Node for policy association |
+| Receive AMF request to create SM Context and return the corresponding response | TS 23.502 §4.3.2.2.1; Nsmf_PDUSession_CreateSMContext in TS 29.502 | AMF→SMF interface contract / SMF Owner's exact callable and Request/Response Schemas | Node for initial SM Context admission |
+| Retrieve / subscribe to required subscription data | TS 23.502 §4.3.2.2.1; Nudm_SDM_Get / subscription service operations in TS 29.503 | UDM Owner's exact READ / subscription callable contracts and Schemas | Node(s) for subscription retrieval and subscription lifecycle |
+| Establish SM Policy Association | TS 23.502 §4.3.2.2.1; Npcf_SMPolicyControl_Create in TS 29.512 | PCF Owner's exact Create callable, Effect and Request/Response Schemas | Node for policy association |
 | Establish user-plane session resources | TS 23.502 §4.3.2.2.1; PFCP / N4 procedures in TS 29.244 | UPF / N4 Owner's actual PFCP Tool contract, including asynchronous completion semantics where applicable | Node for N4 session establishment and resource result |
-| Transfer N1/N2 information toward AMF | TS 23.502 §4.3.2.2.1; Namf_Communication service in TS 29.518 | AMF Owner's exact N1N2MessageTransfer callable and Schemas | Node for N1/N2 transfer and resulting SMF-side outcome |
+| Transfer N1/N2 information toward AMF | TS 23.502 §4.3.2.2.1; Namf_Communication_N1N2MessageTransfer in TS 29.518 | AMF Owner's exact N1N2MessageTransfer callable and Schemas | Node for N1/N2 transfer and resulting SMF-side outcome |
 
 This table is a traceability checklist, not an assertion that current repository ToolCatalogs already publish these v1alpha4 callables. Fill Tool IDs, Owner identities and exact Schema IDs only from real Owner releases. Missing Owner exports remain missing; do not invent them to make Compiler pass.
 
