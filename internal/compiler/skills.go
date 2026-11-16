@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
 type skillEntry struct {
