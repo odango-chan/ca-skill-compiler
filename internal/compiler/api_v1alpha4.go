@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/odango-chan/ca-skill-compiler/internal/artifact"
 )
 
 const (
@@ -255,6 +257,21 @@ func failedBuildResult(diagnostics []Diagnostic) BuildResult {
 		DependencyClosure: []string{},
 		OutputFiles:       []File{},
 	}
+}
+
+// VerifyBuildResult checks the structural integrity of a successful BuildResult
+// artifact tree (unique paths, canonical manifest per Skill, complete file
+// listing, generated Script Output Schema identity). It never writes to disk and
+// returns nil for an empty or failed result.
+func VerifyBuildResult(result BuildResult) error {
+	if !result.Success {
+		return nil
+	}
+	files := make([]artifact.File, 0, len(result.OutputFiles))
+	for _, file := range result.OutputFiles {
+		files = append(files, artifact.File{Path: file.Path, Bytes: file.Bytes})
+	}
+	return artifact.Verify(files)
 }
 
 func validateBuildRequest(req BuildRequest) []Diagnostic {
