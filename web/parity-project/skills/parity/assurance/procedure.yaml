@@ -1,0 +1,28 @@
+start: check
+nodes:
+  check:
+    precondition:
+      predicates:
+        - predicate: parity.ready
+          arguments: [context.ueRef]
+      routes:
+        PASS: read
+        FAIL: FAILED
+        UNKNOWN: UNRESOLVED
+  read:
+    observation:
+      tool: ca::example.session.read
+      arguments:
+        ueRef: context.ueRef
+      routes:
+        SUCCEEDED: final
+        FAILED: FAILED
+  final:
+    postcondition:
+      predicates:
+        - predicate: parity.complete
+          arguments: [read.observation.output]
+      routes:
+        PASS: SUCCEEDED
+        FAIL: FAILED
+        UNKNOWN: UNRESOLVED

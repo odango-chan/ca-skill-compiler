@@ -1,0 +1,7 @@
+predicates:
+  parity.ready:
+    parameters: [{ue: string}]
+    evaluator: {type: cel, expression: 'ue != ""'}
+  parity.complete:
+    parameters: [{result: ca::urn:example:result:v1}]
+    evaluator: {type: cel, expression: "result.ready == true"}

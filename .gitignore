@@ -3,3 +3,4 @@
 /.agent-tmp/
 *.wasm
 *.zip
+.parity-web/
