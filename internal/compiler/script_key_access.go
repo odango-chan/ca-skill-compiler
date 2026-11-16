@@ -31,6 +31,24 @@ func validateScriptInputKeyAccess(source []byte, allowed map[string]bool, allowE
 			return nil
 		}
 		switch node.Kind {
+		case "call":
+			if function := node.Field("function"); function != nil && function.Kind == "attribute" {
+				object := function.Field("object")
+				attribute := function.Field("attribute")
+				if object != nil && object.Text(source) == "input" {
+					if attribute == nil || attribute.Text(source) != "get" {
+						return fmt.Errorf("unsupported method on the Script input mapping")
+					}
+					if arguments := node.Field("arguments"); arguments != nil {
+						for _, argument := range arguments.Children {
+							if err := walk(argument); err != nil {
+								return err
+							}
+						}
+					}
+					return nil
+				}
+			}
 		case "subscript":
 			value := node.Field("value")
 			if value != nil && value.Kind == "identifier" && value.Text(source) == "input" {

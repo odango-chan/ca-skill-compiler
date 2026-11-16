@@ -53,6 +53,11 @@ func validateV1Alpha4ScriptABI(req BuildRequest, identity dependencyIdentityResu
 				add(procedurePath, scriptNode, "SCRIPT_CONTRACT_INVALID", "Procedure Script input access: "+err.Error())
 				continue
 			}
+			optional := optionalInputKeys(abi.InputSchema)
+			if err := validateScriptOptionalKeyAccess(source, optional); err != nil {
+				add(procedurePath, scriptNode, "SCRIPT_CONTRACT_INVALID", "Procedure Script optional input access: "+err.Error())
+				continue
+			}
 			schemas.Inputs[base+script] = abi.InputSchema
 			schemas.Outputs[base+script] = abi.OutputSchema
 		}
@@ -119,4 +124,21 @@ func sortedAnyMapKeys(values map[string]any) []string {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+func optionalInputKeys(schema map[string]any) map[string]bool {
+	optional := map[string]bool{}
+	properties, _ := schema["properties"].(map[string]any)
+	required := map[string]bool{}
+	if list, ok := schema["required"].([]string); ok {
+		for _, key := range list {
+			required[key] = true
+		}
+	}
+	for key := range properties {
+		if !required[key] {
+			optional[key] = true
+		}
+	}
+	return optional
 }
