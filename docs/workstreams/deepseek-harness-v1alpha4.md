@@ -69,7 +69,7 @@ The sequence below is the frozen default order. WP3 is split into four independe
 | WP0 | OSS dependency and toolchain selection | Completed by the [OSS Dependency Selection ADR](../design/oss-dependency-selection-v1alpha4.md); adapter integration remains in the consuming WPs |
 | WP1 | BuildRequest envelope, version checks, byte decoding, path/resource limits, DependencySnapshot digest, Check/Build/Inspect output APIs | Uses the frozen API and digest contracts |
 | WP2 | YAML 1.2 safe parser, duplicate-key detection, scalar handling, Contract / Procedure / PredicateSet AST | goccy/go-yaml v1.19.2 AST/token adapter; must reject unknown and legacy syntax; no compatibility conversion |
-| WP3A | DependencySnapshot raw-byte integrity, Alias selection, trusted dependency binding and exact Stable Package ID match | First DeepSeek task; no Owner export or Capability linking |
+| WP3A | DependencySnapshot raw-byte integrity, Alias selection, trusted dependency binding and exact Stable Package ID match | Initial bounded slice implemented in stacked PR #15; not current task |
 | WP3B | ToolCatalog contract parsing/indexing, callable/Schema export identity and trusted Owner/export attribution | Depends on WP3A; covers E05/E39/E43 and export identity diagnostics |
 | WP3C | CapabilityContracts trusted bundle, deployment authorization, exact membership, Effect consistency and Scope intersection | Depends on WP3B; never infer deployment authorization |
 | WP3D | Integrate selected Skill references with dependency/callable/schema indexes and DependencyInspection | Depends on WP3A–WP3C; enforce selected-Skill closure and Reconcile-only anti-bypass |
@@ -179,7 +179,7 @@ Every implementation run MUST retain a machine-readable or PR-linked record cont
 - OS, exact Go toolchain (Go 1.27.4), WASM target, selected Python parser/grammar versions, Host Python runtime version where applicable, and browser version;
 - changed paths;
 - exact commands and exit results;
-- CI run links;
+- CI run links when CI was executed; otherwise record CI NOT_RUN under the current local-only acceptance policy;
 - relevant E case variants and H diagnostic identities;
 - unresolved blockers and any human decisions requested.
 
