@@ -139,7 +139,7 @@ func validateV1Alpha4SchemaClosure(req BuildRequest, skill *V1Alpha4SkillAST, id
 			switch problem {
 			case "":
 				registry.walkSchemaClosure(resource, result)
-				diagnostics := validateContextSchemaRoot(resource, registry)
+				diagnostics := validateContextSchemaRoot(resource, registry, expectedContextSchemaURI(skill))
 				result.diagnostics = append(result.diagnostics, diagnostics...)
 			default:
 				// WP3B already diagnosed the missing/ambiguous external Schema
@@ -286,7 +286,7 @@ func (registry schemaRegistry) resolveSchemaRoot(resource schemaResource) (schem
 	return schemaResource{}, "cycle"
 }
 
-func validateContextSchemaRoot(resource schemaResource, registry schemaRegistry) []Diagnostic {
+func validateContextSchemaRoot(resource schemaResource, registry schemaRegistry, expectedURI string) []Diagnostic {
 	diagnostics := make([]Diagnostic, 0)
 	path := resourceDiagnosticPath(resource)
 	effective, problem := registry.resolveSchemaRoot(resource)
@@ -297,6 +297,12 @@ func validateContextSchemaRoot(resource schemaResource, registry schemaRegistry)
 		return append(diagnostics, dependencyDiagnostic("error", "C_STATIC", "EXPORT_ID_AMBIGUOUS", path, nil, "Context Schema root $ref is ambiguous in the trusted closure"))
 	case "cycle":
 		return append(diagnostics, dependencyDiagnostic("error", "C_STATIC", "SCHEMA_INVALID", path, nil, "Context Schema root $ref chain is cyclic"))
+	}
+	if expectedURI != "" {
+		if actual := scalar(child(effective.node, "$id")); actual != expectedURI {
+			return append(diagnostics, dependencyDiagnostic("error", "C_STATIC", "CONTEXT_SCHEMA_MISMATCH", path, nil,
+				"Context Schema root $id does not match the Contract contextSchema identity"))
+		}
 	}
 	if scalar(child(effective.node, "type")) != "object" {
 		return append(diagnostics, dependencyDiagnostic("error", "C_STATIC", "SCHEMA_INVALID", path, nil, "Context Schema effective root must be an object Schema"))
@@ -415,4 +421,19 @@ func yamlNodeToJSONValue(node *yaml.Node) (any, bool) {
 		return object, true
 	}
 	return nil, false
+}
+
+// expectedContextSchemaURI returns the absolute Schema URI part of the frozen
+// Contract contextSchema QualifiedSchemaId (alias::uri), or empty when undeclared
+// or malformed (malformed identities are diagnosed by the contract slice).
+func expectedContextSchemaURI(skill *V1Alpha4SkillAST) string {
+	if skill == nil || skill.Contract == nil || skill.Contract.ContextSchema == nil {
+		return ""
+	}
+	reference := scalar(unalias(skill.Contract.ContextSchema))
+	index := strings.Index(reference, "::")
+	if index <= 0 || index+2 >= len(reference) {
+		return ""
+	}
+	return reference[index+2:]
 }
