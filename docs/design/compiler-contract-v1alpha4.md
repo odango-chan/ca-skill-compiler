@@ -45,6 +45,7 @@ Compiler consumes bytes and trusted metadata supplied by its caller. It never op
 | BuildRequest | connectionagent.io/compiler-build-request/v1alpha4 |
 | CA-SL language target | connectionagent.io/v1alpha4 |
 | BuildResult | connectionagent.io/compiler-build-result/v1alpha4 |
+| DependencyInspection | connectionagent.io/compiler-dependency-inspection/v1alpha4 |
 | ToolCatalog | connectionagent.io/toolcatalog/v1alpha4 |
 | CapabilityContracts | connectionagent.io/capability-contracts/v1alpha4 |
 | Evidence trust relations | BuildRequest v1alpha4-owned embedded format |
@@ -138,7 +139,7 @@ Reject other calls, macros, comprehensions, loops, array indexing, object constr
 
 Compiler must statically check every field path and operand type. Optional fields may be read only when the same short-circuit expression proves presence with has. Nullable fields require a non-null guard. A Predicate PASS does not narrow an optional field for later SourcePath use.
 
-CEL int is signed 64-bit; CEL double is finite IEEE-754 binary64. CEL int and double do not mix implicitly. When an integer JSON Schema source is bound to a CEL number parameter, Compiler must prove it lies in the exact safe-integer range required by G.4. Runtime overflow, non-finite values, unverified numeric serialization or evaluation exceptions produce UNKNOWN, never PASS.
+CEL int is signed 64-bit; CEL double is finite IEEE-754 binary64. CEL int and double do not mix implicitly. When an integer JSON Schema source is bound to a CEL number parameter, Compiler must prove it lies in the exact safe-integer range [-9007199254740991, 9007199254740991]. Runtime overflow, non-finite values, unverified numeric serialization or evaluation exceptions produce UNKNOWN, never PASS.
 
 The Schema Engine and CEL parser/evaluator implementation choices are not selected by this contract. They must implement this exact language profile and pass the pinned fixtures. PR #8's Schema library spike is technical evidence, not production adoption. Do not add a production Schema dependency or broaden the supported keyword/expression set without a separately reviewed decision.
 
