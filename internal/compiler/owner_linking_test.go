@@ -135,6 +135,7 @@ func TestWP3B001PositiveExportIdentity(t *testing.T) {
 			QueryContextSchemaID: "urn:example:ca:registration-query:v1",
 			OutputSchemaID:       "urn:example:ca:registration:v1",
 			OwnerOutcomes:        []string{"SUCCEEDED", "FAILED"},
+			EvidenceProvides:     []evidenceProvide{{ID: "ue.registration-state", Path: "output"}},
 		},
 		{
 			DependencyAlias: "ca", ExportKind: "schema", ExportID: "urn:example:ca:registration:v1",

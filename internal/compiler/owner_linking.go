@@ -44,6 +44,9 @@ type linkedExport struct {
 	// MutationFields carries the trusted Mutation-contract identities used by the
 	// deeper WP8 static checks (receipt/commit-proof/Reconcile/recoverable).
 	MutationFields mutationContractFields
+	// EvidenceProvides lists the F.1 guarantees.evidence.provides entries published
+	// by this callable, used by static Predicate Evidence satisfiability checks.
+	EvidenceProvides []evidenceProvide
 }
 
 type ownerLinkingResult struct {
@@ -411,6 +414,7 @@ func parseToolCatalogCallable(node *yaml.Node, owner, sourcePath string) (linked
 			export.MutationProblem = mutationContractProblem(node)
 		}
 	case "observation":
+		export.EvidenceProvides = parseEvidenceProvides(child(node, "guarantees"))
 		queryContextSchemaID, ok := schemaRefID(child(node, "queryContextSchema"))
 		if !ok {
 			return linkedExport{}, false

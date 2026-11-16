@@ -202,6 +202,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			validateV1Alpha4ReconcileContracts(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
 			validateV1Alpha4RetryMutationFamilies(sourceAST, ownerLinking, procedurePath, errorAt)
 			validateV1Alpha4RouteKeyEligibility(sourceAST, ownerLinking, procedurePath, errorAt)
+			validateV1Alpha4PredicateEvidence(req, sourceAST, ownerLinking, procedurePath, errorAt)
 			artifactInputs[name] = artifactInput{skill: sourceAST, identity: identity, ownerLinking: ownerLinking, scripts: scriptSchemas}
 		}
 		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
