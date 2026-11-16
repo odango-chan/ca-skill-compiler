@@ -33,6 +33,7 @@ These identifiers are independent and must be checked explicitly:
 - BuildRequest API: connectionagent.io/compiler-build-request/v1alpha4
 - Language target: connectionagent.io/v1alpha4
 - BuildResult API: connectionagent.io/compiler-build-result/v1alpha4
+- DependencyInspection API: connectionagent.io/compiler-dependency-inspection/v1alpha4
 - ToolCatalog: connectionagent.io/toolcatalog/v1alpha4
 - CapabilityContracts: connectionagent.io/capability-contracts/v1alpha4
 - Evidence trust bindings: connectionagent.io/evidence-trust-bindings/v1alpha4
