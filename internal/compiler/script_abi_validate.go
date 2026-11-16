@@ -35,6 +35,16 @@ func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte,
 				add(procedurePath, scriptNode, "SCRIPT_CONTRACT_INVALID", "Procedure Script ABI: "+err.Error())
 				continue
 			}
+			allowed := map[string]bool{}
+			if properties, ok := abi.InputSchema["properties"].(map[string]any); ok {
+				for key := range properties {
+					allowed[key] = true
+				}
+			}
+			if err := validateScriptInputKeyAccess(source, allowed, false); err != nil {
+				add(procedurePath, scriptNode, "SCRIPT_CONTRACT_INVALID", "Procedure Script input access: "+err.Error())
+				continue
+			}
 			schemas[base+script] = abi.InputSchema
 		}
 	}
@@ -59,6 +69,22 @@ func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte,
 			}
 			if _, err := derivePredicateScriptABI(source); err != nil {
 				add(predicatesPath, scriptNode, "SCRIPT_CONTRACT_INVALID", "Predicate Script ABI: "+err.Error())
+				continue
+			}
+			allowed := map[string]bool{}
+			for _, parameter := range sequence(predicate.Parameters) {
+				parameter = unalias(parameter)
+				if parameter == nil || parameter.Kind != yaml.MappingNode {
+					continue
+				}
+				for i := 0; i+1 < len(parameter.Content); i += 2 {
+					if name := scalar(unalias(parameter.Content[i])); name != "" {
+						allowed[name] = true
+					}
+				}
+			}
+			if err := validateScriptInputKeyAccess(source, allowed, false); err != nil {
+				add(predicatesPath, scriptNode, "SCRIPT_CONTRACT_INVALID", "Predicate Script input access: "+err.Error())
 			}
 		}
 	}

@@ -94,8 +94,8 @@ func parseScriptModule(source []byte) (*pythonModule, error) {
 	if first := parameter.Children[0]; first != nil && first.Kind == "identifier" {
 		parameterName = first.Text(source)
 	}
-	if parameterName == "" {
-		return nil, fmt.Errorf("main parameter must be a plain identifier")
+	if parameterName != "input" {
+		return nil, fmt.Errorf("main parameter must be named input")
 	}
 	module.MainInput = parameter.Field("type")
 	if module.MainInput == nil {
@@ -241,7 +241,63 @@ func derivePredicateScriptABI(source []byte) (*scriptABI, error) {
 	if err != nil {
 		return nil, fmt.Errorf("output %s: %w", outputName, err)
 	}
+	if err := validatePredicateResultShape(outputName, module.Classes[outputName]); err != nil {
+		return nil, err
+	}
 	return &scriptABI{InputName: inputName, OutputName: outputName, OutputSchema: outputSchema}, nil
+}
+
+// validatePredicateResultShape enforces the Section 32.2 Predicate Evaluation
+// Result projection: the unique tri-state result, a diagnostic reasonCode and the
+// Evidence lineage list evidenceUsed.
+func validatePredicateResultShape(name string, class pyClass) error {
+	fields := map[string]string{}
+	for _, field := range class.fields {
+		fields[field.name] = strings.TrimSpace(field.typ)
+	}
+	result, ok := fields["result"]
+	if !ok {
+		return fmt.Errorf("Predicate output TypedDict %s must declare result", name)
+	}
+	if !sameLiteralSet(result, []string{"PASS", "FAIL", "UNKNOWN"}) {
+		return fmt.Errorf("Predicate output %s.result must be Literal[PASS, FAIL, UNKNOWN]", name)
+	}
+	if fields["reasonCode"] != "str" {
+		return fmt.Errorf("Predicate output %s.reasonCode must be a required str", name)
+	}
+	if fields["evidenceUsed"] != "list[str]" {
+		return fmt.Errorf("Predicate output %s.evidenceUsed must be a required list[str]", name)
+	}
+	return nil
+}
+
+func sameLiteralSet(annotation string, expected []string) bool {
+	inner, ok := generic(annotation, "Literal")
+	if !ok {
+		return false
+	}
+	parts := splitTop(inner)
+	if len(parts) != len(expected) {
+		return false
+	}
+	seen := map[string]bool{}
+	for _, part := range parts {
+		value, err := literal(part)
+		if err != nil {
+			return false
+		}
+		text, ok := value.(string)
+		if !ok {
+			return false
+		}
+		seen[text] = true
+	}
+	for _, want := range expected {
+		if !seen[want] {
+			return false
+		}
+	}
+	return true
 }
 
 func rejectNotRequired(class pyClass, name string) error {
