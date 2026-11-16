@@ -110,7 +110,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 240,
-          "pattern": "^[A-Za-z][A-Za-z0-9_-]*(\\\\.[A-Za-z][A-Za-z0-9_-]*)*$"
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]*(\\.[A-Za-z][A-Za-z0-9_-]*)*$"
         },
         "owners": {
           "type": "array",
@@ -162,31 +162,31 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 240,
-              "pattern": "^record\\\\."
+              "pattern": "^record\\."
             },
             "session": {
               "type": "string",
               "minLength": 1,
               "maxLength": 240,
-              "pattern": "^record\\\\."
+              "pattern": "^record\\."
             },
             "lifecycle": {
               "type": "string",
               "minLength": 1,
               "maxLength": 240,
-              "pattern": "^record\\\\."
+              "pattern": "^record\\."
             },
             "correlation": {
               "type": "string",
               "minLength": 1,
               "maxLength": 240,
-              "pattern": "^record\\\\."
+              "pattern": "^record\\."
             },
             "resource": {
               "type": "string",
               "minLength": 1,
               "maxLength": 240,
-              "pattern": "^record\\\\."
+              "pattern": "^record\\."
             }
           }
         },
@@ -194,7 +194,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 240,
-          "pattern": "^record\\\\."
+          "pattern": "^record\\."
         },
         "valueSchemaId": {
           "type": "string",
