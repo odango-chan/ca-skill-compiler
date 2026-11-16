@@ -89,12 +89,60 @@
     "dependencyClosure": {
       "type": "array",
       "maxItems": 128,
-      "uniqueItems": true,
       "items": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 128,
-        "pattern": "^[a-z][a-z0-9._-]*$"
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dependencyId",
+          "stablePackageId",
+          "exports"
+        ],
+        "properties": {
+          "dependencyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[a-z][a-z0-9._-]*$"
+          },
+          "stablePackageId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+          },
+          "exports": {
+            "type": "array",
+            "maxItems": 4096,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "exportKind",
+                "exportId",
+                "owner"
+              ],
+              "properties": {
+                "exportKind": {
+                  "enum": [
+                    "operation",
+                    "observation",
+                    "schema",
+                    "evidenceGuarantee"
+                  ]
+                },
+                "exportId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 512
+                },
+                "owner": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
