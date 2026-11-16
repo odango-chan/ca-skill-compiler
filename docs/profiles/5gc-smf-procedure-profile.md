@@ -87,7 +87,7 @@ The initial executable profile should use the UE-requested PDU Session Establish
 
 | SMF-side interaction | Standard reference to pin | Tool mapping to publish | Skill Node mapping |
 |---|---|---|---|
-| Receive AMF request to create SM Context and return the corresponding response | TS 23.502 §4.3.2.2.1; Nsmf_PDUSession_CreateSMContext in TS 29.502 | AMF→SMF interface contract / SMF Owner's exact callable and Request/Response Schemas | Node for initial SM Context admission |
+| Receive AMF request to create SM Context and return the corresponding response | TS 23.502 V18.12.0 §4.3.2.2.1; Nsmf_PDUSession_CreateSMContext in the matching TS 29.502 Release | AMF→SMF interface contract / SMF Owner's exact callable and Request/Response Schemas | Node for initial SM Context admission |
 | Retrieve / subscribe to required subscription data | TS 23.502 §4.3.2.2.1; Nudm_SDM_Get / subscription service operations in TS 29.503 | UDM Owner's exact READ / subscription callable contracts and Schemas | Node(s) for subscription retrieval and subscription lifecycle |
 | Establish SM Policy Association | TS 23.502 §4.3.2.2.1; Npcf_SMPolicyControl_Create in TS 29.512 | PCF Owner's exact Create callable, Effect and Request/Response Schemas | Node for policy association |
 | Establish user-plane session resources | TS 23.502 §4.3.2.2.1; PFCP / N4 procedures in TS 29.244 | UPF / N4 Owner's actual PFCP Tool contract, including asynchronous completion semantics where applicable | Node for N4 session establishment and resource result |
