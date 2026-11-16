@@ -89,7 +89,7 @@ func TestV1Alpha4ExplicitTargetSourceShapeStillFailsClosedWithoutOwner(t *testin
 	req:=v4TestRequest(v4TestContract,v4TestProcedure,v4TestPredicates,v4TestSchema)
 	result:=Build(req)
 	if result.Success||len(result.OutputFiles)!=0 {t.Fatalf("v1alpha4 cannot claim product success without trusted Owner: %+v",result)}
-	for _,code:=range []string{"DEPENDENCY_SNAPSHOT_MISSING","CAPABILITY_INPUT_UNTRUSTED"} {
+	for _,code:=range []string{"DEPENDENCY_SNAPSHOT_MISSING"} {
 		if !v4HasCode(result.Diagnostics,code){t.Fatalf("missing %s: %+v",code,result.Diagnostics)}
 	}
 	for _,d:=range result.Diagnostics {

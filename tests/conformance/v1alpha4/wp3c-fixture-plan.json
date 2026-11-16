@@ -1,0 +1,251 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-fixture-plan/v1alpha4",
+  "taskId": "WP3C-CAPABILITY-LINK-001",
+  "status": "PASS",
+  "note": "Agent-proposed bounded WP3C envelope; see docs/workstreams/wp3c-capability-linking-v1alpha4.md. Frozen Harness profile still lists WP3C as maintainer-queued; this inventory records the executed fixtures for Draft PR review.",
+  "normativeAuthority": {
+    "repository": "odango-chan/ca-skills",
+    "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
+    "file": "docs/skill-language-spec.v1alpha4.zh-CN.md",
+    "blob": "b70064c5737b8ee2b3d1435fe496357f44b42773"
+  },
+  "rules": {
+    "expectedDiagnosticIdentity": "exact (Code, Phase)",
+    "compilerErrorPhase": "C_STATIC",
+    "trustedDeploymentDiagnosticsUseEmptyPathAndZeroLocation": true,
+    "contractGrantIdentifierDiagnosticsRetainOriginalYamlLocation": true,
+    "noNewDiagnosticCodes": true,
+    "scopePolicyContentFormatNotInvented": true,
+    "capabilityScopeEmptyIntersectionNotClaimed": true,
+    "positiveCasesDoNotQualifyWholeCompiler": true
+  },
+  "fixtures": [
+    {
+      "id": "WP3C-001",
+      "title": "Positive trusted CapabilityContracts link",
+      "appendixE": "E01/E04 baseline",
+      "category": "positive",
+      "input": "Appendix E.4 CapabilityContracts bundle plus a trusted deployment authorization binding the same deploymentId and publisherId; Contract grants example.registration-read.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "No WP3C diagnostic is emitted.",
+        "The Skill Grant, Capability definition and exact callable membership are parsed and retained.",
+        "Later unimplemented stages still fail closed; Build is not expected to succeed.",
+        "Bundle file order does not change capability indexing or diagnostics."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3C001PositiveCapabilityLink",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/capability-linking/base"
+    },
+    {
+      "id": "WP3C-002",
+      "title": "Skill grants no Capability for the referenced callable",
+      "appendixE": "E06",
+      "category": "negative",
+      "input": "Set Contract.capabilities to an empty list while the referenced callable membership remains valid.",
+      "expectedDiagnostics": [
+        {
+          "code": "CAPABILITY_NOT_GRANTED",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one CAPABILITY_NOT_GRANTED/C_STATIC is emitted.",
+        "The diagnostic uses empty path and zero line/column.",
+        "A Capability definition alone is not treated as a Skill Grant."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3C002CapabilityNotGrantedE06",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/capability-linking/base"
+    },
+    {
+      "id": "WP3C-003",
+      "title": "Deployment member Effect conflicts with ToolCatalog",
+      "appendixE": "E07",
+      "category": "negative",
+      "input": "Change the matching capability member Effect from READ to MUTATION while the trusted ToolCatalog callable keeps Effect READ.",
+      "expectedDiagnostics": [
+        {
+          "code": "EFFECT_MISMATCH",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one EFFECT_MISMATCH/C_STATIC is emitted.",
+        "Effect describes the callable itself; the Skill Grant does not override it.",
+        "The diagnostic uses empty path and zero line/column."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3C003EffectMismatchE07",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/capability-linking/base"
+    },
+    {
+      "id": "WP3C-004",
+      "title": "Referenced callable has no Capability member record",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Change the capability member owner so no record matches the trusted callable (owner, id, kind) identity.",
+      "expectedDiagnostics": [
+        {
+          "code": "CAPABILITY_MAPPING_MISSING",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one CAPABILITY_MAPPING_MISSING/C_STATIC is emitted.",
+        "Membership is matched by exact Owner + callable ID + kind, never by name similarity.",
+        "The diagnostic uses empty path and zero line/column."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3C004CapabilityMappingMissing",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/capability-linking/base"
+    },
+    {
+      "id": "WP3C-005",
+      "title": "Referenced callable without trusted deployment input",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Keep the referenced callable and the valid dependency snapshots but omit trustedBuildContext.capabilityContracts.",
+      "expectedDiagnostics": [
+        {
+          "code": "CAPABILITY_INPUT_UNTRUSTED",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one CAPABILITY_INPUT_UNTRUSTED/C_STATIC is emitted.",
+        "A Skill Grant and an ordinary DependencySnapshot are not accepted as deployment authorization.",
+        "Build remains failure-atomic."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3C005MissingTrustedDeploymentInput",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/capability-linking/base"
+    },
+    {
+      "id": "WP3C-006",
+      "title": "Deployment authorization does not bind the supplied deployment",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Supply a syntactically valid deployment authorization whose deploymentId differs from the CapabilityContracts bundle deploymentId.",
+      "expectedDiagnostics": [
+        {
+          "code": "CAPABILITY_INPUT_UNTRUSTED",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one CAPABILITY_INPUT_UNTRUSTED/C_STATIC is emitted.",
+        "The authorizationRef is not dereferenced or trusted as proof.",
+        "Build remains failure-atomic."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3C006DeploymentAuthorizationMismatch",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/capability-linking/base"
+    },
+    {
+      "id": "WP3C-007",
+      "title": "Capability ID defined more than once in the artifact set",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Add a second trusted CapabilityContracts file defining the same Capability ID example.registration-read.",
+      "expectedDiagnostics": [
+        {
+          "code": "CAPABILITY_DEFINITION_CONFLICT",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one CAPABILITY_DEFINITION_CONFLICT/C_STATIC is emitted.",
+        "The first definition is retained; the duplicate is not merged.",
+        "The diagnostic uses empty path and zero line/column."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3C007CapabilityDefinitionConflict",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/capability-linking/base"
+    },
+    {
+      "id": "WP3C-008",
+      "title": "Same member declared twice inside one Capability",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Duplicate the exact (owner, id, kind) member record inside the granted Capability.",
+      "expectedDiagnostics": [
+        {
+          "code": "CAPABILITY_MEMBERSHIP_DUPLICATE",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one CAPABILITY_MEMBERSHIP_DUPLICATE/C_STATIC is emitted.",
+        "Duplicate membership is not silently collapsed or first-match selected.",
+        "Consistent membership across different Capabilities remains legal (see WP3C-010)."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3C008CapabilityMembershipDuplicate",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/capability-linking/base"
+    },
+    {
+      "id": "WP3C-009",
+      "title": "Granted member has no trusted resolvable Scope policy reference",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Remove scopePolicyRef from the matching granted capability member.",
+      "expectedDiagnostics": [
+        {
+          "code": "CAPABILITY_SCOPE_UNRESOLVED",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one CAPABILITY_SCOPE_UNRESOLVED/C_STATIC is emitted.",
+        "Missing Scope is never interpreted as allow-all.",
+        "No Scope policy document format is invented to 'resolve' the reference."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3C009CapabilityScopeUnresolved",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/capability-linking/base"
+    },
+    {
+      "id": "WP3C-010",
+      "title": "Ungranted member still participates in Effect consistency",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Add an ungranted Capability member for the same callable identity with a conflicting Effect; keep the granted member consistent.",
+      "expectedDiagnostics": [
+        {
+          "code": "EFFECT_MISMATCH",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one EFFECT_MISMATCH/C_STATIC is emitted.",
+        "Ungranted members are checked for Effect conflicts, catching identity conflicts before authorization changes.",
+        "The matching granted Capability keeps the callable authorized, so no CAPABILITY_NOT_GRANTED is emitted."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3C010UngrantedMemberEffectConflict",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/capability-linking/base"
+    },
+    {
+      "id": "WP3C-011",
+      "title": "Invalid CapabilityId in the Skill Grant list",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Add an invalid CapabilityId entry to Contract.capabilities while keeping the valid Grant.",
+      "expectedDiagnostics": [
+        {
+          "code": "IDENTIFIER_INVALID",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one IDENTIFIER_INVALID/C_STATIC is emitted.",
+        "The diagnostic retains the original Contract YAML path/line/column.",
+        "The valid Grant is still processed."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3C011InvalidGrantIdentifier",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/capability-linking/base"
+    }
+  ]
+}

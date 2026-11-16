@@ -1,0 +1,14 @@
+apiVersion: connectionagent.io/capability-contracts/v1alpha4
+kind: CapabilityContracts
+metadata:
+  name: example-deployment
+spec:
+  capabilities:
+    - id: example.registration-read
+      owner: deployment
+      callables:
+        - owner: example-ue-owner
+          id: ue.registration.current
+          kind: observation
+          effect: READ
+          scopePolicyRef: deployment.registration-read
