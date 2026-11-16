@@ -44,8 +44,8 @@ func TestWireRequestSizeGuard(t *testing.T) {
 					t.Fatalf("build error response must be an empty failed BuildResult: %s (%v)", wire, err)
 				}
 			case "inspect":
-				var result compiler.LibraryResult
-				if err := json.Unmarshal(wire, &result); err != nil || len(result.Diagnostics) != 1 || len(result.Tools) != 0 {
+				var result compiler.DependencyInspection
+				if err := json.Unmarshal(wire, &result); err != nil || len(result.Diagnostics) != 1 || len(result.Callables) != 0 || len(result.Schemas) != 0 {
 					t.Fatalf("inspect error response must be a LibraryResult: %s (%v)", wire, err)
 				}
 			}
