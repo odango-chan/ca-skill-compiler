@@ -1,6 +1,6 @@
 # 5GC SMF Procedure Profile — 3GPP → Tool → Skill
 
-**Status:** FROZEN architecture and traceability profile. It does not extend CA-SL syntax and does not qualify current 5GC Owner publications.
+**Status:** FROZEN structural mapping and Node-cardinality rules. Per-row 3GPP Release/version pinning and real Owner callable mappings remain NOT_QUALIFIED. This profile does not extend CA-SL syntax or qualify current 5GC Owner publications.
 
 ## 1. Core mapping principle
 
@@ -86,7 +86,7 @@ These traceability records are profile documentation, not new fields in contract
 
 ## 6. PDU Session Establishment reference map
 
-The initial executable profile should use the UE-requested PDU Session Establishment procedure and the SMF perspective. Pin the exact 3GPP Release and document versions before freezing any row.
+The initial executable profile should use the UE-requested PDU Session Establishment procedure and the SMF perspective. Before any row is used as executable acceptance evidence, pin the exact 3GPP Release and document versions.
 
 | SMF-side interaction | Standard reference to pin | Tool mapping to publish | Skill Node mapping |
 |---|---|---|---|
@@ -108,7 +108,7 @@ Do not add a generic wait or polling Tool to the Skill language. Mutation comple
 
 ## 8. Release pinning and sources
 
-At profile freeze, pin 3GPP Release, exact TS 23.502 version, each applicable TS 29.xxx version, actual ToolCatalog and Schema release identities, and implementation source commits for each Owner (in Owner documentation, not Skill source).
+Before claiming a row qualified, pin the 3GPP Release, exact TS 23.502 version, each applicable TS 29.xxx version, actual ToolCatalog and Schema release identities, and implementation source commits for each Owner (in Owner documentation, not Skill source). These per-row traceability values are not frozen by the structural profile and MUST come from actual Owner publications.
 
 Primary specifications:
 - [3GPP TS 23.502 — Procedures for the 5G System](https://www.3gpp.org/dynareport/23502.htm)
