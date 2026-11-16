@@ -175,7 +175,7 @@ func (a *analysis) importLibraries() {
 				}
 			}
 			if len(a.diagnostics) == operationDiagnosticsStart {
-				tool := LibraryTool{OperationID: id, SourcePath: filename, DeclaredEffect: effect,
+				tool := libraryTool{OperationID: id, SourcePath: filename, DeclaredEffect: effect,
 					Description: scalar(child(item, "description")), InputSchema: nodeValue(input), OutputSchema: nodeValue(output), ReconcileOutputSchema: nodeValue(reconcile)}
 				a.tools[id] = toolEntry{source: filename, line: item.Line, effect: effect, tool: tool, inputNode: inputNode, outputNode: outputNode, reconcileOutputNode: reconcileNode}
 			}
@@ -207,13 +207,13 @@ func isNonemptyString(node *yaml.Node) bool {
 
 func validLibraryPath(p string) bool { return strings.HasPrefix(p, "lib/") && validPath(p) }
 
-func (a *analysis) libraryTools() []LibraryTool {
+func (a *analysis) libraryTools() []libraryTool {
 	ids := make([]string, 0, len(a.tools))
 	for id := range a.tools {
 		ids = append(ids, id)
 	}
 	sort.Strings(ids)
-	result := make([]LibraryTool, 0, len(ids))
+	result := make([]libraryTool, 0, len(ids))
 	for _, id := range ids {
 		result = append(result, a.tools[id].tool)
 	}
