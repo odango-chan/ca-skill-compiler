@@ -1,7 +1,7 @@
-# WP3B â€” ToolCatalog Export Identity and Trusted Owner Attribution
+# WP3B â€?ToolCatalog Export Identity and Trusted Owner Attribution
 
 **Task ID:** `WP3B-OWNER-EXPORT-001`  
-**Status:** AGENT-PROPOSED BOUNDED ENVELOPE â€” implemented on `feat/compiler-v1alpha4-wp3b-owner-export-20261116` for Draft PR review. The frozen [Harness profile](deepseek-harness-v1alpha4.md) assigns WP3B to the human maintainer's queue; this document records the exact envelope used so the maintainer can ratify, amend or reject it before merge. It does not amend the frozen Harness profile, the Compiler contracts or CA-SL.  
+**Status:** AGENT-PROPOSED BOUNDED ENVELOPE â€?implemented on `feat/compiler-v1alpha4-wp3b-owner-export-20261116` for Draft PR review. The frozen [Harness profile](deepseek-harness-v1alpha4.md) assigns WP3B to the human maintainer's queue; this document records the exact envelope used so the maintainer can ratify, amend or reject it before merge. It does not amend the frozen Harness profile, the Compiler contracts or CA-SL.  
 **Depends on:** WP3A (`50acc70`, PR #15 Draft)  
 **Task branch:** `feat/compiler-v1alpha4-wp3b-owner-export-20261116`
 
@@ -15,9 +15,9 @@ WP3B is only identity/linking proof. It does not prove a Capability grant, dispa
 
 ## 2. Frozen authority
 
-- CA-SL v1alpha4 `ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d`: Â§Â§24.1, 34.0â€“34.2, F.1, G.1, G.4, Appendix E (E05, E39, E43, E91).
+- CA-SL v1alpha4 `ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d`: Â§Â§24.1, 34.0â€?4.2, F.1, G.1, G.4, Appendix E (E05, E39, E43, E91).
 - [Owner Contract Linking](../design/owner-contracts-v1alpha4.md) Â§Â§2, 4.1, 5.
-- [BuildRequest v1alpha4](../design/build-request-v1alpha4.md) Â§Â§4â€“5.
+- [BuildRequest v1alpha4](../design/build-request-v1alpha4.md) Â§Â§4â€?.
 - Machine contracts: `contracts/v1alpha4/tool-catalog.schema.json`, `contracts/v1alpha4/build-request.schema.json`.
 - Fixture baseline: `tests/conformance/v1alpha4/fixtures/dependency-identity/base` (Appendix E.1â€“E.4).
 
@@ -25,17 +25,17 @@ WP3B is only identity/linking proof. It does not prove a Capability grant, dispa
 
 1. Parse every YAML file of every snapshot in the selected Skill's verified WP3A closure through the single WP2 `yamlast` AST. Do not add a second YAML parser and do not parse files of unreferenced snapshots.
 2. Index ToolCatalog documents whose `apiVersion` is exactly `connectionagent.io/toolcatalog/v1alpha4` and `kind` is exactly `ToolCatalog`:
-   - required identity envelope: nonempty `metadata.owner` (â‰¤160 runes), nonempty `spec.contracts[]`;
-   - each callable: `kind` âˆˆ {operation, observation}; unique DottedId `id` (â‰¤240 bytes); `effect` âˆˆ {READ, MUTATION}; nonempty unique `ownerOutcomes` âŠ† {SUCCEEDED, FAILED, NOT_COMMITTED} containing SUCCEEDED; `outputSchema.$ref` absolute URI; operation requires `inputSchema.$ref`; observation requires `queryContextSchema.$ref` and effect READ.
+   - required identity envelope: nonempty `metadata.owner` (â‰?60 runes), nonempty `spec.contracts[]`;
+   - each callable: `kind` âˆ?{operation, observation}; unique DottedId `id` (â‰?40 bytes); `effect` âˆ?{READ, MUTATION}; nonempty unique `ownerOutcomes` âŠ?{SUCCEEDED, FAILED, NOT_COMMITTED} containing SUCCEEDED; `outputSchema.$ref` absolute URI; operation requires `inputSchema.$ref`; observation requires `queryContextSchema.$ref` and effect READ.
    - callable IDs share one namespace across all ToolCatalog files and both kinds in one snapshot. A duplicate ID is `EXPORT_ID_AMBIGUOUS` even when kind or Owner differs (E91).
 3. Index JSON Schema documents in the same closure by exact absolute `$id` (requires `$schema: https://json-schema.org/draft/2020-12/schema`). Duplicate `$id` in one snapshot is `EXPORT_ID_AMBIGUOUS`.
-4. Resolve only references collected from frozen v1alpha4 positions (the WP3A scanner): `operation.tool`/`observation.tool` â†’ callable kind operation/observation; `Contract.contextSchema`, Predicate parameter QualifiedSchemaId and Skill-owned Schema `$ref` â†’ schema export; `evidence.requires`/`independence` guarantee â†’ evidenceGuarantee export.
-   - no export for the exact reference identity â†’ `EXPORT_ID_MISSING` (callable/guarantee) or `SCHEMA_MISSING` (Schema) at the Skill source reference node;
-   - callable kind mismatch â†’ `EXPORT_ID_MISSING` (the required export identity does not exist).
+4. Resolve only references collected from frozen v1alpha4 positions (the WP3A scanner): `operation.tool`/`observation.tool` â†?callable kind operation/observation; `Contract.contextSchema`, Predicate parameter QualifiedSchemaId and Skill-owned Schema `$ref` â†?schema export; `evidence.requires`/`independence` guarantee â†?evidenceGuarantee export.
+   - no export for the exact reference identity â†?`EXPORT_ID_MISSING` (callable/guarantee) or `SCHEMA_MISSING` (Schema) at the Skill source reference node;
+   - callable kind mismatch â†?`EXPORT_ID_MISSING` (the required export identity does not exist).
 5. Trusted Owner attribution for every referenced export:
    - every ToolCatalog `metadata.owner` in the used closure must be in that snapshot's `TrustedDependencyBinding.authorizedOwners`, else `DEPENDENCY_OWNER_MISMATCH` (E05);
    - single-authorized-Owner snapshot: the sole authorized Owner is the trusted export Owner; an export that self-declares a different Owner is `DEPENDENCY_OWNER_MISMATCH`;
-   - multi-Owner snapshot: every actually referenced export requires exactly one explicit `(exportKind, exportId) â†’ owner` trusted mapping. Missing, repeated or ambiguous mapping is `DEPENDENCY_EXPORT_OWNER_UNVERIFIED` (E39). A unique owner outside `authorizedOwners`, or inconsistent with a self-declared Owner, is `DEPENDENCY_OWNER_MISMATCH` (E43);
+   - multi-Owner snapshot: every actually referenced export requires exactly one explicit `(exportKind, exportId) â†?owner` trusted mapping. Missing, repeated or ambiguous mapping is `DEPENDENCY_EXPORT_OWNER_UNVERIFIED` (E39). A unique owner outside `authorizedOwners`, or inconsistent with a self-declared Owner, is `DEPENDENCY_OWNER_MISMATCH` (E43);
    - evidenceGuarantee exports have no self-declared Owner field; only trusted attribution applies.
 6. Result is retained as structured metadata for WP3C/WP3D: per used Alias, the indexed export records and attributed Owners. WP3B must not publish a `DependencyInspection` inventory (WP3D) and must not claim overall success.
 
@@ -74,6 +74,7 @@ No new diagnostic code or phase is introduced.
 - `internal/compiler/v1alpha4.go` (integration only);
 - `tests/conformance/v1alpha4/fixtures/dependency-identity/**` (reuse/extend the Appendix E baseline);
 - `tests/conformance/v1alpha4/wp3b-fixture-plan.json` (new inventory);
+- `.github/workflows/ca-sl-v1alpha4-source.yml` (branch filters only, so the WP3B branch/PR gaits run);
 - this document.
 
 Forbidden: CA-SL spec, frozen `docs/design/**`, machine contracts, `go.mod`/`go.sum`, dependency versions, other repositories, Host/Runtime/Studio, unrelated v0/v0.1 code.
