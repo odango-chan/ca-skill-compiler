@@ -63,3 +63,43 @@ func validateV1Alpha4ScriptPaths(skill *V1Alpha4SkillAST, files map[string][]byt
 		}
 	}
 }
+
+// validateV1Alpha4PredicateScriptEvaluators enforces the Predicate evaluator
+// script shape (G.1 Evaluator = script: LocalScriptPath). Python CST/ABI analysis
+// remains NOT_IMPLEMENTED and fail-closed.
+func validateV1Alpha4PredicateScriptEvaluators(skill *V1Alpha4SkillAST, files map[string][]byte, predicatesPath string, add func(string, *yaml.Node, string, string)) {
+	if skill == nil || skill.Predicates == nil {
+		return
+	}
+	base := "skills/" + skill.Name + "/"
+	for _, predicateID := range sortedStringMapKeys(skill.Predicates.Definitions) {
+		predicate := skill.Predicates.Definitions[predicateID]
+		if predicate == nil || predicate.Evaluator == nil {
+			continue
+		}
+		evaluator := unalias(predicate.Evaluator)
+		if evaluator == nil || evaluator.Kind != yaml.MappingNode {
+			add(predicatesPath, evaluator, "PREDICATE_GROUP_INVALID", "Predicate evaluator must be a mapping")
+			continue
+		}
+		switch scalar(child(evaluator, "type")) {
+		case "script":
+			if child(evaluator, "expression") != nil {
+				add(predicatesPath, evaluator, "SCRIPT_CONTRACT_INVALID", "script evaluator must not declare a CEL expression")
+			}
+			scriptNode := unalias(child(evaluator, "script"))
+			script := scalar(scriptNode)
+			if !validLocalScriptPath(script) {
+				add(predicatesPath, scriptNode, "SCRIPT_CONTRACT_INVALID", "evaluator.script must be a LocalScriptPath under scripts/** ending in .py")
+				continue
+			}
+			if _, ok := files[base+script]; !ok {
+				add(predicatesPath, scriptNode, "SCRIPT_CONTRACT_INVALID", "Referenced Predicate Script file is missing: "+script)
+			}
+		case "cel":
+			if child(evaluator, "script") != nil {
+				add(predicatesPath, evaluator, "CEL_INVALID", "cel evaluator must not declare a script path")
+			}
+		}
+	}
+}
