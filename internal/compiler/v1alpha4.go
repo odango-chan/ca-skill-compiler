@@ -96,41 +96,57 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		if files[base+"SKILL.md"] == nil {
 			errorAt(base+"SKILL.md", nil, "SOURCE_ROOT_INVALID", "SKILL.md missing")
 		}
-		contract := v4ParseYAML(contractPath, files[contractPath], errorAt)
-		procedure := v4ParseYAML(procedurePath, files[procedurePath], errorAt)
-		predicates := v4ParseYAML(predicatesPath, files[predicatesPath], errorAt)
-		if contract != nil {
+
+		// Parse every YAML author file exactly once. Contract, Procedure,
+		// PredicateSet and local Schema checks share these normalized nodes.
+		parsedFiles := make(map[string]*yaml.Node)
+		for _, filename := range sortedStringMapKeys(files) {
+			if strings.HasPrefix(filename, base) && strings.HasSuffix(filename, ".yaml") {
+				parsedFiles[filename] = v4ParseYAML(filename, files[filename], errorAt)
+			}
+		}
+		for _, required := range []string{contractPath, procedurePath, predicatesPath} {
+			if _, exists := parsedFiles[required]; !exists {
+				parsedFiles[required] = v4ParseYAML(required, nil, errorAt)
+			}
+		}
+
+		sourceAST := parseV1Alpha4SkillAST(name, parsedFiles)
+		contractAST := sourceAST.Contract
+		if contractAST != nil && contractAST.Raw != nil {
+			contract := contractAST.Raw
 			v4Allowed(contract, contractPath, v4ContractFields, errorAt)
-			if scalar(child(contract, "goal")) == "" {
+			if scalar(contractAST.Goal) == "" {
 				errorAt(contractPath, contract, "SOURCE_ROOT_INVALID", "Contract requires goal")
 			}
-			if gate := child(contract, "precondition"); gate != nil {
+			if gate := contractAST.Precondition; gate != nil {
 				if gate.Kind != yaml.ScalarNode || gate.Tag != "!!str" || !v4ContractGate.MatchString(gate.Value) {
 					errorAt(contractPath, gate, "ENTRY_PRECONDITION_REF_INVALID", "precondition is one scalar node.precondition, not a list")
 				}
 			}
-			if request := child(contract, "requestSchema"); request != nil {
+			if request := contractAST.RequestSchema; request != nil {
 				ref := scalar(request)
-				if !strings.HasPrefix(ref, "schemas/") || files[base+ref] == nil {
+				schemaPath := base + ref
+				if !strings.HasPrefix(ref, "schemas/") || files[schemaPath] == nil {
 					errorAt(contractPath, request, "REQUEST_SCHEMA_MISSING", "Skill-owned request Schema is missing")
-				} else {
-					v4CheckSchema(base+ref, files[base+ref], errorAt)
+				} else if schemaRoot := parsedFiles[schemaPath]; schemaRoot != nil {
+					v4CheckSchema(schemaPath, schemaRoot, errorAt)
 				}
 			}
-			if child(contract, "dependencies") != nil {
-				errorAt(contractPath, child(contract, "dependencies"), "DEPENDENCY_IDENTITY_UNVERIFIED",
+			if contractAST.Dependencies != nil {
+				errorAt(contractPath, contractAST.Dependencies, "DEPENDENCY_IDENTITY_UNVERIFIED",
 					"DependencySnapshot linking is not yet implemented; no dependency identity is inferred")
 			}
-			if child(contract, "capabilities") != nil {
-				errorAt(contractPath, child(contract, "capabilities"), "CAPABILITY_INPUT_UNTRUSTED",
+			if contractAST.Capabilities != nil {
+				errorAt(contractPath, contractAST.Capabilities, "CAPABILITY_INPUT_UNTRUSTED",
 					"CapabilityContracts linking is not yet implemented; trusted deployment data is not treated as linked")
 			}
 		}
-		if predicates != nil {
-			v4CheckPredicates(predicatesPath, predicates, errorAt)
+		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
+			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
 		}
-		if procedure != nil {
-			v4CheckProcedure(procedurePath, procedure, contract, errorAt)
+		if sourceAST.Procedure != nil && sourceAST.Procedure.Raw != nil {
+			v4CheckProcedure(procedurePath, sourceAST.Procedure, contractAST, errorAt)
 		}
 	}
 
