@@ -330,6 +330,11 @@ func TestBuildRequestRecomputesTrustedBundleDigests(t *testing.T) {
 		t.Fatal(err)
 	}
 	req := validEnvelopeRequest()
+	authorizations := []DeploymentAuthorization{{
+		DeploymentID: "urn:deployment:demo",
+		PublisherID: "urn:publisher:demo",
+		AuthorizationRef: "urn:authorization:demo",
+	}}
 	req.TrustedBuildContext = &TrustedBuildContext{
 		CapabilityContracts: &CapabilityContractsBundle{
 			DeploymentID: "urn:deployment:demo",
@@ -343,11 +348,7 @@ func TestBuildRequestRecomputesTrustedBundleDigests(t *testing.T) {
 			SnapshotDigest: evidenceDigest,
 			Files:         evidenceFiles,
 		},
-		DeploymentAuthorizations: []DeploymentAuthorization{{
-			DeploymentID:     "urn:deployment:demo",
-			PublisherID:      "urn:publisher:demo",
-			AuthorizationRef: "urn:authorization:demo",
-		}},
+		DeploymentAuthorizations: &authorizations,
 	}
 	if got := Check(req); hasCode(got, "CAPABILITY_INPUT_DIGEST_MISMATCH") || hasCode(got, "EVIDENCE_GUARANTEE_LINK_INVALID") {
 		t.Fatalf("valid trusted bundle digests were rejected: %+v", got)
