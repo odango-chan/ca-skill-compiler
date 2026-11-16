@@ -49,7 +49,7 @@ Read and follow:
 
 Machine contracts:
 - `contracts/v1alpha4/build-request.schema.json`
-- `contracts/v1alpha4/compiler-build-result.schema.json`
+- `contracts/v1alpha4/build-result.schema.json`
 - `contracts/v1alpha4/dependency-inspection.schema.json`
 
 The compiler contract documents are subordinate to the pinned CA-SL specification. If they conflict, stop and report the exact conflict; do not silently choose.
@@ -273,6 +273,6 @@ A stop report must include the exact file/section, observed conflict, reproducti
 - updated fixture-plan statuses (NOT_IMPLEMENTED -> PASS only with test evidence; use BLOCKED where appropriate);
 - exact Go/WASM command output and CI link;
 - a concise PR description listing scope, diagnostics, tests and explicit non-claims;
-- a machine-readable run record under `docs/workstreams/runs/` (create the directory/file only within the task's allowed documentation scope after maintainer approval; otherwise include it in the PR description).
+- a concise machine-readable or structured run record in the Draft PR description, including exact model ID/revision, Harness version/commit, Go version, commands, results, changed paths, fixture IDs and CI URL.
 
 Do not merge the PR.
