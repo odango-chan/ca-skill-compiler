@@ -173,6 +173,8 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			diagnostics = append(diagnostics, procedureDiagnostics...)
 			sourcePathDiagnostics := validateV1Alpha4SourcePathSchemas(req, sourceAST, identity, contractPath, procedurePath)
 			diagnostics = append(diagnostics, sourcePathDiagnostics...)
+			producerSourcePathDiagnostics := validateV1Alpha4ProducerSourcePaths(req, sourceAST, identity, ownerLinking, procedurePath)
+			diagnostics = append(diagnostics, producerSourcePathDiagnostics...)
 		}
 		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
 			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
