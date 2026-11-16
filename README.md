@@ -16,6 +16,7 @@ Do not use floating main, old v0.2 language docs, or old v0.1 Compiler contracts
 |---|---|
 | [Compiler Contract v1alpha4](docs/design/compiler-contract-v1alpha4.md) | Scope, pipeline, semantics and acceptance boundary |
 | [BuildRequest v1alpha4](docs/design/build-request-v1alpha4.md) | Source, dependency snapshots and trusted build context |
+| [Owner Contract Linking v1alpha4](docs/design/owner-contracts-v1alpha4.md) | ToolCatalog, CapabilityContracts, Evidence and trusted Owner attribution |
 | [Procedure Linker v1alpha4](docs/design/procedure-link-v1alpha4.md) | AST, graph, SourcePath, Schema and Capability linking |
 | [Script Contract v1alpha4](docs/design/script-contract-v1alpha4.md) | Procedure / Predicate Script ABI and derived Schemas |
 | [Compiler Artifact v1alpha4](docs/design/compiler-artifact-v1alpha4.md) | Deterministic output tree and generated Schema serialization |
