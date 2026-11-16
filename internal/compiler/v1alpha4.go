@@ -101,7 +101,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		// PredicateSet and local Schema checks share these normalized nodes.
 		parsedFiles := make(map[string]*yaml.Node)
 		for _, filename := range sortedStringMapKeys(files) {
-			if strings.HasPrefix(filename, base) && strings.HasSuffix(filename, ".yaml") {
+			if strings.HasPrefix(filename, base) && (strings.HasSuffix(filename, ".yaml") || strings.HasSuffix(filename, ".yml")) {
 				parsedFiles[filename] = v4ParseYAML(filename, files[filename], errorAt)
 			}
 		}
