@@ -214,6 +214,8 @@ async function main() {
     if (!nativeSuccess.build.success) fail('successful parity fixture did not Build successfully under Native Go');
     const browserSuccess = await cdpEvaluate(`http://127.0.0.1:${debugPort}/json/version`, `http://127.0.0.1:${port}/parity.html?request=parity-success-request.json`);
     if (!browserSuccess.ok) fail(`Chromium Worker success-path error: ${browserSuccess.error}`);
+    if (browserSuccess.artifactError !== '') fail(`Chromium Worker artifact verification failed: ${browserSuccess.artifactError}`);
+    console.log('ok: Chromium Worker artifact integrity verification PASS');
     compare('success.check', nativeSuccess.check, browserSuccess.check);
     compare('success.build.success', nativeSuccess.build.success, browserSuccess.build.success);
     compare('success.build.diagnostics', nativeSuccess.build.diagnostics, browserSuccess.build.diagnostics);
