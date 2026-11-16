@@ -122,8 +122,10 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		if contractAST != nil && contractAST.Raw != nil {
 			contract := contractAST.Raw
 			v4Allowed(contract, contractPath, v4ContractFields, errorAt)
-			if scalar(contractAST.Goal) == "" {
+			if statement := scalar(contractAST.Goal); statement == "" {
 				errorAt(contractPath, contract, "SOURCE_ROOT_INVALID", "Contract requires goal")
+			} else if !validExportID(statement) {
+				errorAt(contractPath, contractAST.Goal, "IDENTIFIER_INVALID", "Contract goal must satisfy the frozen GoalId (DottedId) grammar")
 			}
 			validateV1Alpha4ContractLimits(contractPath, contractAST, errorAt)
 			if gate := contractAST.Precondition; gate != nil {
