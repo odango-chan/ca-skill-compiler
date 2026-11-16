@@ -1,6 +1,6 @@
 # Compiler Contract v1alpha4
 
-**Status:** implementation contract for the frozen CA-SL v1alpha4 target. **Conformance:** NOT_QUALIFIED until the gates in the conformance plan have actual CI evidence.
+**Status:** FROZEN Compiler implementation contract for the frozen CA-SL v1alpha4 target. **Conformance:** NOT_QUALIFIED until the gates in the conformance plan have actual CI evidence.
 
 This document defines Compiler behavior. It does not amend or duplicate language semantics.
 
@@ -60,7 +60,7 @@ All version strings are exact-match inputs. Missing, unknown, v1alpha3 or legacy
 - Build(BuildRequest) → BuildResult
 - InspectDependencies(BuildRequest) → DependencyInspection
 
-Check and Build MUST run the same semantic pipeline. Build MUST NOT skip checks performed by Check. InspectDependencies is a read-only projection for Studio; it does not grant access or qualify a dependency.
+The exact output shapes, failure atomicity and deterministic ordering are frozen in the [Compiler Output API Contract](compiler-output-contract-v1alpha4.md). Check and Build MUST run the same semantic pipeline. Build MUST NOT skip checks performed by Check. InspectDependencies is a read-only inventory projection for Studio; it does not grant access or qualify a dependency.
 
 For Go/WASM transport, byte arrays are base64 JSON strings. Native Go callers pass the same raw bytes.
 
@@ -107,6 +107,8 @@ Only a final Postcondition aggregate PASS directly routed to SUCCEEDED is a succ
 CA-SL v1alpha4 does not mean “accept every Draft 2020-12 keyword.” Compiler must implement exactly G.4.
 
 ### 7.1 Schema allowlist
+
+**Scope of G.4.** The G.4 allowlist applies to CA-SL data Schemas referenced by Skill Request / Context, Tool Input / QueryContext / Output / Receipt, Evidence and responsibility contracts. It does not restrict the separate JSON Schemas used to validate Compiler API envelopes, ToolCatalog, CapabilityContracts, EvidenceTrustBindings or Artifact manifests. Those are Compiler/imported-contract meta-schemas and may use standard Draft 2020-12 composition keywords. They MUST NOT be passed to the CA-SL G.4 data-Schema validator or treated as Skill data Schemas. See [machine contracts](../../contracts/v1alpha4/README.md).
 
 The only validation keywords are:
 - $ref, type, properties, required, additionalProperties, items;
@@ -171,13 +173,13 @@ Every v1alpha4 diagnostic carries severity, exact code, exact phase, normalized 
 
 Compiler emits static phases only: C_STATIC and C_WARNING. R_RUNTIME belongs to Host/Runtime and is not emitted by Compiler.
 
-Use the exact codes and precedence in §§24 and H. Do not create look-alike diagnostics, silently downgrade an error or invent a new code for an implementation gap.
+Use the exact codes and precedence in §§24 and H. Do not create look-alike diagnostics, silently downgrade an error or invent a new code for an implementation gap. The emitted Diagnostic array uses the deterministic presentation order in the [Compiler Output API Contract](compiler-output-contract-v1alpha4.md); this ordering never changes normative diagnostic precedence.
 
 If any ERROR exists: success=false, outputFiles=[], dependencyClosure=[], and no partial artifact is emitted.
 
 ## 11. Determinism and parity
 
-For the same normalized BuildRequest bytes and trusted context, Native Go and Go/WASM MUST produce identical success state, diagnostics, source positions, dependency closure, output paths, file order and output bytes. Input file-array order and map iteration order MUST NOT affect results. Studio/LSP must consume the same Core semantics and must not implement a second, weaker parser or type checker.
+For the same normalized BuildRequest bytes and trusted context, Native Go and Go/WASM MUST produce identical success state, diagnostics (including deterministic order), source positions, dependency closure, output paths, file order and output bytes. Input file-array order and map iteration order MUST NOT affect results. Studio/LSP must consume the same Core semantics and must not implement a second, weaker parser or type checker.
 
 ## 12. 3GPP is a profile, not Compiler semantics
 
