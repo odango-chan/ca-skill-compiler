@@ -275,6 +275,46 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "ownerOutcomes": {
+                "contains": {
+                  "const": "NOT_COMMITTED"
+                }
+              }
+            },
+            "required": [
+              "ownerOutcomes"
+            ]
+          },
+          "then": {
+            "required": [
+              "mutation"
+            ],
+            "properties": {
+              "mutation": {
+                "required": [
+                  "failureClasses"
+                ],
+                "properties": {
+                  "failureClasses": {
+                    "contains": {
+                      "properties": {
+                        "outcome": {
+                          "const": "NOT_COMMITTED"
+                        }
+                      },
+                      "required": [
+                        "outcome"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       ]
     },
@@ -542,7 +582,51 @@
               "retryable": {
                 "type": "boolean"
               }
-            }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "outcome": {
+                      "const": "FAILED"
+                    }
+                  },
+                  "required": [
+                    "outcome"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "retryable": {
+                      "const": false
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "outcome": {
+                      "const": "NOT_COMMITTED"
+                    },
+                    "retryable": {
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "outcome",
+                    "retryable"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "noSideEffect": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            ]
           }
         },
         "reconcile": {
