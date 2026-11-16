@@ -262,6 +262,10 @@ func v4CheckPredicates(file string, source *V1Alpha4PredicateSetAST, add func(st
 			for _, item := range params.Content {
 				if item.Kind != yaml.MappingNode || len(item.Content) != 2 {
 					add(file, item, "PREDICATE_GROUP_INVALID", "Each parameter is a one-key declaration")
+					continue
+				}
+				if keyNode := unalias(item.Content[0]); keyNode == nil || !validDependencyID(scalar(keyNode)) {
+					add(file, keyNode, "IDENTIFIER_INVALID", "Predicate parameter name must satisfy the Identifier grammar")
 				}
 			}
 		}
