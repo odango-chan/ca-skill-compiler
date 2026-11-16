@@ -17,4 +17,4 @@ BuildRequest apiVersion, languageTarget, ToolCatalog apiVersion, CapabilityContr
 
 The BuildRequest trustedBuildContext is supplied by a trusted caller. A Skill file, dependency README or arbitrary imported document cannot self-assert deployment authorization, package identity or Owner ownership. The browser Compiler is not a security boundary; Host/Runtime revalidates authorization at use time.
 
-Schema documents are Draft 2020-12 API contracts. The schemas imported by CA-SL source are a separate matter: they must follow the stricter CA-SL G.4 keyword whitelist.
+These files validate Compiler API / imported ToolCatalog / CapabilityContracts / deployment trust documents. Their use of JSON Schema composition keywords does not expand the CA-SL Schema language. Schemas referenced by Skill Request, Host Context, Tool Input/Output or Evidence data are separate Owner-published schemas and MUST follow the stricter CA-SL G.4 keyword whitelist. No generic Evidence Descriptor schema is invented here; each Evidence Owner must publish and version its real descriptor format.
