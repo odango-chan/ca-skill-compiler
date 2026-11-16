@@ -4,8 +4,8 @@
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 28,
-    "notRun": 92,
+    "partial": 29,
+    "notRun": 91,
     "passed": 0
   },
   "cases": [
@@ -591,8 +591,8 @@
     },
     {
       "id": "E117",
-      "status": "NOT_RUN",
-      "evidence": ""
+      "status": "PARTIAL",
+      "evidence": "static subset: final Postcondition PASS->SUCCEEDED required edge and FINAL_POSTCONDITION_MISSING / SUCCESS_BYPASSES_FINAL_POSTCONDITION fixtures; runtime Goal re-check remains Host-side"
     },
     {
       "id": "E118",
@@ -602,7 +602,7 @@
     {
       "id": "E119",
       "status": "PARTIAL",
-      "evidence": "removed v1alpha3 field remains UNKNOWN_FIELD"
+      "evidence": "structural negatives: empty predicates list, member missing arguments, member carrying routes, removed Postcondition goal field (PREDICATE_GROUP_INVALID / UNKNOWN_FIELD priority)"
     },
     {
       "id": "E120",

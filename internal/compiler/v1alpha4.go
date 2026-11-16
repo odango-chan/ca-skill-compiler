@@ -365,6 +365,12 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 					allowed["retryOf"] = true
 				}
 			}
+			if stage == "postcondition" {
+				if goalNode := child(body, "goal"); goalNode != nil {
+					add(file, goalNode, "PREDICATE_GROUP_INVALID", "Postcondition must not declare the removed goal field")
+					allowed["goal"] = true
+				}
+			}
 			v4Allowed(body, file, allowed, add)
 			if stage == "precondition" || stage == "postcondition" {
 				calls := child(body, "predicates")
