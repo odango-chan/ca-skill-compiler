@@ -19,8 +19,8 @@ const (
 	maxPathBytes                    = 240
 	maxTargetRunes                  = 80
 	maxDependencyIDBytes            = 128
-	maxOwnerIDBytes                 = 160
-	maxExportIDBytes                = 240
+	maxOwnerIDRunes                 = 160
+	maxExportIDRunes                = 240
 )
 
 // BuildRequest is the only accepted Compiler input API. Byte slices use
@@ -319,7 +319,7 @@ func validateBuildRequest(req BuildRequest) []Diagnostic {
 			}
 			owners := make(map[string]bool, len(binding.AuthorizedOwners))
 			for _, owner := range binding.AuthorizedOwners {
-				if owner == "" || len(owner) > maxOwnerIDBytes || owners[owner] {
+				if owner == "" || utf8.RuneCountInString(owner) > maxOwnerIDRunes || owners[owner] {
 					add("DEPENDENCY_IDENTITY_UNVERIFIED", "", "Trusted dependency binding contains an invalid or duplicate authorized Owner: "+binding.DependencyID)
 				}
 				owners[owner] = true
@@ -330,7 +330,7 @@ func validateBuildRequest(req BuildRequest) []Diagnostic {
 			}
 			for _, export := range binding.ExportOwners {
 				key := export.ExportKind + "\x00" + export.ExportID
-				if !validExportKind(export.ExportKind) || export.ExportID == "" || len(export.ExportID) > maxExportIDBytes || export.Owner == "" || len(export.Owner) > maxOwnerIDBytes || exports[key] {
+				if !validExportKind(export.ExportKind) || export.ExportID == "" || utf8.RuneCountInString(export.ExportID) > maxExportIDRunes || export.Owner == "" || utf8.RuneCountInString(export.Owner) > maxOwnerIDRunes || exports[key] {
 					add("DEPENDENCY_EXPORT_OWNER_UNVERIFIED", "", "Trusted dependency binding contains an invalid or ambiguous export-owner record: "+binding.DependencyID)
 				}
 				exports[key] = true
