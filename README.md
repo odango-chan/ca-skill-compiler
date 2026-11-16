@@ -15,6 +15,7 @@ Do not use floating main, old v0.2 language docs, or old v0.1 Compiler contracts
 | Document | Purpose |
 |---|---|
 | [Compiler Contract v1alpha4](docs/design/compiler-contract-v1alpha4.md) | Scope, pipeline, semantics and acceptance boundary |
+| [OSS Dependency Selection v1alpha4](docs/design/oss-dependency-selection-v1alpha4.md) | Pinned YAML, Schema, CEL, Python parser and JCS dependencies; licenses and Native/WASM gates |
 | [BuildRequest v1alpha4](docs/design/build-request-v1alpha4.md) | Source, dependency snapshots and trusted build context |
 | [Compiler Output API v1alpha4](docs/design/compiler-output-contract-v1alpha4.md) | Check, BuildResult, DependencyInspection, failure atomicity and deterministic ordering |
 | [Owner Contract Linking v1alpha4](docs/design/owner-contracts-v1alpha4.md) | ToolCatalog, CapabilityContracts, Evidence and trusted Owner attribution |
@@ -48,7 +49,7 @@ A BuildRequest API version is not a substitute for languageTarget; ToolCatalog a
 
 - Compiler PR #5 is the Go v0.1 implementation base.
 - Compiler PR #11 adds a v1alpha4 source/graph admission slice and deliberately fails closed when trusted Owner / CapabilityContracts inputs are unavailable.
-- This document set defines the frozen Compiler v1alpha4 implementation target and the DeepSeek Harness / Flash Low development workflow. It does **not** claim Compiler v1alpha4 conformance, complete linking, Native/WASM parity, Owner qualification or live 5GC acceptance.
+- This document set defines the frozen Compiler v1alpha4 implementation target, the selected OSS dependency set and the DeepSeek Harness / Flash Low development workflow. The OSS choices are accepted for implementation but are not yet integrated or qualified. This document set does **not** claim Compiler v1alpha4 conformance, complete linking, Native/WASM parity, Owner qualification or live 5GC acceptance.
 - No model pilot is required or included. Implementation starts only when separately authorized.
 
 ## Status and review boundary
@@ -62,6 +63,7 @@ A BuildRequest API version is not a substitute for languageTarget; ToolCatalog a
 | Dependency snapshot digest | FROZEN Compiler / Studio interoperability algorithm |
 | Compiler Artifact physical format | FROZEN for implementation in this PR |
 | Compiler development workflow | FROZEN DeepSeek Harness / Flash Low profile; no pilot |
+| OSS dependency selection | ACCEPTED FOR IMPLEMENTATION WITH CONFORMANCE GATES; integration NOT_QUALIFIED |
 | Compiler implementation | NOT_QUALIFIED; PR #11 is only the source/graph admission slice |
 | Real 5GC Owner / deployment publications | NOT_QUALIFIED until actual v1alpha4 releases and §45.2 evidence exist |
 
