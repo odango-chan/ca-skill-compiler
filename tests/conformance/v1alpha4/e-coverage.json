@@ -4,8 +4,8 @@
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 44,
-    "notRun": 76,
+    "partial": 53,
+    "notRun": 67,
     "passed": 0
   },
   "cases": [
@@ -65,15 +65,15 @@
     },
     {
       "id": "E10",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "COMMITTED-only recovery read without declared recoverable output -> RECONCILE_OUTPUT_UNAVAILABLE; non-SUCCEEDED path output read -> SOURCE_NOT_AVAILABLE (source_path_paths_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E11",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "no-SUCCEEDED procedure with legal stops -> no FINAL_POSTCONDITION_MISSING; direct SUCCEEDED without final Postcondition -> FINAL_POSTCONDITION_MISSING (e_late_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E12",
@@ -137,9 +137,9 @@
     },
     {
       "id": "E22",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "OUTCOME_UNKNOWN routed to business Mutation/FAILED -> RECONCILE_CONTRACT_INVALID (route_unknown_target_test); safe-terminal variant accepted",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E23",
@@ -215,9 +215,9 @@
     },
     {
       "id": "E35",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "object dependency requirement -> DEPENDENCY_REQUIREMENT_INVALID (e_late_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E36",
@@ -317,9 +317,9 @@
     },
     {
       "id": "E52",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "entry Precondition reference variants (Postcondition ref, missing node, list, empty) -> ENTRY_PRECONDITION_REF_INVALID (e_late_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E53",
@@ -365,9 +365,9 @@
     },
     {
       "id": "E60",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "Reconcile bind other than originalInvocationId -> RECONCILE_CONTRACT_INVALID (e_late_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E61",
@@ -383,21 +383,21 @@
     },
     {
       "id": "E63",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "COMMITTED path Observation binding operation.output -> RECONCILE_OUTPUT_UNAVAILABLE (source_path_paths_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E64",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "local Postcondition PASS then later operation direct SUCCEEDED -> SUCCESS_BYPASSES_FINAL_POSTCONDITION (procedure stage/success bypass fixtures)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E65",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "unreachable Node -> UNREACHABLE_NODE warning (e_late_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E66",
@@ -731,8 +731,8 @@
     }
   ],
   "dispositionSummary": {
-    "partialStaticEvidence": 44,
-    "pendingStaticConformance": 33,
+    "partialStaticEvidence": 53,
+    "pendingStaticConformance": 24,
     "notApplicableToCompiler": 43,
     "claimedPass": 0,
     "note": "PENDING_STATIC_CONFORMANCE means the frozen case lists the compiler as an owner but no executed fixture variant exists yet. NOT_APPLICABLE_TO_COMPILER means the case is Host/Runtime-only. No case is claimed PASS."
