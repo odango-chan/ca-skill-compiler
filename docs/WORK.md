@@ -39,7 +39,7 @@ Merge order remains #11 → #12 → #13 → #14. Do not merge a later stacked PR
 - Assigned branch: `feat/compiler-v1alpha4-wp3a-dependency-identity-20261116`
 - Branch base: WP2 branch `feat/compiler-v1alpha4-wp2-yaml-ast-20261116` at `55ba5ebc37e9d54b6ee21e547dae188ca17785c9`
 
-A separate exploratory WP3 branch exists but is not the approved handoff base. The assigned task branch starts cleanly from WP2. The task branch contains handoff documentation only; WP3A code has not yet been implemented.
+A separate exploratory WP3 branch exists but is not the approved handoff base. The assigned task branch starts cleanly from WP2. The task branch contains handoff documentation only; WP3A code has not yet been implemented. Its initial GitHub Actions run failed without retrievable job logs; baseline CI is NOT_VERIFIED, and DeepSeek must run the documented baseline commands before editing.
 
 ## Non-claims
 
