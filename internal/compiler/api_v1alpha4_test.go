@@ -240,6 +240,12 @@ func TestDecodeBuildRequestJSONIsStrictAndDecodesBase64(t *testing.T) {
 	if _, err := DecodeBuildRequestJSON([]byte(strings.Replace(wire, `"bytes":"IyBkZW1vCg=="`, `"bytes":"not-base64"`, 1))); err == nil {
 		t.Fatal("invalid base64 byte field accepted")
 	}
+	if _, err := DecodeBuildRequestJSON([]byte(strings.TrimSuffix(wire, `}`) + `,"targets":null}`)); err == nil {
+		t.Fatal("null optional targets array accepted")
+	}
+	if _, err := DecodeBuildRequestJSON([]byte(strings.TrimSuffix(wire, `}`) + `,"trustedBuildContext":null}`)); err == nil {
+		t.Fatal("null optional trustedBuildContext object accepted")
+	}
 	if _, err := DecodeBuildRequestJSON([]byte(wire + ` {}`)); err == nil {
 		t.Fatal("trailing JSON value accepted")
 	}
