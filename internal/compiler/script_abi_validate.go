@@ -9,9 +9,10 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte, procedurePath, predicatesPath string, add func(string, *yaml.Node, string, string)) {
+func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte, procedurePath, predicatesPath string, add func(string, *yaml.Node, string, string)) map[string]map[string]any {
+	schemas := map[string]map[string]any{}
 	if skill == nil {
-		return
+		return schemas
 	}
 	base := "skills/" + skill.Name + "/"
 	if skill.Procedure != nil {
@@ -29,9 +30,12 @@ func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte,
 			if !ok {
 				continue // missing file is diagnosed by the Script-path slice
 			}
-			if _, err := deriveProcedureScriptABI(source); err != nil {
+			abi, err := deriveProcedureScriptABI(source)
+			if err != nil {
 				add(procedurePath, scriptNode, "SCRIPT_CONTRACT_INVALID", "Procedure Script ABI: "+err.Error())
+				continue
 			}
+			schemas[base+script] = abi.InputSchema
 		}
 	}
 	if skill.Predicates != nil {
@@ -58,4 +62,5 @@ func validateV1Alpha4ScriptABI(skill *V1Alpha4SkillAST, files map[string][]byte,
 			}
 		}
 	}
+	return schemas
 }
