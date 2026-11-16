@@ -84,7 +84,7 @@ func TestParseResolvesAcyclicAliasesAndRejectsCycles(t *testing.T) {
 	}
 }
 
-func TestParseRejectsDuplicateUndefinedAndDuplicateAnchorNames(t *testing.T) {
+func TestParseRejectsDuplicateKeysAndUndefinedAliases(t *testing.T) {
 	for name, source := range map[string]string{
 		"duplicate-key": "value: 1\nvalue: 2\n",
 		"undefined-alias": "value: *missing\n",
@@ -156,6 +156,31 @@ func TestParseEnforcesDepthAliasAndExpandedNodeBounds(t *testing.T) {
 	}
 	if _, err := Parse([]byte(expanded.String())); err == nil || !IsLimitError(err) {
 		t.Fatalf("alias expansion node limit not enforced: %v", err)
+	}
+}
+
+func TestParseValueSupportsJSONScalarAndCollectionRoots(t *testing.T) {
+	root, err := ParseValue([]byte(`{"name":"demo","enabled":true,"count":2,"ratio":1e2,"items":[null,"x"]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	value, err := ToValue(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	object, ok := value.(map[string]any)
+	if !ok {
+		t.Fatalf("decoded root type = %T", value)
+	}
+	if object["name"] != "demo" || object["enabled"] != true || object["count"] != int64(2) || object["ratio"] != float64(100) {
+		t.Fatalf("unexpected decoded JSON value: %#v", object)
+	}
+	items, ok := object["items"].([]any)
+	if !ok || len(items) != 2 || items[0] != nil || items[1] != "x" {
+		t.Fatalf("unexpected nested JSON array: %#v", object["items"])
+	}
+	if _, err := Parse([]byte(`["not","a","mapping"]`)); err == nil {
+		t.Fatal("author source parser accepted a non-mapping root")
 	}
 }
 
