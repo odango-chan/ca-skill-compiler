@@ -278,6 +278,7 @@ func (c *converter) convert(source goccyast.Node, depth int) (*Node, error) {
 	case *goccyast.MappingNode:
 		line, column := rootPosition(node)
 		result := &Node{Kind: MappingNode, Tag: "!!map", Line: line, Column: column, Content: make([]*Node, 0, len(node.Values)*2)}
+		seenKeys := make(map[string]bool, len(node.Values))
 		for _, entry := range node.Values {
 			if entry == nil || entry.Key == nil || entry.Value == nil {
 				return nil, &ParseError{Kind: SyntaxError, Message: "YAML mapping contains an incomplete entry", Line: line, Column: column}
@@ -290,6 +291,10 @@ func (c *converter) convert(source goccyast.Node, depth int) (*Node, error) {
 			if resolvedKey == nil || resolvedKey.Kind != ScalarNode || resolvedKey.Tag != "!!str" {
 				return nil, &ParseError{Kind: SyntaxError, Message: "YAML mapping keys must be strings", Line: key.Line, Column: key.Column}
 			}
+			if seenKeys[resolvedKey.Value] {
+				return nil, &ParseError{Kind: SyntaxError, Message: "duplicate YAML mapping key: " + resolvedKey.Value, Line: key.Line, Column: key.Column}
+			}
+			seenKeys[resolvedKey.Value] = true
 			value, err := c.convert(entry.Value, depth+1)
 			if err != nil {
 				return nil, err
@@ -319,10 +324,7 @@ func (c *converter) convert(source goccyast.Node, depth int) (*Node, error) {
 			line, column := rootPosition(node)
 			return nil, &ParseError{Kind: SyntaxError, Message: "YAML anchor name must be a nonempty scalar", Line: line, Column: column}
 		}
-		if _, exists := c.anchors[name]; exists {
-			line, column := rootPosition(node)
-			return nil, &ParseError{Kind: SyntaxError, Message: "duplicate YAML anchor: " + name, Line: line, Column: column}
-		}
+		// YAML aliases bind to the most recent preceding anchor with this name.
 		placeholder := &Node{Kind: UnsupportedNode, Value: name, Style: AliasStyle}
 		c.anchors[name] = placeholder
 		value, err := c.convert(node.Value, depth+1)
