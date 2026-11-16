@@ -47,7 +47,7 @@ Compiler consumes bytes and trusted metadata supplied by its caller. It never op
 | BuildResult | connectionagent.io/compiler-build-result/v1alpha4 |
 | ToolCatalog | connectionagent.io/toolcatalog/v1alpha4 |
 | CapabilityContracts | connectionagent.io/capability-contracts/v1alpha4 |
-| Evidence trust bindings | connectionagent.io/evidence-trust-bindings/v1alpha4 |
+| Evidence trust relations | BuildRequest v1alpha4-owned embedded format |
 | Compiler Artifact | connectionagent.io/compiler-artifact/v1alpha4 |
 | JSON Schema dialect | Draft 2020-12 with the exact CA-SL G.4 whitelist |
 
