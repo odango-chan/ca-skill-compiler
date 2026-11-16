@@ -1,6 +1,6 @@
 # Owner Contract Linking v1alpha4
 
-**Status:** Compiler implementation contract for consuming the frozen CA-SL v1alpha4 Owner and deployment contracts.
+**Status:** FROZEN Compiler-side linking contract for consuming the CA-SL v1alpha4 Owner and deployment contract profiles. Real Owner publications remain NOT_QUALIFIED where explicitly stated below.
 
 Normative authority: CA-SL §§9, 13.3, 17, 34, F.0–F.4, G.2–G.3.1 at the [pinned specification commit](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md).
 
