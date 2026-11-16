@@ -1,6 +1,6 @@
 # Skill-owned Script Contract v1alpha4
 
-**Status:** Compiler implementation contract subordinate to CA-SL v1alpha4 §§32 and F.6.
+**Status:** FROZEN Compiler implementation contract subordinate to CA-SL v1alpha4 §§32 and F.6.
 
 Normative authority: [the frozen CA-SL specification](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md).
 
@@ -45,7 +45,7 @@ Inside the Script, the generated input TypedDict is the authoritative type. Unkn
 
 Compiler derives Output Schema from the return TypedDict. The author maintains the Python signature, not a duplicate YAML/JSON Script Output Schema.
 
-Output Schema generation must preserve required vs NotRequired fields, nested TypedDict structure, primitive types, Literal values, supported Annotated constraints and functional TypedDict declarations for wire keys that are not Python identifiers (for example 5qi).
+Output Schema generation must preserve required vs NotRequired fields, nested TypedDict structure, primitive types, Literal values and supported Annotated constraints. Functional TypedDict declarations are accepted only under the canonical source form frozen in §4.
 
 The derived Schema is read-only generated output. Runtime validates the returned Python value against it. A Python exception or invalid return value is a runtime failure, not a successful build.
 
@@ -78,9 +78,19 @@ The exact supported set is CA-SL F.6, not all Python typing features. The minimu
 - Required and NotRequired;
 - Annotated[T, {...}] only where metadata is a literal mapping to a G.4-supported Schema constraint.
 
-Functional TypedDict syntax is required to represent existing wire keys that are not Python identifiers (the current 5GC source uses 5qi; see the pinned [current 5GC source baseline](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/current-5gc-skill-baseline.md)). This is a Python declaration form for the same strict TypedDict / JSON object semantics, not a new CA-SL value type. It is a compiler source-syntax requirement for the current 5GC baseline; if an interpretation of F.6 excludes it, resolve that contract ambiguity before claiming 5GC qualification. Annotation parsing must preserve the distinction between a missing property and a nullable property.
+Functional TypedDict is accepted as a declaration syntax for the same strict TypedDict / JSON-object type described by F.6; it does not add a CA-SL value type or alter requiredness / nullability semantics. The canonical supported form is:
 
-Reject Any, open dict, object, dynamic/unresolved annotations, unsupported union/optional forms, unknown or dynamic Annotated metadata, unsupported JSON Schema keywords (including pattern and format), dynamic key reads that cannot be proven, redefinition of compiler-generated PredicateInput; imports are never executed by Compiler and annotation dependencies must be statically resolvable.
+~~~python
+from typing import TypedDict
+
+Policy = TypedDict("Policy", {"5qi": int, "dnn": str})
+~~~
+
+The assignment target and first literal string argument MUST be the same identifier. The second argument MUST be a literal mapping with unique literal string keys and supported F.6 type expressions. total may be omitted or the literal True; total=False, computed keys, mapping unpacking, dynamic type expressions, aliases of the factory, arbitrary factory calls and runtime-generated declarations are rejected. Optional fields use explicit NotRequired[T]; required overrides use Required[T] where supported. Nested declarations may reference only previously resolved strict TypedDict types. This is a compiler source-syntax profile for the frozen strict TypedDict concept, not a new CA-SL type. Annotation parsing MUST preserve the distinction between a missing property and a nullable property. The compiler parses this form statically and MUST NOT import or execute it.
+
+Reject Any, open dict, object, dynamic/unresolved annotations, unsupported union/optional forms, total=False, unknown or dynamic Annotated metadata, unsupported JSON Schema keywords (including pattern and format), dynamic key reads that cannot be proven, redefinition of compiler-generated PredicateInput and noncanonical Functional TypedDict forms; imports are never executed by Compiler and annotation dependencies must be statically resolvable.
+
+The Python interpreter version used by Host/Runtime is not selected by this Compiler contract. Runtime MUST pin and qualify an interpreter that supports the typing constructs used by the package; that runtime version MUST be recorded separately and MUST NOT be inferred by Compiler.
 
 Do not infer a Schema from sample data, comments, function bodies or observed return values.
 
