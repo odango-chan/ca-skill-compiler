@@ -171,6 +171,8 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			// WP5: reachability and global Precondition dominance.
 			procedureDiagnostics := validateV1Alpha4ProcedureGraph(contractAST, sourceAST.Procedure, ownerLinking, contractPath, procedurePath)
 			diagnostics = append(diagnostics, procedureDiagnostics...)
+			sourcePathDiagnostics := validateV1Alpha4SourcePathSchemas(req, sourceAST, identity, contractPath, procedurePath)
+			diagnostics = append(diagnostics, sourcePathDiagnostics...)
 		}
 		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
 			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
