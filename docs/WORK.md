@@ -1,216 +1,54 @@
-# Current v1alpha4 implementation freeze (2026-11-16)
+# CA Skill Compiler — Current Work (v1alpha4)
 
-**Normative language:** CA-SL v1alpha4 is frozen at odango-chan/ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d (b70064c5737b8ee2b3d1435fe496357f44b42773).
+**Updated:** 2026-11-16  
+**Language target:** CA-SL v1alpha4  
+**Overall implementation status:** NOT_QUALIFIED
 
-**Compiler-owned contracts:** BuildRequest, BuildResult, DependencyInspection, DependencySnapshot digest, ToolCatalog / CapabilityContracts machine mirrors, EvidenceTrustBindings transport, Procedure Linker, Script ABI, Artifact and Studio integration are FROZEN for implementation in PR #12. The frozen contracts do not establish implementation conformance.
+## Frozen authority
 
-**OSS dependency selection:** [oss-dependency-selection-v1alpha4.md](design/oss-dependency-selection-v1alpha4.md) selects goccy/go-yaml v1.19.2, San v6.0.3, cel-go v0.33.2, gositter v0.2.0 (Python grammar only) and gowebpki/jcs v1.0.2. WP2 integrates only goccy/go-yaml; the remaining adapters are intentionally added with their own work packages. CI is pinned to Go 1.27.4; CGo is prohibited in production and WASM.
+- Normative specification: [CA-SL v1alpha4](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md)
+- Immutable commit: `7f84393ee8c395e4d8c39a74cb5000a1f896588d`
+- File blob: `b70064c5737b8ee2b3d1435fe496357f44b42773`
+- Compiler implementation contracts: `docs/design/*-v1alpha4.md`
+- No floating branch, v0, v0.1, v0.2 or v1alpha3 document is an implementation authority.
 
-**Development workflow:** The DeepSeek Harness / V4 Flash Low profile is frozen as an optional bounded execution route. The task envelope, work-package sequence, stop conditions and acceptance rules are in [deepseek-harness-v1alpha4.md](workstreams/deepseek-harness-v1alpha4.md). No pilot is required. WP1 is being implemented directly without DeepSeek.
+## Current PR stack
 
-**Conformance inventory:** [E01–E120 case index](../tests/conformance/v1alpha4/case-index.json) and [Appendix H diagnostic index](../tests/conformance/v1alpha4/diagnostic-index.json) are derived from the pinned specification. They are inventories, not passing tests or executable fixture coverage.
-
-**Current implementation status:** PR #11 remains a source/graph admission slice. WP1 is on [PR #13](https://github.com/odango-chan/ca-skill-compiler/pull/13); WP2 is on [PR #14](https://github.com/odango-chan/ca-skill-compiler/pull/14), stacked on #13. WP1 adds the strict BuildRequest / output APIs, request validation, snapshot digest and source-only CLI. WP2 replaces yaml.v3 with goccy/go-yaml v1.19.2, adds the normalized AST and typed v1alpha4 Skill AST, and parses every YAML author file once for shared checks. Go tests, go vet, CGo-free Native build and Go/WASM build PASS. No Chromium runtime parity is claimed. Full linker, trusted inputs, Schema/CEL/Python/JCS adapters, E01–E120 fixture coverage, exact H diagnostic coverage, Native/WASM/Chromium parity and real 5GC qualification remain NOT_QUALIFIED.
-
-**Explicitly unqualified external contracts:** real Evidence Descriptor publications, physical identity-input provenance, cross-snapshot Reconcile association, actual 5GC Owner / Deployment publications and MAS execution remain outside this freeze. Compiler must fail closed rather than invent these inputs.
-
----
-
-> **Current development target (2026-11-16): CA-SL v1alpha4.** The active Compiler contract set is indexed in the repository [README](../README.md). The implementation target is defined by docs/design/*-v1alpha4.md and contracts/v1alpha4/*.json. The historical v0 / v0.1 implementation notes below are retained for traceability; they are not current language or API authority and do not establish v1alpha4 conformance. Current status: PR #11 is a source/graph admission slice; full linker, trusted inputs, Script ABI, Artifact, E01–E120 and Native/WASM parity remain unqualified.
-
----
-
-# Skill Compiler v0 implementation status
-
-Updated: 2026-11-12. The initial sections retain the v0 closeout record from implementation branch `feat/compiler-v0-complete` (code `431b67e4a44f4e7037aa5448cbb1595ff6212f22`, closeout docs `57a3fcc52e2b97ba2c336bbc21e49480020c193b`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`; [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3)). The v0.1 migration status and evidence follow below; neither section claims complete acceptance beyond its stated gates.
-
-## Work packages
-
-| WP | Status | Evidence / remaining work |
-| --- | --- | --- |
-| WP0 Go build and base tests | IMPLEMENTED | `go mod tidy`, `GOWORK=off go test ./... -count=1`, and `GOWORK=off go vet ./...` pass. `validPath` accepts `lib/manifest.yaml`; duplicate YAML keys and bounded alias traversal are checked; Native input size limits are checked before file reads. The enclosing `/home/z00587616/go.work` references absent sibling repos, so Go commands in this environment require `GOWORK=off`. |
-| WP1 Procedure parser and linker | PARTIAL | Parses action positions rather than recursively scanning YAML keys; checks string-typed Procedure/node/input identifiers and action values, entry/start/branch targets, nonempty procedure/node mappings, nonempty outcome branch maps and names, Skill and local Procedure cycles, local/explicit-self/cross-Skill Procedure references, callee input names/types, input-source cycles, nested step action fields and scopes, and Predicate IDs and source structure. Contract condition groups/entries and PredicateSet standard envelope fields are allowed, unknown root fields and Predicate evaluator/observation fields are shape-checked before reference resolution. Rejects incomplete explicit Procedure references and unresolved `with` on nested verify steps. Reconcile requires an earlier Tool-call target with declared `reconcileOutputSchema`, which is linked as the reconcile node's output producer. A known Procedure-call node without a declared result Schema now reports that missing result specifically; v0 currently has no syntax for declaring Procedure result Schemas, so such outputs remain unresolved. Full grammar and outcome semantics still need coverage. |
-| WP2 Tool Library | IMPLEMENTED | Imports both pinned YAML catalogs, including aliases: 12 traditional + 16 MAS candidate Operations. Parses `lib/manifest.yaml`; `InspectLibraries` exposes schemas/effect/source maturity. MAS remains `proposed`. Duplicate-operation, in-memory project-local JSON Pointer resolution, remote/cyclic reference rejection, transitive Library packaging, read-only inspection, recursive validation of supported Schema structure (including boolean `unevaluatedItems` subschemas and string-only JSON object keys), Draft 2020 structural constraint checks, duplicate mathematical `enum` value rejection, and exact decimal numeric validation pass. Broader JSON Schema keyword coverage remains. |
-| WP3 Producer binding and Script output | PARTIAL | Resolves every declared Procedure input against its producer, including unused inputs, plus request, explicit Host/Observation references, Tool/node/reconcile output, and separate nested step scopes; Procedure input and call-site `from` references must be nonempty YAML strings; annotation-only unconstrained Schemas are treated as accepting any value, while constrained producer/consumer Schema features outside static coverage report `BINDING_UNSUPPORTED`; Procedure Script `with` projections require an exact resolved Producer but do not invent a separate consumer Schema; checks producer/consumer object and JSON literal schemas, including declared/closed `additionalProperties`; rejects missing Host contracts and unknown producer fields. Numeric literal bindings enforce integer-to-number compatibility, exclusive bounds and exact decimal `multipleOf`; producer compatibility checks those constraints conservatively, combining regular and exclusive numeric bounds with exact decimal arithmetic and applying each JSON Schema keyword only to its relevant value type. Literal bounds and imported Schema constraints also compare exactly. Project-local JSON Pointer refs are expanded from input files. Generates Draft 2020-12 schemas for statically parsed nonempty TypedDict outputs with primitive, `Literal` including `None`, list, NotRequired, Annotated, and nested TypedDict fields; repeated Literal values normalize to a single const, and numeric constants/constraints retain exact decimal precision. Python raw regex strings, quoted punctuation, and literal constraint keys are tested. String/comment contents are masked before recognizing imports, `TypedDict` declarations and `main`. Duplicate declarations/fields/constraints and non-field TypedDict statements are rejected. No Python runs. Full JSON Schema keyword/constraint coverage, exhaustive dataflow scopes, and invocation projection reporting remain. |
-| WP4 Package and Native CLI | PARTIAL | `check`, whole-project `build`, `--skill`, dependency closure, deterministic ordering, referenced read-only Tool/Schema inclusion, and generated Output schemas work. A real synthetic build wrote a 7-file tree. File/directory source-to-generated collisions are rejected. More hostile path and schema cases remain. |
-| WP5 WASM and browser interface | PARTIAL | WASM exposes `check`, `build`, and `inspectLibraries`; Worker handles all three. Chromium ran the Script Contract project with an `Annotated` raw regex through check/build/inspect and compared every Native/WASM output path, order, and byte, including the generated Script Output Schema. For missing target, unresolved binding, type mismatch, unknown Tool operation, missing Procedure result Schema, and unsupported Script Output failures, the browser and Native Go Core are checked against the same shared serialized diagnostic vectors. A duplicate-operation `inspectLibraries` failure is also compared to a shared Native golden. Broader parity vectors remain. |
-| WP6 Real Skill migration review | PARTIAL | Pinned sources were not edited. Current targeted strict checks report 124 diagnostics for PDU and 85 for MAS. Both lack authoritative `context.subject` and `context.facts` Owner schemas; PDU's three legacy Scripts and step forms need migration, and MAS reconcile references lack declared Tool outputs while its catalog remains `proposed`. Unsupported static binding-schema forms are reported separately from type mismatches. Per-Skill evidence is in [migration-review-v0.md](workstreams/migration-review-v0.md). A separate migrated project was not created because doing so without Owner schemas would misrepresent the migration. |
-| WP7 Final acceptance and PR | PARTIAL | Required local test/build/Browser commands and current PDU/MAS migration diagnostics were rerun; the updated status report and pushed implementation branch are in PR #3. Full G2–G6 acceptance remains incomplete. |
-
-## Acceptance gates
-
-| Gate | Result | Observed evidence |
-| --- | --- | --- |
-| G0 Base startup | PASS | `GOWORK=off go mod tidy`; `GOWORK=off go test ./... -count=1`; `GOWORK=off go vet ./...`; Native build all pass. |
-| G1 Library | PASS | Go test imports the pinned 12 + 16 catalogs and checks the 16 proposed status labels; YAML anchors/aliases, manifest status, valid/invalid Draft 2020 structural constraints (including malformed `unevaluatedItems` and non-string YAML object keys), and duplicate mathematical Schema enum values are covered. |
-| G2 Graph | PARTIAL | Positive cross-Skill dependency closure, targeted builds, missing target/dependency, Skill dependency cycles, local Procedure recursion, explicit self-Skill references, callee required inputs, reconcile target ordering and output-schema links, string identifier/action requirements, malformed action and Procedure container shapes, unresolved nested verify bindings, contract Predicate group/entry shape, Predicate evaluator/observation field shape, empty node names, empty outcome maps/names, PredicateSet unknown root fields, Predicate source shape, and separate pre/postcondition scopes are tested. Reversing Request.Files order preserves full Build results and Check diagnostics. Full grammar and outcome semantics remain. |
-| G3 Binding | PARTIAL | Synthetic Tool output to Script and cross-Skill Procedure input bindings pass; integer-to-number compatibility, mathematical equality for exact JSON `const`/`enum` numbers (including nested values), combined regular/exclusive numeric bounds, and rejection of non-string `from` sources and explicit diagnostics for unsupported producer/consumer/literal binding Schemas are covered. Negative tests reject unknown producer fields, missing callee inputs, mismatched types, cyclic Procedure input sources, missing Host schemas, and malformed literals. Full JSON Schema keyword coverage and all source scopes remain incomplete. |
-| G4 Script | PARTIAL | Strict Output generation, `Literal[None]` to JSON null, duplicate Literal normalization, exact large integer Literal and Annotated values, raw regex strings, quoted punctuation, literal constraint keys, ignored declarations inside multiline strings, and rejection of broad `dict` are tested. Unsupported unions, functional `total=False`, and aliased `typing` imports fail explicitly; comprehensive grammar/constraint coverage remains. |
-| G5 Package | PARTIAL | Native CLI emitted source, imported Tool contract, and generated schema into a fresh 7-file tree. Referenced Library Schema dependencies are included; generated file/directory collisions are tested. More hostile path cases remain. |
-| G6 Native/WASM parity | PARTIAL | Browser and Native Core processed the same Script Contract project, including Tool output → Script input binding and generated output schema; output paths, order, and every byte matched. Go tests compare Native diagnostics to shared browser goldens for `TARGET_NOT_FOUND`, binding unresolved, binding type mismatch, `LIB_OPERATION_UNKNOWN`/declaration errors, `SCRIPT_TYPE_UNSUPPORTED`, and a Procedure call whose result Schema has no syntax in v0. `inspectLibraries` duplicate-operation diagnostics also match a shared golden. Other diagnostic classes remain untested for parity. |
-| G7 Browser | PASS | Chromium loaded `wasm_exec.js`, `skillc.wasm`, and Worker; check/build/inspect, six `check` failure vectors including missing Procedure output Schema, and duplicate-operation `inspectLibraries` failure passed. |
-| G8 Real migration | PARTIAL | PDU: 124 expected migration/owner diagnostics (83 `EXTERNAL_SCHEMA_MISSING`, 18 `PROCEDURE_UNSUPPORTED`, 7 `BINDING_TYPE_MISMATCH`, 9 `STEP_SCOPE_UNKNOWN`, 3 `SCRIPT_TYPE_UNSUPPORTED`, 3 `BINDING_UNSUPPORTED`, 1 `SOURCE_FIELD_UNKNOWN`). MAS: 85 (51 `EXTERNAL_SCHEMA_MISSING`, 18 `BINDING_UNSUPPORTED` for schemas outside the static projection subset, 16 `PROCEDURE_UNSUPPORTED` for reconcile outputs absent from proposed Tools). Procedure input sources are now validated even when no node consumes them. Per-Skill gaps: [migration-review-v0.md](workstreams/migration-review-v0.md). No original snapshot changed. |
-| G9 Handoff | PASS | Docs updated; branch pushed; open Draft [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3) targets `feat/compiler-v0-bootstrap`. |
-
-## Commands observed
-
-All Go module commands below used `GOWORK=off` because the parent workspace references three absent sibling repositories.
-
-~~~text
-GOWORK=off go mod tidy                                            PASS
-GOWORK=off go test ./... -count=1                                PASS
-GOWORK=off go vet ./...                                          PASS
-GOWORK=off go build -o dist/skillc ./cmd/skillc                  PASS
-GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ...   PASS
-GOWORK=off go run ./cmd/skillc check ./examples/minimal-project  PASS
-GOWORK=off go run ./cmd/skillc check ./examples/script-contract-project PASS
-GOWORK=off go run ./cmd/skillc build ./examples/script-contract-project --out /tmp/skillc-synthetic-output PASS (7 files)
-GOWORK=off go run ./cmd/skillc build ./examples/script-contract-project --skill normalize --out /tmp/skillc-v0-targeted-normalize PASS (7 files)
-Chromium static Worker smoke test                                 PASS
-  (Script Contract fixture with raw regex; generated Schema bytes and output paths/order match Native; six shared check diagnostic vectors including missing Procedure output Schema)
-WASM artifact size                                               5,698,220 bytes
-Chromium smoke page result                                       PASS (`data-test=pass`; includes missing Procedure-output diagnostic parity)
-Targeted pinned reference check (PDU)                              124 migration/owner diagnostics
-Targeted pinned reference check (MAS)                              85 migration/owner diagnostics
-GOWORK=off go run ./cmd/skillc check ./examples/ca-agent-demo-project --skill establish-pdu-session EXPECTED NONZERO (124 diagnostics)
-GOWORK=off go run ./cmd/skillc check ./examples/ca-agent-demo-project --skill establish-pdu-session-mas EXPECTED NONZERO (85 diagnostics)
-git diff --check                                                  PASS
-~~~
-
-Raw-source checks intentionally return nonzero. They do not establish runtime/5GC readiness. Missing authoritative Owner Schema inputs are: `context.subject`, `context.facts`, and any referenced Observation schema. Do not substitute deployment routing configuration or infer these contracts from `requiredFacts`.
-
-### Closeout rerun (2026-11-11)
-
-The core gates were rerun from the clean `feat/compiler-v0-complete` checkout after confirming the current PR head. Results: `GOWORK=off go test ./... -count=1`, `GOWORK=off go vet ./...`, native CLI build, and `GOOS=js GOARCH=wasm GOWORK=off go build ...` all PASS. The browser smoke was served from a temporary static directory and driven by headless Chromium through Playwright; it reached `data-test="pass"` and verified check/build/inspect, seven generated output paths and bytes against Native, and all shared diagnostic goldens. The transient page favicon 404 is unrelated to the harness result. No repository source files were modified by these checks.
-
-This closeout does not broaden v0 to cover the missing grammar, Schema, or parity areas below. The separate [Compiler v0.1 design PR #4](https://github.com/odango-chan/ca-skill-compiler/pull/4) remains design-only; it is not implemented by PR #3. The next implementation iteration must be a separate Goal that migrates the Core to the accepted v0.1 contract as a breaking change, without a compatibility layer.
-
-The final v0 result remains **PARTIAL**: Procedure result Schema syntax is absent from the frozen v0 grammar; broader parser/linker, binding, JSON Schema, and Native/WASM parity coverage remains; and authoritative Host/Observation contracts are unavailable. The pinned source migrations therefore remain diagnostic-only, with 124 PDU and 85 MAS findings. PR #3 contains the v0 Core and this closeout record, targeting `feat/compiler-v0-bootstrap`. The separate v0.1 design PR #4 is not implemented in this v0 branch; any v0.1 migration requires its own Goal and breaking contract transition.
-
-## Compiler v0.1 implementation status
-
-Updated: 2026-11-12. Implementation branch: `feat/compiler-v01-implementation-20261111`, based on current design PR #4 head `4672621dbe4abe5a8df6e23c24395626f57199d` and the merged v0 closeout ancestry. The v0.1 contract is being implemented as a separate full migration, with no v0 compatibility layer.
-
-### Current v0.1 evidence
-
-| Area | Status | Evidence / remaining work |
+| PR | Scope | Status |
 |---|---|---|
-| Build API and input validation | PARTIAL | Shared Go Core exposes breaking `BuildRequest`/`BuildResult` Go types for explicit `{files, targets?}`, applies request/output limits, validates names and paths, and returns no partial package on errors. The old generic `Request`/`Result` names are removed without aliases. Draft 2020-12 machine schemas validate representative serialized BuildRequest, successful/error BuildResult and LibraryResult values; broader adversarial response-boundary coverage remains. |
-| Language parser and AST | PARTIAL | Official ca-skills v0.2 `SKILL.md`, SkillContract, Procedure, PredicateSet, Case and ToolCatalog forms are parsed; typed AST drives Procedure output and dependency linking. Action outcome/terminal checks, exact pre/post aggregate routes, node reachability and mutation reconciliation causality now have focused coverage. Nested alias scope and uncommon source forms remain. |
-| Library and Schema linking | PARTIAL | Strict ToolCatalog envelope, unique Operation IDs, local refs, aliases, and exact string limits are supported. There is no Compiler manifest or source lifecycle metadata. Full Draft 2020-12 keyword coverage remains. |
-| Binding and dataflow | PARTIAL | Request/Host/Tool/Script/Procedure sources and Predicate `with` subject projection are linked. Node outputs require dominance across explicit route edges; named phase-step outputs respect execution order. Full nested Procedure input alias and all schema compatibility coverage remain. |
-| Script output contract | PARTIAL | Strict nonempty Script Output TypedDict parsing includes nested and functional TypedDict, supported annotations, generated JSON Schema, and no Python execution. Functional wire keys and NotRequired survive Build; `Optional`, `Union`, `str | None`, and `total=False` fail explicitly under the pinned Script Contract. Exhaustive grammar/constraint and adversarial parser coverage remain. Predicate Scripts use exact package-relative paths and require the Host Evaluation Context Owner Schemas. |
-| Native packaging | PASS (synthetic) | Native CLI checked both positive fixtures and emitted all-target and targeted 7-file packages from `script-contract-project`. |
-| WASM / browser parity | PASS (smoke scope) | Current Go/WASM build ran in Chromium. Check/build/inspect passed, all seven output paths/order and bytes matched Native output, and five diagnostic vectors matched Native goldens. Broader diagnostic parity remains. |
-| Current-source analysis | PARTIAL | Pinned official snapshot is ca-skills `codex/semantic-token-contract-v01` `eeae62badf29f90eee257c7ef2ab504211bf7e30`: 61 Skill files plus the approved ToolCatalog, verified with a local SHA-256 manifest. A fresh read-only refresh found the PDU/MAS packages and catalog on current `ca-skills/main` byte-identical to that snapshot. Current static checks report PDU 102 and MAS 133 findings; WP6 checks add no flow/outcome findings. A per-category A–E diagnosis is in [official Skill acceptance](workstreams/official-skill-acceptance-v0.1.md). |
-| PR / handoff | PARTIAL | Draft implementation [PR #5](https://github.com/odango-chan/ca-skill-compiler/pull/5) is open against the latest design PR #4 head. The implementation branch is pushed and stacked on that head. No merge is authorized; full v0.1 acceptance remains incomplete. |
+| [#11](https://github.com/odango-chan/ca-skill-compiler/pull/11) | v1alpha4 source admission | Open / Draft |
+| [#12](https://github.com/odango-chan/ca-skill-compiler/pull/12) | Frozen Compiler contracts, OSS ADR and Harness profile | Open |
+| [#13](https://github.com/odango-chan/ca-skill-compiler/pull/13) | WP1 BuildRequest and digest | Open; PR description records Go/build gates PASS |
+| [#14](https://github.com/odango-chan/ca-skill-compiler/pull/14) | WP2 normalized YAML parser and AST | Open; PR description records Go/build gates PASS |
 
-### v0.1 work package status
+Merge order remains #11 → #12 → #13 → #14. Do not merge a later stacked PR before its base is present.
 
-| WP | Status | Current evidence / open work |
-|---|---|---|
-| WP0 Baseline and PR stack | PASS (refreshed) | PR #4 and #5 are open Drafts, no reviews; #5 targets #4's current head. Both branches remain separate; no merge performed. |
-| WP1 Formal ToolCatalog | PARTIAL | All 12 source Operations are byte-pinned and compared to the official ca-agent-demo file; full Draft 2020-12 compatibility remains partial. |
-| WP2 Language and Grammar | PARTIAL | Core envelopes and typed Procedure AST are validated; uncommon nested/envelope field constraints remain. |
-| WP3 Producer/Consumer binding | PARTIAL | Explicit producer bindings, dominance, phase ordering and procedure call inputs are checked; unresolved Procedure inputs no longer substitute their author-declared type assertion for the real Producer Schema. Multi-hop `input.*` aliases now carry node-output dominance through nested field paths, with positive and branch-bypass regressions. Other recursive/cross-scope alias and full schema implication coverage remain. |
-| WP4 JSON Schema | PARTIAL | Added a keyword-by-keyword Draft 2020-12 matrix separating shape validation, binding proof, and annotation behavior. Boolean schemas, omitted-`type` finite `const`/`enum`, type-specific assertions with omitted `type`, default `format` annotations, object counts inferred from required/closed properties, `uniqueItems`, and omitted array `items` defaulting to `true` have focused coverage. `patternProperties` and `contains/minContains/maxContains` receive explicit unsupported binding diagnostics. ECMA-262 regex semantics and the broader Draft 2020-12 implication problem remain open. |
-| WP5 Script Contract | PARTIAL | Functional TypedDict Build preserves non-identifier wire keys and NotRequired fields. The pinned contract's forbidden Optional/Union forms, string unions, bare list, functional `total=False`, and mismatched `typing` import aliases now have explicit negative tests. Exhaustive grammar and annotation boundaries remain. |
-| WP6 Outcome, flow and scope | PARTIAL | Action-specific outcome and terminal values, mandatory exact pre/post routes, reachability, explicit cycle handling and reconcile-to-Mutation causality are checked. Full nested alias analysis and an upstream-frozen outcome contract remain. |
-| WP7 Native/WASM/Browser parity | PARTIAL | Current-head Chromium smoke matches all seven standard output paths/order/bytes plus a separate five-file functional TypedDict Build that exercises a nested two-hop Procedure `input.*` alias, twenty-one Check golden vectors (seventeen negative diagnostics and four positive Schema-semantics probes), duplicate-operation Inspect diagnostics, and exact parity for the SHA-256-verified pinned 62-file official source set (235 diagnostics); oversized Check/Build/Inspect requests return their expected `INPUT_LIMIT` shapes. Broader malformed/adversarial parity remains. |
-| WP8 Official Skill acceptance | PARTIAL | Current PDU 102 / MAS 133 findings are classified A–E in the linked report. PDU has B=1 (`maxLength: 512` absent from the Skill Script Output), C=98, E=3; MAS has B=7, C=51, D=75. Owner and MAS ToolCatalog gaps remain unresolved by design. |
-| WP9 Final acceptance | PARTIAL | At implementation code commit `c14c24d1` and official parity test commit `30ccbfbc`, Go tests, vet, Native/WASM builds, positive fixtures, synthetic package build, official PDU/MAS diagnostics, Chromium vectors, and diff checks pass at their stated scope. PR #5 is open and Draft. Full Draft 2020-12 implication, broader malformed-input parity, and official Owner/Tool inputs remain. |
+## Current implementation facts
 
-### v0.1 acceptance gates
+- WP1: BuildRequest / BuildResult / DependencyInspection models, strict request decoding, limits, digest and Native/WASM entrypoints are in PR #13.
+- WP2: goccy/go-yaml v1.19.2 normalized AST, source positions, scalar preservation and legacy parser-path removal are in PR #14.
+- The selected San, CEL, Python CST and JCS adapters are not yet integrated.
+- Full dependency/Owner/Capability linking, Schema/CEL, Procedure graph, SourcePath, Evidence, Mutation/Reconcile, Script ABI, Artifact, Chromium parity and Studio integration remain incomplete.
+- Real v1alpha4 5GC Owner/Deployment publications are NOT_QUALIFIED; MAS is NOT_READY as an executable baseline.
 
-| Gate | Current result | Remaining evidence |
-|---|---|---|
-| G0 Go baseline | PASS | `GOWORK=off go test ./... -count=1` and `GOWORK=off go vet ./...` pass after all current changes. |
-| G1 ToolCatalog and Schema | PARTIAL | The 12-operation imported catalog is pinned to `ca-agent-demo@4395982fa6efb97714b97901603b2dfb7018c4d0`; a regression test compares every inspected Operation's Effect and input/output/reconcile Schema to the exact YAML source. Unknown/duplicate Operations, missing required inputs, unsupported binding schemas and absent reconcile outputs are rejected. Full Draft 2020-12 Producer/Consumer semantics remain partial; see [ToolCatalog consistency report](workstreams/tool-catalog-v0.1.md). |
-| G2 Skill and Procedure graph | PARTIAL | Outcome names and terminal values are action-checked, pre/post routes are explicit and exact, unreachable nodes fail, explicit cycles are cycle-safe, and reconcile is tied to the exact prior mutation's `OUTCOME_UNKNOWN` edge. Official PDU/MAS produce no new flow/outcome findings. Nested alias scope and upstream-frozen outcome details remain. |
-| G3 Producer bindings | PARTIAL | Explicit schemas, dominance over phase and main edges, named phase-step ordering, nullable JSON Schema type unions, annotation-only unconstrained Schemas and exact integer-to-number compatibility are checked. Procedure-call bindings use the callee's resolved Producer Schemas and receive the same full compatibility and dominance checks as Tool calls. Script input projections require real Producer Schemas but have no invented consumer contract. Optional `type` assertions cannot replace a missing Schema; `input.*` aliases preserve node-output dominance, including rejection when a branch bypasses the source. Complete recursive/cross-scope alias coverage and full keyword compatibility remain. |
-| G4 Script | PARTIAL | Strict output TypedDict parsing, functional `5qi` wire-key form, generated schemas and predicate path identity are covered; exhaustive negative syntax/constraint coverage remains. |
-| G5 package output | PASS (synthetic) | Native all-target and `--skill normalize` builds each emitted seven files. |
-| G6 Native/WASM parity | PASS (synthetic and pinned official Check) | Chromium Worker paths/order and every byte matched the standard seven-file Native package and a separate five-file functional TypedDict package whose Procedure uses a nested two-hop `input.*` alias. Twenty-one Check vectors (seventeen negative diagnostics, including `patternProperties`, `contains` and aliased Script imports, and four positive Schema-semantics probes, including omitted array `items` and required object-count implication), duplicate-operation Inspect diagnostics, and all 235 diagnostics for the checksum-verified 62-file pinned official source matched Native goldens. |
-| G7 browser | PASS (smoke scope) | Headless Chromium completed check/build/inspect, the pinned 62-file source checksum verification and 235-diagnostic WASM/Native parity check, the functional TypedDict Build, seventeen negative checks (including invalid path, duplicate file, malformed YAML, `patternProperties`, `contains` and aliased Script imports), positive omitted-type `const`, boolean-true, omitted-array-`items`, and required object-count bindings, duplicate-library inspection, and >25 MiB request guards for all three commands with `data-test=pass`. This is not a hosted Pages test; broader malformed/adversarial parity remains. |
-| G8 real-source review | PARTIAL | A fresh read-only review verified current `ca-skills/main` at `3fce09a` and `ca-agent-demo/main` at `4395982`. The selected PDU/MAS packages and ToolCatalog are byte-identical to the PR #4 pinned snapshot; current strict checks report PDU 102 / MAS 133. PDU findings include missing Owner schemas/fields, one Script Output that does not guarantee the Tool's maximum length, and three unsupported static regex implications; MAS findings are missing Host schemas, missing ToolCatalog Operations, and seven ungranted Operation references. See the [A–E classification](workstreams/official-skill-acceptance-v0.1.md). |
-| G9 handoff | PARTIAL | Implementation commits are pushed and draft PR #5 is open against design PR #4. Full acceptance remains partial; PR #5 records the current static evidence and unresolved Owner/spec coverage. No merge is authorized. |
+## Active DeepSeek handoff
 
-### Earlier verification at `6d85d101` (before WP6)
+- Handoff entrypoint: [DeepSeek Handoff](workstreams/deepseek-handoff-v1alpha4.md)
+- First bounded task: [WP3A — Dependency Snapshot Identity](workstreams/wp3a-dependency-identity-v1alpha4.md)
+- Machine-readable fixture plan: [WP3A fixture plan](../tests/conformance/v1alpha4/wp3a-fixture-plan.json)
+- Assigned branch: `feat/compiler-v1alpha4-wp3a-dependency-identity-20261116`
+- Branch base: WP2 branch `feat/compiler-v1alpha4-wp2-yaml-ast-20261116` at `55ba5ebc37e9d54b6ee21e547dae188ca17785c9`
 
-At the previously pushed head, Go tests/vet, Native and WASM builds, synthetic CLI builds, and a Chromium smoke passed. Its diagnostic vectors did not include the current WP6 outcome/flow additions; current parity is pending below. The former PDU breakdown was superseded by the regex implication correction.
+A separate exploratory WP3 branch exists but is not the approved handoff base. The assigned task branch starts cleanly from WP2. The task branch contains handoff documentation only; WP3A code has not yet been implemented.
 
-### WP6 validation evidence before WP4 Schema pass (code head `8b48afd5`)
+## Non-claims
 
-At current code head `8b48afd5`, `GOWORK=off go test ./... -count=1`, `GOWORK=off go vet ./...`, Native CLI build, WASM build and `git diff --check` PASS. Chromium 156 ran the current Worker against the Script Contract fixture: all seven output paths/order/bytes matched Native, fourteen Check diagnostic vectors (including invalid path, duplicate file and malformed YAML) and duplicate-operation Inspect diagnostics matched shared goldens, and the >25 MiB Check/Build/Inspect guards returned their command-specific `INPUT_LIMIT` response types. The official pinned source check returns 235 diagnostics: PDU 102 / MAS 133, with no new Procedure outcome or reachability findings. See [the A–E report](workstreams/official-skill-acceptance-v0.1.md). This remains synthetic browser evidence; official-source and broader adversarial parity are open.
+- CI PASS for WP1/WP2 is not full v1alpha4 conformance.
+- A valid dependency digest is not trusted identity without the matching trusted binding.
+- Trusted dependency identity is not Owner export qualification or Capability authorization.
+- A synthetic fixture is not a real Owner publication.
+- Compiler static linking is not Host/Runtime execution or live 5GC acceptance.
 
-### WP4 Schema support pass (implementation code commit `238e9d84`)
+## Historical record
 
-The Draft 2020-12 coverage boundary is recorded in [the JSON Schema matrix](workstreams/json-schema-support-v0.1.md). This pass adds root boolean Schema validity and universal/empty-set binding semantics, local `$ref` to boolean targets, type-less finite `const`/`enum` checks, correct treatment of type-specific assertions when `type` is omitted, exact JSON numeric conversion for generated Script Schemas, and default `format`/content annotation behavior. Unsupported applicators remain fail-closed for binding, and pattern implication remains explicitly unsupported.
-
-At `238e9d84`, `GOWORK=off go mod tidy`, `GOWORK=off go test ./... -count=1`, `GOWORK=off go vet ./...`, Native CLI build, GOOS=js/GOARCH=wasm build, and `git diff --check` PASS. Both positive fixture checks and the 7-file Script Contract build PASS. Pinned official checks remain expected nonzero: PDU 102 (`97 EXTERNAL_SCHEMA_MISSING`, `3 BINDING_UNSUPPORTED`, `1 BINDING_TYPE_MISMATCH`, `1 SOURCE_FIELD_UNKNOWN`); MAS 133 (`51 EXTERNAL_SCHEMA_MISSING`, `43 BINDING_UNRESOLVED`, `16 LIB_OPERATION_UNKNOWN`, `16 PROCEDURE_UNSUPPORTED`, `7 TOOL_NOT_DECLARED`). Chromium 156 passed seven output byte/path comparisons, 16 Check golden vectors (14 negative and 2 positive Schema probes), duplicate Inspect diagnostics, and oversized Check/Build/Inspect response checks. Browser evidence is synthetic; hosted CI and official-input cross-platform parity remain NOT_RUN.
-
-### WP5 Script Contract follow-up
-
-Implementation code commit: `8a77b3ed`.
-
-The pinned Script Contract accepts functional TypedDict for wire keys such as `5qi`, `NotRequired`, and nested `list[T]` / `Annotated` forms, but explicitly forbids broad/dynamic unions. Go tests now verify a functional TypedDict Build preserves a non-identifier key, optional-field requiredness, and closed output Schema; `Optional`, `Union`, `str | None`, bare `list`, and functional `total=False` reject explicitly. The last case previously risked being miscompiled as required fields.
-
-After the Script parser fix, `GOWORK=off go test ./... -count=1`, `GOWORK=off go vet ./...`, `GOWORK=off go mod tidy`, Native/WASM builds, `git diff --check`, and Native functional Check/Build all PASS; Build emits five files. Chromium 156 checks/builds the same fixture, verifies the generated wire keys and requiredness, and matches all five output paths/order/bytes with Native. The standard fixture also passes its existing 16 Check vectors, output parity, Inspect duplicate diagnostic, and size-limit checks. This remains a synthetic conformance probe, not a hosted Browser test.
-
-### Producer Schema authority follow-up
-
-Implementation code commit: `5255232c`.
-
-When a Procedure input source cannot be resolved, the call-site Schema now remains unconstrained in that property; the declared `type` stays an assertion and cannot create a Producer contract. The source-resolution diagnostic remains authoritative. A regression verifies that `procedureInputSchema` does not copy the assertion into the missing Producer slot. `GOWORK=off go test ./... -count=1`, `go vet`, Native/WASM builds, and `git diff --check` PASS. Chromium 156 re-ran the synthetic parity page at this code state and returned `data-test=pass`, including seven standard and five functional output byte comparisons and the shared diagnostics. This is synthetic parity evidence only.
-
-### Producer alias dominance follow-up
-
-Implementation code commit: `cb0840f7`.
-
-Binding availability now follows recursive `input.*` aliases to their underlying source before checking node-output dominance. The regression chain is `input.value -> input.base.payload.name -> source.output.payload.name`; it passes when `source` dominates and fails with `BINDING_SOURCE_UNAVAILABLE` when a branch bypasses it. The browser functional TypedDict project exercises a nested two-hop alias through the non-identifier wire key `5qi`; Native Check/Build emits five files and Chromium 156 returns `data-test=pass`, matching all five output paths/order/bytes. Full Go tests, vet, Native/WASM builds and `git diff --check` PASS. Fresh official static checks remain PDU 102 (`97 EXTERNAL_SCHEMA_MISSING`, `3 BINDING_UNSUPPORTED`, `1 BINDING_TYPE_MISMATCH`, `1 SOURCE_FIELD_UNKNOWN`) and MAS 133 (`51 EXTERNAL_SCHEMA_MISSING`, `43 BINDING_UNRESOLVED`, `16 LIB_OPERATION_UNKNOWN`, `16 PROCEDURE_UNSUPPORTED`, `7 TOOL_NOT_DECLARED`). Other recursive/cross-scope alias cases are open.
-
-### JSON Schema keyword matrix audit
-
-The matrix now explicitly distinguishes `patternProperties` and `contains/minContains/maxContains` as structurally validated but unsupported for binding proof. Negative Native vectors and shared WASM/Chromium goldens verify they return `BINDING_UNSUPPORTED`, not a guessed mismatch or pass. It also records supported object count bounds and `uniqueItems`: concrete literals and explicit Producer bounds are checked, required fields imply `minProperties`, and a closed property set implies `maxProperties`; optional named properties do not imply `minProperties`. Chromium 156 reran the then-current harness with twenty Check vectors: the mismatched `typing` import alias returns `SCRIPT_TYPE_UNSUPPORTED`, and the omitted-array-`items` Producer binding succeeds; `data-test=pass`. Standard seven-file and functional five-file output parity passed. Full Go tests, vet, Native/WASM builds, JSON golden parse and diff checks PASS. Full Draft 2020-12 implication remains PARTIAL.
-
-### Draft 2020-12 omitted array items follow-up
-
-Implementation code commit: `f22d91dd`. Array Schema `items` is optional in Draft 2020-12 and defaults to the unconstrained Schema `true`. Binding projection and literal validation now preserve that behavior: omitted Producer items cannot prove a typed Consumer, while a typed Producer satisfies a Consumer that omits `items`. Added positive and negative implication tests, empty/nonempty literal cases, and a shared Native/WASM Check vector. Full Go tests, vet, Native/WASM builds, Chromium 156 (`data-test=pass`), and diff checks PASS. Fresh official checks at this code state remain PDU 102 (`97 EXTERNAL_SCHEMA_MISSING`, `3 BINDING_UNSUPPORTED`, `1 BINDING_TYPE_MISMATCH`, `1 SOURCE_FIELD_UNKNOWN`) and MAS 133 (`51 EXTERNAL_SCHEMA_MISSING`, `43 BINDING_UNRESOLVED`, `16 LIB_OPERATION_UNKNOWN`, `16 PROCEDURE_UNSUPPORTED`, `7 TOOL_NOT_DECLARED`).
-
-### Script import alias audit follow-up
-
-Implementation code commit: `49fb878b`.
-
-The pinned Script Contract lists supported names directly and does not define `typing` import aliases. The parser previously discarded `as ...` during import collection, which could accept a declaration name that is not actually bound. Such imports now fail with `SCRIPT_TYPE_UNSUPPORTED`; Go tests and the shared Native/WASM golden cover `TypedDict as TD` and `NotRequired as NR`. Current validation: `GOWORK=off go test ./... -count=1`, `go vet`, Native/WASM builds, and `git diff --check` PASS. Chromium 156 on this code state returned `data-test=pass` for nineteen Check vectors and both package byte-parity fixtures. The parser remains a deliberately bounded static subset; exhaustive grammar and annotation coverage is open.
-
-### Object property-count implication follow-up
-
-Implementation code commit: `c14c24d1`. The binding checker now derives a Producer `minProperties` lower bound from its `required` fields and a `maxProperties` upper bound when `additionalProperties: false` closes the declared `properties` set. Optional named properties remain insufficient to prove a minimum count; explicit Producer bounds combine conservatively with the inferred bounds. Positive/negative Go cases and a shared Native/WASM Check vector cover these rules. Full Go tests, vet, Native/WASM builds, Chromium 156 (21 synthetic vectors, `data-test=pass`), and diff checks PASS. Fresh official checks remain PDU 102 / MAS 133 with the existing A-E classifications unchanged.
-
-### Pinned official Native/WASM parity follow-up
-
-Test/evidence code commit: `30ccbfbc`.
-
-The browser harness now loads the checked-in 62-path manifest and per-file SHA-256 map for the pinned ca-skills v0.2 snapshot, verifies every fetched file against the upstream SHA-256 manifest, and runs `check` through the WASM Worker. Chromium 156 returned the same 235 ordered diagnostics as the Native JSON golden. A Go regression verifies the manifest and checksum map against the pinned snapshot and compares Native diagnostics to that golden. The pinned input is 62 files (267,111 source bytes), and Chromium reports 235 official diagnostics. The official check remains expected nonzero because Owner schemas and MAS Operations are absent; parity establishes the same static result, not acceptance or runtime readiness.
-
-### Current upstream refresh
-
-Read-only upstream refs were refreshed on 2026-11-12. `ca-skills/main` is `3fce09aca32b6a6faf6ec3e9a204d38cc129ec38`; `ca-agent-demo/main` is `4395982fa6efb97714b97901603b2dfb7018c4d0`. The latest Skill Language spec on ca-skills/main identifies v0.2. The selected PDU/MAS package files and ToolCatalog match the PR #4 pinned snapshot byte-for-byte. After the binding refinements, both current-main and pinned checks return PDU 102 / MAS 133 static findings. The earlier recorded language conflict was stale and has been corrected. See [language alignment](workstreams/language-alignment-v0.1.md) for exact refs and breakdown.
-
-### WASM wire-boundary closeout (2026-11-12)
-
-The WASM callbacks now match the documented Core return types: `check` returns `Diagnostic[]`, `build` returns `BuildResult`, and `inspect` returns `LibraryResult`. Malformed and oversized requests use the same command-specific response shape. The adapter checks the raw JSON string against a 25 MiB cap before unmarshalling/base64 decoding, keeping a valid request within the Core's 16 MiB file-byte limit plus bounded JSON overhead. Unit tests cover the threshold and error response shapes. Chromium exercised all three oversized paths and confirmed the response types and `INPUT_LIMIT` diagnostics; the existing valid build/check/inspect, six diagnostic parity vectors, duplicate-operation inspection, and seven output byte comparisons also passed (`data-test=pass`).
-
-Final rerun after this adapter change: `GOWORK=off go test ./... -count=1`, `GOWORK=off go vet ./...`, Native CLI build, and GOOS=js/GOARCH=wasm build all PASS. PR #5 remains Draft and acceptance remains PARTIAL; these boundary fixes do not close the remaining grammar, schema, parity, or Owner contract gaps.
-
-### Nullable binding coverage
-
-Added static Producer/Consumer and literal validation for Draft 2020-12 `type` unions, including nullable values. Regression coverage verifies safe subset assignment (`integer|null` to `number|null`), an end-to-end routed Tool Output binding into nullable Tool input, rejection when that consumer is nonnullable, and null/string/numeric literal handling. The full Go tests and vet pass; Native and WASM builds pass; headless Chromium reran check/build/inspect and all existing diagnostic goldens with seven-file Native/WASM byte parity (`data-test=pass`).
-
-### Procedure input schema linking
-
-Aligned Procedure input declarations to the v0.2 contract: `from` is required, while `type` is an optional assertion. The compiler resolves every declared input's actual Producer Schema before checking call sites, uses that Schema as the called Procedure's input contract, and checks an optional type assertion against it. Procedure-call bindings also receive the same full Schema compatibility and control-flow dominance checks as Tool calls; an input produced only on one incoming branch is rejected. Synthetic regressions cover omitted type assertions, successful cross-Skill binding using the real source Schema, full constraint compatibility and fail-closed missing or unavailable Producers. Full Go tests pass.
-
-Finite `const`/`enum` schemas now validate every possible Producer value against the Consumer Schema. This proves safe bindings when an enum or constant satisfies constraints that a broad Producer schema cannot prove structurally, while rejecting any finite set containing a value outside the Consumer contract. Seven regression cases cover strings, numeric bounds, and an empty intersection. After this refinement, pinned v0.2 PDU diagnostics decreased from 115 to 110; MAS remains 133. Current ca-skills/main PDU diagnostics decreased from 119 to 114; MAS remains 127.
-
-JSON Schema `integer` literals now use mathematical numeric value rather than YAML lexical tag: `7.0` satisfies `integer`, while `7.5` does not. The exact rational parser and full binding suite pass; Native/WASM browser parity smoke passes. At that point, the v0.2 source counts were PDU 110 / MAS 133 and the current-main review at `6742d4c` was PDU 114 / MAS 127. The 2026-11-12 refresh found current main aligned byte-for-byte with the pinned package. The later unconstrained-Schema and Script projection refinements bring current PDU checks to 102; MAS remains 133.
+The prior v0 and v0.1 implementation log is preserved in [WORK history](WORK-history.md). It is historical context only and must not be used as v1alpha4 implementation authority.
