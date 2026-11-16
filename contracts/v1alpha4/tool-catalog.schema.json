@@ -56,7 +56,8 @@
                 "$ref": "#/$defs/observation"
               }
             ]
-          }
+          },
+          "uniqueItems": true
         }
       }
     }
