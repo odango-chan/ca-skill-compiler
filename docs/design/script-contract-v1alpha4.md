@@ -60,9 +60,9 @@ def main(input: PredicateInput) -> PredicateEvaluationResult:
     ...
 ~~~
 
-PredicateInput is a compiler-generated virtual TypedDict, derived from the exact owning Predicate's ordered parameters and linked parameter Schemas. The Script MUST NOT declare, import, shadow or override that generated type.
+PredicateInput is a compiler-generated virtual TypedDict, derived from the exact owning Predicate's ordered parameters and linked parameter Schemas. It also contains the required read-only evidence key using the §17.3 Evidence projection shape; business parameter keys are required, while evidence members may be absent where the normative projection permits it. The Script MUST NOT declare, import, shadow or override that generated type.
 
-The Predicate Script output is the strict PredicateEvaluationResult shape defined by §32.2, with a tri-state result PASS | FAIL | UNKNOWN and its required reason/evidence fields. It is not a free-form Boolean return.
+The Predicate Script output is exactly the strict PredicateEvaluationResult TypedDict defined by §32.2: result (Literal PASS / FAIL / UNKNOWN), reasonCode (nonempty string) and evidenceUsed (list of strings). It is not a free-form Boolean return.
 
 If one Script file is reused by multiple Predicate definitions, the generated input shape must be identical for every use. If it differs, the Script contract is invalid; the compiler must not choose one caller's shape.
 
@@ -78,7 +78,7 @@ The exact supported set is CA-SL F.6, not all Python typing features. The minimu
 - Required and NotRequired;
 - Annotated[T, {...}] only where metadata is a literal mapping to a G.4-supported Schema constraint.
 
-Functional TypedDict is required for valid wire keys such as 5qi. Annotation parsing must preserve the distinction between a missing property and a nullable property.
+Functional TypedDict syntax is required to represent existing wire keys that are not Python identifiers (the current 5GC source uses 5qi). This is a Python declaration form for the same strict TypedDict / JSON object semantics, not a new CA-SL type. Annotation parsing must preserve the distinction between a missing property and a nullable property.
 
 Reject Any, open dict, object, dynamic/unresolved annotations, unsupported union/optional forms, unknown or dynamic Annotated metadata, unsupported JSON Schema keywords (including pattern and format), dynamic key reads that cannot be proven, redefinition of compiler-generated PredicateInput; imports are never executed by Compiler and annotation dependencies must be statically resolvable.
 
