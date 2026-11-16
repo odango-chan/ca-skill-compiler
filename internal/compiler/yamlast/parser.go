@@ -78,7 +78,8 @@ func (e *ParseError) Error() string {
 }
 
 var sourcePositionPattern = regexp.MustCompile(`\[(\d+):(\d+)\]`)
-var finiteDecimalPattern = regexp.MustCompile(`^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?package yamlast
+var finiteDecimalPattern = regexp.MustCompile("^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$")
+var integerPattern = regexp.MustCompile("^-?(?:0|[1-9][0-9]*)$")
 
 import (
 	"fmt"
@@ -613,6 +614,9 @@ func ParseFiniteFloatLexeme(value string) (float64, error) {
 }
 
 func ValidateScalarLiteral(node *Node) error {
+	if node != nil && node.Kind == AliasNode {
+		return fmt.Errorf("aliases are not ScalarLiteral values")
+	}
 	node = unalias(node)
 	if node == nil || node.Kind != ScalarNode {
 		return fmt.Errorf("ScalarLiteral must be a YAML scalar")
