@@ -6,7 +6,7 @@
 
 **OSS dependency selection:** [oss-dependency-selection-v1alpha4.md](design/oss-dependency-selection-v1alpha4.md) selects goccy/go-yaml v1.19.2, San v6.0.3, cel-go v0.33.2, gositter v0.2.0 (Python grammar only) and gowebpki/jcs v1.0.2. CI is pinned to Go 1.27.4; CGo is prohibited in production and WASM. This is a dependency decision, not evidence that the adapters are integrated. The documentation PR deliberately does not add unused packages to go.mod.
 
-**Development workflow:** DeepSeek Harness with the selected DeepSeek V4 Flash / Low reasoning profile is the designated bounded implementation workflow. The task envelope, work-package sequence, stop conditions and acceptance rules are in [deepseek-harness-v1alpha4.md](workstreams/deepseek-harness-v1alpha4.md). No pilot is required. This documentation PR does not authorize implementation to start.
+**Development workflow:** DeepSeek Harness with the selected DeepSeek V4 Flash / Low reasoning profile is the designated bounded implementation workflow. The task envelope, work-package sequence, stop conditions and acceptance rules are in [deepseek-harness-v1alpha4.md](workstreams/deepseek-harness-v1alpha4.md). No pilot is required. The user has separately authorized continuing the v1alpha4 implementation plan; this documentation PR records the dependency decision only and does not mark WP1 or any later work package complete.
 
 **Conformance inventory:** [E01–E120 case index](../tests/conformance/v1alpha4/case-index.json) and [Appendix H diagnostic index](../tests/conformance/v1alpha4/diagnostic-index.json) are derived from the pinned specification. They are inventories, not passing tests or executable fixture coverage.
 
