@@ -104,7 +104,7 @@ context.<identifier>[.<identifier>...]
 <node>.observation.output[.<identifier>...]
 ~~~
 
-No array index, wildcard, function call, interpolation, dynamic selector, path concatenation or implicit context is allowed.
+No array index, wildcard, function call, interpolation, dynamic selector, path concatenation or implicit context is allowed. Argument values are only a valid static SourcePath or a permitted scalar literal. Follow §13.2 for the exact YAML scalar subset: strings must be quoted; bare null/boolean/finite decimal values use the frozen forms; inline maps and arrays are not argument expressions.
 
 A Producer output is available only after the corresponding Operation/Observation has produced a valid SUCCEEDED result and only on paths where that Producer dominates the consumer. Precondition and Postcondition produce Outcomes, not bindable output objects. A Predicate PASS does not narrow an optional field's Schema. A field that may be absent cannot be used as a required direct SourcePath.
 
