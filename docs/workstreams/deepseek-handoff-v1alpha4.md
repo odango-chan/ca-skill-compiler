@@ -90,4 +90,11 @@ Do not use floating `main`, historical v0/v0.1/v0.2 docs, or a different CA-SL c
 
 ## 7. Handoff status
 
+### Baseline CI note (2026-11-16)
+
+The handoff branch's initial GitHub Actions run [#43821888048](https://github.com/odango-chan/ca-skill-compiler/actions/runs/43821888048) completed with `failure`. The GitHub connector returned no job-step summaries and the job-log endpoint returned `BlobNotFound`, so the failure cause is **unknown**. Do not report this run as PASS or infer a code defect from the unavailable logs.
+
+The branch contains documentation and workflow changes only. Before editing code, DeepSeek must run the baseline commands in the WP3A task document. If any baseline command fails, stop and report the exact local output; do not begin implementation or repair unrelated WP1/WP2 code.
+
+
 The documentation, task envelope, first-task fixture plan and CI branch filters are prepared on the assigned branch. Code implementation has **not** been performed by this handoff change. The first DeepSeek run remains subject to the baseline test result and its own CI evidence.
