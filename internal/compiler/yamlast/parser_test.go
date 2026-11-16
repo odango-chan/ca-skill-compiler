@@ -84,6 +84,26 @@ func TestParseResolvesAcyclicAliasesAndRejectsCycles(t *testing.T) {
 	}
 }
 
+func TestParseErrorsRetainSourceLocations(t *testing.T) {
+	_, err := Parse([]byte("first: one\nsecond: two\nsecond: three\n"))
+	if err == nil {
+		t.Fatal("duplicate key accepted")
+	}
+	line, column := ParseErrorLocation(err)
+	if line != 3 || column <= 0 {
+		t.Fatalf("duplicate key location = %d:%d, want line 3 and a positive column: %v", line, column, err)
+	}
+
+	_, err = Parse([]byte("value: !custom hello\n"))
+	if err == nil {
+		t.Fatal("custom tag accepted")
+	}
+	line, column = ParseErrorLocation(err)
+	if line != 1 || column <= 0 {
+		t.Fatalf("custom tag location = %d:%d, want line 1 and a positive column: %v", line, column, err)
+	}
+}
+
 func TestParseRejectsDuplicateKeysAndUndefinedAliases(t *testing.T) {
 	for name, source := range map[string]string{
 		"duplicate-key": "value: 1\nvalue: 2\n",
