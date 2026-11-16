@@ -1,6 +1,6 @@
 # Compiler Artifact Contract v1alpha4
 
-**Status:** proposed physical artifact contract for the CA-SL v1alpha4 compiler. This contract is independent of language semantics and does not define Runtime Trace format.
+**Status:** FROZEN Compiler-owned physical Artifact contract for CA-SL v1alpha4. This contract is independent of language semantics and does not define Runtime Trace format.
 
 Machine-readable schema: [artifact-manifest.schema.json](../../contracts/v1alpha4/artifact-manifest.schema.json).
 
