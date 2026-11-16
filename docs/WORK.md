@@ -1,3 +1,7 @@
+> **Current development target (2026-11-16): CA-SL v1alpha4.** The active Compiler contract set is indexed in the repository [README](../README.md). The implementation target is defined by docs/design/*-v1alpha4.md and contracts/v1alpha4/*.json. The historical v0 / v0.1 implementation notes below are retained for traceability; they are not current language or API authority and do not establish v1alpha4 conformance. Current status: PR #11 is a source/graph admission slice; full linker, trusted inputs, Script ABI, Artifact, E01–E120 and Native/WASM parity remain unqualified.
+
+---
+
 # Skill Compiler v0 implementation status
 
 Updated: 2026-11-12. The initial sections retain the v0 closeout record from implementation branch `feat/compiler-v0-complete` (code `431b67e4a44f4e7037aa5448cbb1595ff6212f22`, closeout docs `57a3fcc52e2b97ba2c336bbc21e49480020c193b`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`; [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3)). The v0.1 migration status and evidence follow below; neither section claims complete acceptance beyond its stated gates.
