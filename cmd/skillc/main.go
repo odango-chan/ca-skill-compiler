@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -61,7 +62,7 @@ func run(args []string) int {
 		fmt.Fprintln(os.Stderr, "input:", err)
 		return 1
 	}
-	req := compiler.BuildRequest{Files: files}
+	req := compiler.BuildRequest{APIVersion: compiler.BuildRequestAPIVersion, LanguageTarget: compiler.V1Alpha4Target, Files: files, ResolvedDependencies: []compiler.ResolvedDependency{}}
 	if target != "" {
 		req.Targets = []string{target}
 	}
@@ -98,12 +99,12 @@ func run(args []string) int {
 	return 0
 }
 
-// readProject never reads output/ and never follows symlinks. Source is always
-// skills/; imported libraries are an optional sibling lib/ directory.
+// readProject reads only author-maintained skills/ source and never follows symlinks.
+// Immutable dependency snapshots are supplied separately through BuildRequest.
 func readProject(root string) ([]compiler.File, error) {
 	var files []compiler.File
 	totalSize := int64(0)
-	for _, dir := range []string{"skills", "lib"} {
+	for _, dir := range []string{"skills"} {
 		base := filepath.Join(root, dir)
 		info, err := os.Lstat(base)
 		if os.IsNotExist(err) && dir == "lib" {
@@ -170,7 +171,7 @@ func writeOutput(root, dest string, files []compiler.File) error {
 	if err := rejectSymlinkAncestors(abs); err != nil {
 		return err
 	}
-	for _, forbidden := range []string{root, filepath.Join(root, "skills"), filepath.Join(root, "lib")} {
+	for _, forbidden := range []string{root, filepath.Join(root, "skills")} {
 		rel, err := filepath.Rel(forbidden, abs)
 		if err == nil && (rel == "." || (forbidden != root && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)))) {
 			return fmt.Errorf("output path may not replace source or library: %s", dest)
@@ -191,7 +192,7 @@ func writeOutput(root, dest string, files []compiler.File) error {
 		return err
 	}
 	for _, file := range files {
-		if strings.HasPrefix(file.Path, "/") || strings.Contains(file.Path, "..") {
+		if !validOutputPath(file.Path) {
 			return fmt.Errorf("unsafe output path: %s", file.Path)
 		}
 		target := filepath.Join(abs, filepath.FromSlash(file.Path))
@@ -221,4 +222,21 @@ func rejectSymlinkAncestors(abs string) error {
 		}
 		current = parent
 	}
+}
+
+func validOutputPath(value string) bool {
+	if value == "" || len(value) > 240 || !strings.HasPrefix(value, "skills/") ||
+		path.Clean(value) != value || strings.ContainsAny(value, "\\:\x00") {
+		return false
+	}
+	parts := strings.Split(value, "/")
+	if len(parts) < 3 {
+		return false
+	}
+	for _, part := range parts {
+		if part == "" || part == "." || part == ".." {
+			return false
+		}
+	}
+	return true
 }
