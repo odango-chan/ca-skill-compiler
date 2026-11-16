@@ -78,6 +78,86 @@ func (e *ParseError) Error() string {
 }
 
 var sourcePositionPattern = regexp.MustCompile(`\[(\d+):(\d+)\]`)
+var finiteDecimalPattern = regexp.MustCompile(`^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?package yamlast
+
+import (
+	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+	"unicode/utf8"
+
+	goccyast "github.com/goccy/go-yaml/ast"
+	"github.com/goccy/go-yaml/lexer"
+	"github.com/goccy/go-yaml/parser"
+	"github.com/goccy/go-yaml/token"
+)
+
+type Kind uint8
+
+const (
+	ScalarNode Kind = iota + 1
+	SequenceNode
+	MappingNode
+	AliasNode
+	UnsupportedNode
+)
+
+type ScalarStyle uint8
+
+const (
+	PlainStyle ScalarStyle = iota
+	SingleQuotedStyle
+	DoubleQuotedStyle
+	LiteralStyle
+	FoldedStyle
+	TaggedStyle
+	AliasStyle
+)
+
+const (
+	maxDocumentBytes = 2 << 20
+	maxTokenCount    = 80000
+	maxNodeCount     = 20000
+	maxDepth         = 64
+	maxAliasCount    = 4096
+)
+
+type Node struct {
+	Kind   Kind
+	Tag    string
+	Value  string
+	Raw    string
+	Style  ScalarStyle
+	Line   int
+	Column int
+	Content []*Node
+	Alias  *Node
+}
+
+type ParseErrorKind string
+
+const (
+	SyntaxError ParseErrorKind = "syntax"
+	RootError   ParseErrorKind = "root"
+	LimitError  ParseErrorKind = "limit"
+)
+
+type ParseError struct {
+	Kind    ParseErrorKind
+	Message string
+	Line    int
+	Column  int
+}
+
+func (e *ParseError) Error() string {
+	if e == nil {
+		return ""
+	}
+	return e.Message
+}
+
+)
 
 // Parse parses one YAML 1.2 document into the Compiler-owned normalized AST.
 // It never decodes into generic Go maps, evaluates tags, reads files or resolves
@@ -317,13 +397,20 @@ func (c *converter) convert(source goccyast.Node, depth int) (*Node, error) {
 	case *goccyast.StringNode:
 		line, column := rootPosition(node)
 		style := PlainStyle
+		tag := "!!str"
 		switch node.GetToken().Type {
 		case token.SingleQuoteType:
 			style = SingleQuotedStyle
 		case token.DoubleQuoteType:
 			style = DoubleQuotedStyle
+		default:
+			// YAML 1.2 scientific notation is a float even when the upstream
+			// token classifier leaves exponent-only forms as StringType.
+			if finiteDecimalPattern.MatchString(node.Value) && strings.ContainsAny(node.Value, "eE") {
+				tag = "!!float"
+			}
 		}
-		return &Node{Kind: ScalarNode, Tag: "!!str", Value: node.Value, Raw: node.GetToken().Origin, Style: style, Line: line, Column: column}, nil
+		return &Node{Kind: ScalarNode, Tag: tag, Value: node.Value, Raw: node.GetToken().Origin, Style: style, Line: line, Column: column}, nil
 
 	case *goccyast.IntegerNode:
 		return scalarNode(node, "!!int")
@@ -499,27 +586,22 @@ func IsScalarLiteralStyle(node *Node) bool {
 }
 
 func ParseIntegerLexeme(value string) (int64, error) {
-	if value == "" || strings.HasPrefix(value, "+") || strings.ContainsAny(value, "_xXoObB") {
+	if !regexp.MustCompile(`^-?(?:0|[1-9][0-9]*)$`).MatchString(value) {
 		return 0, fmt.Errorf("unsupported integer lexeme")
-	}
-	if len(value) > 1 && value[0] == '0' || len(value) > 2 && strings.HasPrefix(value, "-0") {
-		return 0, fmt.Errorf("integer leading zero is not allowed")
 	}
 	return strconv.ParseInt(value, 10, 64)
 }
 
 func ParseFiniteFloatLexeme(value string) (float64, error) {
-	if value == "" || strings.HasPrefix(value, "+") || strings.Contains(value, "_") {
+	if !finiteDecimalPattern.MatchString(value) || !strings.ContainsAny(value, ".eE") {
 		return 0, fmt.Errorf("unsupported floating-point lexeme")
-	}
-	if !strings.ContainsAny(value, ".eE") {
-		return 0, fmt.Errorf("float lexeme requires a decimal point or exponent")
 	}
 	parsed, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		return 0, err
 	}
-	if parsed == 0 && value != "0" && value != "-0" {
+	nonZero := strings.TrimLeft(strings.NewReplacer("-", "", "+", "", ".", "", "e", "", "E", "").Replace(value), "0") != ""
+	if parsed == 0 && nonZero {
 		return 0, fmt.Errorf("nonzero float underflows to zero")
 	}
 	if parsed != parsed || parsed > 1.7976931348623157e308 || parsed < -1.7976931348623157e308 {
