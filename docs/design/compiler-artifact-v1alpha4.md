@@ -28,7 +28,7 @@ Default Script Output Schema path:
 skills/<skill>/schemas/generated/<script-relative-path-without-scripts-prefix-and-py-suffix>.output.schema.json
 ~~~
 
-The path must be deterministic and collision-free. A collision with an author source file or another generated output is a hard build error.
+The path must be deterministic and collision-free. A collision with an author source file or another generated output is a hard build error. Each generated Schema $id is also deterministic: urn:connectionagent:skill:<encoded-skill-name>:script-output:<encoded-script-relative-path>. Encode each UTF-8 byte outside RFC 3986 unreserved characters (A–Z, a–z, 0–9, hyphen, dot, underscore, tilde) as uppercase %HH; encode slash as %2F. Example: scripts/common/build_policy.py in Skill establish-pdu-session yields urn:connectionagent:skill:establish-pdu-session:script-output:common%2Fbuild_policy.py.
 
 ## 3. Artifact manifest
 
