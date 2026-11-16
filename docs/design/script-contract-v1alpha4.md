@@ -80,7 +80,7 @@ The exact supported set is CA-SL F.6, not all Python typing features. The minimu
 
 Functional TypedDict is required for valid wire keys such as 5qi. Annotation parsing must preserve the distinction between a missing property and a nullable property.
 
-Reject Any, open dict, object, dynamic/unresolved annotations, unsupported union/optional forms, unknown or dynamic Annotated metadata, unsupported JSON Schema keywords (including pattern and format), dynamic key reads that cannot be proven, redefinition of compiler-generated PredicateInput, and arbitrary imports or execution constructs outside the frozen Script profile.
+Reject Any, open dict, object, dynamic/unresolved annotations, unsupported union/optional forms, unknown or dynamic Annotated metadata, unsupported JSON Schema keywords (including pattern and format), dynamic key reads that cannot be proven, redefinition of compiler-generated PredicateInput; imports are never executed by Compiler and annotation dependencies must be statically resolvable.
 
 Do not infer a Schema from sample data, comments, function bodies or observed return values.
 
