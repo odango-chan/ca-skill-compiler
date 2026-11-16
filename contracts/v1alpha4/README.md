@@ -1,6 +1,8 @@
 # Compiler v1alpha4 machine contracts
 
-All files in this directory are versioned Compiler / imported-contract schemas. They do not change CA-SL language semantics.
+**Status:** FROZEN Compiler-owned machine-contract schemas for implementation. These schemas do not change CA-SL language semantics.
+
+All files in this directory are versioned Compiler / imported-contract schemas.
 
 - build-request.schema.json — source files, resolved DependencySnapshots and trusted build context.
 - build-result.schema.json — diagnostics, used dependency aliases and generated output files.
@@ -17,4 +19,4 @@ BuildRequest apiVersion, languageTarget, ToolCatalog apiVersion, CapabilityContr
 
 The BuildRequest trustedBuildContext is supplied by a trusted caller. A Skill file, dependency README or arbitrary imported document cannot self-assert deployment authorization, package identity or Owner ownership. The browser Compiler is not a security boundary; Host/Runtime revalidates authorization at use time.
 
-These files validate Compiler API / imported ToolCatalog / CapabilityContracts / deployment trust documents. Their use of JSON Schema composition keywords does not expand the CA-SL Schema language. Schemas referenced by Skill Request, Host Context, Tool Input/Output or Evidence data are separate Owner-published schemas and MUST follow the stricter CA-SL G.4 keyword whitelist. No generic Evidence Descriptor schema is invented here; each Evidence Owner must publish and version its real descriptor format.
+These files validate Compiler API / imported ToolCatalog / CapabilityContracts / deployment trust documents. Their use of JSON Schema composition keywords does not expand the CA-SL Schema language. The Compiler API / Owner-envelope meta-schemas MUST be validated separately from CA-SL data Schemas. Schemas referenced by Skill Request, Host Context, Tool Input/Output or Evidence data are separate Owner-published schemas and MUST follow the stricter CA-SL G.4 keyword whitelist. No generic Evidence Descriptor schema is invented here; each Evidence Owner must publish and version its real descriptor format.
