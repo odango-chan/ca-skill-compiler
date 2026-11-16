@@ -136,7 +136,7 @@ The compiler must enforce aggregate limits before expensive parsing.
 
 ## 7. Targets and link scope
 
-Omitted or empty targets selects all Skill packages in files. A nonempty targets list selects those exact Skill package names and their declared transitive Skill dependencies, if any are defined by the frozen language. A target name not present in the request is a hard diagnostic.
+Omitted or empty targets selects all Skill packages in files. A nonempty targets list selects those exact Skill package names. CA-SL v1alpha4 does not define a Skill-to-Skill dependency resolver. A target name not present in the request is a hard diagnostic.
 
 Only selected Skill packages contribute author Contract aliases and callable references to the link scope. Unreferenced snapshots never become global exports. The caller supplies the complete immutable input closure; Compiler does not resolve or download transitive dependencies.
 
