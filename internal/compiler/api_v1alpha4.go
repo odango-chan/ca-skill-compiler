@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"path"
 	"sort"
 	"strings"
 	"unicode/utf8"
