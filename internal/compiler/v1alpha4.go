@@ -317,7 +317,12 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 		return
 	}
 	root := source.Raw
-	v4Allowed(root, file, map[string]bool{"start": true, "nodes": true}, add)
+	procedureFields := map[string]bool{"start": true, "nodes": true}
+	if goalNode := child(root, "goal"); goalNode != nil {
+		add(file, goalNode, "SOURCE_ROOT_INVALID", "Procedure must not declare a goal; the goal belongs to the Contract")
+		procedureFields["goal"] = true
+	}
+	v4Allowed(root, file, procedureFields, add)
 	start := scalar(source.Start)
 	nodes := source.Nodes
 	if nodes == nil || nodes.Kind != yaml.MappingNode {

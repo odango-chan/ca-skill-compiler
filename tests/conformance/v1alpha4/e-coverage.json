@@ -4,8 +4,8 @@
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 29,
-    "notRun": 91,
+    "partial": 34,
+    "notRun": 86,
     "passed": 0
   },
   "cases": [
@@ -17,9 +17,9 @@
     },
     {
       "id": "E02",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "procedure.goal -> SOURCE_ROOT_INVALID (e_early_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E03",
@@ -53,15 +53,15 @@
     },
     {
       "id": "E08",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "extra Predicate parameter -> PREDICATE_ARITY_MISMATCH (e_early_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E09",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "context string argument for schema-typed Predicate parameter -> PREDICATE_TYPE_MISMATCH (e_early_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E10",
@@ -77,9 +77,9 @@
     },
     {
       "id": "E12",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "removed contract.contextSchema -> CONTEXT_SCHEMA_UNDECLARED (e_early_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E13",
@@ -113,9 +113,9 @@
     },
     {
       "id": "E18",
-      "status": "NOT_RUN",
-      "evidence": "",
-      "disposition": "PENDING_STATIC_CONFORMANCE"
+      "status": "PARTIAL",
+      "evidence": "COMMITTED route to SUCCEEDED with a legal final Postcondition edge -> SUCCESS_BYPASSES_FINAL_POSTCONDITION (e_early_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E19",
@@ -731,8 +731,8 @@
     }
   ],
   "dispositionSummary": {
-    "partialStaticEvidence": 29,
-    "pendingStaticConformance": 48,
+    "partialStaticEvidence": 34,
+    "pendingStaticConformance": 43,
     "notApplicableToCompiler": 43,
     "claimedPass": 0,
     "note": "PENDING_STATIC_CONFORMANCE means the frozen case lists the compiler as an owner but no executed fixture variant exists yet. NOT_APPLICABLE_TO_COMPILER means the case is Host/Runtime-only. No case is claimed PASS."
