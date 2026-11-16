@@ -66,16 +66,17 @@ The sequence below is the frozen default order. A work package may be split into
 
 | WP | Scope | Dependency / boundary |
 |---|---|---|
+| WP0 | OSS dependency and toolchain selection | Completed by the [OSS Dependency Selection ADR](../design/oss-dependency-selection-v1alpha4.md); adapter integration remains in the consuming WPs |
 | WP1 | BuildRequest envelope, version checks, byte decoding, path/resource limits, DependencySnapshot digest, Check/Build/Inspect output APIs | Uses the frozen API and digest contracts |
-| WP2 | YAML 1.2 safe parser, duplicate-key detection, scalar handling, Contract / Procedure / PredicateSet AST | Must reject unknown and legacy syntax; no compatibility conversion |
+| WP2 | YAML 1.2 safe parser, duplicate-key detection, scalar handling, Contract / Procedure / PredicateSet AST | goccy/go-yaml v1.19.2 AST/token adapter; must reject unknown and legacy syntax; no compatibility conversion |
 | WP3 | DependencySnapshot integrity, Stable Package ID, trusted Owner attribution, ToolCatalog and CapabilityContracts linking | Must fail closed when trusted bindings are absent |
-| WP4 | Schema registry, exact G.4 subset, F.5 assignability and CEL subset/type checking | Do not select or add a production Schema/CEL dependency without a separate human decision |
+| WP4 | Schema registry, exact G.4 subset, F.5 assignability and CEL subset/type checking | San v6.0.3 + cel-go v0.33.2; exact local-only Schema and CEL profiles from the ADR |
 | WP5 | Procedure graph, stage cardinality/order, DAG, routes, terminal handling, global Precondition and final Postcondition proof | Must follow the frozen Procedure Linker contract |
 | WP6 | SourcePath, Producer dominance, per-path availability, argument typing and identity-input provenance | Missing physical identity-input publication remains fail-closed |
 | WP7 | Evidence Guarantee linking, Producer, Scope, Correlation, Freshness and trusted relation checks | Real positive qualification waits for actual Owner descriptor publications |
 | WP8 | Mutation receipt, commit proof, failure classes, Reconcile READ, retryOf and resource responsibility | Cross-snapshot Reconcile association is unsupported until its separate trusted format exists |
-| WP9 | Procedure Script / Predicate Script static ABI, TypedDict derivation, AST checks and generated Output Schemas | Never execute Python during compilation |
-| WP10 | Deterministic Artifact tree, manifests, generated Schema IDs and JCS bytes | Uses the frozen Artifact contract |
+| WP9 | Procedure Script / Predicate Script static ABI, TypedDict derivation through the gositter v0.2.0 Python CST adapter, and generated Output Schemas | Tree-sitter Python grammar v0.25.0; never execute Python during compilation |
+| WP10 | Deterministic Artifact tree, manifests, generated Schema IDs and JCS bytes | gowebpki/jcs v1.0.2; uses the frozen Artifact contract |
 | WP11 | Native Go / Go-WASM / Chromium Worker parity and deterministic diagnostics | Same Core semantics and byte-for-byte output |
 | WP12 | Skill Studio integration, Worker transport, diagnostics and read-only Artifact presentation | Studio MUST NOT implement a second parser or linker |
 | WP13 | Real 5GC qualification | Blocked until real v1alpha4 Owner / Deployment publications and actual environment evidence exist; MAS is not an executable baseline |
@@ -112,7 +113,7 @@ The model MUST NOT:
 - execute Python while compiling a Script;
 - treat an LLM answer, a successful build, a schema-valid synthetic fixture or an editor decoration as runtime proof;
 - remove, skip, quarantine or relax a failing test to obtain green CI;
-- add a production Schema/CEL library or change toolchain architecture without approval;
+- replace the selected OSS dependencies, add a parallel parser/validator, or widen a frozen language subset without a reviewed ADR amendment;
 - run live 5GC mutations, use production credentials or alter real UE/session state;
 - write directly to main, merge a PR or change unrelated repositories.
 
@@ -148,7 +149,7 @@ Baseline commands, adjusted only when the repository's pinned build scripts requ
 GOWORK=off go test ./... -count=1
 GOWORK=off go vet ./...
 GOWORK=off go build ./...
-GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc
+CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc
 git diff --check
 ~~~
 
@@ -162,7 +163,7 @@ Every implementation run MUST retain a machine-readable or PR-linked record cont
 - task ID and work package;
 - exact provider model ID / revision and reasoning effort;
 - exact Harness version / commit;
-- OS, Go, WASM toolchain, Python static-parser/runtime versions where applicable, and browser version;
+- OS, exact Go toolchain (Go 1.27.4), WASM target, selected Python parser/grammar versions, Host Python runtime version where applicable, and browser version;
 - changed paths;
 - exact commands and exit results;
 - CI run links;
@@ -180,7 +181,7 @@ The following are intentionally not invented or frozen as fictitious Owner forma
 - Cross-snapshot Reconcile association: requires a separate versioned trusted Owner / Deployment publication; otherwise reject the link.
 - Real 5GC ToolCatalog / CapabilityContracts / Host Context / Observation / Evidence publications: NOT_QUALIFIED until actual immutable releases are supplied.
 - MAS: NOT_READY as an executable baseline.
-- Production Schema/CEL engine choice and the Host Python runtime version: implementation/deployment choices that require their own explicit review and version record.
+- Host Python runtime version: a Host/Runtime deployment choice; the Compiler parser version is pinned separately in the OSS Dependency Selection ADR.
 
 These gaps do not authorize guessed behavior. Compiler implementation must preserve the defined fail-closed behavior while those external contracts are unavailable.
 
