@@ -4,7 +4,6 @@ package compiler
 // Frozen normative authority: ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d.
 
 import (
-	"path"
 	"regexp"
 	"sort"
 	"strings"
