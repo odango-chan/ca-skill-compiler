@@ -1,24 +1,32 @@
-name: CA-SL v1alpha4 source admission slice
+name: CA-SL v1alpha4 Compiler Core
 
 on:
   push:
-    branches: [feat/ca-sl-v1alpha4-target-source-20261115]
+    branches:
+      - feat/ca-sl-v1alpha4-target-source-20261115
+      - feat/compiler-v1alpha4-wp1-core-20261116
   pull_request:
-    branches: [feat/compiler-v01-implementation-20261111]
+    branches:
+      - docs/compiler-v1alpha4-contracts-20261116
 
 permissions:
   contents: read
 
 jobs:
-  v1alpha4-source:
+  v1alpha4-core:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
-      - name: Go v1alpha4 parser tests
-        run: go test ./internal/compiler -run '^TestV1Alpha4' -count=1 -v
-      - name: Existing Go compiler package tests
-        run: go test ./internal/compiler -count=1
+          go-version: '1.27.4'
+          cache: true
+      - name: Go unit tests
+        run: GOWORK=off go test ./... -count=1
+      - name: Go vet
+        run: GOWORK=off go vet ./...
+      - name: Native build without CGo
+        run: CGO_ENABLED=0 GOWORK=off go build ./...
+      - name: Go/WASM build without CGo
+        run: mkdir -p dist && CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm
