@@ -10,7 +10,7 @@
 
 **Conformance inventory:** [E01–E120 case index](../tests/conformance/v1alpha4/case-index.json) and [Appendix H diagnostic index](../tests/conformance/v1alpha4/diagnostic-index.json) are derived from the pinned specification. They are inventories, not passing tests or executable fixture coverage.
 
-**Current implementation status:** PR #11 remains a source/graph admission slice. The selected dependency adapters and Go 1.27.4 toolchain are not yet integrated/qualified. Full linker, trusted inputs, Script ABI, E01–E120 fixtures, exact H diagnostics, Native/WASM/Chromium parity and real 5GC qualification remain NOT_QUALIFIED.
+**Current implementation status:** PR #11 remains a source/graph admission slice. WP1 implementation is on [feat/compiler-v1alpha4-wp1-core-20261116](https://github.com/odango-chan/ca-skill-compiler/tree/feat/compiler-v1alpha4-wp1-core-20261116): strict BuildRequest / output API models, request validation, snapshot digest implementation, source-only CLI and strict Native/WASM JSON transport are committed. CI and review are pending; WP1 is NOT_QUALIFIED until the required commands pass. The selected third-party parser / engine adapters remain unintegrated. Full linker, trusted inputs, Script ABI, E01–E120 fixtures, exact H diagnostics, Native/WASM/Chromium parity and real 5GC qualification remain NOT_QUALIFIED.
 
 **Explicitly unqualified external contracts:** real Evidence Descriptor publications, physical identity-input provenance, cross-snapshot Reconcile association, actual 5GC Owner / Deployment publications and MAS execution remain outside this freeze. Compiler must fail closed rather than invent these inputs.
 
