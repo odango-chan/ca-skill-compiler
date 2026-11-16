@@ -34,3 +34,7 @@ Reproduce: `GOTOOLCHAIN=go1.27.4 node scripts/chromium-parity.mjs`, or the Go en
 - The fixture currently exercises the fail-closed Build path; once a successful Build path exists, the same page will list real generated schemas and the manifest without UI changes.
 - This is an integration harness proving Studio *consumes* Compiler results; a full Studio product (editor, project management, ZIP export) is out of this repository's Compiler scope.
 - No credentials, filesystem handles or executable code cross the Worker boundary.
+
+## Successful-Build presentation (added)
+
+The Chromium acceptance also opens studio.html?request=parity-success-request.json: the page lists the real generated artifact files (manifest + author sources) with the read-only view, and studio-success.buildSuccess/rtifactPaths are asserted against the Native Build result.

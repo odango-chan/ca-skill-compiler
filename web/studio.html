@@ -75,7 +75,8 @@ function renderArtifact(files) {
 }
 (async () => {
   try {
-    const request = await (await fetch('./parity-request.json')).json();
+    const requestName = new URLSearchParams(location.search).get('request') || 'parity-request.json';
+    const request = await (await fetch('./' + requestName)).json();
     const check = await call('check', request);
     const build = await call('build', request);
     const inspect = await call('inspect', request);

@@ -29,7 +29,8 @@ function withTimeout(promise, ms) {
 }
 (async () => {
   try {
-    const request = await (await fetch('./parity-request.json')).json();
+    const requestName = new URLSearchParams(location.search).get('request') || 'parity-request.json';
+    const request = await (await fetch('./' + requestName)).json();
     const check = await withTimeout(call('check', request), 30000);
     const build = await withTimeout(call('build', request), 30000);
     const inspect = await withTimeout(call('inspect', request), 30000);

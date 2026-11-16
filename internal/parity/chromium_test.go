@@ -38,6 +38,8 @@ func TestChromiumWorkerParity(t *testing.T) {
 		"ok: build.diagnostics projection identical",
 		"ok: inspect projection identical",
 		"ok: studio diagnostics/artifact read-only integration identical",
+		"ok: successful-Build artifact byte parity",
+		"ok: studio-success.artifactPaths projection identical",
 		"PASS: Native and real Chromium Worker projections are identical",
 	} {
 		if !strings.Contains(text, required) {

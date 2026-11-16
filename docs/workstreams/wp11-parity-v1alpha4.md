@@ -45,3 +45,14 @@ Set `CHROME_PATH` when Chrome is installed elsewhere. The harness is not part of
 - Parity is established for the checked fixture (a v1alpha4 Skill whose validation currently fails closed on missing dependency snapshots). It proves the browser executes the same Core and produces identical diagnostics/results for the same request; it does not yet cover a successful Build with Artifact bytes.
 - Artifact output byte parity in the browser becomes testable once a successful Build path exists (WP10 wiring).
 - `cmd/parity-replay` is tooling only; no Compiler core semantics were added for it.
+
+
+## Successful-Build byte parity (added)
+
+The harness now also runs a second phase against web/parity-success/ (fixture Skill + real snapshot files + capability bundle + 	rusted.json bindings). cmd/parity-replay builds the trusted BuildRequest, computes snapshot digests, and emits the exact request JSON; the browser runs Build through the Worker and every generated artifact file byte is compared by SHA-256 against Native Go:
+
+`	ext
+ok: success.build.outputFiles.paths projection identical
+ok: successful-Build artifact byte parity (5 files)
+ok: studio-success.artifactPaths projection identical
+`

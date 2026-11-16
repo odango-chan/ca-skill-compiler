@@ -12,6 +12,7 @@
 import { spawn, execFileSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 
 const repoRoot = process.cwd();
@@ -206,6 +207,36 @@ async function main() {
     }
     if (studio.reimplementedParser) fail('Studio must not reimplement the compiler parser');
     console.log('ok: studio diagnostics/artifact read-only integration identical');
+
+    // Successful-Build phase: same request with trusted bindings + CapabilityContracts.
+    const successRequestPath = path.join(webRoot, 'parity-success-request.json');
+    const nativeSuccess = JSON.parse(execFileSync('go', ['run', './cmd/parity-replay', 'web/parity-success', `--emit-request=${successRequestPath}`], { cwd: repoRoot, env }).toString());
+    if (!nativeSuccess.build.success) fail('successful parity fixture did not Build successfully under Native Go');
+    const browserSuccess = await cdpEvaluate(`http://127.0.0.1:${debugPort}/json/version`, `http://127.0.0.1:${port}/parity.html?request=parity-success-request.json`);
+    if (!browserSuccess.ok) fail(`Chromium Worker success-path error: ${browserSuccess.error}`);
+    compare('success.check', nativeSuccess.check, browserSuccess.check);
+    compare('success.build.success', nativeSuccess.build.success, browserSuccess.build.success);
+    compare('success.build.diagnostics', nativeSuccess.build.diagnostics, browserSuccess.build.diagnostics);
+    compare('success.build.dependencyClosure', nativeSuccess.build.dependencyClosure, browserSuccess.build.dependencyClosure);
+    const nativeArtifact = nativeSuccess.build.outputFiles;
+    const browserArtifact = browserSuccess.build.outputFiles || [];
+    if (nativeArtifact.length === 0) fail('successful Native Build emitted no artifact files');
+    compare('success.build.outputFiles.paths', nativeArtifact.map(file => file.path), browserArtifact.map(file => file.path));
+    for (const file of browserArtifact) {
+      const expected = nativeArtifact.find(candidate => candidate.path === file.path);
+      if (!expected) fail(`unexpected browser artifact file ${file.path}`);
+      const actualHash = createHash('sha256').update(Buffer.from(file.bytes, 'base64')).digest('hex');
+      if (actualHash !== expected.sha256) fail(`artifact bytes differ for ${file.path}`);
+    }
+    console.log(`ok: successful-Build artifact byte parity (${browserArtifact.length} files)`);
+
+    const studioSuccess = await cdpEvaluate(`http://127.0.0.1:${debugPort}/json/version`, `http://127.0.0.1:${port}/studio.html?request=parity-success-request.json`, '__studio');
+    if (!studioSuccess.ok) fail(`Studio success-path error: ${studioSuccess.error}`);
+    compare('studio-success.buildSuccess', true, studioSuccess.buildSuccess);
+    compare('studio-success.artifactPaths', nativeArtifact.map(file => file.path), studioSuccess.artifactPaths);
+    if (!studioSuccess.artifactReadOnly) fail('Studio success-path artifact view must be read-only');
+    console.log('ok: Studio success-path artifact presentation identical');
+
     console.log('PASS: Native and real Chromium Worker projections are identical');
   } finally {
     chrome.kill();
