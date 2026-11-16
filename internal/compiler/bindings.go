@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
 func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.Node, path string) {
