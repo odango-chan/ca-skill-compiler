@@ -53,7 +53,7 @@ skillc build web/parity-success --out ./dist/skillc-output
 
 编译自己的项目时，CLI 接受包含 Skill 源码的项目目录；如果 Skill 声明了依赖，还需要提供依赖快照和可信构建元数据。也可以通过 `--request` 直接传入完整的 BuildRequest JSON。
 
-输入目录结构、命令参数、JSON 输出和退出码见 [CLI 使用说明](docs/cli-v1alpha4.md)。
+输入目录结构、命令参数、JSON 输出和退出码见 [CLI 使用说明](docs/cli-v1alpha4.zh-CN.md)。
 
 ## 从源码构建
 
