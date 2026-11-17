@@ -34,7 +34,7 @@ These documents are intended for contributors and maintainers; they are not requ
 - [Compiler acceptance record](COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) — implementation evidence and conformance coverage.
 - [Current maintenance status](WORK.md) — repository maintenance notes.
 - [Work history](WORK-history.md) — historical development log.
-- [Workstream records](workstreams/) — implementation and conformance planning.
+- [Workstream records](workstreams/README.md) — implementation and conformance planning.
 - [Dependency selection](design/oss-dependency-selection-v1alpha4.md) — selected third-party libraries and rationale.
 
 The root [README](../README.md) is the project introduction and quick-start guide. This index keeps detailed engineering records out of the main entry point.
