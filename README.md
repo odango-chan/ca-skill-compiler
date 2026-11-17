@@ -31,7 +31,7 @@ Download the binary for your platform from [Releases](https://github.com/odango-
 | macOS Apple Silicon | [skillc-v1.0.0-darwin-arm64](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/skillc-v1.0.0-darwin-arm64) |
 | macOS Intel | [skillc-v1.0.0-darwin-amd64](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/skillc-v1.0.0-darwin-amd64) |
 
-After downloading, place the native binary on your `PATH`. On macOS and Linux, make it executable before running it.
+Rename the downloaded binary to `skillc` (`skillc.exe` on Windows) and place it on your `PATH`. On macOS and Linux, make it executable before running it.
 
 The release also includes the [Go/WASM module](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/skillc-v1.0.0.wasm) and [SHA-256 checksums](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/SHA256SUMS).
 
