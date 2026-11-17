@@ -137,6 +137,22 @@ EW / IN 矩阵是联合符合性清单。Compiler 只执行静态可判定义务
 
 以下仍属于 Integration / Host / Runtime / Deployment 符合性义务，不是 Compiler 测试：EW-001–EW-011、EW-017、EW-020、EW-023–EW-026、EW-028、EW-032；以及 IN-008–IN-012、IN-016–IN-017、IN-022、IN-024–IN-027、IN-033–IN-038、IN-041、IN-043、IN-048–IN-051、IN-053–IN-054。IN-023、IN-039、IN-042、IN-044–IN-047 等共享案例可同时有 Compiler 静态 Fixture 和独立 Admission / Integration Fixture；不得把其中一个冒充另一个。
 
+### 4.3 WP1 Schema Closure Digest v1 实施边界
+
+当前 #62 提案已经超出普通递归 `$ref` 遍历。Compiler 必须把以下规则作为一个确定性的 Linking 输入整体实现：
+
+1. **受信 Artifact 绑定：** 将每个不透明 `artifactRef` 与规范化快照相对路径、Canonical Document URI、源 Dialect、解析后的 Document 及完整原始字节一一绑定。必须从不可变快照的真实字节重新计算 `artifactDigest`；不得信任 IngressCatalog 或测试向量声明的 Digest。
+2. **Canonical URI 规则：** 校验绝对、分层的 Snapshot Base URI；从百分号编码后的规范化路径推导 Document URI；规范化 Scheme / Host / 默认端口、Dot Segment 和 Percent Escape；拒绝 User-info、Query、Fragment、空白、反斜杠、非法 Escape 和歧义映射。URI 查询只能查内存快照，不得访问网络。
+3. **Dialect-aware Schema 发现：** OpenAPI 3.0 的根节点只能来自 OpenAPI Document 中的 Schema Object 位置，并遵循 OpenAPI 3.0 Schema 规则；JSON Schema Draft 2020-12 必须声明对应 Dialect，并使用其 Schema-valued Keywords。不得把一个 Dialect 转换解释成另一个。
+4. **嵌套资源身份：** OpenAPI 3.0 Schema Object 不得用 `$id` 建立 Base URI。JSON Schema 2020-12 必须按继承 Base 解析嵌套 `$id`，并将唯一、不可变的 Resource URI Alias 注册到精确的 Artifact-relative Schema Pointer。
+5. **引用解析：** 每个 `$ref` 按所在 Schema 的 Effective Base URI 解析；只允许解析到同一受信快照中的 Canonical Document URI 或已注册嵌套 `$id` Alias。Fragment 必须按严格 UTF-8 只解码一次，校验 RFC 6901，并将嵌套资源相对 Fragment 转换回精确的 Artifact-relative Pointer。
+6. **精确闭包：** 仅遍历对应 Dialect 支持的 Schema-valued 子结构；闭包必须包含 Root 及其全部且仅有的传递引用 Schema 节点；节点身份为精确的 `(artifactRef, pointer)`；循环按身份只访问一次；缺失 / 多余节点、Boolean Schema、非 Schema Pointer、不支持的 Anchor / Dynamic Reference、非法 ID 和快照越界均 fail-closed。
+7. **Digest：** 按规范构造 Manifest，包含每个节点的完整源 Artifact Digest 和精确解析后的 Schema 值；按 UTF-8 `artifactRef`、Pointer 排序；使用 RFC 8785 JCS；对精确的 v1 Domain Separator 与 JCS 字节求哈希。
+
+Compiler 符合性向量必须同时证明**原始字节绑定**和**引用解析**：即使解析后的 Schema 值不变，只要 Artifact 字节变化，`artifactDigest` 和 Closure Digest 也必须变化；嵌套 `$id` 的 Fragment 必须能解析到非 Root 的 Artifact-relative Pointer。只提供预解析引用边或硬编码 Digest 的向量不足以证明 Resolver 符合性。
+
+该实现必须与冻结的 v1alpha4 Schema Registry 隔离。不得静默改写 v1alpha4 的 Schema 身份和本地引用语义以采用新的 Ingress URI-reference 算法。
+
 ### 4.2 诊断归属与优先级
 
 代码实施前，语言 Owner 与导出契约 Owner 必须发布无冲突的诊断映射：
@@ -154,7 +170,7 @@ EW / IN 矩阵是联合符合性清单。Compiler 只执行静态可判定义务
 | WP | 工作 | 主要产出 | 入口条件 |
 |---|---|---|---|
 | WP0 | Language / API Freeze Inventory | 完整单文件规范、语言版本身份、BuildRequest / DependencyInspection / Artifact 决策、诊断目录 | 独立复审 #61 / #62 |
-| WP1 | IngressCatalog Admission / Linking | Export Parser、受信 Owner Binding、Schema Closure Digest v1 和精确引用闭包 | WP0 |
+| WP1 | IngressCatalog Admission / Linking | Export Parser、受信 Owner Binding、原始 Artifact Digest 校验、Dialect-aware Schema Closure Digest v1 和精确传递引用闭包 | WP0 |
 | WP2 | Wait Syntax / AST | Node-entry Grammar、Duration Parser、严格未知字段诊断 | WP0 |
 | WP3 | Trigger Binding | 精确 Operation 身份、armInputSchema 绑定、Start Context 绑定 | WP1 + WP2 |
 | WP4 | wait.output Dataflow | Normalized Schema 解析、JSON Pointer、可赋值性、边 / 路径敏感可用性 | WP1 + WP2 |
