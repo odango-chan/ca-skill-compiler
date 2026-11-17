@@ -629,16 +629,19 @@ func copyStringSet(set map[string]bool) map[string]bool {
 // validateV1Alpha5ProcedureGraph is the WP5 graph validation over one parsed
 // v1alpha5 Skill. It reuses inherited diagnostic identities only:
 //
-//   - undeclared business-stage route, TIMEOUT or response.after target:
-//     CONTROL_FLOW_DANGLING;
+//   - undeclared business-stage route target or grammatically valid undeclared
+//     TIMEOUT target: CONTROL_FLOW_DANGLING;
+//   - unknown response.after target: WAIT_RESPONSE_BOUNDARY_INVALID (Appendix
+//     L.11);
 //   - cycle through Wait entry vertices, EVENT_RECEIVED or TIMEOUT edges:
 //     CONTROL_FLOW_CYCLE;
 //   - only a reachable final Postcondition PASS may target SUCCEEDED:
 //     FINAL_POSTCONDITION_MISSING / SUCCESS_BYPASSES_FINAL_POSTCONDITION.
 //
-// response.after reachability and post-dominance are WP6; this WP checks only
-// that a present after value identifies a declared Node. Missing/invalid Wait
-// fields are already diagnosed by the WP2 parser and are not re-reported here.
+// response.after reachability and post-dominance for a *declared* Node are WP6;
+// this WP checks only that a present after value identifies a declared Node.
+// Missing/invalid Wait fields are already diagnosed by the WP2 parser and are
+// not re-reported here.
 func validateV1Alpha5ProcedureGraph(procedurePath string, skill *V1Alpha5SkillAST) []Diagnostic {
 	var diagnostics []Diagnostic
 	if skill == nil || skill.Procedure == nil || skill.Procedure.Raw == nil {
@@ -689,7 +692,9 @@ func validateV1Alpha5ProcedureGraph(procedurePath string, skill *V1Alpha5SkillAS
 	// Wait-control targets: TIMEOUT must be a declared Node or exactly one of
 	// the three permitted stopping terminals (grammar-level SUCCEEDED rejection
 	// stays WAIT_TIMEOUT_ROUTE_INVALID); a present response.after must identify a
-	// declared Node.
+	// declared Node (Appendix L.11: an unknown response.after is
+	// WAIT_RESPONSE_BOUNDARY_INVALID). Reachability and post-dominance of a
+	// *declared* response.after remain WP6.
 	for _, nodeID := range sortedStringMapKeys(procedure.ByID) {
 		node := procedure.ByID[nodeID]
 		if node == nil || node.Wait == nil {
@@ -703,8 +708,8 @@ func validateV1Alpha5ProcedureGraph(procedurePath string, skill *V1Alpha5SkillAS
 		}
 		if node.Wait.Response != nil && node.Wait.Response.After != "" {
 			if _, ok := declared[node.Wait.Response.After]; !ok {
-				add(child(node.Wait.Response.Raw, "after"), "CONTROL_FLOW_DANGLING",
-					"Wait response.after value must identify an existing Node")
+				add(child(node.Wait.Response.Raw, "after"), "WAIT_RESPONSE_BOUNDARY_INVALID",
+					"Node '"+nodeID+"' wait.response.after does not identify one reachable response boundary on every accepted-event path.")
 			}
 		}
 	}

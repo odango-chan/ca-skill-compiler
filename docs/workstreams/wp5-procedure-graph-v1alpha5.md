@@ -19,7 +19,7 @@ qualification. v1alpha4 remains the only published authoring contract.
 | TIMEOUT edge | Entry vertex → `wait.routes.TIMEOUT` target as a `TIMEOUT` control edge (L.2.2) |
 | Business-stage edges | Inherited v1alpha4 stage outcome → route semantics; no new route key |
 | Start | The Procedure start vertex; the entry vertex when the start Node carries a Wait |
-| Route identity | Undeclared business-stage route target, TIMEOUT target and `response.after` target → inherited `CONTROL_FLOW_DANGLING` |
+| Route identity | Undeclared business-stage route target and grammatically valid undeclared TIMEOUT target → inherited `CONTROL_FLOW_DANGLING`; unknown `response.after` target → `WAIT_RESPONSE_BOUNDARY_INVALID` (L.11) |
 | DAG | Cycle through Wait entry vertices and `EVENT_RECEIVED`/`TIMEOUT` edges → inherited `CONTROL_FLOW_CYCLE` |
 | Goal proof | Only a reachable final Postcondition PASS route directly targeting `SUCCEEDED` proves the Goal; `FINAL_POSTCONDITION_MISSING` / `SUCCESS_BYPASSES_FINAL_POSTCONDITION` reused; event receipt alone proves nothing |
 | Graph API | Reachability, dominator and post-dominator computation with `Dominates`/`PostDominates` queries, deterministic and reusable by WP4/WP6 |
@@ -71,16 +71,18 @@ route from any business stage -> target Node
   terminal vertex.
 - Invalid grammar values (e.g. a missing/invalid TIMEOUT target) are already
   diagnosed by WP2 and are not re-reported. The graph adds edges only for
-  resolved targets and diagnoses an undeclared but grammatically valid NodeId
-  target as `CONTROL_FLOW_DANGLING`.
+  resolved targets. An undeclared but grammatically valid **business-route or
+  TIMEOUT NodeId** target is diagnosed as `CONTROL_FLOW_DANGLING`; an undeclared
+  **`response.after`** target is diagnosed as `WAIT_RESPONSE_BOUNDARY_INVALID`
+  (Appendix L.11), not as a generic graph-target error.
 
-### 3.2 Validation rules (inherited diagnostic identities only)
+### 3.2 Validation rules (inherited / Appendix L.11 identities only)
 
 | Rule | Diagnostic | Anchor |
 |---|---|---|
 | Business-stage route value is neither a terminal nor a declared Node | `CONTROL_FLOW_DANGLING` | route value node |
 | Grammatically valid TIMEOUT NodeId target is undeclared | `CONTROL_FLOW_DANGLING` | `TIMEOUT` value node |
-| `response.after` is a grammatically valid NodeId but not a declared Node | `CONTROL_FLOW_DANGLING` (WP5 declaration check; reachability is WP6) | `after` value node |
+| `response.after` is a grammatically valid NodeId but not a declared Node | `WAIT_RESPONSE_BOUNDARY_INVALID` (WP5 declaration check; reachability/post-dominance of a declared boundary is WP6) | `after` value node |
 | Start-reachable cycle including Wait entry vertices and `EVENT_RECEIVED`/`TIMEOUT` edges | `CONTROL_FLOW_CYCLE` | Procedure root |
 | A reachable `SUCCEEDED` target exists but no reachable final Postcondition PASS proof does | `FINAL_POSTCONDITION_MISSING` | Procedure root |
 | A legal Goal proof exists and another reachable non-final stage routes `SUCCEEDED` | `SUCCESS_BYPASSES_FINAL_POSTCONDITION` | route value node |
@@ -113,17 +115,26 @@ This API is the intended input for WP4 (`wait.output` availability on every path
 dominated by the event-accepted edge) and WP6 (response-boundary
 post-dominance). Neither WP4 nor WP6 logic is implemented here.
 
-### 3.4 Contract note: undeclared `response.after`
+### 3.4 `response.after` identity split
 
-Spec Appendix L.11 lists `WAIT_RESPONSE_BOUNDARY_INVALID` for an
-unknown/unreachable `response.after`, while the WP5 goal row and this work
-package scope require validation against inherited graph identities only and
-defer `response.after` reachability/post-dominance to WP6. WP5 therefore reports
-the **declaration-only** failure with the inherited `CONTROL_FLOW_DANGLING`
-identity (as explicitly required for the WP5 test set) and does not emit a
-boundary diagnostic for a well-formed but undeclared target. WP6/WP7 must
-reconcile the final identity mapping for the reachability case. This is recorded
-as an open contract item, not silently decided.
+Appendix L.11 assigns `WAIT_RESPONSE_BOUNDARY_INVALID` to a
+`response.after` that is unknown/unreachable, bypassed by a normal accepted
+path, preceded by a success terminal, or omitted when the export requires a later
+boundary. Accordingly:
+
+- **unknown / not a declared Node** → `WAIT_RESPONSE_BOUNDARY_INVALID` /
+  `C_STATIC` / `error`, anchored at the `after` value node. This WP5 declaration
+  check is implemented in `v1alpha5_graph.go`.
+- **declared Node, but unreachable / not post-dominating every accepted-event
+  path** → still `WAIT_RESPONSE_BOUNDARY_INVALID`, but the reachability and
+  post-dominance proof is **WP6**; WP5 exposes the dominator/post-dominator API
+  WP6 needs and does not claim that proof.
+- **absence** of `response`/`after` → default boundary is the Wait-bearing Node's
+  own completion (L.8.1); the export-required later boundary is WP6.
+
+`CONTROL_FLOW_DANGLING` remains the identity for an undeclared business-stage
+route target and for a grammatically valid undeclared TIMEOUT NodeId target
+(L.2.2 explicitly assigns that case to the existing graph diagnostic).
 
 ## 4. Clause → test traceability
 
@@ -148,13 +159,13 @@ as an open contract item, not silently decided.
 
 | Item | WP5 status |
 |---|---|
-| L.11 reuse of `CONTROL_FLOW_DANGLING`, `CONTROL_FLOW_CYCLE`, `FINAL_POSTCONDITION_MISSING`, `SUCCESS_BYPASSES_FINAL_POSTCONDITION`; no invented code | Implemented; asserted across the graph tests |
+| L.11 reuse of `CONTROL_FLOW_DANGLING`, `CONTROL_FLOW_CYCLE`, `FINAL_POSTCONDITION_MISSING`, `SUCCESS_BYPASSES_FINAL_POSTCONDITION`; no invented code; `WAIT_RESPONSE_BOUNDARY_INVALID` (L.11) for an unknown `response.after` | Implemented; asserted across the graph tests |
 | EW-012 (`wait.output` referenced on a timeout/bypass path → `SOURCE_NOT_AVAILABLE`) | Graph dependency and dominance API ready; SourcePath rule deferred to WP4 — **NOT_IMPLEMENTED in WP5** |
 | EW-013 (Wait Node has no business stage → `WAIT_NODE_STAGE_REQUIRED`) | Delivered by WP2: `TestV1Alpha5WaitDiagnosticAnchors/wait-only_node_anchors_at_wait_mapping` |
 | EW-014 (TIMEOUT route targets `SUCCEEDED` → `WAIT_TIMEOUT_ROUTE_INVALID`) | Delivered by WP2: `TestV1Alpha5WaitDiagnosticAnchors/TIMEOUT_to_SUCCEEDED_anchors_at_value`; WP5 graph never creates a TIMEOUT edge to `SUCCEEDED` (`TestV1Alpha5GraphEventReceivedIsNotGoalProof` edge-kind assertion) |
 | EW-016 (one incoming path cannot derive correlation before trigger → `WAIT_CORRELATION_BINDING_INVALID`) | Deferred to WP3; WP5 supplies the per-incoming-path graph (all incoming edges target the entry vertex) — **NOT_IMPLEMENTED in WP5** |
 | EW-019 (`response.after` bypassed by a normal accepted path → `WAIT_RESPONSE_BOUNDARY_INVALID`) | Deferred to WP6; WP5 provides `Dominates`/`PostDominates` — **NOT_IMPLEMENTED in WP5** |
-| EW-030 (`response.after` names an unknown or unreachable Node) | Declaration half implemented as `CONTROL_FLOW_DANGLING` (`TestV1Alpha5GraphDanglingResponseAfterTarget`); reachability half deferred to WP6 — **PARTIAL** |
+| EW-030 (`response.after` names an unknown or unreachable Node) | Declaration half implemented as `WAIT_RESPONSE_BOUNDARY_INVALID` (`TestV1Alpha5GraphUnknownResponseAfterTarget`); declared-but-unreachable/post-dominance half deferred to WP6 — **PARTIAL** |
 | EW-033 (Wait routes mapping or TIMEOUT key missing → `WAIT_TIMEOUT_ROUTE_INVALID`) | Delivered by WP2: `TestV1Alpha5WaitMissingRequiredSections` |
 | EW-034 (author declares `EVENT_RECEIVED` or another key under `wait.routes`) | Delivered by WP2 test; WP5 models the normal event edge as implicit control (`TestV1Alpha5GraphWaitEntryVerticesAndControlEdges`) |
 
@@ -167,7 +178,8 @@ as an open contract item, not silently decided.
 | `TestV1Alpha5GraphWaitBearingStartNode` | Wait-bearing start Node starts at its entry vertex |
 | `TestV1Alpha5GraphPositiveProcedureHasZeroDiagnostics` | Positive single-Wait, multi-Wait, Wait-start Procedures through the public `Check` path |
 | `TestV1Alpha5GraphTimeoutEdgeCycle` | `CONTROL_FLOW_CYCLE` for a TIMEOUT edge re-entering an earlier Node and for a self-target |
-| `TestV1Alpha5GraphDanglingTimeoutTarget` / `.../ResponseAfterTarget` / `.../BusinessRouteTarget` | `CONTROL_FLOW_DANGLING` at the exact offending value with `C_STATIC`/`error` |
+| `TestV1Alpha5GraphDanglingTimeoutTarget` / `.../BusinessRouteTarget` | `CONTROL_FLOW_DANGLING` at the exact offending value with `C_STATIC`/`error` |
+| `TestV1Alpha5GraphUnknownResponseAfterTarget` / `TestV1Alpha5GraphDeclaredResponseAfterTargetIsAccepted` | Unknown `response.after` → `WAIT_RESPONSE_BOUNDARY_INVALID` (not `CONTROL_FLOW_DANGLING`); a declared boundary Node is accepted (declaration-only check) |
 | `TestV1Alpha5GraphFinalSuccessRequiresPostconditionPASS` | Missing final proof, legal proof, bypass, and unreachable illegal success |
 | `TestV1Alpha5GraphEventReceivedIsNotGoalProof` | Control edges are never Goal proofs; only final Postcondition PASS counts |
 | `TestV1Alpha5GraphDominatorAndPostDominatorAlgorithm` | Dominator/post-dominator unit semantics, multi-path joins, virtual exit not exposed, unreachable vertices |
@@ -204,8 +216,7 @@ execution evidence only.
 |---|---|
 | Trigger Operation binding and per-incoming-path correlation proof (`WAIT_CORRELATION_BINDING_INVALID`, typed `armInputSchema`) | WP3 |
 | `wait.output` Producer SourcePath, normalized request Schema, path-sensitive availability (`SOURCE_NOT_AVAILABLE`/`SOURCE_PATH_INVALID`, EW-012) using the graph dominance API | WP4 |
-| `response.after` reachability and post-dominance, boundary Producer/`responseResultSchema`, response dispositions (`WAIT_RESPONSE_BOUNDARY_INVALID`, `WAIT_RESPONSE_MAPPING_INVALID`, EW-019/EW-021/EW-030 reachability) | WP6 |
-| Final identity mapping between `CONTROL_FLOW_DANGLING` (WP5 declaration check) and `WAIT_RESPONSE_BOUNDARY_INVALID` (L.11 unknown/unreachable) | WP6/WP7 |
+| `response.after` reachability and post-dominance for a *declared* boundary Node, boundary Producer/`responseResultSchema`, response dispositions (`WAIT_RESPONSE_BOUNDARY_INVALID` reachability cases, `WAIT_RESPONSE_MAPPING_INVALID`, EW-019/EW-021/EW-030 reachability) | WP6 |
 | Full inherited v1alpha4 stage route cardinality/eligibility matrix for v1alpha5 (`ROUTE_OUTCOME_MISSING`, `ROUTE_NORMAL_OUTCOME_NOT_ALLOWED`, route-key eligibility) | Later v1alpha5 slice (not in WP5 scope) |
 | `UNREACHABLE_NODE` warning for v1alpha5 | Deliberately not emitted in WP5; reachability is exposed via the graph API |
 | EW-001–EW-036 executable fixture/diagnostic-index/messageKey mapping | WP7 |

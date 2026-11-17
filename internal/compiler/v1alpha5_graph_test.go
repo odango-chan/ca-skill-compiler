@@ -337,7 +337,7 @@ nodes:
 	}
 }
 
-func TestV1Alpha5GraphDanglingResponseAfterTarget(t *testing.T) {
+func TestV1Alpha5GraphUnknownResponseAfterTarget(t *testing.T) {
 	procedure := `start: wait-node
 nodes:
   wait-node:
@@ -358,10 +358,55 @@ nodes:
         SUCCEEDED: SAFE_STOPPED
 `
 	diagnostics := v1alpha5CheckProcedure(t, procedure)
-	// WP5 checks only declaration here; reachability/post-dominance is WP6.
-	assertV1Alpha5DiagnosticAt(t, diagnostics, "CONTROL_FLOW_DANGLING", 11, 16)
-	if hasV1Alpha5Diagnostic(diagnostics, "WAIT_RESPONSE_BOUNDARY_INVALID") {
-		t.Fatalf("a syntactically valid after value must not be a WP2 boundary-shape error: %#v", diagnostics)
+	// Appendix L.11: an unknown response.after is WAIT_RESPONSE_BOUNDARY_INVALID,
+	// not a generic graph-target error. Reachability of a *declared* boundary is
+	// WP6.
+	assertV1Alpha5DiagnosticAt(t, diagnostics, "WAIT_RESPONSE_BOUNDARY_INVALID", 11, 16)
+	diagnostic := findV1Alpha5Diagnostic(diagnostics, "WAIT_RESPONSE_BOUNDARY_INVALID")
+	if diagnostic == nil || diagnostic.Message == "" {
+		t.Fatalf("WAIT_RESPONSE_BOUNDARY_INVALID must carry the L.11.1 semantic message: %#v", diagnostics)
+	}
+	if hasV1Alpha5Diagnostic(diagnostics, "CONTROL_FLOW_DANGLING") {
+		t.Fatalf("an unknown response.after must not be reported as CONTROL_FLOW_DANGLING: %#v", diagnostics)
+	}
+}
+
+func TestV1Alpha5GraphDeclaredResponseAfterTargetIsAccepted(t *testing.T) {
+	procedure := `start: wait-node
+nodes:
+  wait-node:
+    wait:
+      event:
+        source: SMF
+        service: nsmf-pdusession
+        operation: UpdateSMContext
+      timeout: PT30S
+      response:
+        after: prepare-response
+      routes:
+        TIMEOUT: SAFE_STOPPED
+    operation:
+      tool: ca::smf.x
+      arguments: {}
+      routes:
+        SUCCEEDED: prepare-response
+  prepare-response:
+    observation:
+      tool: ca::smf.observe_response
+      arguments: {}
+      routes:
+        SUCCEEDED: SAFE_STOPPED
+        FAILED: SAFE_STOPPED
+        OUTCOME_UNKNOWN: UNRESOLVED
+`
+	// Declaration-only check: a declared boundary Node is accepted here even
+	// though reachability/post-dominance (WP6) is not yet implemented.
+	if diagnostics := v1alpha5CheckProcedure(t, procedure); len(diagnostics) != 0 {
+		t.Fatalf("a response.after naming a declared Node must not be a WP5 error, got %#v", diagnostics)
+	}
+	graph := buildV1Alpha5ProcedureGraph(v1alpha5ParseTestProcedure(t, procedure))
+	if !graph.Dominates("prepare-response", "prepare-response") {
+		t.Fatal("declared response boundary must be a graph vertex")
 	}
 }
 
@@ -694,7 +739,7 @@ nodes:
 		codes = append(codes, diagnostic.Code)
 	}
 	sort.Strings(codes)
-	want := []string{"CONTROL_FLOW_DANGLING", "CONTROL_FLOW_DANGLING", "CONTROL_FLOW_DANGLING"}
+	want := []string{"CONTROL_FLOW_DANGLING", "CONTROL_FLOW_DANGLING", "WAIT_RESPONSE_BOUNDARY_INVALID"}
 	if !reflect.DeepEqual(codes, want) {
 		t.Fatalf("diagnostic codes = %#v, want %#v", codes, want)
 	}
