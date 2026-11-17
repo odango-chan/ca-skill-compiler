@@ -1,8 +1,8 @@
 # Next CA Skill Compiler Development Plan
 
-**Status:** DRAFT — architecture and work-package preparation only; implementation against a new language target is not yet authorized.  
-**Baseline:** CA Skill Compiler v1.0.0; the only released language target is frozen CA-SL v1alpha4.  
-**Next language version:** Unassigned. This document does not infer or allocate a version identifier.
+**Status:** DRAFT — isolated v1alpha5 candidate implementation may start; public target enablement and release remain gated.  
+**Baseline:** CA Skill Compiler v1.0.0; released v1alpha4 remains immutable.  
+**Next language target:** `connectionagent.io/v1alpha5` is assigned in the CA-SL review candidate; it is NOT RELEASED / NOT QUALIFIED.
 
 ## 1. Objective
 
@@ -23,14 +23,18 @@ The target capabilities are:
 |---|---|---|---|
 | Node-entry Wait semantic baseline | ca-skills #60 | Merged | Semantic basis |
 | EVENT_ACCEPTED tombstone / stale-message isolation | ca-skills #64 | Merged | Runtime invariant; Compiler links the declared correlation policy |
-| Normative Wait amendment | ca-skills #61 | Draft; language version unassigned | Grammar, diagnostics, SourcePath and graph rules are not frozen |
-| Integration Ingress Operation | ca-skills #62 | Draft | IngressCatalog, Schema Closure Digest, normalization and response mapping are not frozen |
+| v1alpha5 single-file language candidate | ca-skills #61, head `e6569713` | Draft; target assigned; semantic baseline marked frozen; full text and conformance material under independent review | 5,474-line single-file candidate exists; Appendix L defines Wait grammar/semantics; Appendix H adds 9 C_STATIC WAIT diagnostics; EW-001–EW-036 remain specification-only |
+| Integration Ingress Operation | ca-skills #62, head `d0fe2be` | Draft; current schema/vector workflows PASS; contract not frozen | IngressCatalog, exact linker semantics and diagnostic ownership still require finalization; raw-byte and nested-resource resolver vector gaps have been addressed in current head |
 | Generic Host / Runtime continuation | ca-agent-demo #210 | Draft, design-only | Compiler consumes language/export contracts; it does not implement Host/Runtime |
 | 5GC SBI continuation profile | ca-agent-demo #213 (supersedes closed #209) | Draft, design-only | Example profile, not 5GC-specific Compiler semantics |
 
-v1alpha4 must continue rejecting author-level `wait`, `wait.output` and `ingressOperation`. The existing frozen diagnostics remain unchanged. PR #61 explicitly prohibits treating its draft as v1alpha4 or inferring the next language version. The Ingress Operation is a separate package-scoped export, not a ToolCatalog callable, Observation or Capability.
+v1alpha4 must continue rejecting author-level `wait`, `wait.output` and `ingressOperation`. The existing frozen diagnostics remain unchanged. The v1alpha5 target identity is no longer unassigned: the current #61 candidate names `connectionagent.io/v1alpha5` and provides a complete single-file review artifact. Its header marks the semantic baseline frozen, but the full normative text and conformance material remain under independent review; it is NOT RELEASED / NOT QUALIFIED. The 36 EW obligations are explicitly `SPECIFICATION_ONLY`, not executed tests. v1alpha4 must continue rejecting author-level `wait`, `wait.output` and `ingressOperation`; its decoder, diagnostics and released bytes remain unchanged.
 
-Real Owner/Deployment publications and live 5GC qualification do not block independent Compiler implementation. Once the format is frozen, synthetic trusted fixtures are sufficient for Compiler tests; they must never be reported as real interoperability evidence.
+The Ingress Operation is a separate package-scoped export, not a ToolCatalog callable, Observation or Capability. The current #62 head now verifies exact raw source bytes against each `artifactDigest`, proves nested-`$id` fragment translation to a non-root artifact pointer, and passes its two current workflows. The PR remains Draft because the export contract and the cross-contract `INGRESS_*` / existing-diagnostic ownership map are not frozen.
+
+**Implementation decision:** start isolated WP2 Wait grammar/AST work against the exact v1alpha5 candidate and continue WP1 Schema Closure work behind internal interfaces. Do not expose a public v1alpha5 Build target, alter v1alpha4, or claim Compiler conformance until #61/#62 and the versioned API contracts are frozen.
+
+Real Owner/Deployment publications and live 5GC qualification do not block independent static Compiler implementation. Synthetic trusted fixtures are sufficient for static development; they must never be reported as real interoperability evidence.
 
 ## 3. Versioned API impact
 
@@ -212,18 +216,22 @@ The automated source-lock fixture in ca-skills #62 remains on TS 29.502/29.571 V
 
 ## 9. Implementation gate
 
-**Can start now:** contract review; API-version/target-dispatch design; the v1alpha4 compatibility harness; the exact Compiler-owned EW/IN fixture inventory; Schema Closure Digest implementation spike behind an internal interface; and synthetic snapshot/IngressCatalog fixture preparation. These activities must not expose a new public target or change the released v1alpha4 path.
+**Can start now (isolated candidate work):**
+- WP2: implement and test the v1alpha5 Wait grammar/AST against the exact #61 single-file candidate; keep it outside the v1alpha4 dispatch.
+- WP1: implement the Schema Closure resolver behind an internal interface using immutable synthetic snapshots; current #62 vector now covers raw-byte binding and nested-resource pointer translation.
+- Build the v1alpha4 compatibility harness and EW/IN static fixture inventory.
+- Design API-version dispatch before language-target dispatch.
 
-**Formal new-target implementation requires:**
+**Still gated before public v1alpha5 target integration / release:**
 
-1. The CA-SL language owner assigns the next language version and publishes the complete single-file specification.
-2. The #61 grammar, Wait output, graph, response-boundary, diagnostics and Compiler-owned conformance subset are frozen.
-3. The #62 IngressCatalog schema, Schema Closure Digest, correlation/stale-delivery, trigger binding and response-mapping contract is frozen, including the exact diagnostic namespace/precedence.
+1. #61 completes independent full-text review and freezes/publishes the v1alpha5 normative single-file specification and its exact diagnostic index.
+2. #62 freezes the IngressCatalog schema, Schema Closure Digest, correlation/stale-delivery, trigger binding and response mapping contract.
+3. #62 and #61 publish one collision-free diagnostic ownership/precedence contract: reuse existing frozen dependency/export/schema/source-path diagnostics where applicable; reserve WAIT diagnostics for Skill Wait selection/binding/boundary errors; define any remaining INGRESS diagnostics with exact `(Code, Phase)`, severity, precedence and source-location rules.
 4. New BuildRequest, DependencyInspection and Artifact Manifest API versions are decided independently; BuildResult is explicitly retained or versioned based on its actual shape.
 5. Target dispatch preserves v1alpha4 behavior and the published v1.0.0 Artifact unchanged.
 6. The inherited v1alpha4 WP6/WP7/WP8 limitations have explicit carry-forward dispositions so the next target does not claim positive Build support for features that still fail closed.
 
-After these gates, target-specific WP1–WP8 may proceed using synthetic trusted snapshots. Real 5GC Owner publication or E2E qualification is not a prerequisite for Compiler implementation; it is a separate product-qualification gate.
+Real 5GC Owner publication or E2E qualification is not a prerequisite for isolated static Compiler development; it remains a separate product-qualification gate.
 
 ## 10. Acceptance
 
