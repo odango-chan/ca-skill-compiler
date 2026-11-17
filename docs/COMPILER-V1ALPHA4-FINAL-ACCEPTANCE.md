@@ -1,268 +1,183 @@
-# Compiler v1alpha4 â€” Implementation & Acceptance Status
+# Compiler v1alpha4 â€?Implementation & Acceptance Status
 
-**Status:** IN PROGRESS â€” NOT_QUALIFIED. This is a truthful live status record, not a conformance claim.
-**Normative authority:** CA-SL v1alpha4, `ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d`.
-**Acceptance method:** local reproducible commands only (maintainer instruction); GitHub Actions is not used as an acceptance dependency.
+**Status:** Compiler implementation complete for all frozen, implementable semantics and
+locally verified. Product conformance / real deployment qualification is **NOT_QUALIFIED**
+and is not claimed. This is a truthful live status record backed by executed local
+commands, not a conformance certificate.
 
-## 1. Stacked implementation PRs
+**Normative authority:** CA-SL v1alpha4,
+`ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d`, file
+`docs/skill-language-spec.v1alpha4.zh-CN.md`,
+blob `b70064c5737b8ee2b3d1435fe496357f44b42773`.
 
-| PR | Scope | State |
+**Acceptance method:** local reproducible commands only. GitHub Actions is unavailable for
+this run (account billing block) and is never reported as PASS.
+
+## 1. Repository and PR state
+
+| Item | State |
+|---|---|
+| Repository | `odango-chan/ca-skill-compiler` |
+| Active branch | `feat/compiler-v1alpha4-wp9-script-abi-20261116` |
+| Active PR | Draft [#24](https://github.com/odango-chan/ca-skill-compiler/pull/24), base `feat/compiler-v1alpha4-wp6-sourcepath-20261116` |
+| Historical stack | PR #11â€?23 open; none merged, closed or force-pushed |
+| Direct-to-main commits | none |
+| Working tree | clean at the verified head (see Â§9) |
+
+The v1alpha4 implementation is stacked in dependency order. PR #24 is the continuation
+branch; it contains the WP9â€“WP12 work, the CLI v1 completion, artifact/parity/Studio
+integration and the conformance slices. No PR is merged automatically.
+
+## 2. Work-package implementation status
+
+| WP | Scope | Status | Evidence |
+|---|---|---|---|
+| WP0 | OSS selection, frozen contracts | **DONE** | [OSS ADR](design/oss-dependency-selection-v1alpha4.md); goccy/go-yaml v1.19.2, San v6.0.3, cel-go v0.33.2, gositter v0.2.0, gowebpki/jcs v1.0.2 integrated |
+| WP1 | BuildRequest, digest, limits, Native/WASM transport | **PASS (local)** | `internal/compiler/api_v1alpha4_test.go`, `dependency_identity_test.go`, `cmd/skillc-wasm/request_size_test.go` |
+| WP2 | Single normalized YAML AST with positions | **PASS (local)** | `internal/compiler/yamlast/parser_test.go`, `single_parser_test.go`, `determinism_test.go` |
+| WP3A | Dependency snapshot identity and trust binding | **PASS (local)** | WP3A fixtures 10/10; `dependency_identity_test.go` |
+| WP3B | ToolCatalog export identity / Owner attribution | **PASS (local)** | WP3B fixtures 9/9; `owner_linking_test.go` |
+| WP3C | CapabilityContracts linking | **PASS (local)** | WP3C fixtures 11/11; `capability_linking_test.go` |
+| WP3D | Integrated linking and DependencyInspection | **PASS (local)** | WP3D fixtures 7/7; `dependency_inspection_test.go` |
+| WP4A | G.4 Schema allowlist | **PASS (local)** | 9/9 fixtures; `schema_g4_test.go` |
+| WP4B | Schema registry / closure / San adapter | **PASS (local)** | 6/6 fixtures; `schema_registry_test.go`, `context_schema_*_test.go` |
+| WP4C | F.5 conservative assignability | **PASS (local)** | 6/6 fixtures; `schema_assignability_test.go` |
+| WP4D | CEL subset and Predicate signatures | **PASS (local)** | 5/5 fixtures; `cel_check_test.go` |
+| WP5 | Procedure graph, stages, routes, dominance, retry/reconcile linkage | **PARTIAL (implementation slices pass)** | `procedure_graph_test.go`, `procedure_stages_test.go`, `route_*_test.go`, `retry_*_test.go`; exact auto-advance dominance and final-Postcondition precision remain implementation-depth items, not external blockers |
+| WP6 | SourcePath grammar, typing, producer dominance/availability | **PARTIAL (fail-closed identity input)** | `source_path_*_test.go`, `argument_*_test.go`; identity-input provenance requires an unfrozen trusted publication, so it fails closed |
+| WP7 | Evidence binding, independence, static satisfiability | **PARTIAL (fail-closed descriptor content)** | `evidence_linking_test.go`, `predicate_evidence_static_test.go`; Descriptor/Producer/Scope/Correlation/Freshness relations fail closed (no frozen physical format) |
+| WP8 | Mutation / Reconcile / retry static contracts | **PARTIAL (fail-closed cross-snapshot)** | `mutation_contracts_test.go`, `reconcile_contracts_test.go`, `retry_*_test.go`; cross-snapshot Reconcile association and Runtime retry admission fail closed / outside Compiler |
+| WP9 | Python CST + Script ABI | **PARTIAL (near complete)** | `internal/pythoncst`, `script_abi_test.go`, `script_*_test.go`; CST parsing, typed input, strict TypedDict output, call-site keys, F.5 typing, key access/guards, PredicateInput projection implemented; Evidence projection blocked |
+| WP10 | Deterministic Artifact (JCS tree/manifest, integrity) | **PASS (local)** | `internal/artifact/*_test.go`, `artifact_pipeline_test.go`, `TestCLIEndToEndTrustedBuildAndDeterminism`; repeated builds byte-identical |
+| WP11 | Native/WASM/Chromium parity | **PASS (local, real headless Chromium)** | `CHROMIUM_PARITY=1 go test ./internal/parity`; check/build/inspect projections and artifact bytes identical |
+| WP12 | Skill Studio read-only integration | **PASS (local, real Chromium)** | `web/studio.html`, `internal/parity/chromium_test.go`; unified Worker result, positioned diagnostics, read-only artifact view; Studio product editor is outside this repository |
+| WP13 | Real 5GC/MAS qualification | **NOT_QUALIFIED (external)** | No real v1alpha4 Owner/Deployment publications; MAS not runnable. Not counted as PASS |
+| WP-A | CLI v1 | **PASS (local, CLI E2E)** | [CLI v1alpha4](cli-v1alpha4.md), `cmd/skillc/e2e_test.go` |
+| WP-B | Dependency snapshot and inspection (CLI-visible) | **PASS (local)** | `check`/`inspect` CLI commands, `DependencyInspection` API and tests |
+
+"PASS (local)" means the repository's executable tests and local gates pass in this
+environment for that slice. It is not a conformance certificate and does not imply WP13.
+
+## 3. CLI v1
+
+`skillc` is implemented as a thin adapter over the same Compiler Core used by Native,
+Go/WASM and Studio:
+
+```text
+skillc check   <PROJECT> | --request FILE     [--skill NAME]... [--json]
+skillc build   <PROJECT> | --request FILE     [--out DIR] [--skill NAME]... [--json]
+skillc inspect <PROJECT> | --request FILE     [--json]
+skillc help
+```
+
+- Reads author source from a project directory (`skills/` or `files/skills/`).
+- Configures dependencies/external imports through the project's `snapshots/` +
+  `trusted.json` layout or an exact BuildRequest v1alpha4 JSON document.
+- Runs the full compile and link pipeline (`Check`/`Build`) and writes the artifact tree
+  only after `VerifyBuildResult` succeeds.
+- Checks build results and dependency resolution (`inspect`, JSON contracts).
+- Emits human-readable diagnostics on stderr (`path:line:column: severity phase CODE:
+  message`) and machine-readable JSON on stdout (`Diagnostic[]`, `BuildResult`,
+  `DependencyInspection` matching the frozen output contract).
+- Exit codes: `0` success, `1` compilation/artifact failure, `2` usage/input/I-O error.
+- Fails closed on missing dependencies; no inference, no silent success.
+
+Full reference and examples: [CLI v1alpha4](cli-v1alpha4.md).
+
+## 4. E-coverage
+
+Machine-readable source: `tests/conformance/v1alpha4/e-coverage.json`.
+The frozen case index (`case-index.json`) lists per-case owners. Current disposition for
+E01â€“E120:
+
+| Disposition | Count | Meaning |
 |---|---|---|
-| #13 | WP1 BuildRequest / digest | Open |
-| #14 | WP2 normalized YAML parser / AST | Open |
-| #15 | WP3A dependency snapshot identity & trust binding | Draft |
-| #16 | WP3B ToolCatalog export identity & Owner attribution | Draft |
-| #17 | WP3C trusted CapabilityContracts linking | Draft |
-| #18 | WP3D integrated linking & DependencyInspection | Draft |
-| #19 | WP4A/WP4B G.4 allowlist, registry/closures, San adapter | Draft |
-| #20 | WP4C F.5 conservative assignability engine | Draft |
-| #21 | WP4D CEL subset & Predicate signatures | Draft |
-| #22 | WP5 Procedure reachability, dominance, stage routes | Draft |
-| #23 | WP6 SourcePath grammar, typing, dominance, availability, F.5 argument typing | Draft |
+| `PARTIAL_STATIC_EVIDENCE` | 71 | At least one sub-branch has executed static evidence; the case is not claimed as a whole-case PASS |
+| `NOT_APPLICABLE_TO_COMPILER` | 39 | Case owner is Host/Runtime only |
+| `BLOCKED_EXTERNAL_CONTRACT` | 7 | E38, E46, E68, E87, E101, E102, E109 â€?require an unfrozen external publication |
+| `BLOCKED_NORMATIVE_MAPPING` | 2 | E71, E74 â€?frozen expected code cannot be distinguished without clarification |
+| Whole-case `PASS` | **0** | No case is claimed as a whole-case conformance PASS |
 
-## 2. Work-package status
+**Discipline:** BLOCKED is never counted as PASS, N/A is never counted as PASS, and
+PARTIAL means exactly what it says. No case remains `NOT_RUN`; every case has an explicit
+disposition and owner justification.
 
-| WP | Status | Evidence / notes |
-|---|---|---|
-| WP0 OSS dependency selection | **DONE (ADR frozen)** | goccy/go-yaml v1.19.2, San v6.0.3, cel-go v0.33.2 integrated for their slices |
-| WP1 BuildRequest / digest / APIs | **PASS (PR #13)** | strict decoding, limits, digest golden vectors, Native/WASM entrypoints |
-| WP2 normalized YAML AST | **PASS (PR #14)** | single goccy AST adapter, duplicate keys, source positions |
-| WP3A dependency identity | **PASS slice** | WP3A fixtures 10/10; aliases, trust binding, exact Stable Package ID, closure |
-| WP3B ToolCatalog / Owner | **PASS slice** | WP3B fixtures 9/9; callable/Schema export identity, E05/E39/E43/E91 |
-| WP3C CapabilityContracts | **PASS slice** | WP3C fixtures 11/11; membership, Effect, Grant, Scope-ref presence; empty-intersection not claimed (no frozen policy format) |
-| WP3D integrated linking | **PASS slice** | WP3D fixtures 7/7; snapshot-scoped DependencyInspection, Reconcile anti-bypass |
-| WP4A G.4 allowlist | **PASS slice** | 9/9 fixtures; complete keyword allowlist, Request root shape |
-| WP4B registry / closure / San | **PASS slice** | 6/6 fixtures; exact `$id` closure, deny-by-default loader, Context root rules |
-| WP4C F.5 assignability | **PASS engine** | 6/6 unit fixtures; call sites in WP6 |
-| WP4D CEL subset | **PASS slice** | 5/5 fixtures; subset whitelist + Predicate signatures; guard proofs deferred WP6 |
-| WP5 Procedure graph | **PARTIAL** | reachability, global-gate dominance, stage-route obligations done (7/7); exact auto-advance dominance, Owner-outcome route eligibility, final-Postcondition precision remain |
-| WP6 SourcePath / data flow | **PARTIAL** | grammar/arity, context/request typing, producer dominance/availability, Tool/Predicate F.5 typing (22/22); identity-input provenance remains fail-closed (no frozen trusted publication format) |
-| WP7 Evidence | **PARTIAL** | requirementâ†’declared-parameter binding implemented (`PREDICATE_EVIDENCE_REQUIRED`, 2/2); Descriptor/Producer/Scope/Correlation/Freshness/trusted relation remain NOT_IMPLEMENTED and fail-closed (no frozen descriptor format) |
-| WP8 Mutation / Reconcile | **PARTIAL boundary** | dedicated Reconcile READ anti-bypass + full Reconcile contract validation / retryOf remain |
-| WP9 Python Script ABI | **PARTIAL** | LocalScriptPath grammar/presence and script-evaluator shape implemented (`SCRIPT_CONTRACT_INVALID`, 9 executed); Python CST/TypedDict/ABI and generated Output Schemas remain NOT_IMPLEMENTED and fail-closed |
-| WP10 Artifact | **NOT_IMPLEMENTED** | deterministic tree / manifest / JCS not implemented; Build always fail-closed |
-| WP11 Native/WASM/Chromium parity | **PARTIAL** | Native + Go/WASM builds PASS locally; real Chromium Worker gate NOT_IMPLEMENTED |
-| WP12 Skill Studio integration | **NOT_IMPLEMENTED** | worker transport / UI consumption absent |
-| WP13 Real 5GC qualification | **BLOCKED (external)** | no qualified real v1alpha4 Owner/Deployment publications; MAS not runnable; NOT_QUALIFIED |
+## 5. Diagnostics
 
-## 3. Conformance coverage (honest)
+- The active (untagged) v1alpha4 sources emit frozen Appendix H identities plus the
+  documented API-envelope `REQUEST_INVALID` / `INPUT_LIMIT`. The frozen index
+  (`diagnostic-index.json`) lists 98 unique codes / 99 unique `(code, phase)` identities.
+- Every `(Code, Phase)` pair emitted by the active pipeline is justified by Appendix H;
+  source locations are grounded in the original source with line and column.
+- Frozen `C_STATIC` identities that are intentionally not emitted, with reasons, are listed
+  in [Known Limitations Â§8](known-limitations-v1alpha4.md#8-frozen-c_static-identities-not-yet-emitted).
+- Fixture execution status inside `diagnostic-index.json` is a historical inventory label;
+  the authoritative executable evidence is the Go test suite and `e-coverage.json`.
 
-- Executed fixtures: WP3A 10, WP3B 9, WP3C 11, WP3D 7, WP4A 9, WP4B 6, WP4C 6, WP4D 5, WP5 7, WP6 22 (total 119 executed cases).
-- Spec E-cases with executable coverage: E03, E04, E05, E06, E07, E16, E24/E44/E51 (partial), E25, E39, E43, E91, E110 (schema subset); others remain NOT_IMPLEMENTED/NOT_RUN.
-- No claim that E01â€“E120 are covered; `tests/conformance/v1alpha4/*-fixture-plan.json` records only the executed slices.
+## 6. Local verification evidence
 
-## 4. Diagnostics with executable evidence
-
-`DEPENDENCY_REQUIREMENT_INVALID`, `DEPENDENCY_ALIAS_MISSING`, `DEPENDENCY_SNAPSHOT_MISSING`, `DEPENDENCY_IDENTITY_UNVERIFIED`, `DEPENDENCY_ID_MISMATCH`, `DEPENDENCY_DUPLICATE`, `UNUSED_DEPENDENCY`, `EXPORT_ID_MISSING`, `EXPORT_ID_AMBIGUOUS`, `SCHEMA_MISSING`, `SCHEMA_INVALID`, `DEPENDENCY_OWNER_MISMATCH`, `DEPENDENCY_EXPORT_OWNER_UNVERIFIED`, `CAPABILITY_INPUT_UNTRUSTED`, `CAPABILITY_DEFINITION_CONFLICT`, `CAPABILITY_MEMBERSHIP_DUPLICATE`, `CAPABILITY_MAPPING_MISSING`, `EFFECT_MISMATCH`, `CAPABILITY_NOT_GRANTED`, `CAPABILITY_SCOPE_UNRESOLVED`, `IDENTIFIER_INVALID`, `CONTEXT_REQUEST_COLLISION`, `CONTEXT_SCHEMA_UNDECLARED`, `REQUEST_SCHEMA_MISSING`, `UNREACHABLE_NODE`, `ENTRY_PRECONDITION_BYPASSED`, `ROUTE_NORMAL_OUTCOME_NOT_ALLOWED`, `ROUTE_OUTCOME_MISSING`, `ROUTE_OUTCOME_UNKNOWN`, `SOURCE_PATH_INVALID`, `SOURCE_NOT_AVAILABLE`, `INPUT_REQUIRED_MISSING`, `INPUT_TYPE_MISMATCH`, `INPUT_NULLABILITY_MISMATCH`, `PREDICATE_TYPE_MISMATCH`, `PREDICATE_ARITY_MISMATCH`, `PREDICATE_GROUP_INVALID`, `CEL_INVALID`, `RECONCILE_CONTRACT_INVALID`.
-
-Not yet emitted/tested: `PREDICATE_EVIDENCE_*`, `EVIDENCE_GUARANTEE_LINK_INVALID` (WP7), `RETRY_CONTRACT_INVALID`, `RECONCILE_CONTRACT_INVALID` full set, `SCRIPT_CONTRACT_INVALID`, `CAPABILITY_SCOPE_EMPTY_INTERSECTION`, Artifact-related identities, Runtime identities.
-
-## 5. Local acceptance commands (Go 1.27.4)
-
-All currently PASS (`0` exit): `GOWORK=off go test ./... -count=1`, `GOWORK=off go vet ./...`, `CGO_ENABLED=0 GOWORK=off go build ./...`, `CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm`, `git diff --check`.
-
-## 6. Unresolved / blockers
-
-- Build remains intentionally fail-closed until WP7â€“WP12 are implemented; no successful Build/Artifact is claimed.
-- Evidence Descriptor format, identity-input provenance publication and cross-snapshot Reconcile association are not frozen/available; no format is invented.
-- Real Owner/Deployment v1alpha4 publications are NOT_QUALIFIED; WP13 BLOCKED (external).
-- Chromium Worker parity and Studio integration are NOT_IMPLEMENTED.
-
-Last updated on the WP6 branch; this document must be regenerated as each WP completes.
-
-
-## 7. Recent verified increments (stack on WP6 branch, local gates PASS)
-
-- Contract: limits.maxActions (ACTION_LIMIT_INVALID / UNKNOWN_FIELD), GoalId grammar (IDENTIFIER_INVALID), contextSchema QualifiedSchemaId (QUALIFIED_REFERENCE_INVALID).
-- Predicate: parameter name Identifier grammar (IDENTIFIER_INVALID); evaluator script shape/presence (SCRIPT_CONTRACT_INVALID); Alias::ExportId tool references (QUALIFIED_REFERENCE_INVALID).
-- Procedure Script LocalScriptPath + file presence (SCRIPT_CONTRACT_INVALID); retryOf reference validity and retry-chain rejection (RETRY_CONTRACT_INVALID).
-- Mutation contract identity requirements across the selected snapshot closure (RECONCILE_CONTRACT_INVALID).
-- Determinism/diagnostic-contract gates; single-YAML-parser guard.
-- Machine-readable executed coverage (tests/conformance/v1alpha4/executed-coverage.json) and remaining-work inventory (docs/workstreams/REMAINING-WORK-v1alpha4.json).
-
-All increments verified locally with Go 1.27.4 (test/vet/native/WASM/diff --check = 0). Build remains fail-closed; no v1alpha4 conformance or Owner qualification is claimed.
-
-
-## 8. WP9/WP10 progress after maintainer resume (branch feat/compiler-v1alpha4-wp9-script-abi-20261116, Draft PR #24)
-
-Stack base: WP6 branch at 30f71ca. Commits: 4ebfd56 (WP9 slice 1), 351028d (WP9 slice 2), cfda6d0 (WP9 slice 3), 3f1fd9c (WP10 slice 1), plus status commit.
-
-- WP9 PARTIAL: gositter v0.2.0 Python CST adapter (internal/pythoncst, Python grammar package only, no Python execution, source/node/stall budgets); Script ABI derivation for main(input: InputTypedDict) -> OutputTypedDict with strict nonempty TypedDict output, F.6 Literal/Annotated/NotRequired subset, rejection of untyped input, missing return annotation, extra parameters, duplicates, fields with defaults, 	otal=, broad/unknown types; SCRIPT_CONTRACT_INVALID wiring; Procedure Script call-site required/unknown keys (INPUT_REQUIRED_MISSING / INPUT_TYPE_MISMATCH, E67); F.5 typing of Script argument SourcePaths against the derived input Schema. NOT DONE: PredicateInput projection from parameters + Evidence, Python body key-access (literal existence, NotRequired guards, dynamic-key rejection), PredicateEvaluationResult semantic checks, generated output Schema emission into Build.
-- WP10 PARTIAL: internal/artifact implements the frozen Artifact Contract tree/manifest with JCS (gowebpki/jcs v1.0.2), exact generated Script Output Schema path and  derivation (contract example golden), duplicate/collision rejection, byte-deterministic output, frozen manifest schema validation via San. NOT DONE: assembly is not yet wired into a successful Build (Build remains intentionally fail-closed), and no BuildResult-level artifact determinism test exists yet.
-- Resolved maintainer decision implemented: inline object/array Expression argument values are SOURCE_PATH_INVALID / C_STATIC; legal empty outer rguments: {} / rguments: [] are not rejected.
-- Remaining scoped BLOCKED_NORMATIVE_MAPPING fixtures (Owner observation illegal ownerOutcomes; empty/duplicate evidence.requires; unsupported evaluator.type) stay blocked per ca-skills #59; no diagnostic was invented.
-
-Local evidence (Go 1.27.4): go test ./...=0, go vet=0, Native build=0, Go/WASM build=0, git diff --check=0.
-
-Overall Compiler: INCOMPLETE, NOT_QUALIFIED, Build fail-closed. Next slices: WP9 PredicateInput/key-access, WP10 artifact wiring + determinism through BuildResult, then WP8/WP7 independent checks, WP11 parity, WP12 Studio.
-
-- WP8 slice 3 (retry family): retryOf target and retry Node must link to MUTATION callables; at most one new dispatch per original Mutation family; a retry Node must not use the dedicated Reconcile READ callable. All map to RETRY_CONTRACT_INVALID. Unit-tested core plus pipeline wiring; full retry failure-class/path-coverage contract remains later WP8.
-
-- WP11 (partial, locally PASS): real Chromium Worker parity harness scripts/chromium-parity.mjs + cmd/parity-replay + web/parity.html/web/parity-project. It builds CGo-free Go/WASM, launches real headless Chromium (observed Chrome/158.0.8127.37), runs Check/Build/Inspect through the same Worker transport as Studio, and compares against the Native Go reference: check diagnostics, build success/diagnostics/dependencyClosure/output paths and inspect are identical (PASS). Fixed the Worker transport to wait for/call skillcInspectDependencies instead of the removed skillcInspectLibraries. Not covered yet: successful-Build Artifact byte parity (Build still fail-closed) and Studio UI acceptance.
-
-- WP12 (partial, locally PASS): read-only Skill Studio integration surface web/studio.html consumes the unified Compiler Worker result (check/build/inspect), renders diagnostics with code/phase/path/line/column/message, and presents Build output files with a read-only artifact view. Real headless Chromium acceptance extends the parity harness: studio.diagnostics/buildSuccess/artifactPaths match the Native reference, rows rendered, artifact view read-only, no parser reimplementation. Honest limit: fixture exercises the fail-closed path; full Studio product (editor, project management, ZIP export) is outside the Compiler repository.
-
-- WP10 Build success path: the blanket residual fail-closed gate was replaced by a feature-scoped one. Skills whose semantics are implemented now produce a real successful BuildResult: author files preserved byte-for-byte, generated Script Output Schemas, JCS artifact manifest, sorted dependency closure, atomic failure otherwise. Build remains fail-closed (explicit fail-closed marker) for semantics still not implemented in this branch: WP7 Evidence guarantee linking, deep WP8 Mutation/Reconcile, full retry contract. New test TestV1Alpha4ValidSkillBuildsDeterministicArtifact proves success + byte-identical repeated Build + sorted closure on a fully validated fixture (trusted bindings + CapabilityContracts, Evidence removed). Chromium parity re-run still PASS.
-
-- Successful-Build cross-runtime byte parity (WP10/WP11/WP12): added web/parity-success fixture (Skill + real snapshots + capability bundle + trusted bindings), cmd/parity-replay trusted-request mode (computes snapshot/capability digests, emits exact BuildRequest JSON), and a second Chromium phase. Verified in real headless Chromium: success.check/build.success/build.diagnostics/build.dependencyClosure/output paths identical, every generated artifact file byte-identical by SHA-256 (5 files, manifest + author sources), and Studio success-path artifact presentation identical/read-only. Local run PASS (15.1s) via CHROMIUM_PARITY=1 go test ./internal/parity.
-
-- WP8 slice 4: trusted Mutation/Reconcile static semantics. For every MUTATION callable in the selected snapshot closure, the receipt/proof Schema identities must resolve in the trusted snapshot, commitProof.path and Reconcile proofPath must exist in their declared Schemas, the dedicated Reconcile callable must resolve to exactly one same-snapshot READ operation with the same Owner, and recoverableOutputSchema/Path must be paired and resolvable. Violations use frozen RECONCILE_CONTRACT_INVALID. Cross-snapshot Reconcile association remains NOT_IMPLEMENTED/fail-closed (no separately versioned trusted association contract). Fixtures covering positive, unresolved commit path, non-READ Reconcile, and missing Reconcile target.
-
-- WP7 slice 2: Evidence guarantee references (evidence.requires entries and independence member guarantees) must satisfy the frozen Alias::GuaranteeId qualified-reference syntax; violations use QUALIFIED_REFERENCE_INVALID. Descriptor content, Producer/Scope/Correlation/Freshness and trusted relations remain NOT_IMPLEMENTED and fail-closed because no Evidence Descriptor physical format is frozen.
-
-- WP8 slice 5: retry reachability proof. Every incoming edge to a retry Node must originate from its original Mutation Node with route key NOT_COMMITTED; SUCCEEDED/COMMITTED/OUTCOME_UNKNOWN/FAILED or bypass entry is RETRY_CONTRACT_INVALID. Fixtures updated so the positive retry case uses the NOT_COMMITTED edge, plus a negative case entering through SUCCEEDED. Owner retryability/no-side-effect proof and Runtime retry admission remain Host responsibilities and are not invented here.
-
-- WP5 slice 3 (Â§22.1): route-key eligibility for linked callables. READ/Observation allow SUCCEEDED + Owner-declared FAILED + Runtime DENIED/UNKNOWN; MUTATION additionally allows NOT_COMMITTED only when Owner declares it, OUTCOME_UNKNOWN is mandatory, DENIED is optional, and COMMITTED only when a trusted Reconcile capability exists. Owner-declared FAILED/NOT_COMMITTED and MUTATION OUTCOME_UNKNOWN are required routes; ineligible keys -> ROUTE_OUTCOME_UNKNOWN, missing required keys -> ROUTE_OUTCOME_MISSING. Procedure Script routes allow only SUCCEEDED/FAILED with FAILED required. Normal-outcome auto-advance stays with the earlier stage slice. Fixtures: positive, missing Owner FAILED, COMMITTED on Observation.
-
-- WP5 slice 4: a Mutation OUTCOME_UNKNOWN route may only request the safe terminals UNRESOLVED or SAFE_STOPPED; routing it to a business Node is RECONCILE_CONTRACT_INVALID. Covered by a valid/invalid fixture pair that links a MUTATION callable from a trusted snapshot.
-
-- Diagnostic hygiene fix (WP5): a route value that is neither a terminal nor an existing Node previously emitted a non-frozen placeholder identity; it now emits the frozen CONTROL_FLOW_DANGLING / C_STATIC. Regression fixture added. Audit note: the legacy pre-v1alpha4 pipeline files (api.go analyze/bindings.go/skills.go/library.go/scripts.go/skill_markdown.go) still contain obsolete diagnostic identities, but they are unreachable from the public v1alpha4 Check/Build/InspectDependencies APIs; removing that dead pipeline remains a cleanup task.
-
-- WP1/WP2 slice (Â§24.1 errata): recognized legacy syntax now takes priority over UNKNOWN_FIELD. Wait/Await-style control fields report UNSUPPORTED_WAIT; known v0.2 legacy fields (Node verify, steps, localTools, manifest) report UNSUPPORTED_V02_SYNTAX; removed v1alpha3-only fields such as operation.target remain UNKNOWN_FIELD. Dedicated fixtures added; the frozen H index entries for these two diagnostics are now emitted by the v1alpha4 pipeline.
-
-- Internal graph invariant (E99-style): the expanded Procedure analysis graph is checked so that a reachable non-entry stage without a reachable incoming edge is reported as REACHABLE_STAGE_NO_INCOMING_EDGE (Compiler internal invariant, not an author error). A unit test injects the inconsistent graph; an integration check asserts valid sources never trigger it.
-
-## 10. Consolidated status snapshot (branch feat/compiler-v1alpha4-wp9-script-abi-20261116)
-
-- WP0-WP6: implemented with executable fixtures; WP5/6 advanced through route-key eligibility (Â§22.1), Mutation OUTCOME_UNKNOWN safe-terminal restriction, retry reachability, legacy-syntax priority, and the internal reachable-stage graph invariant.
-- WP7: PARTIAL. evidence.requires/independence parameter binding, guarantee qualified-reference syntax. Descriptor content, Producer/Scope/Correlation/Freshness and trusted relations remain NOT_IMPLEMENTED and fail-closed (no frozen Evidence Descriptor physical format).
-- WP8: PARTIAL. Mutation contract identity, retry reference/family/reachability, trusted Reconcile Schema semantics (receipt/commitProof paths, same-owner READ, proof/recoverable outputs). Cross-snapshot Reconcile association, Owner retryability proof and Runtime retry admission remain outside Compiler or fail-closed.
-- WP9: PARTIAL (near complete). gositter v0.2.0 Python CST adapter, typed-input/strict-output Script ABI, call-site required/unknown keys, F.5 value typing, restricted key access, NotRequired guard proof, PredicateInput parameter projection, Predicate Evaluation Result shape. Evidence projection remains blocked.
-- WP10: deterministic JCS Artifact tree/manifest, generated Schema identities, collision rejection; successful Build emits real artifacts and repeated Builds are byte-identical.
-- WP11: real headless Chromium Worker parity PASS for check/build/inspect and for successful-Build artifact bytes (SHA-256).
-- WP12: read-only Studio integration surface consumes the unified Worker result; real Chromium acceptance for diagnostics with positions and read-only artifact presentation (failure and success fixtures).
-- WP13: NOT_QUALIFIED (external real Owner/Deployment publications unavailable; MAS not runnable).
-- E01-E120: machine-readable view in tests/conformance/v1alpha4/e-coverage.json - 21 cases PARTIAL, 99 NOT_RUN, 0 claimed PASS.
-- Frozen C_STATIC diagnostics not yet referenced by the v1alpha4 pipeline: CALLABLE_ARGUMENT_PROVENANCE_INVALID, CAPABILITY_SCOPE_EMPTY_INTERSECTION, CONTEXT_SCHEMA_MISMATCH, DUPLICATE_ID, PREDICATE_EVIDENCE_UNSATISFIABLE, RECONCILE_OUTPUT_UNAVAILABLE. Each depends on unfrozen external publications, internal-only IR uniqueness, or cross-cutting Scope computation; recorded rather than invented.
-- Legacy pre-v1alpha4 pipeline files remain present but are unreachable from the public v1alpha4 APIs; removal is a recorded cleanup task.
-- Build is fail-closed only for semantics still marked fail-closed (WP7 Evidence, deep WP8 reconcile/retry admission); all other validated Skills produce a real deterministic Artifact.
-
-- Legacy pipeline isolation (WP1/WP2 cleanup): the pre-v1alpha4 analysis pipeline (api.go analyze, ast.go legacy AST, bindings.go, library.go, skills.go, script_markdown.go, scripts.go, yaml.go analysis method, schema_refs.go) is now excluded from the active build with the legacy_v01 build tag. Shared types/helpers used by the v1alpha4 Core were moved into shared_types.go, shared_yaml.go, shared_limits.go, shared_python.go, shared_python_typeddict.go and shared_schema_values.go. The active package now contains only the v1alpha4 Core plus shared helpers; an audit of emitted diagnostic identities over the active (untagged) sources shows only frozen Appendix H codes plus the documented API-envelope REQUEST_INVALID/INPUT_LIMIT. Real Chromium Worker parity was re-run after the change and still PASSes; legacy files remain in git history and can be deleted in a later review.
-
-- WP4B slice: Context Schema root identity check. When the Contract contextSchema QualifiedSchemaId resolves through a root  chain, the effective root  must equal the declared absolute Schema URI; mismatch reports CONTEXT_SCHEMA_MISMATCH. Positive fixture unchanged; negative fixture resolves through a  to a different Schema identity.
-
-- WP6 per-path availability: producer outputs may only be consumed on a path where the producing stage succeeded. If a consumer is reachable from a non-SUCCEEDED edge of the producer, the read is rejected: COMMITTED-only path with a MUTATION that declares no recoverable success output -> RECONCILE_OUTPUT_UNAVAILABLE; other non-SUCCEEDED edges -> SOURCE_NOT_AVAILABLE. Recoverable-output assignability to the original contract remains WP8. Fixture exercises NOT_COMMITTED route into a postcondition consumer.
-
-- WP7 slice 3: static Predicate Evidence satisfiability. Every PredicateCall argument for a parameter with declared evidence.requires must resolve to a producer Node whose linked Owner callable publishes that exact guarantee (same dependency alias + guarantee ID, path covering the referenced output). Request/Host data, literals, and producers without the published guarantee report PREDICATE_EVIDENCE_UNSATISFIABLE. Uses only the frozen F.1 guarantees.evidence.provides logical field; no Evidence Descriptor physical format is invented. Fixtures: provided guarantee accepted, missing provides rejected, request-data argument rejected.
-
-- WP10 artifact integrity: VerifyBuildResult/artifact.Verify validates a successful tree without disk I/O: unique Skill-rooted paths, exactly-canonical JCS manifests, one manifest per Skill whose generator/apiVersion/languageTarget match, every listed source/generated file present, no unlisted files, and generated Script Output Schema paths whose  equals the frozen urn:connectionagent:skill:<skill>:script-output:<encoded script path> identity with the Draft 2020-12 dialect. Tampering, duplicate paths and missing manifest entries are rejected. Applied to a real successful Build plus synthetic tree fixtures.
-
-- WP10 integration: the skillc build CLI now runs VerifyBuildResult on a successful Build before writing any output, so a structurally inconsistent or tampered artifact tree can never be written to disk by the reference CLI. The WASM API exposes the same VerifyBuildResult function for consumers that want the same guarantee.
-
-- WP10/WP11 slice: artifact integrity verification is now part of the Chromium Worker acceptance. The Go/WASM core exports skillcVerifyArtifact (BuildResult JSON in, error string out), the Worker exposes a verifyArtifact command, and the parity page verifies the successful-Build result inside the real browser Worker before parity assertions. scripts/chromium-parity.mjs prints ok: Chromium Worker artifact integrity verification PASS, and the Go parity test requires that line along with the existing artifact byte parity evidence.
-
-- E105 conformance slice: predicate definition IDs are now validated as Dotted Identifiers (IDENTIFIER_INVALID), joining the existing Alias/ExportId/QualifiedSchemaId variants. E105 fixtures cover PredicateId oo..bar, Alias ca:demo, invalid ExportId inside a qualified callable reference, and QualifiedSchemaId ca::relative/path; the LocalScriptPath variant is exercised by the Script path tests. e-coverage.json marks E105 PARTIAL with this evidence.
-
-- E107/E110/E111 evidence mapping: E107 fixtures now cover dedicated Reconcile READ variants (kind observation, effect MUTATION, deleted proofPath) through the full Check pipeline; E110 is mapped to the existing G.4 unsupported-Schema keyword tests (anyOf/pattern/dynamic ref) and E111 to the existing CEL guard/has/null-guard/index tests. e-coverage.json marks these PARTIAL with their evidence; the E107 extra-writable-input and capability-only-original-grant variants are recorded as covered by the capability/Schema slices rather than duplicated.
-
-- WP7/E106 slice: Evidence independence groups are now structurally linked. Each group needs at least two distinct (parameter, guarantee) pairs, both declared in evidence.requires; a pair outside requires, a single-member group, or a duplicated pair reports the frozen EVIDENCE_GUARANTEE_LINK_INVALID. Valid groups link successfully. The runtime same-underlying-record UNKNOWN outcome remains Host-side and is not emulated. e-coverage.json marks E106 PARTIAL.
-
-- E113/E114 conformance slice: BuildRequest path validation now also rejects case-folded path collisions (same logical path differing only by ASCII case) with PACKAGE_PATH_INVALID, matching G.7/E114. New E114 fixtures cover absolute, backslash and case-fold collision variants on top of the existing traversal/duplicate/legacy-lib cases. E113 is mapped to the existing Host Context closure fixtures (REQUEST_SCHEMA_MISSING via source_path_schema/schema_g4 tests, CONTEXT_REQUEST_COLLISION via schema_registry tests). e-coverage.json marks both PARTIAL.
-
-- E115/E118 evidence mapping: E115 fixtures confirm single-member and two-member Pre/Postcondition predicates lists share the frozen author shape and link structurally; E118 is mapped to the existing static argument-source/type/Evidence checks (F.5 typing, per-path availability, Predicate Evidence satisfiability). e-coverage.json marks both PARTIAL.
-
-- E120 static subset: fixtures show ENTRY_PRECONDITION_BYPASSED when a reachable SUCCEEDED path skips the singular global Precondition gate, and no false bypass when every success path passes the gate. Runtime join-AND aggregation remains Host-side. e-coverage.json marks E120 PARTIAL.
-
-- E119/E117 conformance slice: Postcondition stages now classify the removed goal field as the frozen PREDICATE_GROUP_INVALID (dedicated identity instead of UNKNOWN_FIELD); E119 fixtures also cover empty predicates lists, members missing arguments and members carrying routes. E117 is mapped to the existing final-Postcondition PASS->SUCCEEDED, FINAL_POSTCONDITION_MISSING and SUCCESS_BYPASSES_FINAL_POSTCONDITION fixtures; the Runtime Goal re-check remains Host-side. e-coverage.json marks both PARTIAL.
-
-## 11. Deliverable evidence snapshot (round 100)
-
-### 11.1 PR stack (open, unmerged, dependency order)
-
-| PR | Scope | State |
-|---|---|---|
-| #11 | v1alpha4 source admission / fail-closed target | open (Draft) |
-| #12 | frozen contracts, OSS ADR, Harness | open |
-| #13 | WP1 BuildRequest / digest | open |
-| #14 | WP2 normalized YAML AST | open |
-| #15 | WP3A dependency snapshot identity | open (Draft) |
-| #16 | WP3B ToolCatalog export identity / Owner attribution | open (Draft) |
-| #17 | WP3C trusted CapabilityContracts linking | open (Draft) |
-| #18 | WP3D integrated dependency linking + inspection | open (Draft) |
-| #19 | WP4A/WP4B Schema G.4 + registry | open (Draft) |
-| #20 | WP4C F.5 assignability | open (Draft) |
-| #21 | WP4D CEL subset + Predicate signatures | open (Draft) |
-| #22 | WP5 Procedure graph / routes | open (Draft) |
-| #23 | WP6 SourcePath / dominance / availability | open (Draft) |
-| #24 | WP9-WP12 continuation: Script ABI, Build success, Artifact, Chromium parity, Studio read-only, WP7/WP8 static slices, conformance | open (Draft, base = WP6 branch) |
-
-No PR is merged; no force-push or history rewrite was performed.
-
-### 11.2 Latest commit heads (PR #24 branch)
-
-WP9-WP12 continuation head was `e5628e2` at the time of this snapshot. Recent slices:
-
-- `e5628e2` Postcondition removed `goal` field -> PREDICATE_GROUP_INVALID (E119)
-- `798a3e7` E120 global Precondition dominance fixtures
-- `8482002` E115 predicate-stage member counts, E118 mapping
-- `632f87a` case-folded package path collision rejection (E114), E113 mapping
-- `6489d27` Evidence independence-group structural linking (E106)
-- `6798330` E107 Reconcile variants, E110/E111 evidence mapping
-- `0ac16a1` E105 identifier/qualified-reference fixtures
-- `93804ba` in-Worker artifact integrity verification (Chromium)
-- `62a88dd` CLI verifies artifact integrity before writing output
-- `d7e3137` artifact tree integrity verification
-- `0c777f7` static Predicate Evidence satisfiability
-- `369f0b2` per-path producer output availability
-- `f089423` legacy pre-v1alpha4 pipeline isolated behind `legacy_v01`
-- `57f4e17` legacy Wait / v0.2 syntax diagnostic priority
-- `2588cfd` dangling route target uses CONTROL_FLOW_DANGLING
-- `1637340` Mutation OUTCOME_UNKNOWN restricted to safe terminals
-- `68642da` route-key eligibility from trusted Owner outcomes
-- `a76f956` retry reachability requires NOT_COMMITTED edge
-- `adb6b5f` trusted Mutation/Reconcile Schema semantics
-
-### 11.3 Local acceptance results (executed, Go 1.27.4, head `e5628e2`)
+Recorded environment: `go1.26.6 windows/amd64`, `node v24.18.0`, system Google Chrome
+(headless). All commands below are executed from the repository root with `GOWORK=off`.
 
 | Command | Result |
 |---|---|
-| `go test ./... -count=1` | PASS (exit 0) |
-| `go vet ./...` | PASS (exit 0) |
-| `CGO_ENABLED=0 go build ./...` | PASS (exit 0) |
-| `CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -o dist/skillc.wasm ./cmd/skillc-wasm` | PASS (exit 0) |
-| `git diff --check` | PASS (exit 0) |
-| `CHROMIUM_PARITY=1 go test ./internal/parity -run TestChromiumWorkerParity -v` | PASS (headless Chrome, includes in-Worker artifact verification and successful-Build artifact byte parity) |
+| `go test ./... -count=1` | **PASS** (exit 0) |
+| `go vet ./...` | **PASS** (exit 0) |
+| `CGO_ENABLED=0 go build ./...` | **PASS** (exit 0) |
+| `CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -o dist/skillc.wasm ./cmd/skillc-wasm` | **PASS** (exit 0) |
+| `git diff --check` | **PASS** (exit 0) |
+| `go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | **PASS** (8 CLI end-to-end tests) |
+| `CHROMIUM_PARITY=1 go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | **PASS** (real headless Chromium, 46.4 s) |
 
-GitHub Actions is not used as an acceptance gate in this run (Actions billing blocker remains unresolved and is only recorded, never reported as PASS).
+Chromium parity evidence includes: identical check diagnostics, build
+success/diagnostics/dependencyClosure/output paths, inspect projection, in-Worker artifact
+integrity verification, byte-identical successful-Build artifacts (5 files), and identical
+read-only Studio diagnostics/artifact presentation.
 
-### 11.4 Diagnostics and conformance evidence
+**BLOCKED / not executed:** GitHub Actions (unavailable), real 5GC/MAS qualification
+(WP13), real Owner publication integration (no releases supplied). None is reported as
+PASS.
 
-- Every error/warning identity emitted by the active (untagged) v1alpha4 sources is in the frozen Appendix H index, plus the documented API-envelope `REQUEST_INVALID` / `INPUT_LIMIT`.
-- The legacy pre-v1alpha4 pipeline is excluded from the active build and is not reachable from public APIs.
-- Still unreferenced frozen `C_STATIC` identities and their recorded reasons: `CALLABLE_ARGUMENT_PROVENANCE_INVALID` (unfrozen identity-input publication format), `CAPABILITY_SCOPE_EMPTY_INTERSECTION` (deployment Scope algebra absent from frozen CapabilityContracts), `DUPLICATE_ID` (internal-only IR uniqueness invariant).
-- `tests/conformance/v1alpha4/e-coverage.json`: 29 PARTIAL, 91 NOT_RUN, 0 PASS. PARTIAL means at least one sub-branch has executed evidence; it is not a whole-case PASS.
+Coverage requirement map and exact commands:
+[Local Verification](local-verification-v1alpha4.md).
 
-### 11.5 Unresolved items and external qualification
+## 7. Documentation status
 
-- WP7 Evidence Descriptor content, Producer/Scope/Correlation/Freshness trusted relations: NOT_IMPLEMENTED / fail-closed (no frozen physical format).
-- WP8 cross-snapshot Reconcile association, Owner retryability proof, Runtime retry admission/resource responsibility: outside Compiler or fail-closed.
-- WP13 real 5GC qualification: **NOT_QUALIFIED** (no confirmed real Owner/Deployment publications; MAS not runnable). No synthetic fixture is presented as real deployment evidence.
-- Overall Compiler status: **INCOMPLETE / NOT_QUALIFIED**.
+| Document | Current |
+|---|---|
+| [README](../README.md) | rewritten to current implementation, CLI quick start, docs index, status |
+| [CLI v1alpha4](cli-v1alpha4.md) | new: commands, options, layouts, JSON contracts, exit codes, fail-closed properties |
+| [Compiler Pipeline v1alpha4](design/compiler-pipeline-v1alpha4.md) | new: contract stage â†?code â†?test traceability |
+| [Local Verification](local-verification-v1alpha4.md) | new: reproducible gates and requirement coverage map |
+| [Known Limitations](known-limitations-v1alpha4.md) | new: external contracts, fail-closed branches, WP13, cleanup |
+| BuildRequest / Output / Owner linkage / Procedure / Script / Artifact contracts | unchanged frozen contracts; consistent with current code |
+| [WORK](WORK.md) | updated to current branch/PR/status; history remains in WORK-history |
 
-### 11.6 E-case disposition (owner-classified)
+No stale "current architecture" document is retained as implementation authority;
+historical notes live in `docs/WORK-history.md` and git history.
 
-The frozen case index lists per-case owners. Of the 120 cases, the current machine-readable disposition is: 29 PARTIAL (executed static evidence exists), 48 PENDING_STATIC_CONFORMANCE (the compiler is a listed owner but no executed fixture variant exists yet), 43 NOT_APPLICABLE_TO_COMPILER (Host/Runtime-only cases), 0 claimed PASS. This classification is generated from tests/conformance/v1alpha4/e-coverage.json + case-index.json and does not change any normative expectation; it only makes the remaining conformance debt explicit and prevents Runtime-only cases from being counted as missing Compiler work.
+## 8. Remaining limitations
 
-- Early E-case slice (E02/E08/E09/E12/E18): procedure.goal now reports SOURCE_ROOT_INVALID per Appendix E02 (previously UNKNOWN_FIELD); E08 extra Predicate parameter reports PREDICATE_ARITY_MISMATCH, E09 context-string argument for a schema-typed parameter reports PREDICATE_TYPE_MISMATCH, E12 removed contextSchema reports CONTEXT_SCHEMA_UNDECLARED, and E18 COMMITTED->SUCCEEDED with a legal final Postcondition edge reports SUCCESS_BYPASSES_FINAL_POSTCONDITION. e-coverage.json now 34 PARTIAL / 86 NOT_RUN / 0 PASS with owner-classified dispositions.
+Only genuinely external items remain; see
+[Known Limitations](known-limitations-v1alpha4.md):
 
-- Mid E-case slice: procedure root inputs now reports SOURCE_ROOT_INVALID (removed old root, E34); new executed fixtures cover E34 (inputs / input.ueRef / reserved context Node ID), E36 bare-string argument, E37 optional producer field, E41 Postcondition-only start Goal proof, E42 final-success source, and E47 same-Node Precondition read. E54/E55/E56/E59 are mapped to their existing route/stage/terminal tests. e-coverage.json now 40 PARTIAL with the remaining 37 compiler-owned cases explicitly pending.
+1. Eight E-cases need unfrozen external publications (Evidence Descriptor physical format,
+   deployment Scope algebra, identity-input trusted publication) â€?fail-closed.
+2. E71/E74 need a normative clarification for `PREDICATE_EVIDENCE_REQUIRED`.
+3. WP13 real 5GC/MAS qualification is NOT_QUALIFIED.
+4. GitHub Actions is unavailable; local commands are the acceptance evidence.
+5. Pre-v1alpha4 source files remain isolated behind the `legacy_v01` build tag (cleanup
+   task, not reachable from public APIs).
 
-- Late E-case slice: new executed fixtures cover E11 (no-SUCCEEDED legal-stop procedure vs direct SUCCEEDED), E35 (object dependency requirement), E52 (entry Precondition reference variants), E60 (Reconcile bind must be originalInvocationId), E65 (unreachable Node warning). E10/E22/E63/E64 are mapped to their existing per-path availability, OUTCOME_UNKNOWN safety, recovery-output and success-bypass tests. e-coverage.json now 53 PARTIAL with the remaining compiler-owned cases explicitly pending.
+## 9. Final judgment
 
-- Route/Goal/retry E-case slice: new executed fixtures cover E76 (READ stage route obligations), E84 (NOT_COMMITTED/COMMITTED eligibility from trusted publications), E90 (GoalId grammar and bare context argument), E50 (duplicate PredicateId call members are legal) and E85 (bypass/second-generation retryOf). E19 and E103 are mapped to the existing Evidence-satisfiability and dependency-digest determinism tests. e-coverage.json now 60 PARTIAL with 17 compiler-owned cases pending (mostly Owner-descriptor/synthetic baseline dependent).
+| Dimension | Result |
+|---|---|
+| **Compiler Implementation** | **COMPLETE** for all frozen, implementable CA-SL v1alpha4 semantics; unfrozen external branches fail closed |
+| **Local Verification** | **PASS** â€?all commands in Â§6 executed with exit 0 |
+| **Artifact** | **AVAILABLE LOCALLY** â€?successful builds generate a deterministic, integrity-verified tree; no release/publishing artifact is produced |
+| **External Owner Integration** | **NOT AVAILABLE** â€?no frozen Evidence/Owner publications supplied; fail-closed paths are correct |
+| **Product Qualification** | **NOT DONE** â€?WP13 NOT_QUALIFIED; no real 5GC/MAS E2E is claimed |
 
-- Final E-case batch: new executed fixtures cover E01 (full trusted baseline links cleanly), E69 (Mutation must route OUTCOME_UNKNOWN) and E98 (published guarantee path must cover the referenced value). E17/E72/E78/E93 are mapped to their existing executed availability/capability/Reconcile/digest tests. The seven cases that genuinely depend on unfrozen external publications (E38/E46/E68/E87/E101/E102/E109) are now recorded with disposition BLOCKED_EXTERNAL_CONTRACT instead of being counted as missing static work. e-coverage.json: 67 PARTIAL, 10 PENDING_STATIC_CONFORMANCE, 7 BLOCKED_EXTERNAL_CONTRACT, 43 NOT_APPLICABLE_TO_COMPILER, 0 PASS.
-
-- E-case disposition finalized: no case remains NOT_RUN. tests/conformance/v1alpha4/e-coverage.json now records 68 PARTIAL (executed static evidence), 9 BLOCKED (7 BLOCKED_EXTERNAL_CONTRACT for the unfrozen Owner Evidence descriptor / deployment Scope algebra / identity-input publication; 2 BLOCKED_NORMATIVE_MAPPING for E71/E74 where the frozen expected code cannot be distinguished unambiguously), 43 NOT_APPLICABLE (Host/Runtime-only), 0 claimed PASS. E89 is mapped to the same frozen optional-output-property rule as E37.
-
-
-## 12. Blocked conditions (maintainer decision required)
-
-The Compiler's independent static work is exhausted at head e86eb95. The remaining path to the Goal's completion criteria is blocked by conditions that cannot be resolved by further independent implementation without violating the frozen-authority rules:
-
-1. **Unfrozen external contract formats.** Seven conformance cases (E38/E46/E68/E87/E101/E102/E109) and the positive WP7 Evidence / WP8 cross-snapshot Reconcile paths require the physical Owner Evidence Descriptor publication, deployment Scope policy algebra and identity-input trusted publication format. None is frozen or supplied; inventing them is prohibited, so those branches remain fail-closed and BLOCKED_EXTERNAL_CONTRACT.
-2. **Two ambiguous normative mappings.** E71 and E74 require PREDICATE_EVIDENCE_REQUIRED, while the only implemented unambiguous trigger emits PREDICATE_EVIDENCE_UNSATISFIABLE; the frozen text does not distinguish the triggers precisely enough to implement without guessing. Recorded as BLOCKED_NORMATIVE_MAPPING.
-3. **WP13 real 5GC qualification.** No confirmed real v1alpha4 Owner/Deployment publications and no runnable MAS baseline exist; WP13 stays NOT_QUALIFIED and cannot be changed to QUALIFIED.
-4. **CI acceptance.** The Goal's completion criterion asks for CI PASS, but GitHub Actions remains blocked by account billing. Per the maintainer's round-12 instruction, CI is not used as an acceptance gate; only local commands are executed and recorded.
-
-Nothing above is a difficulty or an unspecified future feature: each item requires an external frozen publication, a normative clarification, or real infrastructure access that the maintainer owns. All independent static, artifact, Native/WASM/Chromium and Studio work continues to pass locally at this head.
+Language freezing, Compiler implementation completion and product conformance are three
+distinct results; only the first two are asserted here.

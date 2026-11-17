@@ -1,14 +1,14 @@
-{
+﻿{
   "schemaVersion": "connectionagent.io/compiler-conformance-e-coverage/v1alpha4",
   "status": "PARTIAL_NOT_QUALIFIED",
   "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
   "summary": {
     "total": 120,
-    "partial": 68,
+    "partial": 71,
     "notRun": 0,
     "passed": 0,
-    "blocked": 9,
-    "notApplicable": 43
+    "blocked": 10,
+    "notApplicable": 39
   },
   "cases": [
     {
@@ -68,7 +68,7 @@
     {
       "id": "E10",
       "status": "PARTIAL",
-      "evidence": "COMMITTED-only recovery read without declared recoverable output -> RECONCILE_OUTPUT_UNAVAILABLE; non-SUCCEEDED path output read -> SOURCE_NOT_AVAILABLE (source_path_paths_test)",
+      "evidence": "E10a: a SourcePath on a non-SUCCEEDED Producer path -> SOURCE_NOT_AVAILABLE (source_path_paths_test); E10b: a COMMITTED-only MUTATION output read with no declared recoverable success output -> RECONCILE_OUTPUT_UNAVAILABLE (e56_e10_test.go TestE10bReconcileOutputUnavailable). Both E10 expectations are separately asserted.",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
@@ -254,7 +254,7 @@
     {
       "id": "E41",
       "status": "PARTIAL",
-      "evidence": "Postcondition-only start PASS->SUCCEEDED establishes Goal without a goal field (e_mid_test)",
+      "evidence": "A Postcondition-only start whose aggregate PASS routes directly to SUCCEEDED establishes the Goal without a goal field and does not report FINAL_POSTCONDITION_MISSING (e_mid_test.go TestE41PostconditionOnlyStartEstablishesGoal).",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
@@ -344,7 +344,7 @@
     {
       "id": "E56",
       "status": "PARTIAL",
-      "evidence": "terminal spelling as Node ID -> NODE_ID_RESERVED; terminal as start -> PROCEDURE_START_MISSING (v1alpha4_test)",
+      "evidence": "Terminal spelling as Node ID -> NODE_ID_RESERVED; terminal as procedure start -> PROCEDURE_START_MISSING (e56_e10_test.go; reserved Node ID also e_mid_test.go E34).",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
@@ -386,13 +386,13 @@
     {
       "id": "E63",
       "status": "PARTIAL",
-      "evidence": "COMMITTED path Observation binding operation.output -> RECONCILE_OUTPUT_UNAVAILABLE (source_path_paths_test)",
+      "evidence": "COMMITTED-only MUTATION output without a declared recoverable success output -> RECONCILE_OUTPUT_UNAVAILABLE (e56_e10_test.go TestE10bReconcileOutputUnavailable; emitter source_path_producer.go).",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E64",
       "status": "PARTIAL",
-      "evidence": "local Postcondition PASS then later operation direct SUCCEEDED -> SUCCESS_BYPASSES_FINAL_POSTCONDITION (procedure stage/success bypass fixtures)",
+      "evidence": "The same frozen rule as E18: when a legal final Postcondition success edge exists and another path requests success, SUCCESS_BYPASSES_FINAL_POSTCONDITION is reported (e_early_test.go TestE18CommittedRouteCannotPublishSucceeded). E64's separate local-Postcondition graph shape is checked by the shared graph rule but is not separately fixtured.",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
@@ -445,9 +445,9 @@
     },
     {
       "id": "E73",
-      "status": "NOT_APPLICABLE",
-      "evidence": "",
-      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+      "status": "BLOCKED",
+      "evidence": "Requires two independent Evidence Descriptor decoders over a frozen physical descriptor publication plus a category-mismatch Producer reference; no such format is frozen, so the branch fails closed and is recorded as BLOCKED_EXTERNAL_CONTRACT.",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
     },
     {
       "id": "E74",
@@ -559,9 +559,9 @@
     },
     {
       "id": "E92",
-      "status": "NOT_APPLICABLE",
-      "evidence": "",
-      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+      "status": "PARTIAL",
+      "evidence": "retryOf bypass (original SUCCEEDED reached) and second-generation retry both -> RETRY_CONTRACT_INVALID (retry_contracts_test.go; e_route_test.go TestE85RetryBypassAndSecondGeneration).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E93",
@@ -571,15 +571,15 @@
     },
     {
       "id": "E94",
-      "status": "NOT_APPLICABLE",
-      "evidence": "",
-      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+      "status": "PARTIAL",
+      "evidence": "Duplicate Capability ID in one deployment artifact set -> CAPABILITY_DEFINITION_CONFLICT (capability_linking_test.go TestWP3C007CapabilityDefinitionConflict).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E95",
-      "status": "NOT_APPLICABLE",
-      "evidence": "",
-      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+      "status": "PARTIAL",
+      "evidence": "Closed Host Context root changed to an open root or a reserved request property -> CONTEXT_REQUEST_COLLISION (schema_registry_test.go TestWP4B004ContextRootCollision).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
       "id": "E96",
@@ -626,7 +626,7 @@
     {
       "id": "E103",
       "status": "PARTIAL",
-      "evidence": "dependency snapshot digest stable under file order and rejects newline/encoding changes (dependency_snapshot_digest_test)",
+      "evidence": "Snapshot digest is stable under file-array order and sensitive to original content bytes; golden vectors and tampering are asserted (api_v1alpha4_test.go TestDependencySnapshotDigestGoldenVectors, TestDependencySnapshotDigestIsOrderIndependentAndContentSensitive, TestBuildRequestVerifiesDependencySnapshotDigest). Newline/encoding mutation is not separately fixtured.",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
@@ -668,7 +668,7 @@
     {
       "id": "E110",
       "status": "PARTIAL",
-      "evidence": "unsupported anyOf/pattern/dynamic-ref Schema variants (schema_g4_test)",
+      "evidence": "Unsupported anyOf and pattern Schema variants are rejected as SCHEMA_INVALID (schema_g4_test.go TestWP4AG4AllowlistUnit); the dynamic-reference variant is not separately fixtured.",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
@@ -733,12 +733,12 @@
     }
   ],
   "dispositionSummary": {
-    "partialStaticEvidence": 68,
+    "partialStaticEvidence": 71,
     "pendingStaticConformance": 0,
-    "notApplicableToCompiler": 43,
+    "notApplicableToCompiler": 39,
     "claimedPass": 0,
     "note": "PENDING_STATIC_CONFORMANCE means the frozen case lists the compiler as an owner but no executed fixture variant exists yet. NOT_APPLICABLE_TO_COMPILER means the case is Host/Runtime-only. No case is claimed PASS.",
-    "blockedExternalContract": 7,
+    "blockedExternalContract": 8,
     "blockedNormativeMapping": 2
   }
 }
