@@ -1,7 +1,8 @@
 package compiler
 
 // WP10 assembly conformance: deterministic Artifact generation from validated
-// v1alpha4 compiler state, including the successful public Build path.
+// v1alpha4 compiler state. The public Build success path is covered separately
+// in artifact_pipeline_test.go.
 
 import (
 	"bytes"
