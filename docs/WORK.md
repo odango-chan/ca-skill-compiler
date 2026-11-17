@@ -1,53 +1,60 @@
-# CA Skill Compiler — Current Work (v1alpha4)
+# CA Skill Compiler — Current State
 
-**Language:** CA-SL v1alpha4, frozen at
-`odango-chan/ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d`
-(blob `b70064c5737b8ee2b3d1435fe496357f44b42773`).
+- **Product:** CA Skill Compiler v1.0.0 — RELEASED
+- **Language:** CA-SL v1alpha4 — FROZEN
+- **Release commit:** `252fd6c6dab15fb92806426aeb19d49a36b08d5e`
+- **Product qualification:** NOT_QUALIFIED (real Owner / deployment / 5GC evidence is external).
 
-**Compiler implementation status:** all frozen, implementable semantics implemented and
-locally verified; external-contract branches fail closed.
-**Product qualification status:** NOT_QUALIFIED (WP13 external).
-**Evidence:** [Acceptance Status](COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md),
-[Local Verification](local-verification-v1alpha4.md),
-`tests/conformance/v1alpha4/e-coverage.json`.
+## Release baseline
 
-## Authority
+- Repository: [odango-chan/ca-skill-compiler](https://github.com/odango-chan/ca-skill-compiler)
+- Release: [v1.0.0](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v1.0.0)
+- Language authority: [ca-skills@7f84393](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md), blob `b70064c5737b8ee2b3d1435fe496357f44b42773`.
+- v1.0.0 tag points to the release commit on `main`; published assets include Native CLI binaries, Go/WASM and SHA-256 checksums.
+- Release acceptance: `LOCAL_ACCEPTANCE_PASS`. The recorded local test, vet, Native/WASM build, CLI E2E and real Chromium parity commands passed on the release commit. GitHub Actions was unavailable and is not claimed as PASS.
 
-- Frozen language spec: [CA-SL v1alpha4](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md).
-- Compiler contracts: `docs/design/*-v1alpha4.md` and `contracts/v1alpha4/`.
-- Root `AGENTS.md` selects v1alpha4; v0.1 rules are archived in `docs/archive/AGENTS-v0.1.md`.
-- [Language-owner diagnostic errata request #59](https://github.com/odango-chan/ca-skills/issues/59).
+## Current maintenance work
 
-## Active work state
+The post-release repository hygiene work is being performed on `chore/post-v1.0.0-repository-hygiene`.
 
-| Item | State |
+This work does not change the v1.0.0 tag or language semantics. It removes unreachable pre-v1alpha4 implementation code, corrects stale maintenance/acceptance records, documents the current example set and closes superseded pre-v1alpha4 pull requests. Review and verification status are tracked in [PR #26](https://github.com/odango-chan/ca-skill-compiler/pull/26).
+
+## Supported language and Wait boundary
+
+The current Compiler accepts only `connectionagent.io/v1alpha4`.
+
+**The latest author-level Wait semantics are not implemented in v1.0.0.** The compiler recognizes and rejects legacy Wait/Await syntax as unsupported v1alpha4 syntax. Do not backport Wait into v1alpha4 or infer semantics from Runtime behavior. Future Wait support requires a separately versioned language/compiler target and aligned Host/Runtime/Ingress contracts, including event-generation isolation and late/duplicate event handling.
+
+## Build behavior and current limitations
+
+Check and Build use the same v1alpha4 static validation pipeline. A successful Build produces a deterministic artifact tree, but only after all static checks and feature-scoped fail-closed gates pass.
+
+The following positive paths remain fail-closed in the current release:
+
+1. Evidence-bearing Skills that require the unfrozen Owner Evidence Descriptor physical format.
+2. Mutation-bearing Skills, pending complete Mutation/Reconcile positive-path semantics and the cross-snapshot association contract.
+3. Retry-bearing Skills, pending full retry contract compatibility and path-coverage analysis.
+
+Static sub-checks for Evidence, Mutation, Reconcile and Retry are implemented; this does not mean the complete positive Build path is qualified. See [Known Limitations](known-limitations-v1alpha4.md).
+
+## Implementation and qualification status
+
+| Area | Status |
 |---|---|
-| Branch | `feat/compiler-v1alpha4-wp9-script-abi-20261116` |
-| Active PR | Draft [#24](https://github.com/odango-chan/ca-skill-compiler/pull/24), base `feat/compiler-v1alpha4-wp6-sourcepath-20261116` |
-| Historical stack | PR #11–#23 remain open; none is merged or auto-mergeable |
-| CLI | `skillc check` / `build` / `inspect` implemented; see [CLI](cli-v1alpha4.md) |
-| Local gates | PASS (recorded in Local Verification; GitHub Actions unavailable, not used as evidence) |
+| v1alpha4 Compiler Core / CLI | Implemented; locally verified |
+| Native and Go/WASM | Build verified; shared Core |
+| Chromium Worker parity | PASS on the release commit |
+| Skill Studio read-only integration | PASS on the release commit |
+| External Evidence / identity-input / cross-snapshot publications | BLOCKED_EXTERNAL_CONTRACT |
+| E71/E74 diagnostic mapping | BLOCKED_NORMATIVE_MAPPING; see [ca-skills #59](https://github.com/odango-chan/ca-skills/issues/59) |
+| Real 5GC / SMF / MAS qualification | NOT_QUALIFIED |
+| Latest Wait language semantics | Not part of v1alpha4; future version |
 
-Do not discard, close, silently replace or force-push the stacked PR history. No PR is
-merged and no branch is pushed directly to `main`.
+The authoritative case-level disposition is `tests/conformance/v1alpha4/e-coverage.json`; the summary is [Compiler Acceptance](COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md).
 
-## Remaining items
+## Maintenance rules
 
-All remaining items are recorded in [Known Limitations](known-limitations-v1alpha4.md):
-
-1. Eight E-cases need an unfrozen external publication (Evidence Descriptor format,
-   deployment Scope algebra, identity-input trusted publication) — `BLOCKED_EXTERNAL_CONTRACT`.
-2. E71/E74 need a normative clarification for `PREDICATE_EVIDENCE_REQUIRED` —   `BLOCKED_NORMATIVE_MAPPING`.
-3. WP13 real 5GC/MAS qualification is NOT_QUALIFIED.
-4. GitHub Actions remains unavailable; local commands are the acceptance evidence.
-
-Optional implementation-depth items that are not external blockers (exact WP5
-auto-advance dominance, final-Postcondition precision, WP8 cross-snapshot depth) are listed
-in [Acceptance Status](COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) and are not counted as
-product conformance.
-
-## Historical notes
-
-Prior v0/v0.1 implementation status and the earlier WP1–WP2 milestone narrative are
-archived in [WORK history](WORK-history.md). Historical status notes are not present
-evidence.
+- v0.1/v0.2 specifications, old work logs and source snapshots are historical records, not implementation authority.
+- Current positive compile example: `web/parity-success`. The `examples/` directory contains explicitly labelled historical/migration fixtures.
+- Do not introduce package management, dependency acquisition, Runtime dispatch, Python execution or network access into Compiler.
+- Preserve the frozen language target and diagnostic identities.

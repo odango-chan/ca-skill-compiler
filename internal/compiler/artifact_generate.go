@@ -4,9 +4,8 @@ package compiler
 //
 // This assembles the deterministic virtual file tree (author source bytes
 // unchanged, generated Script Output Schemas, one artifact manifest) through the
-// frozen internal/artifact package. It is not yet wired into the successful
-// Build path because Build intentionally remains fail-closed at the residual
-// semantic boundary; the assembly itself is exercised directly by tests.
+// frozen internal/artifact package. The successful Build path invokes it only
+// after static validation and all feature-scoped fail-closed gates have passed.
 
 import (
 	"fmt"

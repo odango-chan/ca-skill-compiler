@@ -2,11 +2,11 @@ package compiler
 
 // WP10 Build wiring: successful Build assembles the deterministic Artifact tree.
 //
-// Build remains feature-scoped fail-closed: semantics not yet implemented in this
-// branch (Evidence guarantee linking, deep Mutation/Reconcile behavior, full
-// retry contract) reject the Build with an explicit fail-closed marker instead
-// of silently emitting an artifact. Everything else now produces a real
-// deterministic output tree.
+// Build remains feature-scoped fail-closed. Evidence Descriptor positive-path
+// relations, complete Mutation/Reconcile semantics and full retry contract
+// compatibility/path coverage are not complete; a Skill using those features is
+// rejected rather than receiving a partial artifact. Static sub-checks still run
+// first, and other fully validated Skills produce a deterministic output tree.
 
 import (
 	"sort"
@@ -21,9 +21,9 @@ type artifactInput struct {
 	scripts      scriptSchemaSet
 }
 
-// unsupportedSemanticsReason returns a human-readable reason when the selected
-// Skill uses semantics this branch still rejects. It never allows silently
-// accepting an unimplemented positive path.
+// unsupportedSemanticsReason returns the first deterministic reason why a selected
+// Skill crosses a feature-scoped Build gate. Static sub-checks are not a substitute
+// for the complete positive-path obligations.
 func unsupportedSemanticsReason(inputs map[string]artifactInput) string {
 	names := make([]string, 0, len(inputs))
 	for name := range inputs {

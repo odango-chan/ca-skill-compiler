@@ -24,7 +24,7 @@ assembles the artifact only when no `C_STATIC` error exists.
 | 6 | Trust binding, Owner attribution, deployment bundles | `dependency_identity.go`, `owner_linking.go`, `evidence_linking.go`, `api_v1alpha4.go` (envelope) | `dependency_identity_test.go`, `owner_linking_test.go`, `e_mid_test.go`, `e_route_test.go` |
 | 7 | Contract index (exact callable/Schema identities) | `callable_refs.go`, `schema_registry.go` | `callable_refs_test.go`, `schema_registry_test.go`, `predicate_call_id_test.go` |
 | 8 | Capability linking and Effect | `capability_linking.go` | `capability_linking_test.go`, `mutation_contracts_test.go` |
-| 9 | Schema closure, G.4 allowlist, F.5 assignability | `schema_g4.go`, `schema_registry.go`, `schema_validation.go`, `schema_assignability.go`, `schema_refs.go` | `schema_g4_test.go`, `schema_registry_test.go`, `schema_assignability_test.go`, `context_schema_*_test.go` |
+| 9 | Schema closure, G.4 allowlist, F.5 assignability | `schema_g4.go`, `schema_registry.go`, `schema_validation.go`, `schema_assignability.go` | `schema_g4_test.go`, `schema_registry_test.go`, `schema_assignability_test.go`, `context_schema_*_test.go` |
 | 10 | Procedure graph, stages, routes, dominance, retry/reconcile | `procedure_graph.go`, `procedure_stages.go`, `route_eligibility.go`, `retry_contracts.go`, `retry_family.go`, `retry_reachability.go`, `mutation_contracts.go`, `reconcile_contracts.go` | `procedure_graph_test.go`, `procedure_stages_test.go`, `route_*_test.go`, `retry_*_test.go`, `mutation_contracts_test.go`, `reconcile_contracts_test.go` |
 | 11 | SourcePath / dataflow / F.5 argument typing | `source_path.go`, `source_path_paths.go`, `source_path_producer.go`, `source_path_schema.go`, `argument_typing.go`, `argument_value_typing.go`, `predicate_argument_typing.go`, `script_arguments.go` | `source_path_*_test.go`, `argument_*_test.go`, `predicate_argument_typing_test.go`, `script_arguments_test.go` |
 | 12 | Evidence requirements, independence, static satisfiability | `evidence_linking.go`, `evidence_independence.go`, `predicate_evidence_static.go` | `evidence_linking_test.go`, `predicate_evidence_static_test.go`, `e_final2_test.go` |
@@ -39,7 +39,7 @@ assembles the artifact only when no `C_STATIC` error exists.
 | Frozen diagnostic identity only | Diagnostic literals are checked against the frozen Appendix H index | `diagnostic_inventory_test.go` |
 | One YAML parser | `internal/compiler/yamlast` is the only YAML entry point | `single_parser_test.go` |
 | Single Python parser (no execution) | `internal/pythoncst` wraps gositter; no interpreter | `script_abi_test.go` |
-| Legacy pre-v1alpha4 pipeline isolated | `legacy_v01` build tag on `api.go` / `ast.go` / `bindings.go` / `library.go` / `skills.go` / `scripts.go` / `skill_markdown.go` / `yaml.go` analysis method / `schema_refs.go` | `go build ./...` (untagged) compiles without legacy files; `legacy_syntax_test.go` |
+| Legacy syntax rejection | `legacy_syntax.go` recognizes selected v0.2 and Wait/Await field names so v1alpha4 reports the frozen unsupported-syntax diagnostic instead of a generic unknown-field error | `legacy_syntax_test.go` |
 | Native / Go-WASM / Chromium consistency | `cmd/skillc-wasm`, `web/skillc-worker.js`, `scripts/chromium-parity.mjs` | `cmd/skillc-wasm/request_size_test.go`, `internal/parity/chromium_test.go` (opt-in) |
 | Artifact integrity before write | `compiler.VerifyBuildResult` → `internal/artifact.Verify` | `artifact_verify_test.go`, `cmd/skillc/e2e_test.go` |
 

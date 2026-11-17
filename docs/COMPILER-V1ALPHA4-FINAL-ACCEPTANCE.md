@@ -21,14 +21,15 @@ this run (account billing block) and is never reported as PASS.
 | Release | Compiler **v1.0.0**, [release notes](release-notes-v1.0.0.md) |
 | Language target | frozen CA-SL v1alpha4 (unchanged) |
 | Main branch | contains the merged v1alpha4 implementation |
-| Merged PRs | #11–#24, merged in dependency order; #2–#8 (superseded v0/v0.1/spike work) not merged |
+| Merged PRs | #2 (v0 bootstrap), #11–#24 (v1alpha4 implementation), and #25 (v1.0.0 release) merged; #3–#8 closed without merge |
 | Release branch | `release/v1.0.0` (version metadata, release notes, LF checkout policy) |
-| Force-push / direct-to-main commits | none |
+| Force-push / direct-to-main commits | Not independently established by this acceptance record; first-parent history alone does not establish the push method |
 
 The v1alpha4 implementation was stacked in dependency order. PR #24 contained the
-WP9–WP12 work, the CLI v1 completion, artifact/parity/Studio integration and the
-conformance slices; it was merged last after PRs #11–#23. The release branch then added
-only release metadata, release notes and the LF checkout policy.
+WP9–WP12 work, CLI v1, artifact/parity/Studio integration and conformance slices; it was
+merged after PRs #11–#23. PR #25 added release metadata, release notes and the LF checkout
+policy. The old unmerged PRs #3–#8 are pre-v1alpha4 work and have been closed as superseded;
+their discussions and branches remain historical records.
 
 ## 2. Work-package implementation status
 
@@ -96,7 +97,7 @@ E01–E120:
 |---|---|---|
 | `PARTIAL_STATIC_EVIDENCE` | 71 | At least one sub-branch has executed static evidence; the case is not claimed as a whole-case PASS |
 | `NOT_APPLICABLE_TO_COMPILER` | 39 | Case owner is Host/Runtime only |
-| `BLOCKED_EXTERNAL_CONTRACT` | 7 | E38, E46, E68, E87, E101, E102, E109 — require an unfrozen external publication |
+| `BLOCKED_EXTERNAL_CONTRACT` | 8 | E38, E46, E68, E73, E87, E101, E102, E109 — require an unfrozen external publication |
 | `BLOCKED_NORMATIVE_MAPPING` | 2 | E71, E74 — frozen expected code cannot be distinguished without clarification |
 | Whole-case `PASS` | **0** | No case is claimed as a whole-case conformance PASS |
 
@@ -151,10 +152,10 @@ Coverage requirement map and exact commands:
 | [CLI v1alpha4](cli-v1alpha4.md) | new: commands, options, layouts, JSON contracts, exit codes, fail-closed properties |
 | [Compiler Pipeline v1alpha4](design/compiler-pipeline-v1alpha4.md) | contract stage → implementation file → test traceability |
 | [Local Verification](local-verification-v1alpha4.md) | new: reproducible gates and requirement coverage map |
-| [Known Limitations](known-limitations-v1alpha4.md) | external contracts, fail-closed branches, WP13, cleanup |
+| [Known Limitations](known-limitations-v1alpha4.md) | external contracts, feature-scoped Build gates, WP13 |
 | [Release Notes v1.0.0](release-notes-v1.0.0.md) | features, verification evidence, artifacts and known limitations |
 | BuildRequest / Output / Owner linkage / Procedure / Script / Artifact contracts | unchanged frozen contracts; consistent with current code |
-| [WORK](WORK.md) | updated to current branch/PR/status; history remains in WORK-history |
+| [WORK](WORK.md) | current release and post-release maintenance status; historical notes remain in WORK-history |
 
 No stale "current architecture" document is retained as implementation authority;
 historical notes live in `docs/WORK-history.md` and git history.
@@ -169,8 +170,9 @@ Only genuinely external items remain; see
 2. E71/E74 need a normative clarification for `PREDICATE_EVIDENCE_REQUIRED`.
 3. WP13 real 5GC/MAS qualification is NOT_QUALIFIED.
 4. GitHub Actions is unavailable; local commands are the acceptance evidence.
-5. Pre-v1alpha4 source files remain isolated behind the `legacy_v01` build tag (cleanup
-   task, not reachable from public APIs).
+5. The nine unreachable pre-v1alpha4 implementation files guarded by `legacy_v01` have
+   been removed from the active tree in post-release cleanup; Git history preserves them.
+   `legacy_syntax.go` remains active to emit the frozen unsupported-syntax diagnostics.
 
 ## 9. Final judgment
 

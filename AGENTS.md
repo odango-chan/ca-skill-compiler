@@ -1,49 +1,73 @@
-# ca-skill-compiler · Active Harness Instructions
+# CA Skill Compiler — Repository Instructions
 
-**Active target: CA-SL v1alpha4 (breaking-only).** The former v0.1 / CA-SL v0.2 instructions are archived in `docs/archive/AGENTS-v0.1.md` for history and are not active development authority.
+- **Current product release:** CA Skill Compiler v1.0.0
+- **Current language target:** frozen CA-SL v1alpha4 (`connectionagent.io/v1alpha4`)
+- **Release commit:** `252fd6c6dab15fb92806426aeb19d49a36b08d5e`
 
-## 1. Immutable authority and implementation scope
+## 1. Authority
 
-Follow, in order:
-1. The **frozen CA-SL v1alpha4 single-file specification**, `odango-chan/ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d`, file `docs/skill-language-spec.v1alpha4.zh-CN.md`, blob `b70064c5737b8ee2b3d1435fe496357f44b42773`.
-2. Frozen Compiler-owned v1alpha4 implementation contracts in `docs/design/*-v1alpha4.md`, machine schemas in `contracts/v1alpha4/`, and the OSS dependency-selection ADR.
-3. `docs/workstreams/conformance-v1alpha4.md`, `tests/conformance/v1alpha4/case-index.json`, and `tests/conformance/v1alpha4/diagnostic-index.json`.
-4. Current bounded WP task documents and active implementation/PR evidence. Older status notes are historical snapshots, not proof of present progress.
+Follow these sources in order:
 
-Never select the v0.1 / v0.2 implementation target because historical documents, comments, or examples mention it. Do **not** add compatibility, translation or fallback behavior. If active authority appears contradictory, check the exact pinned files and report a real unresolved conflict; do not let outdated repository instructions cause a project-wide BLOCKED status.
+1. The frozen CA-SL v1alpha4 single-file specification at [ca-skills@7f84393](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md), blob `b70064c5737b8ee2b3d1435fe496357f44b42773`.
+2. Compiler-owned v1alpha4 contracts in `docs/design/*-v1alpha4.md` and machine contracts in `contracts/v1alpha4/`.
+3. The conformance plan, case index, diagnostic index and E-coverage under `docs/workstreams/` and `tests/conformance/v1alpha4/`.
+4. Current implementation, tests and release/maintenance records.
 
-## 2. Existing work and continuation
+Historical v0.1/v0.2 documents and fixtures are not current authority. Do not add compatibility, translation, version sniffing or fallback behavior.
 
-The ongoing v1alpha4 implementation uses stacked PRs #11 through #23. In particular:
-- PR #13: WP1 BuildRequest and digest.
-- PR #14: WP2 normalized YAML parser/AST.
-- PRs #15–#18: WP3A–WP3D dependency/Owner/Capability linking.
-- PRs #19–#21: WP4 Schema/F.5/CEL.
-- PR #22: WP5 Procedure graph.
-- PR #23: WP6 SourcePath, producer availability/dominance, argument typing.
+## 2. Release and version boundary
 
-Do not discard, close, silently replace or reimplement these slices. First inspect current branch/PR state, then reuse working code and continue forward. Keep changes small, auditable and stacked in dependency order. Do not merge or force-push without explicit approval.
-
-The ongoing Goal is **complete Compiler v1alpha4 implementation**, not only WP3A/WP6. Continue with remaining independent work (especially WP9 Python CST/Script ABI, WP10 Artifact/JCS, WP11 Native/WASM/Chromium parity, WP12 Studio integration, and the implementable WP7/WP8 static pieces) without repeatedly requesting a new Goal for each WP. Existing bounded WP files remain relevant to their own slices; they do not limit authorization for later WPs under the project-wide Goal. Do not combine unrelated changes in a single PR.
+- v1.0.0 is published and its tag/release assets are immutable.
+- Product version and language version are independent.
+- Do not silently add new language semantics to v1alpha4.
+- In particular, **the latest author-level Wait semantics are not supported by Compiler v1.0.0**. Recognized legacy Wait/Await syntax is rejected with the frozen v1alpha4 diagnostic. Implement future Wait semantics only under a separately versioned language/compiler target after the language and Host/Ingress contracts are frozen.
+- Keep Compiler implementation status, local verification and real Owner/product qualification distinct. The release has local acceptance evidence; real 5GC/MAS qualification remains NOT_QUALIFIED.
 
 ## 3. Compiler ownership and trust boundaries
 
-Use one deterministic stateless Go Core for Native and Go/WASM. Consume author Skill source, immutable dependency snapshots, and trusted build context. No database, package manager, network dependency acquisition, Runtime dispatch, Python execution, live 5GC mutation, release or qualification implementation belongs in Compiler.
+Use one deterministic, stateless Go Core shared by Native and Go/WASM. Compiler consumes source bytes, immutable dependency snapshots and trusted build context. It does not own dependency acquisition, package management, Git/HTTP/MCP access, credentials, deployment authorization decisions, Runtime admission, Tool/Python execution, Qualification or live 5GC operations.
 
-Use the already approved OSS dependencies and the single WP2 YAML AST; do not implement parallel parsers, digest algorithms or Schema/CEL engines.
+Use the approved pinned dependencies and the single normalized YAML AST. Do not add parallel YAML, Schema, CEL, Python or JCS implementations. Python is parsed statically and never executed.
 
-No actual Evidence Owner descriptor protocol, identity-input trusted publication format, or cross-snapshot Reconcile association protocol has been supplied as a frozen interoperable release. Do not invent these formats. Implement all independent static checks and fail-closed gates; keep missing-publication positive paths NOT_QUALIFIED. External qualification and real 5GC E2E are WP13 and must not block independent Compiler implementation.
+Host/Runtime remains responsible for Invocation, event ingress, Wait lifecycle, dispatch, authorization revalidation, mutation settlement, retry admission, resource responsibility and Trace. Do not move those responsibilities into Compiler.
 
-## 4. Frozen diagnostics
+## 4. Build and fail-closed boundaries
 
-Every emitted (Code, Phase) must be justified by Appendix H of the pinned CA-SL spec; source locations must remain grounded in the original source. Never invent diagnostic codes or use an existing code for a semantically unrelated failure.
+Check and Build share the same static validation pipeline. Build emits a complete deterministic artifact only when validation succeeds and no feature-scoped fail-closed gate applies.
 
-See `docs/workstreams/v1alpha4-resume-decision-20261116.md` for the bounded diagnostic disposition. Specifically, inline object/array values in an Expression position are invalid under §13.2 and should use `SOURCE_PATH_INVALID / C_STATIC`; do not prohibit the legal empty outer `arguments: {}` or `arguments: []` containers.
+Current feature gates are documented in [Known Limitations](docs/known-limitations-v1alpha4.md): Evidence Descriptor positive-path validation, complete Mutation/Reconcile semantics, and full retry contract compatibility/path coverage. Do not remove these gates merely to make a fixture build. Implement the missing frozen static obligations or obtain the required versioned external publication first.
 
-If a malformed imported contract or source shape has no unambiguous frozen diagnostic, do not silently accept it, falsify a PASS, or guess a new diagnostic. Record the specific blocked fixture/branch, request a normative clarification for that small issue, and continue unrelated WPs.
+A successful Build is not a Runtime authorization token or product qualification.
 
-## 5. Testing, evidence and GitHub
+## 5. Code and documentation hygiene
 
-For this run the maintainer chose **local commands as execution evidence**; GitHub Actions is not a required gate and must not be reported as passing if unused. Use the Go 1.27.4 toolchain and exact tasks' build commands. At minimum run Go tests, vet, CGo-free Native build, Go/WASM build and `git diff --check`; run an actual Chromium Worker test once implementing browser parity. Record accurate PASS/FAIL/BLOCKED/NOT_RUN outcomes with command outputs and commit IDs.
+- Keep implementation files separated by responsibility; avoid broad file consolidation.
+- Keep source locations and diagnostic identities aligned with the frozen Appendix H.
+- Keep tests beside the behavior they prove. Positive Build tests must exercise the public Build path, not only helper functions.
+- Preserve historical specifications, release notes, migration inputs and test fixtures when useful for traceability; label them as historical rather than presenting them as current examples.
+- Do not edit the v1.0.0 Git tag or published release assets.
+- Remove obsolete implementation code from the active tree when it is unreachable and superseded; Git history preserves it.
 
-Work on a new branch from the current reviewed dependency head for each subsequent slice; create a Draft PR targeting its immediate parent branch. Do not push directly to main, merge PRs, change the language-owner repository, or perform any live network operation. Advance automatically when independent tasks remain. Reserve human decisions for genuinely unresolved normative/security questions and report them precisely.
+## 6. Change workflow
+
+- Work on a dedicated branch from current `main`.
+- Open a PR to `main`; keep it Draft while local verification has not been executed or review blockers remain.
+- Never push directly to `main`, force-push, or merge without explicit approval.
+- Do not claim tests, CI or Chromium acceptance passed unless actually executed and their exact results are recorded.
+- GitHub Actions was unavailable for the v1.0.0 release run; local acceptance commands and results are recorded in [Local Verification](docs/local-verification-v1alpha4.md).
+
+## 7. Reproducible local gates
+
+From the repository root:
+
+```bash
+GOWORK=off go test ./... -count=1
+GOWORK=off go vet ./...
+CGO_ENABLED=0 GOWORK=off go build ./...
+CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm
+GOWORK=off go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v
+CHROMIUM_PARITY=1 GOWORK=off go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v
+git diff --check
+```
+
+Record the actual Go, Node and Chromium versions used. A skipped or unavailable gate is NOT_RUN/BLOCKED, never PASS.

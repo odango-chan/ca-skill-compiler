@@ -17,7 +17,7 @@ examples/ca-agent-demo-project/
 - `lib/tools/createdsession.tool.yaml` is the authoritative original ToolCatalog snapshot; `mas-proposed.tool.yaml` is byte-identical to MAS `design/tool-contract.yaml`.
 - `lib/manifest.yaml` is an added project-local **interface provenance/maturity** manifest, not an upstream file. `declared` / `proposed` do not mean Runtime READY or Tool authorization.
 - The two Skills' existing `schemas/establishment-request.schema.yaml` are authored Skill input schemas, not an invented Host context schema. Full external Host/Observation owner schemas are **not provided** by these ToolCatalogs.
-- The new v0 Compiler has **NO obligation to compile the old Script metadata as-is**. In v0 validation, these snapshots are expected to reveal which source changes and which external contracts are still needed.
+- Compiler v1.0.0 targets CA-SL v1alpha4 and does not compile this historical source tree as-is. Use this snapshot only for migration analysis and source-provenance review; do not treat a nonzero v1alpha4 check result as a compiler regression.
 - Do not alter these pinned files to force PASS. If migrating, create a separate `examples/ca-agent-demo-v0/` with redesigned Script signatures, authoritative lib references and new Procedure grammar, then validate there.
 - Compiling the ZIP from these original files does not imply actual Agent Host acceptance, ready Tool implementations, or 5GC E2E.
 
@@ -35,4 +35,4 @@ go run ./cmd/skillc check ./examples/ca-agent-demo-project
 
 This command is **not** a universal zero-exit gate. A nonzero exit with accurate source-backed migration diagnostics can be correct under new strict semantics. Do not hide errors by falling back to old Script/Schema behavior.
 
-Implementation and fixture acceptance results: [WORK.md](../../docs/WORK.md) and [Acceptance Matrix](../../docs/workstreams/acceptance-matrix-v0.md).
+This directory is a historical migration input, not a current v1alpha4 acceptance fixture. See [Examples Guide](../README.md) and the current [Compiler Acceptance](../../docs/COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md).
