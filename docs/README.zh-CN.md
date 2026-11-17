@@ -13,6 +13,7 @@
 
 ## 语言规范与编译器契约
 
+- [编译器设计文档索引](design/README.zh-CN.md) — 当前 v1alpha4 Compiler 契约和历史设计记录。
 - [CA-SL v1alpha4 语言规范](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md) — 语言规范的唯一权威版本。
 - [Compiler Contract](design/compiler-contract-v1alpha4.md) — 编译器职责和行为边界。
 - [Compiler Pipeline](design/compiler-pipeline-v1alpha4.md) — 校验阶段及实现映射。
