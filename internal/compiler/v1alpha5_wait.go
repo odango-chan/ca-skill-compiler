@@ -160,8 +160,6 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitA
 			} else {
 				result.Routes = V1Alpha5WaitRoutesAST{Raw: routesNode, Timeout: target}
 			}
-		} else {
-			add(routesNode, "WAIT_TIMEOUT_ROUTE_INVALID", "Node "+nodeID+" wait.routes.TIMEOUT is required")
 		}
 	}
 
