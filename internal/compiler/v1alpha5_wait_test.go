@@ -443,27 +443,7 @@ nodes:
 			code: "WAIT_TIMEOUT_ROUTE_INVALID", line: 14, column: 18,
 		},
 		{
-			name: "response missing after anchors at response parent",
-			yaml: `start: wait-node
-nodes:
-  wait-node:
-    operation:
-      tool: ca::smf.x
-      arguments: {}
-    wait:
-      event:
-        source: SMF
-        service: nsmf-pdusession
-        operation: UpdateSMContext
-      timeout: PT30S
-      response: {}
-      routes:
-        TIMEOUT: FAILED
-`,
-			code: "WAIT_RESPONSE_BOUNDARY_INVALID", line: 13, column: 17,
-		},
-		{
-			name: "response not a mapping anchors at value",
+			name: "response not a mapping is a Wait shape violation",
 			yaml: `start: wait-node
 nodes:
   wait-node:
@@ -480,7 +460,7 @@ nodes:
       routes:
         TIMEOUT: FAILED
 `,
-			code: "WAIT_RESPONSE_BOUNDARY_INVALID", line: 13, column: 17,
+			code: "WAIT_DECLARATION_INVALID", line: 13, column: 17,
 		},
 		{
 			name: "response.after terminal anchors at value",

@@ -115,6 +115,44 @@ nodes:
 	}
 }
 
+func TestV1Alpha5WaitResponseWithoutAfterUsesDefaultBoundary(t *testing.T) {
+	// Appendix L.1: WaitResponse = map(after?: NodeId). Appendix L.8.1: when
+	// wait.response.after is absent the response boundary is the Wait-bearing
+	// Node's own completion, so a present response mapping without "after" is
+	// syntactically valid.
+	procedureYAML := `start: wait-node
+nodes:
+  wait-node:
+    wait:
+      event:
+        source: SMF
+        service: nsmf-pdusession
+        operation: UpdateSMContext
+      timeout: PT30S
+      response: {}
+      routes:
+        TIMEOUT: FAILED
+    operation:
+      tool: ca::smf.x
+      arguments: {}
+`
+	diagnostics := v1alpha5CheckProcedure(t, procedureYAML)
+	if len(diagnostics) != 0 {
+		t.Fatalf("response without after must be valid, got %#v", diagnostics)
+	}
+	if hasV1Alpha5Diagnostic(diagnostics, "WAIT_RESPONSE_BOUNDARY_INVALID") {
+		t.Fatal("omitted response.after must not be reported as WAIT_RESPONSE_BOUNDARY_INVALID")
+	}
+	procedure := v1alpha5ParseTestProcedure(t, procedureYAML)
+	wait := procedure.ByID["wait-node"].Wait
+	if wait == nil || wait.Response == nil {
+		t.Fatalf("expected parsed response mapping: %#v", wait)
+	}
+	if wait.Response.After != "" {
+		t.Fatalf("omitted after must leave the default boundary (empty After), got %q", wait.Response.After)
+	}
+}
+
 func TestV1Alpha5ProcedureRootRequiresDeclaredStart(t *testing.T) {
 	procedureYAML := `start: missing-node
 nodes:

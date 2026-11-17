@@ -15,7 +15,7 @@ authoring contract.
 | Wait grammar | Exact Appendix L.1 Node/Wait/event/response/routes field and type rules |
 | FixedDuration | Exact Appendix L.1.1 lexical subset, no Host maximum check |
 | Selector | Exact three-part non-empty YAML string selector, compared exactly |
-| Response | Optional `response.after` only; NodeId, not a terminal, not `context` |
+| Response | Optional `response`; only field `after`; `after` itself is optional (default boundary = Wait-bearing Node completion per L.8.1); a present `after` must be a NodeId, not a terminal, not `context` |
 | TIMEOUT route | Exactly one `TIMEOUT` key; NodeId or `FAILED`/`UNRESOLVED`/`SAFE_STOPPED`; `SUCCEEDED` forbidden |
 | Stage rule | A wait-bearing Node must still declare ≥1 of the four business stages |
 | Unknown fields | Normal `UNKNOWN_FIELD` at the offending key node |
@@ -53,7 +53,7 @@ authoring contract.
 | Every selector field required, non-empty `!!str`, compared exactly (case/punctuation preserved) | `WAIT_DECLARATION_INVALID` | `TestV1Alpha5WaitDiagnosticAnchors/missing_event_source_anchors_at_event_parent`, `/event_selector_wrong_type_anchors_at_value`, `/event_selector_empty_string_anchors_at_value`, `TestV1Alpha5WaitSelectorValuesComparedExactly` |
 | Unknown selector field rejected at key node | `UNKNOWN_FIELD` | `TestV1Alpha5WaitDiagnosticAnchors/unknown_event_field_anchors_at_key` |
 | `wait.timeout` required, YAML string, exact L.1.1 grammar | `WAIT_TIMEOUT_INVALID` | `TestV1Alpha5WaitDiagnosticAnchors/missing_timeout_anchors_at_wait_parent`, `/non-string_timeout_anchors_at_value`, `/calendar_month_timeout_anchors_at_value`, `TestV1Alpha5FixedDurationLexicalSubset` |
-| `wait.response` optional; when present only `after`; `after` required NodeId, not terminal/`context`; extra key rejected at key node | `WAIT_RESPONSE_BOUNDARY_INVALID`, `UNKNOWN_FIELD` | `TestV1Alpha5WaitDiagnosticAnchors/response_missing_after_anchors_at_response_parent`, `/response_not_a_mapping_anchors_at_value`, `/response.after_terminal_anchors_at_value`, `/response.after_context_anchors_at_value`, `/unknown_response_field_anchors_at_key`, `TestV1Alpha5WaitResponseBoundaryGrammar` |
+| `wait.response` optional; when present only `after`; `after` is optional — absence means the default response boundary is the Wait-bearing Node's own completion (Appendix L.1 `WaitResponse = map(after?: NodeId)`; Appendix L.8.1 "when wait.response.after is absent" / omission is valid). A present `after` must be a NodeId, not a terminal and not `context`; extra key rejected at key node. A present non-mapping `response` is a Wait object shape violation (`WAIT_DECLARATION_INVALID`). | `UNKNOWN_FIELD`, `WAIT_DECLARATION_INVALID`, `WAIT_RESPONSE_BOUNDARY_INVALID` (present-but-invalid `after` only) | `TestV1Alpha5WaitResponseWithoutAfterUsesDefaultBoundary` (positive, `response: {}` + `After == ""`), `TestV1Alpha5WaitDiagnosticAnchors/response_not_a_mapping_is_a_Wait_shape_violation`, `/response.after_terminal_anchors_at_value`, `/response.after_context_anchors_at_value`, `/unknown_response_field_anchors_at_key`, `TestV1Alpha5WaitResponseBoundaryGrammar` |
 | `wait.routes` required mapping with exactly one `TIMEOUT` key; extra author route key rejected | `WAIT_TIMEOUT_ROUTE_INVALID` | `TestV1Alpha5WaitDiagnosticAnchors/missing_routes_anchors_at_wait_parent`, `/routes_not_a_mapping_anchors_at_value`, `/EVENT_RECEIVED_extra_route_key_anchors_at_key`, `TestV1Alpha5WaitMissingRequiredSections` |
 | `TIMEOUT` target is a NodeId or exactly `FAILED`/`UNRESOLVED`/`SAFE_STOPPED`; `SUCCEEDED`/other terminal forbidden | `WAIT_TIMEOUT_ROUTE_INVALID` | `TestV1Alpha5WaitDiagnosticAnchors/TIMEOUT_to_SUCCEEDED_anchors_at_value`, `TestV1Alpha5WaitPositiveRoutesWithoutResponse`, `TestV1Alpha5WaitTimeoutTargetGrammar` |
 | A wait-bearing Node must declare ≥1 of the four business stages; Wait is not a stage | `WAIT_NODE_STAGE_REQUIRED` | `TestV1Alpha5WaitDiagnosticAnchors/wait-only_node_anchors_at_wait_mapping`, `TestV1Alpha5ProcedureASTParsesWaitInsideProcedurePass` |
@@ -171,7 +171,7 @@ required or executed for this WP.
 | Trigger Operation resolution, correlation binding, `WAIT_CORRELATION_BINDING_INVALID`, armInputSchema | WP3 |
 | `wait.output` SourcePath binding, normalized request Schema, path sensitivity, `SOURCE_NOT_AVAILABLE` / `SOURCE_PATH_INVALID` | WP4 |
 | Wait entry-control vertex, `EVENT_RECEIVED`/`TIMEOUT` graph edges, DAG/reachability/dominance, terminal reachability, `CONTROL_FLOW_DANGLING` for undeclared TIMEOUT/`response.after` targets | WP5 |
-| `response.after` reachability/post-dominance, response-boundary Producer and `responseResultSchema`, `WAIT_RESPONSE_BOUNDARY_INVALID` reachability cases, `WAIT_RESPONSE_MAPPING_INVALID` | WP6 |
+| `response.after` reachability/post-dominance (both when present and for the default Wait-bearing-Node boundary when absent), response-boundary Producer and `responseResultSchema`, `WAIT_RESPONSE_BOUNDARY_INVALID` reachability cases, `WAIT_RESPONSE_MAPPING_INVALID` | WP6 |
 | EW-001–EW-036 conformance fixtures/diagnostic index/messageKey mapping | WP7 |
 | Native/WASM/Chromium parity for v1alpha5 API | WP8 |
 | Host maximum duration admission (`WAIT_DURATION_LIMIT_EXCEEDED`, not C_STATIC) | Host/Runtime contract |

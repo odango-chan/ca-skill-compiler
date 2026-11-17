@@ -78,6 +78,9 @@ type V1Alpha5IngressEventAST struct {
 }
 
 // V1Alpha5WaitResponseAST is the optional paired-response boundary metadata.
+// After is empty when the author omits it; the default boundary is then the
+// Wait-bearing Node's own completion (Appendix L.1 WaitResponse = map(after?:
+// NodeId), L.8.1 default-boundary rule).
 type V1Alpha5WaitResponseAST struct {
 	Raw   *yaml.Node
 	Span  SourceSpan
@@ -184,23 +187,29 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitA
 		result.Timeout = timeout
 	}
 
-	// wait.response: optional; when present only "after", which must be a
-	// NodeId that is neither a terminal nor "context". Reachability and the
-	// post-dominance proof belong to WP6.
+	// wait.response: optional. Appendix L.1 declares the field as
+	// WaitResponse = map(after?: NodeId); L.8.1 makes the Wait-bearing Node's
+	// own completion the default response boundary when "after" is absent, so a
+	// present response mapping WITHOUT "after" is valid. Only a present "after"
+	// is validated as a NodeId that is neither a terminal nor "context".
+	// Reachability and the post-dominance proof belong to WP6.
+	//
+	// A present response value that is not a mapping is a Wait object shape
+	// violation (L.11 -> WAIT_DECLARATION_INVALID), not a response-boundary
+	// semantics failure.
 	if responseNode := unalias(child(waitNode, "response")); responseNode != nil {
 		if responseNode.Kind != yaml.MappingNode {
-			add(responseNode, "WAIT_RESPONSE_BOUNDARY_INVALID", v1alpha5WaitResponseMessage(nodeID))
+			add(responseNode, "WAIT_DECLARATION_INVALID", v1alpha5WaitDeclarationMessage(nodeID, "wait.response"))
 		} else {
 			v1alpha5CheckUnknownFields(responseNode, v1alpha5ResponseFields, add)
 			result.Response = &V1Alpha5WaitResponseAST{Raw: responseNode, Span: sourceSpan(path, responseNode)}
-			afterNode := child(responseNode, "after")
-			after, afterIsString := v1alpha5String(afterNode)
-			if afterNode == nil {
-				add(responseNode, "WAIT_RESPONSE_BOUNDARY_INVALID", v1alpha5WaitResponseMessage(nodeID))
-			} else if !afterIsString || !validV1Alpha5ResponseBoundaryNodeID(after) {
-				add(afterNode, "WAIT_RESPONSE_BOUNDARY_INVALID", v1alpha5WaitResponseMessage(nodeID))
-			} else {
-				result.Response.After = after
+			if afterNode := child(responseNode, "after"); afterNode != nil {
+				after, afterIsString := v1alpha5String(afterNode)
+				if !afterIsString || !validV1Alpha5ResponseBoundaryNodeID(after) {
+					add(afterNode, "WAIT_RESPONSE_BOUNDARY_INVALID", v1alpha5WaitResponseMessage(nodeID))
+				} else {
+					result.Response.After = after
+				}
 			}
 		}
 	}
