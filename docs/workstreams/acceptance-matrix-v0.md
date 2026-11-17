@@ -2,6 +2,9 @@
 
 状态：全部初始 **NOT_RUN**。本表与 [Script Contract](../design/script-contract-v0.md)、[Procedure Link](../design/procedure-link-v0.md) 一起构成可验收的目标，不是对现有实现的声明。
 
+> **已归档 / ARCHIVED — PRE-v1alpha4.** 本文记录早期 v0/v0.1 原型、迁移检查或设计阶段的验收结果。文中的语法、分支/PR 指令、样例诊断数量和验收结论均属于历史快照，不定义 CA-SL v1alpha4 或 Compiler v1.0.0 的当前要求。当前状态请以[工作流索引](README.md)和[最终验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)为准。
+
+
 ## 1. 实际样本：两套不能混为一谈
 
 - **绿色正例**：`examples/minimal-project`（双 Skill + ToolCatalog）与 `examples/script-contract-project`（Tool Output → with → Script Output 类型生成）。
