@@ -168,6 +168,9 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			// Request/Context root shape. Unresolvable references never guess.
 			schemaDiagnostics := validateV1Alpha4SchemaClosure(req, sourceAST, identity, ownerLinking)
 			diagnostics = append(diagnostics, schemaDiagnostics...)
+			// WP5: reachability and global Precondition dominance.
+			procedureDiagnostics := validateV1Alpha4ProcedureGraph(contractAST, sourceAST.Procedure, ownerLinking, contractPath, procedurePath)
+			diagnostics = append(diagnostics, procedureDiagnostics...)
 		}
 		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
 			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
@@ -175,6 +178,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		}
 		if sourceAST.Procedure != nil && sourceAST.Procedure.Raw != nil {
 			v4CheckProcedure(procedurePath, sourceAST.Procedure, contractAST, errorAt)
+			validateV1Alpha4ProcedureStageRoutes(procedurePath, sourceAST.Procedure, errorAt)
 		}
 	}
 
