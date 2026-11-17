@@ -1,7 +1,7 @@
 # 下一代 CA Skill Compiler 开发计划
 
 **状态：** DRAFT — 可以开始隔离的 v1alpha5 候选实现；公开 Target 启用与发布仍受门槛约束。  
-**基线：** CA Skill Compiler v1.0.0；已发布的 v1alpha4 保持不可变。  
+**历史基准：** CA Skill Compiler v1.0.0 / CA-SL v1alpha4 作为历史发布记录保留；它们不是下一版实现必须遵守的兼容性约束。  
 **下一语言目标：** `connectionagent.io/v1alpha5` 已在 CA-SL 评审候选中分配，但仍为 NOT RELEASED / NOT QUALIFIED。
 
 ## 1. 目标
@@ -16,7 +16,7 @@
 - `wait.response.after` 的 Response Producer 绑定与 Schema 映射；
 - Native / WASM / Chromium Worker 一致性。
 
-这不是 Compiler 重写。v1.0.0 是已发布基线，必须保持不可变。
+下一版 Compiler 围绕 Node-entry Event Wait 和 package-scoped Integration Ingress Operation linking 实现。可以增量扩展，也可以大幅重构，必要时可以替换现有 Compiler 内部实现。不要求保留 v1alpha4 的实现行为、内部 API、AST、诊断、Build API，也不要求兼容旧项目。已发布的历史 Tag / Release 作为历史记录保留，不重写历史发布物。
 
 ## 2. 当前契约依据与冻结状态
 
@@ -31,21 +31,21 @@
 
 **重要边界：**
 
-- v1alpha4 不接受作者级 `wait`、`wait.output` 或 `ingressOperation`。现有 `UNSUPPORTED_WAIT` 等冻结诊断必须继续保持。
+- 下一目标标识为 `connectionagent.io/v1alpha5`，由 ca-skills #61 指定。完整单文件候选已存在，语义基线标记为 FROZEN；但规范全文及符合性材料仍在独立评审，当前为 NOT RELEASED / NOT QUALIFIED。36 个 EW obligation 明确标记为 `SPECIFICATION_ONLY`，尚非已执行测试。旧 v1alpha4 实现可以留在历史 Tag，也可以在当前开发线上被替换或删除；下一版 Compiler 无须为兼容而继续支持旧语法。
 - v1alpha5 的 Target 身份已经明确，不再是未分配：当前 #61 候选指定 `connectionagent.io/v1alpha5`，并已提供完整单文件评审稿。文件头将语义基线标记为冻结，但完整规范文本与符合性材料仍待独立评审；当前仍为 NOT RELEASED / NOT QUALIFIED。36 项 EW 义务全部明确标记为 `SPECIFICATION_ONLY`，不是已执行测试。
-- v1alpha4 必须继续拒绝作者级 `wait`、`wait.output` 和 `ingressOperation`；其 Decoder、诊断和已发布字节不得改变。
+- 不要求当前开发线继续提供 v1alpha4 Decoder、诊断或 Build 行为；如需保留历史发布物，只保留历史 Tag / Release，不把历史兼容性转化为新架构负担。
 - 当前 #62 已增加对每个 Artifact 原始字节的 `artifactDigest` 复算，并验证嵌套 `$id` Fragment 能映射到非根 Artifact Pointer；两个工作流通过。但 PR 仍为 Draft，Ingress 导出契约以及 `INGRESS_*` 与既有诊断的归属/优先级尚未冻结。
 
-**实施决定：** 可以基于 #61 精确的 v1alpha5 候选启动隔离的 WP2 Wait Grammar / AST；WP1 Schema Closure 继续通过内部接口实现。不得启用公开 v1alpha5 Build Target，不得修改 v1alpha4，也不得提前宣称 Compiler 符合性。
+**实施决定：** WP1 Schema Closure 与 WP2 Wait AST 可以基于当前 #61 / #62 精确候选并行开发；契约仍在评审的部分通过明确的内部边界隔离。#61 / #62 仍为 Draft 时，不得宣称正式发布或产品符合性。不要为了保留 v1alpha4 兼容路径而增加双 Parser / 双 Linker；如果重构或替换旧代码能让新架构更简单、正确，就直接处理。
 
-第一项隔离的 WP2 实现已建立为 [ca-skill-compiler PR #30](https://github.com/odango-chan/ca-skill-compiler/pull/30)：独立包内的 Wait AST / Parser，覆盖固定时长、Selector、Response Boundary 和 TIMEOUT 路由检查。它没有增加 BuildRequest Dispatch，也没有链接 IngressCatalog。当前 GitHub Actions Job 没有分配 Runner（`runner_id=0`，没有执行步骤）；这是 CI / Runner 可用性问题，不能当作测试失败结论。目前只有固定时长语法做了独立本地 Go 检查；完整 Go tests / vet / Native / WASM 验收仍为 NOT_RUN。
+第一项 WP2 实现是 [ca-skill-compiler PR #30](https://github.com/odango-chan/ca-skill-compiler/pull/30)：候选版本专用 Wait AST / Parser，覆盖固定时长、Selector、Response Boundary 和 TIMEOUT 路由检查。它尚未接入完整 Procedure Parser、BuildRequest API、Graph 或 Ingress Linker。最新 Workflow Run `44054077055` 结论为 `failure`，但 Job 没有任何已执行步骤，且无法取得日志；没有 Go 测试或构建步骤实际运行，因此不能据此判断为源码测试失败。目前只有 Duration Regex 做了独立本地 Go 检查；完整 Go tests / vet / Native / WASM 验收仍为 NOT_RUN。
 - #62 的 IngressCatalog 是独立 package-scoped export，不是 ToolCatalog Operation、Observation 或 Capability。
 - #62 的 Schema Closure Digest v1 目前仍是提案。其 golden vector / CI 通过只证明算法样例，不等于 Owner 已发布真实 Schema。
 - 真实 Owner / Deployment 发布与实时 5GC qualification 不阻止 Compiler 独立实现；实现阶段可使用明确标记的 synthetic trusted fixtures。不得将 synthetic fixtures 报告为真实互操作通过。
 
 ## 3. 必须先做的 API 版本盘点
 
-v1alpha4 的机器契约使用封闭字段/枚举，不能在原版本上静默添加 Ingress export kind。
+历史 v1alpha4 机器契约使用封闭字段/枚举，不能在原版本上静默扩展；但它们只是旧 Wire Shape 的参考，不限制下一版 API。新 Compiler 可以直接定义干净的新契约，并删除旧 Go 类型或 Adapter；不要求 v1alpha4 Wire 兼容或自动迁移。
 
 | 现有契约 | 已发现的封闭点 | 下一版需要的决策 |
 |---|---|---|
@@ -70,7 +70,7 @@ IngressCatalog v1alpha1 诊断注册表要求 Compiler 的逻辑 Diagnostic 记�
 
 因此 BuildResult 已不再是“结构变化时才升级”：**BuildResult 与 DependencyInspection 都必须使用新的版本化 Diagnostic Envelope**。新契约必须同时表达 Skill 源码位置和依赖快照位置，不能把后者压扁成含义不明确的字符串 `path`。对于 Ingress 诊断，`registryId` 是来源信息；诊断身份仍为全局唯一的 `(Code, Phase)`。精确的 tagged source-location 结构及条件约束（例如 Ingress 诊断必须有 `registryId/messageKey/sourceLocation`）属于 WP0 API 设计产物。
 
-v1alpha4 Go 类型、JSON Schema、诊断 Wire Shape 和发布字节保持不变。新 API 版本标识独立于 `connectionagent.io/v1alpha5`；不得仅为命名整齐而假定使用相同后缀。
+不要求为了兼容而保留 v1alpha4 Go 类型、JSON Schema、诊断 Wire Shape 或 API Adapter。历史 Tag / 已发布 Artifact 不重写。新 API 版本标识独立于 `connectionagent.io/v1alpha5`；不得仅为命名整齐而假定使用相同后缀。
 
 ### 3.1 API Dispatch 与 v1alpha4 隔离
 
@@ -80,7 +80,7 @@ v1alpha4 Go 类型、JSON Schema、诊断 Wire Shape 和发布字节保持不变
 - `Check`、`Build`、`InspectDependencies` 直接进入 v1alpha4 路径；
 - v1alpha4 DependencyInspection 和 Artifact Manifest 的字段集合、导出类型枚举均为封闭定义。
 
-下一版必须先做 **API 版本 Dispatch，再做语言 Target Dispatch**：
+下一版必须提供严格、统一的新 Compiler API：先读取并校验 `apiVersion`，再解释 `languageTarget`。未知值必须 fail-closed。如果产品只支持一个新 API，一个严格入口即可；不得为了保留 v1alpha4 而建立多版本兼容 Router：
 
 1. 使用有界 Envelope Decoder，仅读取顶层 `apiVersion`。
 2. 按精确 API 版本分派到唯一的严格版本专用 BuildRequest Decoder。未知或不支持的 API 版本必须 fail-closed，不得 fallback。
@@ -88,7 +88,7 @@ v1alpha4 Go 类型、JSON Schema、诊断 Wire Shape 和发布字节保持不变
 4. 再按精确 `languageTarget` 分派到版本专用 Parser / Linker。未知语言目标必须 fail-closed，不得解释为 v1alpha4。
 5. Check / Build / InspectDependencies 和结果验证必须使用同一组选定的 API / Target Profile。
 
-不得先解码成 v1alpha4 结构体再容忍未来字段；不得扩大 v1alpha4 JSON Schema、Go 类型、诊断索引、Artifact Manifest、CLI 行为或 v1.0.0 发布字节。
+不得先解码成旧 v1alpha4 结构体。不得为保留旧 CLI 行为而增加兼容 Shim。当前开发线可以替换或删除旧类型、Schema、诊断、Manifest 和 Adapter；但不得重写已经发布的历史 Release Artifact 或 Tag。
 
 | 接口 | 下一版必须作出的决定 |
 |---|---|
@@ -111,7 +111,7 @@ v1.0.0 发布物保持不可变；其最终验收记录明确标记了若干尚�
 
 当前 Artifact Pipeline 在选中的 Skill 使用 Predicate Evidence、MUTATION Operation 或 `retryOf`，而完整正向路径尚不可用时，会有意拒绝生成成功 Artifact。静态诊断和子检查仍会执行；这不等于这些功能已经完整编译。
 
-这些限制不阻止独立开发 Node-entry Wait / Ingress Compiler 能力，但会影响真实 PDU/MAS Skill 的 Artifact 验收。原样保留 v1alpha4 回归测试；对已有冻结契约的 Compiler 静态规则使用合成受信 Fixture；不得伪造真实 Owner / Deployment 发布物来让正向 Build 通过；所需静态正向路径完成、外部信任输入到位前，不得把完整 PDU/MAS Artifact Build 标记为 PASS。
+这些历史限制不构成下一目标的功能上限。必须根据新语言与 Ingress 契约重新评估每项能力：Compiler 负责的静态正向路径应实现；尚未实现的部分必须记录精确的契约或实施阻塞。只有在旧代码更简单且语义正确时才复用；如果旧 fail-closed 路径妨碍新设计，应重构或删除。静态开发可以使用合成受信 Fixture，但不得伪造真实 Owner / Deployment 发布物或将其报告为互操作证据。只有 Compiler 静态路径与外部信任输入均真实具备时，完整 PDU/MAS Artifact Build 才能标记 PASS。
 
 ## 4. 目标编译架构
 
@@ -119,11 +119,11 @@ v1.0.0 发布物保持不可变；其最终验收记录明确标记了若干尚�
 
 `BuildRequest → Source Admission → Parse/AST → Dependency Linking → Schema/CEL → Procedure Graph → Script ABI → Artifact`
 
-增加 target-specific 分支，而不是把新语法塞入 v1alpha4：
+实现面向新目标的清晰流水线。只有在语义正确且确实降低复杂度时才复用旧组件；不得仅为 v1alpha4 兼容而保留并行 Parser / Linker：
 
 1. **Language Target Selection**：在解析前精确选择一个语言目标；未知目标 fail closed；绝不 fallback 到 v1alpha4。
 2. **IngressCatalog Index**：解析可信 dependency snapshot 中的 package-scoped IngressCatalog，验证精确 apiVersion、exportKind、Package ID、Owner、artifact/schema identity。
-3. **Wait AST**：只在新语言目标识别 Node.entry `wait`；v1alpha4 分支继续拒绝。
+3. **Wait AST**：按 v1alpha5 候选规范识别 Node.entry `wait`；旧目标的接受 / 拒绝行为不是兼容性要求。
 4. **Ingress Linker**：按 source/service/operation 精确解析 Ingress Operation；不按名称模糊匹配。
 5. **Trigger Binding Linker**：将每条 Wait 入边绑定到精确 ToolCatalog Operation callable，并从 Operation arguments / 已准入 Invocation Context 解析 typed `armInputSchema`。
 6. **Wait Output Resolver**：把 `NodeId.wait.output` 绑定到 Ingress normalized request Schema；验证 JSON Pointer、类型赋值与路径可用性。
@@ -179,7 +179,7 @@ EW / IN 矩阵是联合符合性清单。Compiler 只执行静态可判定义务
 
 Compiler 向量还必须证明原始字节绑定：即使解析后的 Schema 值不变，只要 Artifact 字节变化，`artifactDigest` 和 Closure Digest 也必须变化；并测试嵌套 `$id` Fragment 解析到非 Root 的 Artifact-relative Pointer。只提供预解析引用边或硬编码 Digest 不足以证明 Resolver 符合性。
 
-该实现必须与冻结的 v1alpha4 Schema Registry 隔离，不得静默改写 v1alpha4 的 Schema 身份和本地引用语义。
+Schema Closure Resolver 应以新契约为准。旧 Schema Registry 可以重构或替换；不要求仅为兼容而维护两套 Resolver 或保留旧的本地引用语义。确实共享的语义必须显式定义并有测试覆盖。
 
 ## 5. Work Packages
 
@@ -221,7 +221,7 @@ ca-skills #62 的自动化 source-lock fixture 仍固定在 TS 29.502/29.571 V19
 - 不把 5GC、SMF、AMF、UPF、OpenAMSM 或 MAS 内部逻辑硬编码进 Compiler。
 - 不实现包管理、Registry、数据库、发布签名、Qualification 服务或 Runtime Dispatcher。
 - 不做 v0/v0.1/v0.2 兼容或自动迁移。
-- 不改变 CA-SL v1alpha4 的任何语义、诊断或发布 Artifact。
+- 当前开发线不要求支持 v1alpha4 项目、API、诊断或 Artifact Build，也不要求自动迁移。已发布历史 Tag / Release 保持原样。
 - 不以真实 Owner / Deployment 缺失为由阻止静态 Compiler 开发；但必须保持真实产品资格 NOT_QUALIFIED。
 
 ## 9. 开发启动 Gate
@@ -229,7 +229,7 @@ ca-skills #62 的自动化 source-lock fixture 仍固定在 TS 29.502/29.571 V19
 **现在可以启动（隔离的候选实现）：**
 - WP2：针对 #61 精确的 v1alpha5 单文件候选实现并测试 Wait Grammar / AST；不接入 v1alpha4 Dispatch。
 - WP1：通过内部接口实现 Schema Closure Resolver，使用不可变合成 Snapshot；当前 #62 Vector 已覆盖原始字节绑定和嵌套资源 Pointer 转换。
-- 建立 v1alpha4 兼容性 Harness 与 EW / IN 静态 Fixture 清单。
+- 建立新目标 EW / IN 静态符合性 Harness；只有在历史 v1alpha4 Fixture 对理解共享语义有帮助时才保留，不把它们作为兼容性门禁。
 - 设计先 API-version、后 language-target 的双层 Dispatch。
 
 **公开 v1alpha5 Target 集成 / 发布前仍须满足：**
@@ -238,14 +238,14 @@ ca-skills #62 的自动化 source-lock fixture 仍固定在 TS 29.502/29.571 V19
 2. #62 冻结 IngressCatalog Schema、Schema Closure Digest、Correlation / Stale Delivery、Trigger Binding 和 Response Mapping 契约。
 3. #61 / #62 发布无冲突的诊断归属与优先级契约：适用时复用现有依赖 / Export / Schema / SourcePath 诊断；WAIT 诊断只负责 Skill Wait 选择、绑定和响应边界问题；剩余 INGRESS 诊断必须有精确 `(Code, Phase)`、Severity、优先级和源码位置规则。
 4. 独立决定新的 BuildRequest、DependencyInspection、Artifact Manifest API 版本；按实际结构明确保留或升级 BuildResult。
-5. Target Dispatch 保持 v1alpha4 行为和 v1.0.0 发布 Artifact 完全不变。
-6. 对 v1alpha4 WP6 / WP7 / WP8 的既有实现限制作出明确承接决定，不能让新 Target 对仍会 fail-closed 的功能宣称正向 Build 支持。
+5. 新 API / Target 路径内部一致、严格；不要求 v1alpha4 Dispatch、迁移或向后兼容。
+6. 按新契约重新评估 v1alpha4 WP6 / WP7 / WP8 的历史缺口：实现新目标需要的正向路径，或记录精确的未资格原因；不得默认继承旧 fail-closed 行为。
 
 真实 5GC Owner 发布物或 E2E 资格认证不阻塞隔离的静态 Compiler 开发；它们仍属于独立的产品资格认证门槛。
 
 ## 10. 验收定义
 
-- v1alpha4 regression：所有原有正反例、诊断身份、Artifact bytes 和 Native/WASM parity 不回退。
+- 新目标符合性是验收基线。除非用户以后明确要求支持旧版，否则 v1alpha4 regression / parity 不是发布门禁。已发布历史 Tag / Release 不变。
 - 新目标：严格拒绝错误 apiVersion、未声明 export、错误 Owner、Schema digest mismatch、错误 trigger binding、不可用 wait.output、非法 Wait graph、错误 response boundary 和不完整 multipart mapping。
 - Native / WASM / Chromium Worker 对同一 BuildRequest 产生相同 Diagnostic[]、DependencyInspection 和 Artifact bytes。
 - 本地验收状态必须与 GitHub Actions 分开记录；CI 不可用时可报告 LOCAL_ACCEPTANCE_PASS，但不能写成 CI PASS。
