@@ -1,8 +1,8 @@
 # CA Skill Compiler — Repository Instructions
 
-**Current product release:** CA Skill Compiler v1.0.0  
-**Current language target:** frozen CA-SL v1alpha4 (`connectionagent.io/v1alpha4`)  
-**Release commit:** `252fd6c6dab15fb92806426aeb19d49a36b08d5e`
+- **Current product release:** CA Skill Compiler v1.0.0
+- **Current language target:** frozen CA-SL v1alpha4 (`connectionagent.io/v1alpha4`)
+- **Release commit:** `252fd6c6dab15fb92806426aeb19d49a36b08d5e`
 
 ## 1. Authority
 
