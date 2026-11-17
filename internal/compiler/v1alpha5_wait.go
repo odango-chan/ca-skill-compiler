@@ -6,31 +6,29 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-const V1Alpha5Target = "connectionagent.io/v1alpha5"
-
 var v1alpha5WaitDurationPattern = regexp.MustCompile(`^P([1-9][0-9]*D)?(T([1-9][0-9]*H)?([1-9][0-9]*M)?([1-9][0-9]*S)?)?$`)
 
-type V1Alpha5WaitAST struct {
+type v1alpha5WaitAST struct {
 	Raw      *yaml.Node
-	Event    V1Alpha5IngressEventAST
+	Event    v1alpha5IngressEventAST
 	Timeout  string
-	Response *V1Alpha5WaitResponseAST
-	Routes   V1Alpha5WaitRoutesAST
+	Response *v1alpha5WaitResponseAST
+	Routes   v1alpha5WaitRoutesAST
 }
 
-type V1Alpha5IngressEventAST struct {
+type v1alpha5IngressEventAST struct {
 	Raw       *yaml.Node
 	Source    string
 	Service   string
 	Operation string
 }
 
-type V1Alpha5WaitResponseAST struct {
+type v1alpha5WaitResponseAST struct {
 	Raw   *yaml.Node
 	After string
 }
 
-type V1Alpha5WaitRoutesAST struct {
+type v1alpha5WaitRoutesAST struct {
 	Raw     *yaml.Node
 	Timeout string
 }
@@ -38,7 +36,7 @@ type V1Alpha5WaitRoutesAST struct {
 // parseV1Alpha5WaitNode parses only the Node-entry Wait amendment. It is kept
 // separate from the v1alpha4 parser so the released target never accepts the
 // new field by accident. Graph/link validation is intentionally a later pass.
-func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitAST, []Diagnostic) {
+func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*v1alpha5WaitAST, []Diagnostic) {
 	var diagnostics []Diagnostic
 	add := func(at *yaml.Node, code, message string) {
 		line, column := 0, 0
@@ -88,7 +86,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitA
 		"event": true, "timeout": true, "response": true, "routes": true,
 	}, add)
 
-	result := &V1Alpha5WaitAST{Raw: waitNode}
+	result := &v1alpha5WaitAST{Raw: waitNode}
 
 	event := child(waitNode, "event")
 	event = unalias(event)
@@ -98,7 +96,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitA
 		v1alpha5CheckUnknownFields(event, map[string]bool{
 			"source": true, "service": true, "operation": true,
 		}, add)
-		result.Event = V1Alpha5IngressEventAST{Raw: event}
+		result.Event = v1alpha5IngressEventAST{Raw: event}
 		for _, field := range []string{"source", "service", "operation"} {
 			valueNode := child(event, field)
 			value, ok := v1alpha5String(valueNode)
@@ -132,7 +130,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitA
 			add(responseNode, "WAIT_RESPONSE_BOUNDARY_INVALID", "Node "+nodeID+" wait.response must be a mapping")
 		} else {
 			v1alpha5CheckUnknownFields(responseNode, map[string]bool{"after": true}, add)
-			result.Response = &V1Alpha5WaitResponseAST{Raw: responseNode}
+			result.Response = &v1alpha5WaitResponseAST{Raw: responseNode}
 			if afterNode := child(responseNode, "after"); afterNode != nil {
 				after, ok := v1alpha5String(afterNode)
 				if !ok || !v4NodeID.MatchString(after) || v4Terminals[after] || after == "context" {
@@ -158,7 +156,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitA
 			if !ok || !validV1Alpha5WaitTimeoutTarget(target) {
 				add(timeoutTargetNode, "WAIT_TIMEOUT_ROUTE_INVALID", "Node "+nodeID+" wait.routes.TIMEOUT must target a declared Node or FAILED, UNRESOLVED, SAFE_STOPPED")
 			} else {
-				result.Routes = V1Alpha5WaitRoutesAST{Raw: routesNode, Timeout: target}
+				result.Routes = v1alpha5WaitRoutesAST{Raw: routesNode, Timeout: target}
 			}
 		}
 	}
