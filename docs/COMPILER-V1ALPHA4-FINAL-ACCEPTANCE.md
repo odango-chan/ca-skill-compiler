@@ -21,9 +21,9 @@ this run (account billing block) and is never reported as PASS.
 | Release | Compiler **v1.0.0**, [release notes](release-notes-v1.0.0.md) |
 | Language target | frozen CA-SL v1alpha4 (unchanged) |
 | Main branch | contains the merged v1alpha4 implementation |
-| Merged PRs | #11–#24, merged in dependency order; #2–#8 (superseded v0/v0.1/spike work) not merged |
+| Merged PRs | #2 (v0 bootstrap), #11–#24 (v1alpha4 implementation), and #25 (v1.0.0 release) merged; #3–#8 closed without merge |
 | Release branch | `release/v1.0.0` (version metadata, release notes, LF checkout policy) |
-| Force-push / direct-to-main commits | none |
+| Force-push / direct-to-main commits | Not independently established by this acceptance record; first-parent history alone does not establish the push method |
 
 The v1alpha4 implementation was stacked in dependency order. PR #24 contained the
 WP9–WP12 work, CLI v1, artifact/parity/Studio integration and conformance slices; it was
@@ -170,8 +170,9 @@ Only genuinely external items remain; see
 2. E71/E74 need a normative clarification for `PREDICATE_EVIDENCE_REQUIRED`.
 3. WP13 real 5GC/MAS qualification is NOT_QUALIFIED.
 4. GitHub Actions is unavailable; local commands are the acceptance evidence.
-5. Pre-v1alpha4 source files remain isolated behind the `legacy_v01` build tag (cleanup
-   task, not reachable from public APIs).
+5. The nine unreachable pre-v1alpha4 implementation files guarded by `legacy_v01` have
+   been removed from the active tree in post-release cleanup; Git history preserves them.
+   `legacy_syntax.go` remains active to emit the frozen unsupported-syntax diagnostics.
 
 ## 9. Final judgment
 
