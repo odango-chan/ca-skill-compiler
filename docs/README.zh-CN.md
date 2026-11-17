@@ -34,7 +34,7 @@
 - [Compiler 验收记录](COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) — 实现证据和符合性覆盖情况。
 - [维护状态](WORK.md) — 当前仓库维护记录。
 - [开发历史](WORK-history.md) — 历史开发记录。
-- [Workstream 记录](workstreams/README.md) — 实施和符合性规划。
+- [Workstream 记录](workstreams/README.zh-CN.md) — 实施和符合性规划。
 - [依赖选型](design/oss-dependency-selection-v1alpha4.md) — 第三方库及选型依据。
 
 项目介绍和快速开始见[中文 README](../README.zh-CN.md)。详细技术记录集中在本索引中，不放入项目首页。
