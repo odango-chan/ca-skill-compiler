@@ -11,6 +11,8 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
 const v1alpha5TestProcedurePath = "skills/example/assurance/procedure.yaml"
@@ -25,9 +27,40 @@ func v1alpha5TestProcedureRequest(procedureYAML string) BuildRequest {
 	}
 }
 
+// v1alpha5CheckProcedure runs the WP2 Procedure/Wait AST rules and the WP5
+// Procedure graph rules for one synthetic Procedure. It deliberately stops at
+// those two layers: the tests in this file, v1alpha5_ast_test.go and
+// v1alpha5_graph_test.go name and assert the parser/graph layer, while the
+// end-to-end public Check path (including the WP3 trusted Ingress linking that
+// every Wait now requires) is covered by the WP3 trusted-fixture tests in
+// v1alpha5_binding_test.go and api_v1alpha5_test.go.
 func v1alpha5CheckProcedure(t *testing.T, procedureYAML string) []Diagnostic {
 	t.Helper()
-	return Check(v1alpha5TestProcedureRequest(procedureYAML))
+	diagnostics := make([]Diagnostic, 0)
+	add := func(file string, node *yaml.Node, code, message string) {
+		line, column := 0, 0
+		if node != nil {
+			line, column = node.Line, node.Column
+		}
+		diagnostics = append(diagnostics, Diagnostic{
+			Severity: "error",
+			Phase:    "C_STATIC",
+			Code:     code,
+			Path:     limitDiagnosticPath(file),
+			Line:     line,
+			Column:   column,
+			Message:  limitDiagnosticMessage(message),
+		})
+	}
+	root := v1alpha5ParseYAML(v1alpha5TestProcedurePath, []byte(procedureYAML), add)
+	if root != nil {
+		files := map[string]*yaml.Node{v1alpha5TestProcedurePath: root}
+		skill, astDiagnostics := parseV1Alpha5SkillAST("example", files)
+		diagnostics = append(diagnostics, astDiagnostics...)
+		diagnostics = append(diagnostics, validateV1Alpha5ProcedureGraph(v1alpha5TestProcedurePath, skill)...)
+	}
+	sortDiagnostics(diagnostics)
+	return diagnostics
 }
 
 func findV1Alpha5Diagnostic(diagnostics []Diagnostic, code string) *Diagnostic {

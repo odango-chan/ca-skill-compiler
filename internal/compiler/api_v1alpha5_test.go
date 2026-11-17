@@ -35,7 +35,9 @@ func TestV1Alpha5APIVersionsAreIndependent(t *testing.T) {
 }
 
 func TestCheckV1Alpha5AcceptsValidProcedure(t *testing.T) {
-	diagnostics := CheckV1Alpha5(v1alpha5TestProcedureRequest(validV1Alpha5WaitProcedure()))
+	// End-to-end public Check positive path: a complete synthetic v1alpha5
+	// request with its trusted Ingress/ToolCatalog/Schema dependency context.
+	diagnostics := Check(wp3BuildRequest(t, wp3FixtureOptions{}))
 	if len(diagnostics) != 0 {
 		t.Fatalf("expected zero v1alpha5 diagnostics, got %#v", diagnostics)
 	}
@@ -97,9 +99,9 @@ func TestValidateBuildRequestV1Alpha5RejectsNilBytes(t *testing.T) {
 }
 
 func TestCheckDispatchesV1Alpha5TargetAndFailsClosedOnUnknownTarget(t *testing.T) {
-	// Exact v1alpha5 dispatch: the valid synthetic request is admitted by the
-	// v1alpha5 entry, not the v1alpha4 envelope that hard-rejects the target.
-	if diagnostics := Check(v1alpha5TestProcedureRequest(validV1Alpha5WaitProcedure())); len(diagnostics) != 0 {
+	// Exact v1alpha5 dispatch: the full trusted synthetic request is admitted by
+	// the v1alpha5 entry, not the v1alpha4 envelope that hard-rejects the target.
+	if diagnostics := Check(wp3BuildRequest(t, wp3FixtureOptions{})); len(diagnostics) != 0 {
 		t.Fatalf("public Check must dispatch v1alpha5 exactly, got %#v", diagnostics)
 	}
 
@@ -110,9 +112,11 @@ func TestCheckDispatchesV1Alpha5TargetAndFailsClosedOnUnknownTarget(t *testing.T
 }
 
 func TestBuildV1Alpha5FailsClosedAfterASTValidation(t *testing.T) {
-	result := Build(v1alpha5TestProcedureRequest(validV1Alpha5WaitProcedure()))
+	// The complete trusted fixture validates without source diagnostics, so the
+	// residual fail-closed gate is the only remaining result.
+	result := Build(wp3BuildRequest(t, wp3FixtureOptions{}))
 	if result.Success {
-		t.Fatal("v1alpha5 Build must stay fail-closed while WP3-WP8 are unimplemented")
+		t.Fatal("v1alpha5 Build must stay fail-closed while WP4/WP6-WP8 are unimplemented")
 	}
 	if result.APIVersion != BuildResultAPIVersionV1Alpha5 {
 		t.Fatalf("BuildResult.apiVersion = %q, want %q", result.APIVersion, BuildResultAPIVersionV1Alpha5)
@@ -129,6 +133,16 @@ func TestBuildV1Alpha5FailsClosedAfterASTValidation(t *testing.T) {
 	}
 	if !strings.Contains(diagnostic.Message, "WP3-WP8") {
 		t.Fatalf("residual gate must name the unimplemented work packages: %#v", diagnostic)
+	}
+
+	// A Wait whose trusted Ingress export cannot exist is a real source
+	// diagnostic, not a silent residual-gate-only failure.
+	dependencyFree := Build(v1alpha5TestProcedureRequest(validV1Alpha5WaitProcedure()))
+	if dependencyFree.Success {
+		t.Fatal("dependency-free v1alpha5 Build must not succeed")
+	}
+	if !hasV1Alpha5Diagnostic(dependencyFree.Diagnostics, "WAIT_INGRESS_EXPORT_NOT_FOUND") {
+		t.Fatalf("dependency-free Wait must report WAIT_INGRESS_EXPORT_NOT_FOUND, got %#v", dependencyFree.Diagnostics)
 	}
 }
 

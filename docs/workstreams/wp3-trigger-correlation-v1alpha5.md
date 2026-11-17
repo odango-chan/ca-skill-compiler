@@ -21,8 +21,9 @@ language or product qualification claim.
 
 ### 1.1 Trusted dependency scope and trusted-only Catalog discovery
 
-For one selected v1alpha5 Skill with at least one Wait-bearing Node and at least one
-declared immutable dependency snapshot:
+For one selected v1alpha5 Skill with at least one Wait-bearing Node (dependency
+snapshots and Contract dependencies are optional inputs; when absent the trusted
+export set is empty and every Wait selector resolves to zero trusted exports):
 
 1. Contract `dependencies:` (alias → Stable Package ID) are read through the
    inherited v1alpha4 Contract parser (`collectContractDependencies`); no second
@@ -152,12 +153,18 @@ any non-empty value of these three fields, so the v1alpha4 API stays closed.
 
 Deliberate scope decisions (documented, not faked):
 
-- The WP3 pass runs only when the request declares at least one dependency snapshot.
-  A dependency-free v1alpha5 request cannot declare a trusted Integration
-  dependency; WP2-only synthetic fixtures therefore keep their exact previous
-  behavior and Build stays fail-closed. Once dependency snapshots are present,
-  every Wait must link or the exact not-found/ambiguous/invalid diagnostic is
-  emitted.
+- Every Wait-bearing Node runs the exact selector resolution. If the request is
+  well-formed but supplies no trusted dependency/catalog (including a
+  dependency-free request), zero trusted Ingress Operation exports match and
+  `WAIT_INGRESS_EXPORT_NOT_FOUND` is emitted at `wait.event`; the Wait is never
+  silently accepted. Only a failed dependency identity / trusted-context
+  prerequisite suppresses the dependent selector/trigger diagnostics (the
+  prerequisite diagnostic itself is still emitted). Build remains fail-closed
+  separately.
+- WP2/WP5 syntax/AST/graph tests assert their own parser/graph layer
+  (`parseV1Alpha5SkillAST` + `validateV1Alpha5ProcedureGraph`) and are not
+  dependency-free public-`Check` positives; the end-to-end public `Check` positive
+  path uses the complete WP3 trusted fixture.
 - Ingress/trigger diagnostics produced while checking dependency-side declarations
   carry the dependency snapshot path as `Diagnostic.path`; the full versioned
   diagnostic envelope with `registryId`/`messageKey`/`sourceLocation` is WP7.
@@ -186,7 +193,8 @@ WP1 Schema Closure Digest v1 code.
 | Clause / case | Test |
 |---|---|
 | L.3.2, #62 §10/§12 positive trusted link (IN-001 type positive path) | `TestV1Alpha5WP3PositiveTrustedIngressLink` |
-| L.3.1 zero match (IN-018 / EW-015) | `TestV1Alpha5WP3SelectorNotFound` |
+| L.3.1 well-formed Wait with zero trusted exports, including a dependency-free request (IN-018 / EW-015) | `TestV1Alpha5WaitWithoutIngressExportIsNotFound` |
+| L.3.1 zero match with supplied trusted dependencies (IN-018 / EW-015) | `TestV1Alpha5WP3SelectorNotFound` |
 | L.3.1 multi match (IN-019 / EW-015) | `TestV1Alpha5WP3SelectorAmbiguous` |
 | #62 §13 trusted-only discovery / untrusted suppression (IN-020/021) | `TestV1Alpha5WP3UntrustedCatalogSuppressed`, `TestV1Alpha5WP3UntrustedOwnerSuppressed` |
 | #62 §13 prerequisite suppression + Schema Closure digest (IN-004/063) | `TestV1Alpha5WP3SchemaClosureDigestMismatch` |
@@ -203,7 +211,8 @@ WP1 Schema Closure Digest v1 code.
 | v1alpha5-only trusted-context envelope | `TestV1Alpha5WP3TrustedContextBindingValidation` |
 | v1alpha4 closed API | `TestV1Alpha5WP3V1Alpha4RejectsV1Alpha5OnlyTrustedFields` |
 | dependency identity prerequisite suppression | `TestV1Alpha5WP3DependencyIdentityFailureSuppressesLinking` |
-| WP2-only scope stability | `TestV1Alpha5WP3OmittedTrustedContextKeepsWP2Scope` |
+| end-to-end public `Check` positive (API layer) | `TestCheckV1Alpha5AcceptsValidProcedure` |
+| Build residual gate with a fully valid trusted fixture + dependency-free fail-closed | `TestBuildV1Alpha5FailsClosedAfterASTValidation` |
 
 ## 5. Explicitly deferred
 

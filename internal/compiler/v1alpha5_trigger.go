@@ -85,11 +85,12 @@ func validateV1Alpha5WaitBindings(req BuildRequest, skill *V1Alpha5SkillAST, pro
 			waitNodeIDs = append(waitNodeIDs, nodeID)
 		}
 	}
-	// WP3 linking needs the immutable dependency snapshot set in which the
-	// Integration package is declared. A v1alpha5 request without any dependency
-	// snapshot cannot declare an Integration dependency; WP2-only fixtures keep
-	// their exact previous behavior and Build stays fail-closed.
-	if len(waitNodeIDs) == 0 || len(req.ResolvedDependencies) == 0 {
+	// Every Wait-bearing Node must resolve its exact selector to exactly one
+	// trusted Ingress Operation export. A dependency-free request therefore still
+	// runs the linking pass: with no trusted dependency/catalog supplied, zero
+	// trusted exports match and WAIT_INGRESS_EXPORT_NOT_FOUND is emitted. Build
+	// remains fail-closed separately.
+	if len(waitNodeIDs) == 0 {
 		return nil
 	}
 

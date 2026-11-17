@@ -207,20 +207,19 @@ func TestV1Alpha5ProcedureMissingProcedureFile(t *testing.T) {
 }
 
 func TestV1Alpha5ProcedureMultipleSkillsAreIsolated(t *testing.T) {
-	// Two Skill packages: only the second one has an invalid Wait. Diagnostics
-	// must be reported against the owning package path.
-	req := BuildRequest{
-		APIVersion:     BuildRequestAPIVersionV1Alpha5,
-		LanguageTarget: V1Alpha5Target,
-		Files: []File{
-			{Path: "skills/alpha/assurance/procedure.yaml", Bytes: []byte(`start: a
+	// Two Skill packages parsed through their own AST passes: only the second one
+	// has an invalid Wait, and diagnostics must be reported against the owning
+	// package path. This asserts the WP2/WP5 AST layer only; the public Check
+	// end-to-end path is covered by the WP3 trusted-fixture tests.
+	procedures := map[string]string{
+		"skills/alpha/assurance/procedure.yaml": `start: a
 nodes:
   a:
     operation:
       tool: ca::smf.x
       arguments: {}
-`)},
-			{Path: "skills/beta/assurance/procedure.yaml", Bytes: []byte(`start: b
+`,
+		"skills/beta/assurance/procedure.yaml": `start: b
 nodes:
   b:
     wait:
@@ -234,10 +233,20 @@ nodes:
     operation:
       tool: ca::smf.x
       arguments: {}
-`)},
-		},
+`,
 	}
-	diagnostics := Check(req)
+	diagnostics := make([]Diagnostic, 0)
+	for _, name := range []string{"alpha", "beta"} {
+		path := "skills/" + name + "/assurance/procedure.yaml"
+		root, err := yaml.Parse([]byte(procedures[path]))
+		if err != nil {
+			t.Fatalf("parse %s: %v", path, err)
+		}
+		files := map[string]*yaml.Node{path: root}
+		_, skillDiagnostics := parseV1Alpha5SkillAST(name, files)
+		diagnostics = append(diagnostics, skillDiagnostics...)
+	}
+	sortDiagnostics(diagnostics)
 	if len(diagnostics) != 1 {
 		t.Fatalf("expected exactly one diagnostic, got %#v", diagnostics)
 	}
@@ -245,4 +254,3 @@ nodes:
 		t.Fatalf("unexpected diagnostic: %#v", diagnostics[0])
 	}
 }
-

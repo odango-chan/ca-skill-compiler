@@ -852,12 +852,27 @@ func TestV1Alpha5WP3V1Alpha4RejectsV1Alpha5OnlyTrustedFields(t *testing.T) {
 	}
 }
 
-// TestV1Alpha5WP3OmittedTrustedContextKeepsWP2Scope proves that the existing
-// dependency-free WP2 fixtures keep their exact behavior: no selector resolution
-// is inferred without a declared dependency snapshot set.
-func TestV1Alpha5WP3OmittedTrustedContextKeepsWP2Scope(t *testing.T) {
+// TestV1Alpha5WaitWithoutIngressExportIsNotFound proves the L.3.1 rule for a
+// well-formed dependency-free request: the Skill declares no trusted Integration
+// dependency, so the Wait selector has zero trusted Ingress Operation exports and
+// Check must emit the exact not-found diagnostic instead of silently accepting the
+// Wait. It asserts the exact code, phase, severity, path, line and column.
+func TestV1Alpha5WaitWithoutIngressExportIsNotFound(t *testing.T) {
 	diagnostics := Check(v1alpha5TestProcedureRequest(validV1Alpha5WaitProcedure()))
-	if len(diagnostics) != 0 {
-		t.Fatalf("dependency-free WP2 fixture must stay diagnostic-free, got %#v", diagnostics)
+	assertWP3Diagnostics(t, diagnostics, "WAIT_INGRESS_EXPORT_NOT_FOUND")
+	diagnostic := diagnostics[0]
+	if diagnostic.Severity != "error" || diagnostic.Phase != "C_STATIC" {
+		t.Fatalf("diagnostic identity = %s/%s, want error/C_STATIC", diagnostic.Severity, diagnostic.Phase)
+	}
+	if diagnostic.Path != v1alpha5TestProcedurePath {
+		t.Fatalf("diagnostic path = %q, want %q", diagnostic.Path, v1alpha5TestProcedurePath)
+	}
+	// The selectors are anchored at the wait.event mapping node (line 15 in this
+	// fixture; the YAML mapping node column points at the end of its first key).
+	if diagnostic.Line != 15 || diagnostic.Column != 15 {
+		t.Fatalf("diagnostic location = %d:%d, want 15:15", diagnostic.Line, diagnostic.Column)
+	}
+	if !strings.Contains(diagnostic.Message, "Node 'update-sm-context' wait selector 'AMF/Nsmf_PDUSession/UpdateSMContext' does not resolve to a trusted Ingress Operation export.") {
+		t.Fatalf("diagnostic message must use the L.11.1 template: %q", diagnostic.Message)
 	}
 }
