@@ -53,8 +53,9 @@ func v1alpha5StaticDiagnostic(path string, node *yaml.Node, code, message string
 // the WP3 linking passes. resolution is nil when the request declares no
 // v1alpha5 artifact bindings.
 type v1alpha5LinkContext struct {
-	resolution  *ingresscatalog.ResolutionContext
-	schemaRoots map[string]ingresscatalog.RootRef
+	resolution    *ingresscatalog.ResolutionContext
+	schemaRoots   map[string]ingresscatalog.RootRef
+	artifactPaths []v1alpha5SchemaArtifactPath
 }
 
 // v1alpha5Dependency is one verified Contract dependency snapshot. PackageID is
@@ -342,6 +343,13 @@ func buildV1Alpha5LinkContext(req BuildRequest) (*v1alpha5LinkContext, []Diagnos
 		return context, diagnostics
 	}
 	context.resolution = resolution
+	context.artifactPaths = make([]v1alpha5SchemaArtifactPath, 0, len(ctx.ArtifactBindings))
+	for _, binding := range ctx.ArtifactBindings {
+		context.artifactPaths = append(context.artifactPaths, v1alpha5SchemaArtifactPath{
+			artifactRef:  binding.ArtifactRef,
+			snapshotPath: binding.SnapshotPath,
+		})
+	}
 	for _, binding := range ctx.SchemaBindings {
 		context.schemaRoots[binding.ExportID] = ingresscatalog.RootRef{ArtifactRef: binding.ArtifactRef, Pointer: binding.Pointer}
 	}

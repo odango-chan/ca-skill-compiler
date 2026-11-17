@@ -158,14 +158,29 @@ type ArmingProjection struct {
 	Triggers []TriggerProjection   `json:"triggers"`
 }
 
+// ResponsePartProjection is one declared multipart response part (#62 §8.3).
+type ResponsePartProjection struct {
+	Name         string `json:"name"`
+	MediaType    string `json:"mediaType"`
+	Kind         string `json:"kind"`
+	Required     bool   `json:"required"`
+	SchemaRef    string `json:"schemaRef,omitempty"`
+	SchemaDigest string `json:"schemaDigest,omitempty"`
+	MaxBytes     int64  `json:"maxBytes"`
+}
+
 // ResponseRepresentationProjection is one declared protocol response
-// representation. It is projected for the later WP6 response-boundary slice.
+// representation. It is projected for the WP6 response-boundary slice.
 type ResponseRepresentationProjection struct {
-	ID                   string `json:"id"`
-	MediaType            string `json:"mediaType"`
-	ResponseSchemaRef    string `json:"responseSchemaRef"`
-	ResponseSchemaDigest string `json:"responseSchemaDigest"`
-	MaxBytes             int64  `json:"maxBytes"`
+	ID                   string                   `json:"id"`
+	MediaType            string                   `json:"mediaType"`
+	ResponseSchemaRef    string                   `json:"responseSchemaRef"`
+	ResponseSchemaDigest string                   `json:"responseSchemaDigest"`
+	MaxBytes             int64                    `json:"maxBytes"`
+	RootPart             string                   `json:"rootPart,omitempty"`
+	Parts                []ResponsePartProjection `json:"parts,omitempty"`
+	MinBinaryParts       int64                    `json:"minBinaryParts,omitempty"`
+	MaxBinaryParts       int64                    `json:"maxBinaryParts,omitempty"`
 }
 
 // ResponseDispositionProjection is one declared protocol response disposition.
@@ -176,21 +191,73 @@ type ResponseDispositionProjection struct {
 	Representations []ResponseRepresentationProjection `json:"representations"`
 }
 
-// ResponseResultProjection is the declared paired-response result Producer.
+// ResponseTargetProjection is one closed-set response mapping target (#62 §8.3).
+// ContentIDPart/ContentIDPointer are populated only for multipart-binary targets:
+// they carry the contentIdField JSON Pointer into the JSON root part that binds
+// the Integration-generated wire Content-ID.
+type ResponseTargetProjection struct {
+	Kind             string `json:"kind"`
+	Part             string `json:"part,omitempty"`
+	Pointer          string `json:"pointer,omitempty"`
+	ContentIDPart    string `json:"contentIdPart,omitempty"`
+	ContentIDPointer string `json:"contentIdPointer,omitempty"`
+}
+
+// ResponseMappingProjection is one declared typed result-to-protocol-response
+// mapping (#62 §8.3).
+type ResponseMappingProjection struct {
+	DispositionID    string                   `json:"dispositionId"`
+	RepresentationID string                   `json:"representationId"`
+	From             string                   `json:"from"`
+	Target           ResponseTargetProjection `json:"target"`
+	Transform        string                   `json:"transform"`
+}
+
+// ResponseSelectorCaseProjection is one declared dispositionSelector case.
+type ResponseSelectorCaseProjection struct {
+	Value            any    `json:"value"`
+	DispositionID    string `json:"dispositionId"`
+	RepresentationID string `json:"representationId,omitempty"`
+}
+
+// ResponseResultProjection is the declared paired-response result Producer and
+// its typed result-to-protocol-response mapping.
 type ResponseResultProjection struct {
-	Producer                string `json:"producer"`
-	ResponseResultSchemaRef string `json:"responseResultSchemaRef"`
-	DispositionSelectorPath string `json:"dispositionSelectorSourcePath"`
+	Producer                 string                           `json:"producer"`
+	ResponseResultSchemaRef  string                           `json:"responseResultSchemaRef"`
+	DispositionSelectorPath  string                           `json:"dispositionSelectorSourcePath"`
+	DispositionSelectorCases []ResponseSelectorCaseProjection `json:"dispositionSelectorCases,omitempty"`
+	Mappings                 []ResponseMappingProjection      `json:"mappings,omitempty"`
+}
+
+// ResponseBinaryContentProjection is the declared immutable typed binary-content
+// reference lifecycle used by multipart/related responses (#62 §8.3/§8.5).
+type ResponseBinaryContentProjection struct {
+	ReferenceSchemaRef string `json:"referenceSchemaRef"`
+	DigestAlgorithm    string `json:"digestAlgorithm"`
+	Immutable          bool   `json:"immutable"`
+	Access             string `json:"access"`
+	Retention          string `json:"retention"`
+	MaxBytes           int64  `json:"maxBytes"`
+}
+
+// ResponseDeliveryRecoveryProjection is the declared durable delivery-recovery
+// contract projection (#62 §8.4/§8.5).
+type ResponseDeliveryRecoveryProjection struct {
+	Mode                   string `json:"mode"`
+	RequestIdentity        string `json:"requestIdentity"`
+	LostChannelDisposition string `json:"lostChannelDisposition"`
 }
 
 // ResponseProjection is the declared protocol response contract projection.
 type ResponseProjection struct {
-	Mode                  string                          `json:"mode"`
-	DeadlinePolicyRef     string                          `json:"deadlinePolicyRef"`
-	Result                ResponseResultProjection        `json:"result"`
-	Dispositions          []ResponseDispositionProjection `json:"dispositions"`
-	EarlyFailureResponses map[string]string               `json:"earlyFailureResponses"`
-	DeliveryRecoveryMode  string                          `json:"deliveryRecoveryMode"`
+	Mode                  string                             `json:"mode"`
+	DeadlinePolicyRef     string                             `json:"deadlinePolicyRef"`
+	Result                ResponseResultProjection           `json:"result"`
+	Dispositions          []ResponseDispositionProjection    `json:"dispositions"`
+	EarlyFailureResponses map[string]string                  `json:"earlyFailureResponses"`
+	BinaryContent         *ResponseBinaryContentProjection   `json:"binaryContent,omitempty"`
+	DeliveryRecovery      ResponseDeliveryRecoveryProjection `json:"deliveryRecovery"`
 }
 
 // Operation is the deterministic projection of one IngressCatalog export for
@@ -809,7 +876,9 @@ func projectArmingBindings(values []any) []ArmingBindingProjection {
 }
 
 // projectResponse projects the additive paired-response contract used by the
-// later WP6 response-boundary slice.
+// WP6 response-boundary slice. Absent or malformed sub-objects project to their
+// zero value; structural validity is owned by catalog admission, not by this
+// projection.
 func projectResponse(response map[string]any) ResponseProjection {
 	projection := ResponseProjection{}
 	if response == nil {
@@ -818,10 +887,44 @@ func projectResponse(response map[string]any) ResponseProjection {
 	projection.Mode = stringField(response, "mode")
 	projection.DeadlinePolicyRef = stringField(response, "deadlinePolicyRef")
 	result := objectField(response, "result")
+	selector := objectField(result, "dispositionSelector")
 	projection.Result = ResponseResultProjection{
 		Producer:                stringField(result, "producer"),
 		ResponseResultSchemaRef: stringField(result, "responseResultSchemaRef"),
-		DispositionSelectorPath: stringField(objectField(result, "dispositionSelector"), "sourcePath"),
+		DispositionSelectorPath: stringField(selector, "sourcePath"),
+	}
+	for _, caseValue := range arrayField(selector, "cases") {
+		caseMap, ok := caseValue.(map[string]any)
+		if !ok {
+			continue
+		}
+		projection.Result.DispositionSelectorCases = append(projection.Result.DispositionSelectorCases,
+			ResponseSelectorCaseProjection{
+				Value:            caseMap["value"],
+				DispositionID:    stringField(caseMap, "dispositionId"),
+				RepresentationID: stringField(caseMap, "representationId"),
+			})
+	}
+	for _, mappingValue := range arrayField(result, "mappings") {
+		mappingMap, ok := mappingValue.(map[string]any)
+		if !ok {
+			continue
+		}
+		target := objectField(mappingMap, "target")
+		contentIDField := objectField(target, "contentIdField")
+		projection.Result.Mappings = append(projection.Result.Mappings, ResponseMappingProjection{
+			DispositionID:    stringField(mappingMap, "dispositionId"),
+			RepresentationID: stringField(mappingMap, "representationId"),
+			From:             stringField(mappingMap, "from"),
+			Transform:        stringField(mappingMap, "transform"),
+			Target: ResponseTargetProjection{
+				Kind:             stringField(target, "kind"),
+				Part:             stringField(target, "part"),
+				Pointer:          stringField(target, "pointer"),
+				ContentIDPart:    stringField(contentIDField, "part"),
+				ContentIDPointer: stringField(contentIDField, "pointer"),
+			},
+		})
 	}
 	for _, dispositionValue := range arrayField(response, "dispositions") {
 		dispositionMap, ok := dispositionValue.(map[string]any)
@@ -838,13 +941,32 @@ func projectResponse(response map[string]any) ResponseProjection {
 			if !ok {
 				continue
 			}
-			disposition.Representations = append(disposition.Representations, ResponseRepresentationProjection{
+			projected := ResponseRepresentationProjection{
 				ID:                   stringField(representation, "id"),
 				MediaType:            stringField(representation, "mediaType"),
 				ResponseSchemaRef:    stringField(representation, "responseSchemaRef"),
 				ResponseSchemaDigest: stringField(representation, "responseSchemaDigest"),
 				MaxBytes:             integerField(representation, "maxBytes"),
-			})
+				RootPart:             stringField(representation, "rootPart"),
+				MinBinaryParts:       integerField(representation, "minBinaryParts"),
+				MaxBinaryParts:       integerField(representation, "maxBinaryParts"),
+			}
+			for _, partValue := range arrayField(representation, "parts") {
+				partMap, ok := partValue.(map[string]any)
+				if !ok {
+					continue
+				}
+				projected.Parts = append(projected.Parts, ResponsePartProjection{
+					Name:         stringField(partMap, "name"),
+					MediaType:    stringField(partMap, "mediaType"),
+					Kind:         stringField(partMap, "kind"),
+					Required:     booleanField(partMap, "required"),
+					SchemaRef:    stringField(partMap, "schemaRef"),
+					SchemaDigest: stringField(partMap, "schemaDigest"),
+					MaxBytes:     integerField(partMap, "maxBytes"),
+				})
+			}
+			disposition.Representations = append(disposition.Representations, projected)
 		}
 		projection.Dispositions = append(projection.Dispositions, disposition)
 	}
@@ -855,7 +977,22 @@ func projectResponse(response map[string]any) ResponseProjection {
 			projection.EarlyFailureResponses[outcome] = stringField(entry, "responseRef")
 		}
 	}
-	projection.DeliveryRecoveryMode = stringField(objectField(response, "deliveryRecovery"), "mode")
+	if binaryContent := objectField(response, "binaryContent"); binaryContent != nil {
+		projection.BinaryContent = &ResponseBinaryContentProjection{
+			ReferenceSchemaRef: stringField(binaryContent, "referenceSchemaRef"),
+			DigestAlgorithm:    stringField(binaryContent, "digestAlgorithm"),
+			Immutable:          booleanField(binaryContent, "immutable"),
+			Access:             stringField(binaryContent, "access"),
+			Retention:          stringField(binaryContent, "retention"),
+			MaxBytes:           integerField(binaryContent, "maxBytes"),
+		}
+	}
+	deliveryRecovery := objectField(response, "deliveryRecovery")
+	projection.DeliveryRecovery = ResponseDeliveryRecoveryProjection{
+		Mode:                   stringField(deliveryRecovery, "mode"),
+		RequestIdentity:        stringField(deliveryRecovery, "requestIdentity"),
+		LostChannelDisposition: stringField(deliveryRecovery, "lostChannelDisposition"),
+	}
 	return projection
 }
 
