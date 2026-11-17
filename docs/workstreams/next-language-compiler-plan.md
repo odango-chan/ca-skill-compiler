@@ -34,6 +34,8 @@ The Ingress Operation is a separate package-scoped export, not a ToolCatalog cal
 
 **Implementation decision:** start isolated WP2 Wait grammar/AST work against the exact v1alpha5 candidate and continue WP1 Schema Closure work behind internal interfaces. Do not expose a public v1alpha5 Build target, alter v1alpha4, or claim Compiler conformance until #61/#62 and the versioned API contracts are frozen.
 
+The first isolated WP2 implementation is [ca-skill-compiler PR #30](https://github.com/odango-chan/ca-skill-compiler/pull/30): a private-package Wait AST/parser slice with fixed-duration, selector, response-boundary and TIMEOUT-route checks. It intentionally does not add BuildRequest dispatch or link IngressCatalog. Its GitHub Actions job currently has no assigned runner (`runner_id=0`, no executed steps); this is an infrastructure/CI availability gap, not a test failure result. Only the fixed-duration grammar has received a separate local Go check so far; full Go tests/vet/Native/WASM acceptance remains NOT_RUN.
+
 Real Owner/Deployment publications and live 5GC qualification do not block independent static Compiler implementation. Synthetic trusted fixtures are sufficient for static development; they must never be reported as real interoperability evidence.
 
 ## 3. Versioned API impact
