@@ -189,22 +189,23 @@ The normal success path must not erase the standard's failure branches:
 
 ## 8. Fixed 3GPP reference set
 
-The reference map in §7 is pinned to the following Release 19 V19.5.0 documents:
+The §7 reference map uses the following independently pinned Release 19 documents, checked against ETSI publications on 2026-11-17. The TS versions are intentionally **not** normalized to one shared `V19.x.0`.
 
-| Specification | Version | Scope in this profile | Official source |
+| Specification | Pinned version | Scope in this profile | Official source |
 |---|---|---|---|
-| TS 23.501 | V19.5.0, Release 19 | 5GS architecture and SMF/UPF selection context | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/123500_123599/123501/19.05.00_60/ts_123501v190500p.pdf) |
-| TS 23.502 | V19.5.0, Release 19 | PDU Session Establishment procedure and N4 interaction steps | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/123500_123599/123502/19.05.00_60/ts_123502v190500p.pdf) |
-| TS 29.502 | V19.5.0, Release 19 | SMF Session Management SBI service; `TS29502_Nsmf_PDUSession.yaml` OpenAPI definition in Annex A.2 | [ETSI PDF / Annex A.2](https://www.etsi.org/deliver/etsi_ts/129500_129599/129502/19.05.00_60/ts_129502v190500p.pdf) |
-| TS 29.503 | V19.5.0, Release 19 | UDM services, including SDM and UECM | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129500_129599/129503/19.05.00_60/ts_129503v190500p.pdf) |
-| TS 29.512 | V19.5.0, Release 19 | SM Policy Control service | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129500_129599/129512/19.05.00_60/ts_129512v190500p.pdf) |
-| TS 29.518 | V19.5.0, Release 19 | AMF services, including N1N2 Message Transfer | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129500_129599/129518/19.05.00_60/ts_129518v190500p.pdf) |
-| TS 29.244 | V19.5.0, Release 19 | PFCP/N4 protocol between SMF and UPF | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129200_129299/129244/19.05.00_60/ts_129244v190500p.pdf) |
+| TS 23.501 | V19.9.0, Release 19 | 5GS architecture, SMF/UPF selection, SSC and session-address context | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/123500_123599/123501/19.09.00_60/ts_123501v190900p.pdf) |
+| TS 23.502 | V19.9.0, Release 19 | PDU Session Establishment procedure and N4 interaction steps | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/123500_123599/123502/19.09.00_60/ts_123502v190900p.pdf) |
+| TS 23.503 | V19.8.0, Release 19 | PCC / SM Policy framework and policy-trigger context | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/123500_123599/123503/19.08.00_60/ts_123503v190800p.pdf) |
+| TS 29.502 | V19.8.0, Release 19 | Nsmf_PDUSession service, CreateSMContext and UpdateSMContext API; OpenAPI Annex A.2 | [ETSI PDF / Annex A.2](https://www.etsi.org/deliver/etsi_ts/129500_129599/129502/19.08.00_60/ts_129502v190800p.pdf) |
+| TS 29.503 | V19.7.0, Release 19 | UDM SDM and UECM services; OpenAPI Annex A.2 and A.3 | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129500_129599/129503/19.07.00_60/ts_129503v190700p.pdf) |
+| TS 29.512 | V19.6.0, Release 19 | Npcf_SMPolicyControl service; OpenAPI Annex A.2 | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129500_129599/129512/19.06.00_60/ts_129512v190600p.pdf) |
+| TS 29.518 | V19.8.0, Release 19 | Namf_Communication service and N1N2 Message Transfer; OpenAPI Annex A.2 | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129500_129599/129518/19.08.00_60/ts_129518v190800p.pdf) |
+| TS 29.244 | V19.6.0, Release 19 | PFCP/N4 Session Establishment, Modification and Release | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129200_129299/129244/19.06.00_60/ts_129244v190600p.pdf) |
 
-V19.5.0 is a deliberately fixed review snapshot, not an assertion that it is the newest published Release 19 version. Do not silently float to a later version. Any baseline update must review the affected procedure steps, API/OpenAPI contracts and Tool mappings together.
+This is a fixed review snapshot as of 2026-11-17, not a floating "latest" alias. A later baseline change must re-review the affected procedure steps, API/OpenAPI contracts, Tool mappings, failure branches and per-Node comments together. Do not update only the version string.
 
-A version pin for a 3GPP document does not qualify an Owner implementation. For each callable, the separate Owner traceability record must still pin the actual ToolCatalog publication, exact callable ID, Owner identity, kind, Effect, Schema IDs, guarantees, implementation repository and immutable source revision.
-
+A Stage 3 version pin does not qualify an Owner implementation. For each callable, the separate Owner traceability record must still pin the actual ToolCatalog publication, exact callable ID, Owner identity, kind, Effect, Schema IDs, guarantees, implementation repository and immutable source revision.
+ 
 ## 9. Required traceability and qualification record
 
 Every business Node in a 5GC Procedure must have a traceability entry in the Skill's `SKILL.md` and a concise source comment beside the Node in `procedure.yaml`.
