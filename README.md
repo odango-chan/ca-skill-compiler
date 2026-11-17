@@ -85,7 +85,3 @@ Some Evidence, Mutation/Reconcile and Retry positive Build paths remain fail-clo
 - [Release notes](docs/release-notes-v1.0.0.md)
 
 Compiler design contracts, integration notes and maintenance records are listed separately in the documentation index.
-
-## License
-
-No `LICENSE` file or open-source license is currently declared for this repository. Do not assume that use, modification or redistribution is permitted. A license must be selected before the repository is presented as an open-source project.
