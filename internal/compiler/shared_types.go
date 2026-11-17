@@ -1,9 +1,7 @@
 package compiler
 
 // Shared public request/response and source-location types used by the active
-// v1alpha4 Core. They historically lived in the legacy analysis pipeline files;
-// the legacy pipeline is build-tagged out (legacy_v01) and must not be imported
-// by the v1alpha4 Core.
+// v1alpha4 Core.
 
 import yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 
