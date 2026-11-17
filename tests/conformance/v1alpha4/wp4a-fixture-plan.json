@@ -1,0 +1,208 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-fixture-plan/v1alpha4",
+  "taskId": "WP4A-SCHEMA-G4-001",
+  "status": "PASS",
+  "note": "Agent-proposed bounded WP4A envelope (slice 1 of WP4); see docs/workstreams/wp4a-schema-g4-v1alpha4.md. WP4B registry/reference closure/San adapter, WP4C F.5 assignability and WP4D CEL remain queued.",
+  "normativeAuthority": {
+    "repository": "odango-chan/ca-skills",
+    "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
+    "file": "docs/skill-language-spec.v1alpha4.zh-CN.md",
+    "blob": "b70064c5737b8ee2b3d1435fe496357f44b42773"
+  },
+  "rules": {
+    "expectedDiagnosticIdentity": "exact (Code, Phase)",
+    "compilerErrorPhase": "C_STATIC",
+    "sourceDiagnosticsRequireOriginalYamlLocation": true,
+    "unknownKeywordsNeverIgnored": true,
+    "noNewDiagnosticCodes": true,
+    "genericSchemaEngineCannotBroadenG4": true
+  },
+  "fixtures": [
+    {
+      "id": "WP4A-001",
+      "title": "Valid G.4 Schema documents are accepted",
+      "appendixE": "E01 baseline",
+      "category": "positive",
+      "input": "Object/closed, nullable union, array bounds, independent $ref and string enum/const Schemas.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "No SCHEMA_INVALID is emitted for the allowed keyword set.",
+        "Nullable [T, \"null\"] declarations are accepted.",
+        "Annotations alone are accepted.",
+        "A $ref annotated with $schema/$id is accepted."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4AG4AllowlistUnit",
+      "actualFixturePath": "internal/compiler/schema_g4_test.go"
+    },
+    {
+      "id": "WP4A-002",
+      "title": "Unsupported composition, pattern and $defs keywords are rejected",
+      "appendixE": "E110",
+      "category": "negative",
+      "input": "Schemas using anyOf, pattern or $defs.",
+      "expectedDiagnostics": [
+        {
+          "code": "SCHEMA_INVALID",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Each unsupported keyword is rejected as SCHEMA_INVALID/C_STATIC.",
+        "Unknown keywords are never silently ignored.",
+        "The generic Draft 2020-12 keyword set does not broaden the CA-SL profile."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4AG4AllowlistUnit",
+      "actualFixturePath": "internal/compiler/schema_g4_test.go"
+    },
+    {
+      "id": "WP4A-003",
+      "title": "Type unions are restricted to [T, \"null\"]",
+      "appendixE": null,
+      "category": "negative",
+      "input": "General union [string, integer], single-member union and duplicate member union.",
+      "expectedDiagnostics": [
+        {
+          "code": "SCHEMA_INVALID",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "General unions are rejected.",
+        "Exactly two distinct members with one null are required.",
+        "No arbitrary union is accepted through a library default."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4AG4AllowlistUnit",
+      "actualFixturePath": "internal/compiler/schema_g4_test.go"
+    },
+    {
+      "id": "WP4A-004",
+      "title": "required, constraint and type consistency is enforced",
+      "appendixE": null,
+      "category": "negative",
+      "input": "required not a declared property; non-boolean additionalProperties; tuple items; inverted bounds; incompatible constraint types.",
+      "expectedDiagnostics": [
+        {
+          "code": "SCHEMA_INVALID",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "required must be a unique subset of declared properties.",
+        "additionalProperties must be boolean.",
+        "items must be one Schema.",
+        "Inverted or type-incompatible constraints are rejected."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4AG4AllowlistUnit",
+      "actualFixturePath": "internal/compiler/schema_g4_test.go"
+    },
+    {
+      "id": "WP4A-005",
+      "title": "$ref independence and fragment rejection",
+      "appendixE": "E110",
+      "category": "negative",
+      "input": "$ref combined with a sibling assertion and $ref containing a JSON Pointer fragment.",
+      "expectedDiagnostics": [
+        {
+          "code": "SCHEMA_INVALID",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "$ref may only be accompanied by the permitted annotations.",
+        "#/... fragments are rejected.",
+        "Dynamic/remote reference forms are not accepted."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4AG4AllowlistUnit",
+      "actualFixturePath": "internal/compiler/schema_g4_test.go"
+    },
+    {
+      "id": "WP4A-006",
+      "title": "enum/const literal consistency",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Duplicate enum values plus enum/const values incompatible with the declared type and constraints.",
+      "expectedDiagnostics": [
+        {
+          "code": "SCHEMA_INVALID",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Duplicate enum values are rejected.",
+        "Literal values must be accepted by the declared type and constraints.",
+        "No implicit coercion of literal values is performed."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4AG4AllowlistUnit",
+      "actualFixturePath": "internal/compiler/schema_g4_test.go"
+    },
+    {
+      "id": "WP4A-007",
+      "title": "Request Schema root shape is enforced in Check/Build",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Request Schema root open, non-object or missing properties; also an unsupported nested keyword.",
+      "expectedDiagnostics": [
+        {
+          "code": "SCHEMA_INVALID",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Request Schema root must be object with properties and additionalProperties: false.",
+        "SCHEMA_INVALID retains the Schema source path/line/column.",
+        "Check and Build agree on the diagnostic."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4AValidationIntegratedIntoBuild",
+      "actualFixturePath": "internal/compiler/schema_g4_test.go"
+    },
+    {
+      "id": "WP4A-008",
+      "title": "Every Skill-owned Schema is validated",
+      "appendixE": null,
+      "category": "negative",
+      "input": "An unused Skill-owned Schema file under schemas/ uses an unsupported keyword.",
+      "expectedDiagnostics": [
+        {
+          "code": "SCHEMA_INVALID",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Validation is not limited to the Contract-referenced Request Schema.",
+        "The diagnostic names the offending Schema file.",
+        "No G.4 violation is silently ignored."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4AValidatesEverySkillOwnedSchema",
+      "actualFixturePath": "internal/compiler/schema_g4_test.go"
+    },
+    {
+      "id": "WP4A-009",
+      "title": "Missing Request Schema keeps the frozen missing diagnostic",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Contract declares requestSchema but the Skill-owned file is absent.",
+      "expectedDiagnostics": [
+        {
+          "code": "REQUEST_SCHEMA_MISSING",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Missing Request Schema is REQUEST_SCHEMA_MISSING, not SCHEMA_INVALID.",
+        "The diagnostic retains the Contract source location.",
+        "No Schema is inferred from other files."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4AValidationIntegratedIntoBuild",
+      "actualFixturePath": "internal/compiler/schema_g4_test.go"
+    }
+  ]
+}

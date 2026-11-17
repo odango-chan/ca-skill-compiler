@@ -130,13 +130,25 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 					errorAt(contractPath, gate, "ENTRY_PRECONDITION_REF_INVALID", "precondition is one scalar node.precondition, not a list")
 				}
 			}
+			// WP4A: every Skill-owned Schema root participates in the frozen G.4
+			// allowlist before any generic Schema engine may consume it.
+			for _, filename := range sortedStringMapKeys(parsedFiles) {
+				if !strings.HasPrefix(filename, base+"schemas/") || !(strings.HasSuffix(filename, ".yaml") || strings.HasSuffix(filename, ".yml")) {
+					continue
+				}
+				if schemaRoot := parsedFiles[filename]; schemaRoot != nil {
+					for _, issue := range validateG4Schema(schemaRoot) {
+						errorAt(filename, issue.node, "SCHEMA_INVALID", issue.message)
+					}
+				}
+			}
 			if request := contractAST.RequestSchema; request != nil {
 				ref := scalar(request)
 				schemaPath := base + ref
-				if !strings.HasPrefix(ref, "schemas/") || files[schemaPath] == nil {
+				if !strings.HasPrefix(ref, "schemas/") || files[schemaPath] == nil || parsedFiles[schemaPath] == nil {
 					errorAt(contractPath, request, "REQUEST_SCHEMA_MISSING", "Skill-owned request Schema is missing")
-				} else if schemaRoot := parsedFiles[schemaPath]; schemaRoot != nil {
-					v4CheckSchema(schemaPath, schemaRoot, errorAt)
+				} else {
+					validateV1Alpha4RequestSchemaRoot(schemaPath, parsedFiles[schemaPath], errorAt)
 				}
 			}
 			// WP3A: prove Alias -> snapshot digest -> trusted binding -> Stable
@@ -152,6 +164,10 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			// authorization; missing trusted deployment input fails closed.
 			capabilityLinking := validateV1Alpha4CapabilityLinking(req, sourceAST, ownerLinking)
 			diagnostics = append(diagnostics, capabilityLinking.Diagnostics...)
+			// WP4B: resolve the exact Schema reference closure and enforce the
+			// Request/Context root shape. Unresolvable references never guess.
+			schemaDiagnostics := validateV1Alpha4SchemaClosure(req, sourceAST, identity, ownerLinking)
+			diagnostics = append(diagnostics, schemaDiagnostics...)
 		}
 		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
 			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
@@ -199,44 +215,6 @@ func v4Allowed(node *yaml.Node, file string, allowed map[string]bool, add func(s
 			add(file, node.Content[i], "UNKNOWN_FIELD", "Unsupported v1alpha4 author field "+node.Content[i].Value)
 		}
 	}
-}
-func v4CheckSchema(file string, root *yaml.Node, add func(string, *yaml.Node, string, string)) {
-	if root == nil {
-		return
-	}
-	if scalar(child(root, "$schema")) != "https://json-schema.org/draft/2020-12/schema" {
-		add(file, root, "SCHEMA_INVALID", "Schema dialect must be Draft 2020-12")
-	}
-	allowed := map[string]bool{}
-	for _, key := range []string{"$schema", "$id", "title", "description", "default", "examples", "$ref", "type", "properties", "required", "additionalProperties", "items", "minItems", "maxItems", "minLength", "maxLength", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "enum", "const"} {
-		allowed[key] = true
-	}
-	var walk func(*yaml.Node)
-	walk = func(n *yaml.Node) {
-		if n == nil {
-			return
-		}
-		if n.Kind == yaml.MappingNode {
-			for i := 0; i+1 < len(n.Content); i += 2 {
-				k, v := n.Content[i], n.Content[i+1]
-				// A property name is not a Schema keyword.
-				if !allowed[k.Value] {
-					add(file, k, "SCHEMA_INVALID", "Unsupported G.4 keyword "+k.Value)
-				}
-				switch k.Value {
-				case "properties":
-					if v.Kind == yaml.MappingNode {
-						for j := 1; j < len(v.Content); j += 2 {
-							walk(v.Content[j])
-						}
-					}
-				case "items":
-					walk(v)
-				}
-			}
-		}
-	}
-	walk(root)
 }
 func v4CheckPredicates(file string, source *V1Alpha4PredicateSetAST, add func(string, *yaml.Node, string, string)) {
 	if source == nil || source.Raw == nil {

@@ -10,6 +10,8 @@ on:
       - feat/compiler-v1alpha4-wp3b-owner-export-20261116
       - feat/compiler-v1alpha4-wp3c-capability-20261116
       - feat/compiler-v1alpha4-wp3d-integrated-linking-20261116
+      - feat/compiler-v1alpha4-wp4a-schema-g4-20261116
+      - feat/compiler-v1alpha4-wp4b-schema-registry-20261116
   pull_request:
     branches:
       - docs/compiler-v1alpha4-contracts-20261116
@@ -17,6 +19,8 @@ on:
       - feat/compiler-v1alpha4-wp3a-dependency-identity-20261116
       - feat/compiler-v1alpha4-wp3b-owner-export-20261116
       - feat/compiler-v1alpha4-wp3c-capability-20261116
+      - feat/compiler-v1alpha4-wp3d-integrated-linking-20261116
+      - feat/compiler-v1alpha4-wp4a-schema-g4-20261116
 
 permissions:
   contents: read

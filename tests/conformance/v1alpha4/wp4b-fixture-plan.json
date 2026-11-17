@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-fixture-plan/v1alpha4",
+  "taskId": "WP4B-SCHEMA-REGISTRY-001",
+  "status": "PASS",
+  "note": "Agent-proposed bounded WP4B envelope (slice 2 of WP4); see docs/workstreams/wp4b-schema-registry-v1alpha4.md.",
+  "normativeAuthority": {
+    "repository": "odango-chan/ca-skills",
+    "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
+    "file": "docs/skill-language-spec.v1alpha4.zh-CN.md",
+    "blob": "b70064c5737b8ee2b3d1435fe496357f44b42773"
+  },
+  "rules": {
+    "expectedDiagnosticIdentity": "exact (Code, Phase)",
+    "compilerErrorPhase": "C_STATIC",
+    "exactSchemaIDOnly": true,
+    "denyByDefaultLoader": true,
+    "sanNeverBroadensG4": true,
+    "noNewDiagnosticCodes": true,
+    "noDuplicateWP3BReferenceDiagnostics": true
+  },
+  "fixtures": [
+    {
+      "id": "WP4B-001",
+      "title": "Positive exact Schema closure including San compile",
+      "appendixE": "E01 baseline",
+      "category": "positive",
+      "input": "Valid Request Schema plus the Appendix E trusted external Context Schema; all G.4-valid and exactly resolvable.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "No WP4B diagnostic is emitted.",
+        "The external Context Schema closure is resolved and compiled by San without ambient loading.",
+        "Check and Build agree."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4B001PositiveSchemaClosure",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP4B-002",
+      "title": "External Schema $ref does not resolve",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Nested Schema property $ref to an unregistered absolute Schema $id.",
+      "expectedDiagnostics": [
+        { "code": "SCHEMA_MISSING", "phase": "C_STATIC" }
+      ],
+      "assertions": [
+        "Exactly one SCHEMA_MISSING is emitted for the external resource.",
+        "No target is guessed from a filename, prefix or order.",
+        "The diagnostic uses empty path and zero location."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4B002ExternalRefMissing",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP4B-003",
+      "title": "Cyclic external Schema $ref chain",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Two external Schemas whose root $ref chain returns to the first Schema.",
+      "expectedDiagnostics": [
+        { "code": "SCHEMA_INVALID", "phase": "C_STATIC" }
+      ],
+      "assertions": [
+        "The cycle is rejected as SCHEMA_INVALID.",
+        "No arbitrary recursive expansion is performed.",
+        "The reference closure terminates."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4B003ExternalRefCycle",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP4B-004",
+      "title": "Host Context root collision",
+      "appendixE": "E25",
+      "category": "negative",
+      "input": "Host Context effective root open (additionalProperties true) or declaring the reserved request property.",
+      "expectedDiagnostics": [
+        { "code": "CONTEXT_REQUEST_COLLISION", "phase": "C_STATIC" }
+      ],
+      "assertions": [
+        "Open Host root → CONTEXT_REQUEST_COLLISION.",
+        "Declared reserved request property → CONTEXT_REQUEST_COLLISION.",
+        "No omitted/optional treatment of the reserved property."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4B004ContextRootCollision",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP4B-005",
+      "title": "Missing external Context Schema is diagnosed once",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Contract.contextSchema references a missing external Schema $id.",
+      "expectedDiagnostics": [
+        { "code": "SCHEMA_MISSING", "phase": "C_STATIC" }
+      ],
+      "assertions": [
+        "Exactly one SCHEMA_MISSING is emitted (WP3B owns the reference identity).",
+        "WP4B does not duplicate the reference diagnostic.",
+        "The diagnostic retains the Contract source location."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4B005MissingContextSchemaNotDuplicated",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP4B-006",
+      "title": "San adapter accepts only pre-registered G.4-valid resources",
+      "appendixE": null,
+      "category": "positive",
+      "input": "In-memory external Schema closure with a root $ref to a registered leaf Schema.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "San compiles the registered closure without ambient loading.",
+        "The deny-by-default loader is configured.",
+        "The adapter never broadens the G.4 keyword set."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP4B006SanAdapterAcceptsValidClosure",
+      "actualFixturePath": "internal/compiler/schema_registry_test.go"
+    }
+  ]
+}
