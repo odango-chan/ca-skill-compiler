@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	cel.dev/cel-go v0.33.2
 	github.com/goccy/go-yaml v1.19.2
+	github.com/gowebpki/jcs v1.0.2
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 )
 
@@ -12,7 +13,6 @@ require (
 	cel.dev/expr v0.25.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/dobbo-ca/gositter v0.2.0 // indirect
-	github.com/gowebpki/jcs v1.0.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948 // indirect
 	golang.org/x/text v0.22.0 // indirect
