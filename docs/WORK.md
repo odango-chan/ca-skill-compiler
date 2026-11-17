@@ -16,6 +16,10 @@ The release tag and its published assets are retained as the v1.0.0 baseline.
 - Repository instructions, acceptance records and example descriptions were brought up to date.
 - The project README is maintained in English and Simplified Chinese. Detailed engineering records are separated from the user-facing documentation.
 
+## Workstream status
+
+The v1alpha4 implementation work packages were merged through PRs [#11–#24](https://github.com/odango-chan/ca-skill-compiler/pulls?q=is%3Apr+is%3Amerged+11..24), and v1.0.0 was published through [PR #25](https://github.com/odango-chan/ca-skill-compiler/pull/25). There is no active Compiler implementation work package in the repository. Remaining items are external-contract or normative-mapping blockers, not permission to invent inputs or weaken fail-closed behaviour. See the [workstream index](workstreams/README.md), [remaining-work inventory](workstreams/REMAINING-WORK-v1alpha4.json) and [final acceptance record](COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md).
+
 ## Current language boundary
 
 The compiler release supports `connectionagent.io/v1alpha4`. The newer author-level Wait semantics are not part of that language version and are not implemented in v1.0.0. They require a separately versioned language and compiler target, aligned with the Host and Ingress contracts.
