@@ -1,3 +1,7 @@
+> **HISTORICAL — SUPERSEDED FOR NEW DEVELOPMENT.** This is an early v0 product and architecture brief for the former CA-SL v0.2 / Compiler v0.1 design. Its project layout, BuildRequest shape, ToolCatalog assumptions and acceptance plan do not describe CA Skill Compiler v1.0.0. The current implementation contract is [Compiler Contract v1alpha4](compiler-contract-v1alpha4.md), with [BuildRequest](build-request-v1alpha4.md), [Compiler Output API](compiler-output-contract-v1alpha4.md), [Compiler Pipeline](compiler-pipeline-v1alpha4.md) and the [final acceptance record](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md). Retained as design history only.
+
+---
+
 # Skill Compiler · Product and Architecture Brief
 
 **Status:** Product boundary accepted; v0 implementation remains partial. The normative v0.1 contract is [compiler-contract-v0.1.md](compiler-contract-v0.1.md). The normative Skill language is owned by [ca-skills](https://github.com/odango-chan/ca-skills).
