@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-remaining-work/v1alpha4",
+  "status": "IN_PROGRESS_NOT_QUALIFIED",
+  "lastVerifiedCommit": "5a06d22",
+  "implementableInRepo": [
+    { "wp": "WP5", "item": "exact auto-advance stage dominance (replace visited-gate approximation)", "evidence": "unit fixtures" },
+    { "wp": "WP5", "item": "route key eligibility from trusted ownerOutcomes + runtime-merged keys", "evidence": "fixture + exact diagnosis" },
+    { "wp": "WP5", "item": "final Postcondition precision across multi-node graphs", "evidence": "E41/E42 fixtures" },
+    { "wp": "WP6", "item": "identity-input provenance: implement only if a versioned trusted publication format is frozen; otherwise keep fail-closed", "evidence": "blocked-on-format" },
+    { "wp": "WP8", "item": "Reconcile READ contract depth: same-owner READ, originalInvocationId input schema, proofPath resolution, recoverable output pairing/assignability", "evidence": "fixtures" },
+    { "wp": "WP8", "item": "retryOf contract validation and resource responsibility paths", "evidence": "fixtures" },
+    { "wp": "WP9", "item": "integrate gositter v0.2.0 + Tree-sitter Python v0.25.0; strict TypedDict/Required/NotRequired/Literal/Annotated ABI; generated Output Schemas", "evidence": "API/WASM fixtures; never execute Python" },
+    { "wp": "WP10", "item": "deterministic Artifact tree + manifest + JCS (gowebpki/jcs v1.0.2); requires a Build-success path once later stages are linked", "evidence": "byte-equality fixtures" },
+    { "wp": "WP11", "item": "real Chromium Worker parity runner; Native/WASM diagnostic and output byte equality", "evidence": "checked-in runner; no invented browser commands" },
+    { "wp": "WP12", "item": "Skill Studio consumes Compiler worker results (Check/Build/Inspect), diagnostics with positions, read-only artifact view", "evidence": "integration acceptance" }
+  ],
+  "blockedOnExternalInputOrDecision": [
+    { "wp": "WP7", "item": "Evidence Descriptor physical format and trusted relations bundle", "reason": "no versioned Owner descriptor format frozen; must not invent" },
+    { "wp": "WP6", "item": "identity-input provenance trusted publication", "reason": "no frozen physical publication format" },
+    { "wp": "WP8", "item": "cross-snapshot Reconcile association", "reason": "requires separately versioned trusted association contract" },
+    { "wp": "WP13", "item": "real 5GC qualification", "reason": "no qualified real v1alpha4 Owner/Deployment publications; MAS not runnable; NOT_QUALIFIED" },
+    { "wp": "infra", "item": "GitHub Actions acceptance", "reason": "maintainer instructed local verification only; CI billing block remains unresolved (not treated as PASS)" }
+  ],
+  "localAcceptanceCommands": [
+    "GOWORK=off go test ./... -count=1",
+    "GOWORK=off go vet ./...",
+    "CGO_ENABLED=0 GOWORK=off go build ./...",
+    "CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm",
+    "git diff --check"
+  ]
+}

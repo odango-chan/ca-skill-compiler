@@ -31,10 +31,10 @@ Do not use floating main, old v0.2 language docs, or old v0.1 Compiler contracts
 
 ## DeepSeek implementation handoff
 
-- [DeepSeek Handoff v1alpha4](docs/workstreams/deepseek-handoff-v1alpha4.md) is the execution entrypoint.
-- The first bounded task is [WP3A Dependency Snapshot Identity](docs/workstreams/wp3a-dependency-identity-v1alpha4.md), with its machine-readable checklist at [wp3a-fixture-plan.json](tests/conformance/v1alpha4/wp3a-fixture-plan.json).
-- The assigned task branch is `feat/compiler-v1alpha4-wp3a-dependency-identity-20261116`, based on the WP2 head. The separate exploratory WP3 linker branch is not the approved task base.
-- WP3A is documentation-ready; code implementation and conformance remain NOT_QUALIFIED.
+- [Current continuous Goal handoff](docs/workstreams/deepseek-handoff-v1alpha4.md) and [maintainer resume decision](docs/workstreams/v1alpha4-resume-decision-20261116.md) govern the ongoing implementation through WP12.
+- The current stacked chain has progressed to Draft [PR #23](https://github.com/odango-chan/ca-skill-compiler/pull/23), covering WP6. Previous PR #15 WP3A-only handoff is a historical snapshot, not a new execution limit.
+- [ca-skills #59](https://github.com/odango-chan/ca-skills/issues/59) tracks narrow Appendix H diagnostic-mapping questions; other independent WPs continue.
+- Root `AGENTS.md` now selects frozen v1alpha4 on the WP6 branch. Do not return to the obsolete v0.1/v0.2 implementation rules.
 
 ## Version identifiers
 
@@ -54,12 +54,14 @@ A BuildRequest API version is not a substitute for languageTarget; ToolCatalog a
 
 ## Current implementation status
 
+**Current implementation snapshot:** PR #15–#23 contain additional v1alpha4 work through dependency/capability linking, Schema/F.5/CEL, Procedure graph and WP6 SourcePath. The historical WP1/WP2 descriptions below are retained as earlier milestones, not the latest status. Overall Compiler is NOT_QUALIFIED; see [current WORK](docs/WORK.md).
+
 - Compiler PR #5 is the Go v0.1 implementation base.
 - Compiler PR #11 adds a v1alpha4 source/graph admission slice and deliberately fails closed when trusted Owner / CapabilityContracts inputs are unavailable.
 - WP1 implementation is in [PR #13](https://github.com/odango-chan/ca-skill-compiler/pull/13): strict BuildRequest / output models, request limits, dependency snapshot digest, source-only CLI and strict Native/WASM transport. Go tests, vet, CGo-free Native build and Go/WASM build PASS; PR review is pending.
 - WP2 implementation is in [PR #14](https://github.com/odango-chan/ca-skill-compiler/pull/14): goccy/go-yaml v1.19.2 is now the only YAML parser; normalized source-positioned AST, typed v1alpha4 Skill AST, bounded alias expansion and YAML 1.2 scalar-style preservation are implemented. Go tests, vet, CGo-free Native build and Go/WASM build PASS.
-- The selected goccy YAML parser is integrated; San, CEL, Python CST and JCS adapters remain unintegrated. This document set does **not** claim Compiler v1alpha4 conformance, complete linking, browser runtime parity, Owner qualification or live 5GC acceptance.
-- No model pilot is required or included. WP1 and WP2 code/build gates pass; PR review and later linker/runtime work remain outstanding. All later work packages remain NOT_QUALIFIED until their own implementation and acceptance evidence exists.
+- The selected goccy YAML, San and CEL adapters are integrated in stacked PRs; Python CST and JCS adapters are pending. This document set does **not** claim Compiler v1alpha4 conformance, complete linking, browser runtime parity, Owner qualification or live 5GC acceptance.
+- No model pilot is required. The global v1alpha4 Goal continues through WP12 in bounded Draft PRs; exact WP evidence and live qualification remain separately gated.
 
 ## Status and review boundary
 

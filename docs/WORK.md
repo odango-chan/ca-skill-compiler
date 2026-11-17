@@ -1,54 +1,43 @@
 # CA Skill Compiler — Current Work (v1alpha4)
 
 **Updated:** 2026-11-16  
-**Language target:** CA-SL v1alpha4  
-**Overall implementation status:** NOT_QUALIFIED
+**Language:** CA-SL v1alpha4 · frozen at `odango-chan/ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d`  
+**Compiler product status:** NOT_QUALIFIED  
+**Execution state:** CONTINUE INDEPENDENT WPs; NARROW DIAGNOSTIC/OWNER BLOCKERS
 
-## Frozen authority
+## Authority
 
-- Normative specification: [CA-SL v1alpha4](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md)
-- Immutable commit: `7f84393ee8c395e4d8c39a74cb5000a1f896588d`
-- File blob: `b70064c5737b8ee2b3d1435fe496357f44b42773`
-- Compiler implementation contracts: `docs/design/*-v1alpha4.md`
-- No floating branch, v0, v0.1, v0.2 or v1alpha3 document is an implementation authority.
+- Frozen language spec: [CA-SL v1alpha4](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md), blob `b70064c5737b8ee2b3d1435fe496357f44b42773`.
+- Compiler contracts: `docs/design/*-v1alpha4.md` and `contracts/v1alpha4/`.
+- Root `AGENTS.md` is v1alpha4; the former v0.1 rules are archived in `docs/archive/AGENTS-v0.1.md`.
+- [Maintainer's resume decision](workstreams/v1alpha4-resume-decision-20261116.md).
+- [Language-owner diagnostic errata request #59](https://github.com/odango-chan/ca-skills/issues/59).
 
-## Current PR stack
+## Live PR chain
 
-| PR | Scope | Status |
-|---|---|---|
-| [#11](https://github.com/odango-chan/ca-skill-compiler/pull/11) | v1alpha4 source admission | Open / Draft |
-| [#12](https://github.com/odango-chan/ca-skill-compiler/pull/12) | Frozen Compiler contracts, OSS ADR and Harness profile | Open |
-| [#13](https://github.com/odango-chan/ca-skill-compiler/pull/13) | WP1 BuildRequest and digest | Open; PR description records Go/build gates PASS |
-| [#14](https://github.com/odango-chan/ca-skill-compiler/pull/14) | WP2 normalized YAML parser and AST | Open; PR description records Go/build gates PASS |
+Open stacked PR #11–#23; **none is authorized to merge automatically**.
 
-Merge order remains #11 → #12 → #13 → #14. Do not merge a later stacked PR before its base is present.
+| PR range | Status / scope |
+|---|---|
+| #11–#14 | v1alpha4 source admission, frozen contracts, WP1 BuildRequest/digest, WP2 YAML AST |
+| #15–#18 | WP3A–WP3D Dependency identity, Owner/ToolCatalog, Capability and integrated linking |
+| #19–#21 | WP4A–WP4D Schema G.4/registry/F.5 assignability/CEL |
+| #22 | WP5 Procedure graph |
+| [#23](https://github.com/odango-chan/ca-skill-compiler/pull/23) | WP6 SourcePath, producer dominance/availability, argument typing; draft, base `feat/compiler-v1alpha4-wp5-procedure-graph-20261116` |
 
-## Current implementation facts
+Implementations are present in these PR branches; **do not treat the above as overall conformance PASS**. The most recent submitted local report lists Go 1.27.4 tests/vet/CGo-free Native/WASM build/diff checks as passing, without GitHub Actions. Re-execute acceptance commands after changes.
 
-- WP1: BuildRequest / BuildResult / DependencyInspection models, strict request decoding, limits, digest and Native/WASM entrypoints are in PR #13.
-- WP2: goccy/go-yaml v1.19.2 normalized AST, source positions, scalar preservation and legacy parser-path removal are in PR #14.
-- The selected San, CEL, Python CST and JCS adapters are not yet integrated.
-- Full dependency/Owner/Capability linking, Schema/CEL, Procedure graph, SourcePath, Evidence, Mutation/Reconcile, Script ABI, Artifact, Chromium parity and Studio integration remain incomplete.
-- Real v1alpha4 5GC Owner/Deployment publications are NOT_QUALIFIED; MAS is NOT_READY as an executable baseline.
+## Current execution target
 
-## Active DeepSeek handoff
+Start from the reviewed PR #23 branch head and create a new stacked Draft PR for WP9 Script ABI. Continue with WP10, then independent WP7/WP8 checks, WP11 Chromium and WP12 Studio. See [current handoff](workstreams/deepseek-handoff-v1alpha4.md) and [resume decision](workstreams/v1alpha4-resume-decision-20261116.md). Each WP must have its own tests and evidence.
 
-- Handoff entrypoint: [DeepSeek Handoff](workstreams/deepseek-handoff-v1alpha4.md)
-- First bounded task: [WP3A — Dependency Snapshot Identity](workstreams/wp3a-dependency-identity-v1alpha4.md)
-- Machine-readable fixture plan: [WP3A fixture plan](../tests/conformance/v1alpha4/wp3a-fixture-plan.json)
-- Assigned branch: `feat/compiler-v1alpha4-wp3a-dependency-identity-20261116`
-- Branch base: WP2 branch `feat/compiler-v1alpha4-wp2-yaml-ast-20261116` at `55ba5ebc37e9d54b6ee21e547dae188ca17785c9`
+## Exact blockers (not the whole Goal)
 
-A separate exploratory WP3 branch exists but is not the approved handoff base. The assigned task branch starts cleanly from WP2. The task branch contains handoff documentation only; WP3A code has not yet been implemented. Its initial GitHub Actions run failed without retrievable job logs; baseline CI is NOT_VERIFIED, and DeepSeek must run the documented baseline commands before editing.
+- Invalid Observation Owner outcomes; malformed `evidence.requires` lists; unknown evaluator type: exact Appendix H Code/Phase mapping needs language-owner clarification [#59](https://github.com/odango-chan/ca-skills/issues/59). Block only those mapping fixtures.
+- `SOURCE_PATH_INVALID / C_STATIC` applies to nested inline map/array Expression values; allowed outer empty arguments containers are unaffected.
+- Real Evidence Descriptor / identity-input / cross-snapshot Reconcile trusted publication is missing: keep positive owner-integrated paths fail-closed.
+- Real v1alpha4 5GC qualification WP13 is NOT_QUALIFIED. MAS is NOT_READY for executable acceptance.
 
-## Non-claims
+## Historical notes
 
-- CI PASS for WP1/WP2 is not full v1alpha4 conformance.
-- A valid dependency digest is not trusted identity without the matching trusted binding.
-- Trusted dependency identity is not Owner export qualification or Capability authorization.
-- A synthetic fixture is not a real Owner publication.
-- Compiler static linking is not Host/Runtime execution or live 5GC acceptance.
-
-## Historical record
-
-The prior v0 and v0.1 implementation log is preserved in [WORK history](WORK-history.md). It is historical context only and must not be used as v1alpha4 implementation authority.
+Prior v0/v0.1 implementation status is archived in [WORK history](WORK-history.md). Earlier WP3A-only instructions in PR #15 are past handoff snapshots, not current global Goal authority.

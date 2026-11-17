@@ -1,6 +1,6 @@
 # Compiler v1alpha4 Development Profile — DeepSeek Harness / Flash Low
 
-**Status:** FROZEN development workflow. The first bounded execution package is prepared in [DeepSeek Handoff](deepseek-handoff-v1alpha4.md) and [WP3A](wp3a-dependency-identity-v1alpha4.md). This does not claim Compiler conformance.
+**Status:** FROZEN engineering workflow for individually reviewable WPs. **Maintainer's current Goal authorization covers WP0–WP12 in sequence**, without a separate reauthorization after each WP. See [current resume decision](v1alpha4-resume-decision-20261116.md). This does not claim Compiler conformance.
 
 ## 1. Purpose and authority
 
@@ -26,7 +26,7 @@ This profile governs engineering execution only. It does not amend CA-SL, Tool O
 - Model/Harness version changes are execution-environment changes; they do not change the Compiler API or CA-SL language target.
 - This profile does not claim that Low reasoning is suitable for architecture decisions, language interpretation or security-policy design. It is selected for bounded implementation tasks whose decisions are already fixed by contracts and fixtures.
 
-No capability pilot or preliminary model trial is required. The first implementation task is assigned only after the user authorizes implementation; this document is not that authorization.
+No capability pilot is required. The maintainer has authorized the continuous v1alpha4 Compiler Goal, to be delivered in bounded WP branches and Draft PRs. Implementation remains subject to exact frozen contracts and scoped stop conditions.
 
 ## 3. Decision ownership
 
@@ -54,22 +54,22 @@ Every model task MUST be one bounded work package and include all of the followi
 5. **Forbidden changes:** language semantics, API versions, diagnostics, dependency policy, unrelated modules and generated source.
 6. **Inputs:** exact schemas, fixtures, trusted test data and current branch commit.
 7. **Required cases:** exact E case variants and H (Code, Phase) identities relevant to the task.
-8. **Commands:** exact local and CI commands to run.
+8. **Commands:** exact local commands to run, plus CI/Chromium commands where the work package and maintainer's selected acceptance mode require them.
 9. **Acceptance criteria:** machine-verifiable outcomes.
 10. **Stop conditions:** any missing contract, contradictory fixture, unknown diagnostic or untrusted input that prevents safe completion.
 
-If a task lacks any required item, the model MUST report the missing item and stop rather than invent it.
+If a task lacks any required item, report the missing item and stop **that bounded task** rather than invent it. Continue independent tasks under the authorized overall Goal if they do not depend on the blocked item.
 
 ## 5. Implementation work-package sequence
 
-The sequence below is the frozen default order. WP3 is split into four independently reviewable tasks. A work package may be split further, but tasks MUST NOT silently combine independent packages or bypass a dependency. The only task currently authorized for DeepSeek is WP3A; later WP3 slices remain queued.
+The sequence below is the frozen default order. WP3 is split into four independently reviewable tasks. A work package may be split further, but tasks MUST NOT silently combine independent packages or bypass a dependency. **Existing WP1–WP6 implementation is in stacked PRs #13–#23; continue independently implementable later WPs without returning to WP3A or requesting a new Goal.** Normative mapping blockers remain scoped in [the current decision](v1alpha4-resume-decision-20261116.md).
 
 | WP | Scope | Dependency / boundary |
 |---|---|---|
 | WP0 | OSS dependency and toolchain selection | Completed by the [OSS Dependency Selection ADR](../design/oss-dependency-selection-v1alpha4.md); adapter integration remains in the consuming WPs |
 | WP1 | BuildRequest envelope, version checks, byte decoding, path/resource limits, DependencySnapshot digest, Check/Build/Inspect output APIs | Uses the frozen API and digest contracts |
 | WP2 | YAML 1.2 safe parser, duplicate-key detection, scalar handling, Contract / Procedure / PredicateSet AST | goccy/go-yaml v1.19.2 AST/token adapter; must reject unknown and legacy syntax; no compatibility conversion |
-| WP3A | DependencySnapshot raw-byte integrity, Alias selection, trusted dependency binding and exact Stable Package ID match | First DeepSeek task; no Owner export or Capability linking |
+| WP3A | DependencySnapshot raw-byte integrity, Alias selection, trusted dependency binding and exact Stable Package ID match | Initial bounded slice implemented in stacked PR #15; not current task |
 | WP3B | ToolCatalog contract parsing/indexing, callable/Schema export identity and trusted Owner/export attribution | Depends on WP3A; covers E05/E39/E43 and export identity diagnostics |
 | WP3C | CapabilityContracts trusted bundle, deployment authorization, exact membership, Effect consistency and Scope intersection | Depends on WP3B; never infer deployment authorization |
 | WP3D | Integrate selected Skill references with dependency/callable/schema indexes and DependencyInspection | Depends on WP3A–WP3C; enforce selected-Skill closure and Reconcile-only anti-bypass |
@@ -144,7 +144,7 @@ A work package is complete only when all relevant criteria below are satisfied:
 - Native and WASM diagnostics, source locations, dependency closure, output paths/order and output bytes match;
 - deterministic output is unchanged by input file ordering;
 - git diff --check passes and the final diff contains only allowed paths;
-- CI evidence is linked from the PR.
+- Local commands and exit codes are linked or recorded on the PR; CI evidence is linked only when CI is actually used.
 
 Baseline commands, adjusted only when the repository's pinned build scripts require it:
 
@@ -179,7 +179,7 @@ Every implementation run MUST retain a machine-readable or PR-linked record cont
 - OS, exact Go toolchain (Go 1.27.4), WASM target, selected Python parser/grammar versions, Host Python runtime version where applicable, and browser version;
 - changed paths;
 - exact commands and exit results;
-- CI run links;
+- CI run links when CI was executed; otherwise record CI NOT_RUN under the current local-only acceptance policy;
 - relevant E case variants and H diagnostic identities;
 - unresolved blockers and any human decisions requested.
 

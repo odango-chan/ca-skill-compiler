@@ -1,100 +1,51 @@
-# DeepSeek Handoff — CA Skill Compiler v1alpha4
+# DeepSeek Handoff — CA Skill Compiler v1alpha4 (Current)
 
-**Status:** READY FOR FIRST BOUNDED TASK  
-**Prepared:** 2026-11-16  
-**First task:** `WP3A-DEPENDENCY-IDENTITY-001`  
-**Model profile:** DeepSeek V4 Flash / Low reasoning, as selected by the maintainer.
+**Status:** ACTIVE CONTINUOUS GOAL · WP0–WP12 IN SCOPE · NOT_QUALIFIED OVERALL  
+**Maintainer decision:** [v1alpha4 Goal resume and scoped diagnostic blockers](v1alpha4-resume-decision-20261116.md).
 
-This is an execution handoff, not a Compiler conformance declaration. The only authorized first task is WP3A in [the task specification](wp3a-dependency-identity-v1alpha4.md). Do not start WP3B or any later work package in the same run.
+## 1. Source of truth
 
-## 1. What to give DeepSeek
+The only authoritative language source is the frozen [CA-SL v1alpha4 specification](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md) at commit `7f84393ee8c395e4d8c39a74cb5000a1f896588d` (blob `b70064c5737b8ee2b3d1435fe496357f44b42773`).
 
-| Item | Exact value |
-|---|---|
-| Repository | `odango-chan/ca-skill-compiler` |
-| Assigned branch | `feat/compiler-v1alpha4-wp3a-dependency-identity-20261116` |
-| Branch base | `feat/compiler-v1alpha4-wp2-yaml-ast-20261116` |
-| Base commit | `55ba5ebc37e9d54b6ee21e547dae188ca17785c9` |
-| Task | `WP3A-DEPENDENCY-IDENTITY-001` |
-| Task instructions | `docs/workstreams/wp3a-dependency-identity-v1alpha4.md` |
-| Fixture plan | `tests/conformance/v1alpha4/wp3a-fixture-plan.json` |
-| Normative language source | `odango-chan/ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d` |
-| Normative specification blob | `b70064c5737b8ee2b3d1435fe496357f44b42773` |
+Read root `AGENTS.md` and the frozen v1alpha4 `docs/design/` contracts. Historical v0.1/v0.2 documents and the original WP3A first-task prompt are **not the current Goal**.
 
-The assigned branch was created from the clean WP2 branch at the exact base commit above. It intentionally does **not** include the separate exploratory WP3 branch's unreviewed linker commit.
+## 2. Latest known execution state
 
-## 2. Current PR stack and implementation boundary
+- PR #11–#23 form the ongoing v1alpha4 stacked PR chain. Preserve the existing implementation and PR relationships; do not close, replace or merge automatically.
+- WP0–WP3D, WP4A–WP4D, WP5 and WP6 slices have been implemented, as described by PRs #13–#23; the overall product is **NOT_QUALIFIED** and `Build` remains fail-closed.
+- The reported local validation on Go 1.27.4 covers tests, vet, CGo-free Native/WASM builds and diff checks. Those reports are **not** a full Compiler or real-Owner qualification claim; rerun locally for each new WP.
+- The active continuation branch is `feat/compiler-v1alpha4-wp6-sourcepath-20261116`, Draft PR #23. Recheck the latest head before making a new stacked branch. Root `AGENTS.md` was updated to v1alpha4 on this branch.
+- No real versioned v1alpha4 Evidence Descriptor, identity-input provenance or cross-snapshot Reconcile contract has been published for positive qualification; preserve fail-closed behavior.
 
-As checked on 2026-11-16:
+## 3. Goal execution (no new Goal prompt per WP)
 
-| PR | Scope | State | Dependency |
-|---|---|---|---|
-| [#11](https://github.com/odango-chan/ca-skill-compiler/pull/11) | v1alpha4 Source Admission | Open / Draft | Existing v0.1 implementation base |
-| [#12](https://github.com/odango-chan/ca-skill-compiler/pull/12) | Frozen implementation contracts, ADR and Harness profile | Open | #11 |
-| [#13](https://github.com/odango-chan/ca-skill-compiler/pull/13) | WP1 BuildRequest / digest | Open | #12 |
-| [#14](https://github.com/odango-chan/ca-skill-compiler/pull/14) | WP2 normalized YAML parser / AST | Open | #13 |
+1. Read [the maintainer's resume decision](v1alpha4-resume-decision-20261116.md); apply its scoped diagnostic disposition and [ca-skills #59](https://github.com/odango-chan/ca-skills/issues/59).
+2. Continue **WP9** Python CST/Procedure and Predicate Script ABI using the already selected gositter/Tree-sitter Python grammar. Do not execute Python source.
+3. Continue **WP10** deterministic Artifact tree, manifests and JCS.
+4. Complete independent **WP7/WP8** static checks without inventing missing external Owner formats.
+5. Complete **WP11** actual Native/Go-WASM/Chromium Worker parity and **WP12** Skill Studio integration.
+6. Close independently implementable E01–E120 fixture variants and Appendix H diagnostic coverage. Record Host/Runtime/Owner scope and blocked normative mapping explicitly rather than marking them PASS.
+7. Leave **WP13** real 5GC qualification `NOT_QUALIFIED` until actual immutable Owner/Deployment publications exist.
 
-None of #11–#14 was merged at handoff preparation time. #14 reports Go tests, vet, Native build and Go/WASM build PASS in its PR description; this is not full Compiler conformance.
+Use one bounded independently reviewable task/branch/PR at a time, but advance the overall Goal automatically. Do not ask the maintainer to restart the Goal after each WP. Do not merge PRs.
 
-A separate branch, `feat/compiler-v1alpha4-wp3-linker-20261116`, exists and is one commit ahead of WP2 with an added `internal/compiler/dependency_linker.go`. That draft is not the approved task base: it is not integrated into the public Check/Build path, has no corresponding test files in its one-file branch delta, and the v1alpha4 path still contains the earlier fail-closed placeholder. Do not cherry-pick it or assume it is tested. The assigned WP3A branch starts cleanly from WP2 so the task can be implemented and reviewed as a bounded slice.
+## 4. Acceptance evidence
 
-## 3. First task only: WP3A
+Use Go 1.27.4 and run, from repository root:
 
-WP3A implements the trusted identity boundary for dependency snapshots:
+```sh
+GOWORK=off go test ./... -count=1
+GOWORK=off go vet ./...
+CGO_ENABLED=0 GOWORK=off go build ./...
+mkdir -p dist
+CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm
+git diff --check
+```
 
-- recompute snapshot digests from original bytes;
-- bind each used Contract Dependency Alias to exactly one supplied immutable snapshot;
-- verify the trusted binding for the exact `dependencyId + measured digest`;
-- compare the trusted Stable Package ID exactly with `Contract.dependencies`;
-- preserve selected-Skill closure boundaries and deterministic ordering;
-- emit only the frozen diagnostics listed in the task and fixture plan.
+Run actual Chromium Worker tests for WP11 and integration tests for WP12. Local command outcomes are the chosen required evidence for this run; do not claim GitHub Actions success when it was not used. Provide exact commands, exit codes, fixture results, committed paths and Draft PR references.
 
-WP3A does **not** implement ToolCatalog contract validation, export Owner attribution, CapabilityContracts, Scope intersection, Schema linking, Evidence descriptors, Procedure graph linking or Script analysis.
+## 5. Narrow stop conditions
 
-The compiler must continue to fail closed for later, unimplemented stages. A passing WP3A identity check must not make Build succeed or qualify an Owner.
+Stop only the task requiring an unresolved language or security decision. The known scoped mapping gaps are in [ca-skills #59](https://github.com/odango-chan/ca-skills/issues/59). Never invent a frozen diagnostic, silently admit illegal input, or treat missing Owner evidence as a successful qualification. Continue independent implementation.
 
-## 4. Required reading order
-
-1. This handoff.
-2. [WP3A task specification](wp3a-dependency-identity-v1alpha4.md).
-3. [WP3A fixture plan](../../tests/conformance/v1alpha4/wp3a-fixture-plan.json).
-4. [Compiler Contract](../design/compiler-contract-v1alpha4.md).
-5. [BuildRequest contract](../design/build-request-v1alpha4.md).
-6. [Compiler Output API](../design/compiler-output-contract-v1alpha4.md).
-7. [Procedure Linker contract](../design/procedure-link-v1alpha4.md), only for the alias/reference locations consumed by WP3A.
-8. Pinned CA-SL v1alpha4 specification, especially §§24, 34.0–34.0.2, F.0–F.2 and Appendix E/K/H.
-
-Do not use floating `main`, historical v0/v0.1/v0.2 docs, or a different CA-SL commit as implementation authority.
-
-## 5. Run instructions
-
-- Work only on the assigned branch.
-- First run the baseline commands from the task document before editing.
-- Keep one task per branch/PR. Do not start WP3B.
-- Do not modify CA-SL, ca-skills, Host, Runtime, Studio or real 5GC.
-- Do not use production credentials or perform live network mutations.
-- Do not merge the PR. Submit a Draft PR targeting `feat/compiler-v1alpha4-wp2-yaml-ast-20261116`.
-- If a required contract or expected diagnostic is ambiguous, stop and report the exact conflict. Do not invent a schema, diagnostic or fallback.
-
-## 6. Copy-ready task prompt
-
-> Work only on `WP3A-DEPENDENCY-IDENTITY-001` in `docs/workstreams/wp3a-dependency-identity-v1alpha4.md`.
->
-> Repository: `odango-chan/ca-skill-compiler`  
-> Branch: `feat/compiler-v1alpha4-wp3a-dependency-identity-20261116`  
-> Normative CA-SL commit: `odango-chan/ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d`
->
-> Read the task document and its machine-readable fixture plan before changing code. Run the baseline commands first. Implement only the dependency snapshot identity/trust-binding slice, add every WP3A fixture and exact (Code, Phase) assertion, and preserve fail-closed behavior for all later stages. Do not implement ToolCatalog, CapabilityContracts, Schema/CEL, Evidence, Procedure linking or Artifact work. Do not change language semantics, API versions, diagnostics, dependencies or unrelated paths. If the baseline fails or a contract is ambiguous, stop and report evidence instead of guessing.
->
-> Before finishing, run every required command, inspect the complete diff, update the task run record, and open/update a Draft PR against `feat/compiler-v1alpha4-wp2-yaml-ast-20261116`. Do not merge.
-
-## 7. Handoff status
-
-### Baseline CI note (2026-11-16)
-
-The handoff branch's initial GitHub Actions run [#43821888048](https://github.com/odango-chan/ca-skill-compiler/actions/runs/43821888048) completed with `failure`. The GitHub connector returned no job-step summaries and the job-log endpoint returned `BlobNotFound`, so the failure cause is **unknown**. Do not report this run as PASS or infer a code defect from the unavailable logs.
-
-The branch contains documentation and workflow changes only. Before editing code, DeepSeek must run the baseline commands in the WP3A task document. If any baseline command fails, stop and report the exact local output; do not begin implementation or repair unrelated WP1/WP2 code.
-
-
-The documentation, task envelope, first-task fixture plan and CI branch filters are prepared on the assigned branch. Code implementation has **not** been performed by this handoff change. The first DeepSeek run remains subject to the baseline test result and its own CI evidence.
+The former initial WP3A handoff is retained in prior PR #15 commits for history; it is no longer the active work assignment.

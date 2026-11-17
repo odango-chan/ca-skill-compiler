@@ -122,9 +122,12 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		if contractAST != nil && contractAST.Raw != nil {
 			contract := contractAST.Raw
 			v4Allowed(contract, contractPath, v4ContractFields, errorAt)
-			if scalar(contractAST.Goal) == "" {
+			if statement := scalar(contractAST.Goal); statement == "" {
 				errorAt(contractPath, contract, "SOURCE_ROOT_INVALID", "Contract requires goal")
+			} else if !validExportID(statement) {
+				errorAt(contractPath, contractAST.Goal, "IDENTIFIER_INVALID", "Contract goal must satisfy the frozen GoalId (DottedId) grammar")
 			}
+			validateV1Alpha4ContractLimits(contractPath, contractAST, errorAt)
 			if gate := contractAST.Precondition; gate != nil {
 				if gate.Kind != yaml.ScalarNode || gate.Tag != "!!str" || !v4ContractGate.MatchString(gate.Value) {
 					errorAt(contractPath, gate, "ENTRY_PRECONDITION_REF_INVALID", "precondition is one scalar node.precondition, not a list")
@@ -151,6 +154,13 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 					validateV1Alpha4RequestSchemaRoot(schemaPath, parsedFiles[schemaPath], errorAt)
 				}
 			}
+			if context := contractAST.ContextSchema; context != nil {
+				ref := scalar(context)
+				if !validQualifiedSchemaReference(ref) {
+					errorAt(contractPath, context, "QUALIFIED_REFERENCE_INVALID",
+						"Contract.contextSchema must be an exact Alias::absolute-Schema-URI reference")
+				}
+			}
 			// WP3A: prove Alias -> snapshot digest -> trusted binding -> Stable
 			// Package ID for the selected Skill only. Later stages stay fail-closed.
 			identity := validateV1Alpha4DependencyIdentity(req, sourceAST)
@@ -171,14 +181,32 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			// WP5: reachability and global Precondition dominance.
 			procedureDiagnostics := validateV1Alpha4ProcedureGraph(contractAST, sourceAST.Procedure, ownerLinking, contractPath, procedurePath)
 			diagnostics = append(diagnostics, procedureDiagnostics...)
+			sourcePathDiagnostics := validateV1Alpha4SourcePathSchemas(req, sourceAST, identity, contractPath, procedurePath)
+			diagnostics = append(diagnostics, sourcePathDiagnostics...)
+			producerSourcePathDiagnostics := validateV1Alpha4ProducerSourcePaths(req, sourceAST, identity, ownerLinking, procedurePath)
+			diagnostics = append(diagnostics, producerSourcePathDiagnostics...)
+			argumentKeyDiagnostics := validateV1Alpha4ArgumentKeys(req, sourceAST, identity, ownerLinking, procedurePath)
+			diagnostics = append(diagnostics, argumentKeyDiagnostics...)
+			argumentValueDiagnostics := validateV1Alpha4ArgumentValueTypes(req, sourceAST, identity, ownerLinking, procedurePath)
+			diagnostics = append(diagnostics, argumentValueDiagnostics...)
+			predicateArgumentDiagnostics := validateV1Alpha4PredicateArgumentTypes(req, sourceAST, identity, ownerLinking, procedurePath)
+			diagnostics = append(diagnostics, predicateArgumentDiagnostics...)
+			mutationContractDiagnostics := validateV1Alpha4MutationContracts(req, sourceAST, identity)
+			diagnostics = append(diagnostics, mutationContractDiagnostics...)
 		}
 		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
 			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
 			v4CheckPredicateCEL(predicatesPath, sourceAST.Predicates, errorAt)
+			validateV1Alpha4EvidenceRequirements(predicatesPath, sourceAST.Predicates, errorAt)
+			validateV1Alpha4PredicateScriptEvaluators(sourceAST, files, predicatesPath, errorAt)
 		}
 		if sourceAST.Procedure != nil && sourceAST.Procedure.Raw != nil {
 			v4CheckProcedure(procedurePath, sourceAST.Procedure, contractAST, errorAt)
 			validateV1Alpha4ProcedureStageRoutes(procedurePath, sourceAST.Procedure, errorAt)
+			validateV1Alpha4ScriptPaths(sourceAST, files, procedurePath, errorAt)
+			validateV1Alpha4RetryContracts(sourceAST, procedurePath, errorAt)
+			validateV1Alpha4QualifiedCallableReferences(sourceAST, procedurePath, errorAt)
+			validateV1Alpha4SourcePaths(procedurePath, sourceAST, errorAt)
 		}
 	}
 
@@ -242,6 +270,10 @@ func v4CheckPredicates(file string, source *V1Alpha4PredicateSetAST, add func(st
 			for _, item := range params.Content {
 				if item.Kind != yaml.MappingNode || len(item.Content) != 2 {
 					add(file, item, "PREDICATE_GROUP_INVALID", "Each parameter is a one-key declaration")
+					continue
+				}
+				if keyNode := unalias(item.Content[0]); keyNode == nil || !validDependencyID(scalar(keyNode)) {
+					add(file, keyNode, "IDENTIFIER_INVALID", "Predicate parameter name must satisfy the Identifier grammar")
 				}
 			}
 		}
@@ -310,8 +342,13 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 					for _, call := range calls.Content {
 						v4Allowed(call, file, map[string]bool{"predicate": true, "arguments": true}, add)
 						args := child(call, "arguments")
-						if scalar(child(call, "predicate")) == "" || args == nil || args.Kind != yaml.SequenceNode {
+						predicateNode := child(call, "predicate")
+						if scalar(predicateNode) == "" || args == nil || args.Kind != yaml.SequenceNode {
 							add(file, call, "PREDICATE_GROUP_INVALID", "PredicateCall requires predicate and positional arguments")
+							continue
+						}
+						if !validExportID(scalar(predicateNode)) {
+							add(file, predicateNode, "IDENTIFIER_INVALID", "PredicateCall predicate must satisfy the frozen PredicateId (DottedId) grammar")
 						}
 					}
 				}
