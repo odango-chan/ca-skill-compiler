@@ -9,11 +9,13 @@ package compiler
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"sort"
 	"strings"
 	"testing"
 
 	"github.com/odango-chan/ca-skill-compiler/internal/artifact"
+	jsonschema "github.com/santhosh-tekuri/jsonschema/v6"
 )
 
 const v1alpha5WaitFreeProcedure = `start: verify-registration
@@ -407,5 +409,52 @@ func TestV1Alpha5ArtifactVerificationDetectsTampering(t *testing.T) {
 	}
 	if err := VerifyBuildResult(tamperedManifest); err == nil {
 		t.Fatal("tampered manifest digest was accepted")
+	}
+}
+
+
+// TestV1Alpha5ArtifactManifestMatchesCandidateSchema keeps the emitted
+// candidate manifest and the shipped candidate contract from drifting. The
+// schema is loaded from the repository contract file with no network access.
+func TestV1Alpha5ArtifactManifestMatchesCandidateSchema(t *testing.T) {
+	schemaBytes, err := os.ReadFile("../../contracts/v1alpha5/artifact-manifest.schema.json")
+	if err != nil {
+		t.Fatalf("read candidate v1alpha5 manifest schema: %v", err)
+	}
+	var schemaDocument any
+	if err := json.Unmarshal(schemaBytes, &schemaDocument); err != nil {
+		t.Fatalf("decode candidate schema: %v", err)
+	}
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	if err := compiler.AddResource("urn:connectionagent:compiler:artifact-manifest:v1alpha5", schemaDocument); err != nil {
+		t.Fatalf("register candidate schema: %v", err)
+	}
+	compiled, err := compiler.Compile("urn:connectionagent:compiler:artifact-manifest:v1alpha5")
+	if err != nil {
+		t.Fatalf("compile candidate schema: %v", err)
+	}
+
+	result := Build(wp3BuildRequest(t, wp3FixtureOptions{}))
+	if !result.Success {
+		t.Fatalf("trusted v1alpha5 Build failed: %+v", result.Diagnostics)
+	}
+	manifest := v1alpha5DecodeManifest(t, result)
+	if manifest.ValidationScope.Status != v1alpha5ArtifactValidationStatus {
+		t.Fatalf("validationScope.status = %q", manifest.ValidationScope.Status)
+	}
+	if len(manifest.ValidationScope.ValidatedPasses) == 0 || len(manifest.ValidationScope.NotValidated) == 0 {
+		t.Fatalf("validationScope must declare validated and not-validated passes: %#v", manifest.ValidationScope)
+	}
+	manifestBytes, ok := v1alpha5ResultFile(result, V1Alpha5ArtifactManifestPath)
+	if !ok {
+		t.Fatalf("BuildResult has no %s", V1Alpha5ArtifactManifestPath)
+	}
+	var manifestValue any
+	if err := json.Unmarshal(manifestBytes, &manifestValue); err != nil {
+		t.Fatalf("decode emitted manifest: %v", err)
+	}
+	if err := compiled.Validate(manifestValue); err != nil {
+		t.Fatalf("emitted manifest does not satisfy the candidate schema: %v", err)
 	}
 }

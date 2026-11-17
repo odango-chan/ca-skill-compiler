@@ -67,6 +67,7 @@ skills/<skill-name>/compiled/ingress-links.json
 |---|---|
 | `apiVersion` | `connectionagent.io/compiler-artifact/v1alpha5` |
 | `languageTarget` | `connectionagent.io/v1alpha5` |
+| `validationScope` | `{"status":"CANDIDATE_PARTIAL","validatedPasses":[...],"notValidated":[...]}`. `status` is always `CANDIDATE_PARTIAL`; `validatedPasses` names the static passes this Build actually gated on; `notValidated` names the candidate obligations this Build does **not** gate (see `docs/known-limitations-v1alpha5.md`). A successful artifact must never be read as full validation, conformance or qualification |
 | `generator` | `{"name":"ca-skill-compiler","version":"<CompilerVersion>"}`; no timestamp/host/commit is fabricated |
 | `dependencyClosure[]` | Digest-verified dependency snapshots referenced by linked Wait Ingress Operations and resolved trigger Operations: `dependencyId`, `stablePackageId`, sorted `exports[]` (`exportKind`, `exportId`, `owner`). No dependency bytes/digests/URLs/credentials are embedded |
 | `skills[]` | Per Skill: `name`, `sourceDigest` (domain-separated digest of the exact author bytes, sorted paths), sorted `sourceFiles[]`, sorted `compiledFiles[]`, `waitLinks[]` |

@@ -30,6 +30,12 @@ the request and produced the deterministic candidate artifact:
 - deterministic artifact assembly and the candidate manifest/verification in
   [`docs/design/compiler-artifact-v1alpha5.md`](design/compiler-artifact-v1alpha5.md).
 
+The emitted manifest declares this scope explicitly:
+`validationScope = {status: "CANDIDATE_PARTIAL", validatedPasses: [...],
+notValidated: [...]}`. The list below is the same set that must appear in
+`validationScope.notValidated`; a consumer that requires full static validation
+must reject a `CANDIDATE_PARTIAL` artifact.
+
 ## 2. Not implemented / not validated (Build does NOT gate all of these)
 
 - **Non-Wait tool and dependency linking.** Only Wait-linked Ingress exports and
@@ -50,10 +56,12 @@ the request and produced the deterministic candidate artifact:
 - **WP7 conformance mapping.** The v1alpha5 diagnostic/conformance register is
   traceability material only; it is not a conformance PASS and does not execute
   cross-component EW/IN cases.
-- **v1alpha5 DependencyInspection / Ingress inventory.** The independent
-  inspection API version is reserved but not implemented; `inspect` currently
-  exposes the inherited v1alpha4 envelope rejection instead of guessing an
-  ingress inventory projection.
+- **v1alpha5 DependencyInspection / Ingress inventory limits.** The independent
+  `ingressOperations` projection exists and is built from the same trusted-only
+  Ingress discovery (no callable mixing), but it is not a Runtime inventory and
+  claims no Owner availability beyond the supplied trusted bindings. The real
+  Chromium trusted-ingress inventory byte-parity phase is not claimed (the
+  checked-in parity phase exercises author-only inspection).
 - **Host/Runtime/Integration semantics.** Wait lifecycle, event ingress,
   tombstone/stale-delivery execution, response delivery, retries, authorization
   revalidation and live SBI/5GC behaviour are out of Compiler scope and are not

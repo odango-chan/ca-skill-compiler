@@ -58,7 +58,44 @@ const (
 	v1alpha5CompiledDir           = "/compiled/"
 	v1alpha5ProcedureFileName     = "procedure.json"
 	v1alpha5IngressLinksFileName  = "ingress-links.json"
+
+	// v1alpha5ArtifactValidationStatus is the manifest-level declaration that a
+	// successful candidate Build covers only the implemented v1alpha5 static
+	// passes. It is deliberately not a conformance or qualification claim.
+	v1alpha5ArtifactValidationStatus = "CANDIDATE_PARTIAL"
 )
+
+// v1alpha5ManifestValidatedPasses lists the static passes a successful
+// candidate Build actually executed and gated on.
+var v1alpha5ManifestValidatedPasses = []string{
+	"v1alpha5.request-envelope",
+	"wp2.node-entry-wait-procedure-ast",
+	"wp5.procedure-graph",
+	"wp3.ingress-exact-link",
+	"wp3.trigger-correlation-binding",
+	"wp4.wait-output-sourcepath",
+	"wp6.response-boundary",
+	"artifact.self-verification",
+}
+
+// v1alpha5ManifestNotValidated lists the candidate obligations this Build does
+// NOT gate. It keeps a successful artifact from being read as full validation;
+// the same list is documented in docs/known-limitations-v1alpha5.md.
+var v1alpha5ManifestNotValidated = []string{
+	"non-wait-tool-and-dependency-linking",
+	"package-skill-md-and-contract-semantics",
+	"predicate-schema-cel-script-evidence-mutation-retry-semantics",
+	"invocation-context-typing",
+	"normalization-mapping-completeness",
+	"host-runtime-integration-semantics",
+	"real-owner-artifact-qualification",
+}
+
+type v1alpha5ManifestValidationScope struct {
+	Status          string   `json:"status"`
+	ValidatedPasses []string `json:"validatedPasses"`
+	NotValidated    []string `json:"notValidated"`
+}
 
 type v1alpha5ManifestGenerator struct {
 	Name    string `json:"name"`
@@ -136,12 +173,13 @@ type v1alpha5ManifestOutputFile struct {
 }
 
 type v1alpha5ArtifactManifest struct {
-	APIVersion        string                       `json:"apiVersion"`
-	LanguageTarget    string                       `json:"languageTarget"`
-	Generator         v1alpha5ManifestGenerator    `json:"generator"`
-	DependencyClosure []v1alpha5ManifestDependency `json:"dependencyClosure"`
-	Skills            []v1alpha5ManifestSkill      `json:"skills"`
-	OutputFiles       []v1alpha5ManifestOutputFile `json:"outputFiles"`
+	APIVersion        string                         `json:"apiVersion"`
+	LanguageTarget    string                         `json:"languageTarget"`
+	ValidationScope   v1alpha5ManifestValidationScope `json:"validationScope"`
+	Generator         v1alpha5ManifestGenerator      `json:"generator"`
+	DependencyClosure []v1alpha5ManifestDependency   `json:"dependencyClosure"`
+	Skills            []v1alpha5ManifestSkill        `json:"skills"`
+	OutputFiles       []v1alpha5ManifestOutputFile   `json:"outputFiles"`
 }
 
 type v1alpha5IngressLinksDocument struct {
@@ -586,8 +624,13 @@ func buildV1Alpha5ArtifactFiles(skills []v1alpha5ArtifactSkill) ([]v1alpha5Artif
 	sort.Slice(outputFiles, func(i, j int) bool { return outputFiles[i].Path < outputFiles[j].Path })
 
 	manifest := v1alpha5ArtifactManifest{
-		APIVersion:        V1Alpha5ArtifactAPIVersion,
-		LanguageTarget:    V1Alpha5LanguageTarget,
+		APIVersion:     V1Alpha5ArtifactAPIVersion,
+		LanguageTarget: V1Alpha5LanguageTarget,
+		ValidationScope: v1alpha5ManifestValidationScope{
+			Status:          v1alpha5ArtifactValidationStatus,
+			ValidatedPasses: append([]string(nil), v1alpha5ManifestValidatedPasses...),
+			NotValidated:    append([]string(nil), v1alpha5ManifestNotValidated...),
+		},
 		Generator:         v1alpha5ManifestGenerator{Name: v1alpha5ArtifactGeneratorName, Version: CompilerVersion},
 		DependencyClosure: closure,
 		Skills:            manifestSkills,
