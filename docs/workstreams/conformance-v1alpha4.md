@@ -42,6 +42,21 @@ Do not add or rename normative diagnostic codes. A test gap is a gap, not permis
 | Artifact | gowebpki/jcs v1.0.2 RFC 8785 bytes, byte-preserved source, generated Schemas, manifests, sorted dependency closure, failure atomicity | Artifact Contract; OSS ADR |
 | Parity | Native/WASM identical diagnostics, phases, locations, file order, paths and bytes | §45.2 items 3–4 |
 
+### 3.1 WP1 BuildRequest / Digest / output-envelope gates
+
+WP1 is accepted only when executable tests cover all of the following:
+
+- exact independent BuildRequest apiVersion and languageTarget checks, including missing / unsupported versions;
+- required nonempty `files`, required `resolvedDependencies: []`, strict unknown-property rejection and base64 byte decoding;
+- source-only `skills/<name>/**` paths, snapshot-relative dependency paths, invalid UTF-8 / traversal / absolute / duplicate paths and 240-byte path bounds;
+- 2 MiB per-file, 16 MiB aggregate, 512 aggregate files, 128 dependency snapshots and 256 unique targets;
+- all three frozen Dependency Snapshot Digest golden vectors, reversed input order, content/path mutation and duplicate-path rejection;
+- recomputation of dependency, CapabilityContracts and EvidenceTrustBindings bundle digests before any parser/linker work;
+- BuildResult and DependencyInspection exact apiVersion, required non-null arrays, diagnostic phase and failure atomicity;
+- strict request handling and identical request/result shapes on Native and Go/WASM builds.
+
+A work-package test is not a full Compiler qualification. Until later work packages implement the linker and artifact pipeline, source-only requests still fail closed and nonempty DependencyInspection inventories remain NOT_QUALIFIED.
+
 ## 4. E01–E120 coverage ledger
 
 The test suite MUST maintain a machine-readable ledger with one row per normative E case and each independently testable variant. Each row is marked:

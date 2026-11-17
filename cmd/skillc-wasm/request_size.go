@@ -12,13 +12,30 @@ func wireRequestTooLarge(raw string) bool {
 }
 
 func wireErrorResult(command, code, message string) any {
-	diagnostics := []compiler.Diagnostic{{Severity: "error", Code: code, Message: message}}
+	diagnostics := []compiler.Diagnostic{{
+		Severity: "error",
+		Phase:    "C_STATIC",
+		Code:     code,
+		Path:     "",
+		Message:  message,
+	}}
 	switch command {
 	case "check":
 		return diagnostics
 	case "inspect":
-		return compiler.LibraryResult{Diagnostics: diagnostics, Tools: []compiler.LibraryTool{}}
+		return compiler.DependencyInspection{
+			APIVersion:  compiler.DependencyInspectionAPIVersion,
+			Diagnostics: diagnostics,
+			Callables:   []compiler.InspectedCallable{},
+			Schemas:     []compiler.InspectedSchema{},
+		}
 	default:
-		return compiler.BuildResult{Success: false, Diagnostics: diagnostics, OutputFiles: []compiler.File{}}
+		return compiler.BuildResult{
+			APIVersion:        compiler.BuildResultAPIVersion,
+			Success:           false,
+			Diagnostics:      diagnostics,
+			DependencyClosure: []string{},
+			OutputFiles:      []compiler.File{},
+		}
 	}
 }

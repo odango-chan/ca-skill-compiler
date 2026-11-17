@@ -34,6 +34,9 @@ Every Diagnostic contains:
 
 The pair (code, phase) is the diagnostic identity. Compiler outputs MUST NOT include R_RUNTIME diagnostics. Severity is determined by phase: C_STATIC is error; C_WARNING is warning.
 
+The Compiler API envelope may also return `REQUEST_INVALID` and `INPUT_LIMIT` with phase `C_STATIC` when the transport request itself is malformed or exceeds its fixed limits. These are API transport diagnostics, not new CA-SL Appendix H language diagnostic identities. All source-language and linking diagnostics MUST use the exact frozen Appendix H identities.
+
+
 Diagnostic selection and precedence MUST follow the pinned CA-SL §§24 / H.0 rules. Sorting is applied only after the normative set and primary diagnostic decisions are made; sorting MUST NOT change precedence or suppress a required diagnostic.
 
 ## 3. Deterministic ordering
@@ -95,6 +98,8 @@ InspectDependencies(BuildRequest) is a read-only inventory operation for Studio.
 - The callables and schemas arrays contain only metadata described by the machine schema. They do not contain dependency bytes, credentials, capability grants or Scope authorization decisions.
 
 If the request envelope itself is invalid, return diagnostics and empty callables / schemas arrays.
+
+Until WP3 implements trusted dependency linking and export parsing, the current Compiler slice returns `DEPENDENCY_IDENTITY_UNVERIFIED` for every nonempty dependency inventory and emits no callable or Schema rows. This is an explicit fail-closed implementation boundary, not a qualified or complete DependencyInspection result. An empty dependency list returns empty inventory arrays.
 
 ## 7. Failure and trust boundaries
 

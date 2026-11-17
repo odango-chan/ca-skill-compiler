@@ -149,7 +149,7 @@ Baseline commands, adjusted only when the repository's pinned build scripts requ
 GOWORK=off go test ./... -count=1
 GOWORK=off go vet ./...
 CGO_ENABLED=0 GOWORK=off go build ./...
-CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc
+CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm
 git diff --check
 ~~~
 

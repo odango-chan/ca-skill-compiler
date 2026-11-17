@@ -54,7 +54,23 @@ type BuildRequest = {
 };
 ~~~
 
-JSON/WASM serializes every byte array as base64.
+JSON/WASM serializes every byte array as base64. The JSON decoder rejects unknown object properties, malformed JSON and invalid base64 byte fields. A zero-length file is represented by an empty base64 string, not JSON null.
+
+## 2.1 Required envelope validation
+
+Before source parsing, Check, Build and InspectDependencies MUST validate the complete typed request:
+
+- apiVersion and languageTarget are both required and exact-match only.
+- files is a nonempty array of source files; resolvedDependencies is a required array and MUST be `[]` when no snapshots are supplied.
+- files paths MUST be normalized UTF-8 POSIX paths rooted at `skills/<skill-name>/`; a `lib/**` source namespace is not accepted.
+- every source, snapshot and trusted-bundle file requires a path and a non-null byte string; empty byte content is valid.
+- every file set rejects duplicate paths. All paths reject absolute form, empty / dot / dot-dot segments, backslash, colon, NUL, invalid UTF-8 and paths longer than 240 UTF-8 bytes.
+- all source, dependency and trusted-bundle files count toward the same 512-file / 16 MiB aggregate limits. Each file is limited to 2 MiB.
+- at most 128 dependency snapshots and 256 unique selected targets are accepted; target names are 1–80 Unicode characters.
+- each supplied dependency snapshot and trusted file bundle has its digest recomputed over original bytes before parsing or linking.
+
+API-envelope diagnostics use `REQUEST_INVALID` for malformed / missing transport fields and unsupported BuildRequest apiVersion, `INPUT_LIMIT` for count / byte limits, and the existing frozen `PACKAGE_PATH_INVALID`, `DEPENDENCY_REQUIREMENT_INVALID`, `DEPENDENCY_DUPLICATE`, `DEPENDENCY_IDENTITY_UNVERIFIED`, `CAPABILITY_INPUT_DIGEST_MISMATCH` and `EVIDENCE_GUARANTEE_LINK_INVALID` identities for their corresponding failures. Unsupported languageTarget uses `LANGUAGE_TARGET_UNSUPPORTED`. `REQUEST_INVALID` and `INPUT_LIMIT` are Compiler API envelope diagnostics, not additional CA-SL language diagnostics in Appendix H.
+
 
 ## 3. Author source files
 

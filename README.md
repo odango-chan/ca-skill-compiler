@@ -49,8 +49,9 @@ A BuildRequest API version is not a substitute for languageTarget; ToolCatalog a
 
 - Compiler PR #5 is the Go v0.1 implementation base.
 - Compiler PR #11 adds a v1alpha4 source/graph admission slice and deliberately fails closed when trusted Owner / CapabilityContracts inputs are unavailable.
-- This document set defines the frozen Compiler v1alpha4 implementation target, the selected OSS dependency set and the DeepSeek Harness / Flash Low development workflow. The OSS choices are accepted for implementation but are not yet integrated or qualified. This document set does **not** claim Compiler v1alpha4 conformance, complete linking, Native/WASM parity, Owner qualification or live 5GC acceptance.
-- No model pilot is required or included. The user has authorized continuing the v1alpha4 implementation plan; WP1 and all later work packages remain NOT_QUALIFIED until their own implementation and acceptance evidence exists.
+- WP1 implementation is in [PR #13](https://github.com/odango-chan/ca-skill-compiler/pull/13): strict BuildRequest / output models, request limits, dependency snapshot digest, source-only CLI and strict Native/WASM transport. Go tests, vet, CGo-free Native build and Go/WASM build PASS; PR review is pending.
+- This document set defines the frozen Compiler v1alpha4 implementation target, the selected OSS dependency set and an optional DeepSeek Harness / Flash Low development profile. WP1 is being implemented directly without a DeepSeek pilot. The OSS choices are accepted for implementation but are not yet integrated or qualified. This document set does **not** claim Compiler v1alpha4 conformance, complete linking, browser runtime parity, Owner qualification or live 5GC acceptance.
+- No model pilot is required or included. WP1's unit/build gates pass, but review and later runtime / linker work remain outstanding. All later work packages remain NOT_QUALIFIED until their own implementation and acceptance evidence exists.
 
 ## Status and review boundary
 
@@ -62,9 +63,9 @@ A BuildRequest API version is not a substitute for languageTarget; ToolCatalog a
 | EvidenceTrustBindings physical transport | FROZEN BuildRequest-owned format; not a universal Evidence Descriptor API |
 | Dependency snapshot digest | FROZEN Compiler / Studio interoperability algorithm |
 | Compiler Artifact physical format | FROZEN for implementation in this PR |
-| Compiler development workflow | FROZEN DeepSeek Harness / Flash Low profile; no pilot |
+| Compiler development workflow | FROZEN optional DeepSeek Harness / Flash Low profile; WP1 executed directly; no pilot |
 | OSS dependency selection | ACCEPTED FOR IMPLEMENTATION WITH CONFORMANCE GATES; integration NOT_QUALIFIED |
-| Compiler implementation | NOT_QUALIFIED; PR #11 is only the source/graph admission slice |
+| Compiler implementation | NOT_QUALIFIED overall; WP1 Go tests / vet / Native build / WASM build PASS, PR #13 review pending |
 | Real 5GC Owner / deployment publications | NOT_QUALIFIED until actual v1alpha4 releases and §45.2 evidence exist |
 
 The old v0.1 documents and schemas remain historical records. They are not fallback contracts and must not be silently reused for v1alpha4.
