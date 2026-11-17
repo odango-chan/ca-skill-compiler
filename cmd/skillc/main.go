@@ -15,7 +15,7 @@ import (
 	"github.com/odango-chan/ca-skill-compiler/internal/projectinput"
 )
 
-const usageText = `skillc - CA-SL v1alpha4 reference compiler CLI
+const usageText = `skillc - CA-SL reference compiler CLI (frozen v1alpha4, candidate v1alpha5)
 
 Usage:
   skillc check   <PROJECT>                       static check a Skill source project
@@ -28,14 +28,28 @@ Usage:
   skillc help                                    show this help
 
 Options:
-  --request FILE   read a complete BuildRequest v1alpha4 JSON document instead of
-                   a project directory (strict decoding; dependencies and trusted
-                   build context come from that document)
+  --request FILE   read a complete BuildRequest JSON document instead of a project
+                   directory (strict decoding; the document's languageTarget
+                   selects the frozen v1alpha4 or candidate v1alpha5 compiler
+                   target; dependencies and trusted build context come from that
+                   document)
   --out DIR        artifact output directory; must be absent or empty. Defaults
                    to <PROJECT>/output in project mode and is required with
                    --request
   --skill NAME     select one Skill package; repeat for multiple targets
   --json           write machine-readable JSON to stdout instead of human text
+
+Language targets:
+  connectionagent.io/v1alpha4   frozen released target
+  connectionagent.io/v1alpha5   candidate target: static Check for the Wait /
+                                Procedure AST is implemented, while Build keeps
+                                failing closed until WP3-WP6 complete
+
+API versions (request and result are versioned independently):
+  build request   connectionagent.io/compiler-build-request/v1alpha4 (frozen)
+                  connectionagent.io/compiler-build-request/v1alpha5 (candidate)
+  build result    connectionagent.io/compiler-build-result/v1alpha4 (frozen)
+                  connectionagent.io/compiler-build-result/v1alpha5 (candidate)
 
 Project layout:
   skills/...                       author Skill source (or files/skills/...)
@@ -76,7 +90,14 @@ func run(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, "skillc: version takes no arguments")
 			return 2
 		}
-		fmt.Fprintf(stdout, "skillc %s\nlanguage target: %s\n", compiler.CompilerVersion, compiler.V1Alpha4Target)
+		fmt.Fprintf(stdout, "skillc %s\n", compiler.CompilerVersion)
+		fmt.Fprintf(stdout, "language target: %s (frozen)\n", compiler.V1Alpha4Target)
+		fmt.Fprintf(stdout, "language target: %s (candidate)\n", compiler.V1Alpha5Target)
+		fmt.Fprintf(stdout, "build request apiVersion: %s (frozen)\n", compiler.BuildRequestAPIVersion)
+		fmt.Fprintf(stdout, "build request apiVersion: %s (candidate)\n", compiler.BuildRequestAPIVersionV1Alpha5)
+		fmt.Fprintf(stdout, "build result apiVersion: %s (frozen)\n", compiler.BuildResultAPIVersion)
+		fmt.Fprintf(stdout, "build result apiVersion: %s (candidate)\n", compiler.BuildResultAPIVersionV1Alpha5)
+		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s (frozen; v1alpha5 ingress not yet wired)\n", compiler.DependencyInspectionAPIVersion)
 		return 0
 	}
 	if command != "check" && command != "build" && command != "inspect" {

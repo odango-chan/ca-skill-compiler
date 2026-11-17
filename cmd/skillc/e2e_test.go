@@ -375,6 +375,203 @@ func TestCLIEndToEndSkillTarget(t *testing.T) {
 	}
 }
 
+// v1alpha5CLIRequestPath writes the synthetic v1alpha5 author fixture as an
+// explicit BuildRequest JSON document. It uses author files only: the v1alpha5
+// Check slice needs no trusted dependency snapshot.
+func v1alpha5CLIRequestPath(t *testing.T, fixture string) string {
+	t.Helper()
+	raw, err := os.ReadFile(filepath.Join(repoRootForCLI(t), "web", "parity-v1alpha5", fixture+"-procedure.yaml"))
+	if err != nil {
+		t.Fatalf("read v1alpha5 fixture %s: %v", fixture, err)
+	}
+	request := compiler.BuildRequest{
+		APIVersion:           compiler.BuildRequestAPIVersionV1Alpha5,
+		LanguageTarget:       compiler.V1Alpha5Target,
+		Files:                []compiler.File{{Path: "skills/example/assurance/procedure.yaml", Bytes: raw}},
+		ResolvedDependencies: []compiler.ResolvedDependency{},
+	}
+	encoded, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	requestPath := filepath.Join(t.TempDir(), "v1alpha5-"+fixture+"-request.json")
+	if err := os.WriteFile(requestPath, encoded, 0644); err != nil {
+		t.Fatal(err)
+	}
+	return requestPath
+}
+
+func TestCLIEndToEndV1Alpha5VersionAndHelp(t *testing.T) {
+	versioned := runCLI(t, "version")
+	if versioned.code != 0 {
+		t.Fatalf("version exit = %d, stderr = %s", versioned.code, versioned.stderr)
+	}
+	for _, want := range []string{
+		"skillc " + compiler.CompilerVersion,
+		"language target: " + compiler.V1Alpha4Target,
+		"language target: " + compiler.V1Alpha5Target,
+		compiler.BuildRequestAPIVersion,
+		compiler.BuildRequestAPIVersionV1Alpha5,
+		compiler.BuildResultAPIVersion,
+		compiler.BuildResultAPIVersionV1Alpha5,
+	} {
+		if !strings.Contains(versioned.stdout, want) {
+			t.Fatalf("version output missing %q: %q", want, versioned.stdout)
+		}
+	}
+	helped := runCLI(t, "help")
+	if helped.code != 0 {
+		t.Fatalf("help exit = %d", helped.code)
+	}
+	for _, want := range []string{v1alpha5LanguageTargetForCLITest, "--request", compiler.BuildRequestAPIVersion} {
+		if !strings.Contains(helped.stdout, want) {
+			t.Fatalf("help output missing %q", want)
+		}
+	}
+}
+
+const v1alpha5LanguageTargetForCLITest = "connectionagent.io/v1alpha5"
+
+// TestCLIEndToEndV1Alpha5CheckRequest proves `check --request` dispatches to the
+// v1alpha5 static Check: a valid Wait Procedure returns zero diagnostics and an
+// invalid one returns deterministic positioned WAIT_* diagnostics.
+func TestCLIEndToEndV1Alpha5CheckRequest(t *testing.T) {
+	validPath := v1alpha5CLIRequestPath(t, "valid")
+	validJSON := runCLI(t, "check", "--request", validPath, "--json")
+	if validJSON.code != 0 {
+		t.Fatalf("valid v1alpha5 check --json exit = %d, stderr = %s", validJSON.code, validJSON.stderr)
+	}
+	var validDiagnostics []compiler.Diagnostic
+	if err := json.Unmarshal([]byte(validJSON.stdout), &validDiagnostics); err != nil {
+		t.Fatalf("valid v1alpha5 check --json output: %v\n%s", err, validJSON.stdout)
+	}
+	if len(validDiagnostics) != 0 {
+		t.Fatalf("valid v1alpha5 Wait procedure diagnostics = %+v, want []", validDiagnostics)
+	}
+	validHuman := runCLI(t, "check", "--request", validPath)
+	if validHuman.code != 0 || !strings.Contains(validHuman.stdout, "static check OK") {
+		t.Fatalf("valid v1alpha5 human check exit = %d stdout = %q stderr = %q", validHuman.code, validHuman.stdout, validHuman.stderr)
+	}
+
+	invalidPath := v1alpha5CLIRequestPath(t, "invalid")
+	invalidJSON := runCLI(t, "check", "--request", invalidPath, "--json")
+	if invalidJSON.code != 1 {
+		t.Fatalf("invalid v1alpha5 check --json exit = %d, want 1; stderr = %s", invalidJSON.code, invalidJSON.stderr)
+	}
+	var diagnostics []compiler.Diagnostic
+	if err := json.Unmarshal([]byte(invalidJSON.stdout), &diagnostics); err != nil {
+		t.Fatalf("invalid v1alpha5 check --json output: %v\n%s", err, invalidJSON.stdout)
+	}
+	expected := []struct {
+		code   string
+		line   int
+		column int
+	}{
+		{"WAIT_NODE_STAGE_REQUIRED", 5, 12},
+		{"WAIT_DECLARATION_INVALID", 8, 20},
+		{"WAIT_TIMEOUT_INVALID", 9, 16},
+		{"WAIT_RESPONSE_BOUNDARY_INVALID", 11, 16},
+		{"WAIT_TIMEOUT_ROUTE_INVALID", 13, 18},
+		{"WAIT_TIMEOUT_ROUTE_INVALID", 14, 9},
+	}
+	if len(diagnostics) != len(expected) {
+		t.Fatalf("invalid v1alpha5 diagnostics = %d, want %d: %+v", len(diagnostics), len(expected), diagnostics)
+	}
+	for index, want := range expected {
+		diagnostic := diagnostics[index]
+		if diagnostic.Severity != "error" || diagnostic.Phase != "C_STATIC" ||
+			diagnostic.Code != want.code || diagnostic.Path != "skills/example/assurance/procedure.yaml" ||
+			diagnostic.Line != want.line || diagnostic.Column != want.column {
+			t.Fatalf("diagnostic[%d] = %+v, want code=%s %s:%d:%d", index, diagnostic, want.code, "skills/example/assurance/procedure.yaml", want.line, want.column)
+		}
+	}
+
+	invalidHuman := runCLI(t, "check", "--request", invalidPath)
+	if invalidHuman.code != 1 {
+		t.Fatalf("invalid v1alpha5 human check exit = %d, want 1", invalidHuman.code)
+	}
+	positioned := regexp.MustCompile(`skills/example/assurance/procedure\.yaml:5:12: error C_STATIC WAIT_NODE_STAGE_REQUIRED: `)
+	if !positioned.MatchString(invalidHuman.stderr) {
+		t.Fatalf("v1alpha5 human diagnostic lacks file:line:column/code: %q", invalidHuman.stderr)
+	}
+}
+
+// TestCLIEndToEndV1Alpha5BuildFailClosed proves Build is fail-closed for the
+// candidate target in both directions: a valid Wait Procedure fails closed on
+// the documented residual gate, while an invalid one preserves its WAIT_*
+// diagnostics. Every v1alpha5 BuildResult is stamped with the v1alpha5 API
+// version, and no artifact files are emitted.
+func TestCLIEndToEndV1Alpha5BuildFailClosed(t *testing.T) {
+	validPath := v1alpha5CLIRequestPath(t, "valid")
+	valid := runCLI(t, "build", "--request", validPath, "--out", filepath.Join(t.TempDir(), "valid-out"), "--json")
+	if valid.code != 1 {
+		t.Fatalf("valid v1alpha5 build exit = %d, want 1; stderr = %s", valid.code, valid.stderr)
+	}
+	var validResult compiler.BuildResult
+	if err := json.Unmarshal([]byte(valid.stdout), &validResult); err != nil {
+		t.Fatalf("valid v1alpha5 build --json output: %v\n%s", err, valid.stdout)
+	}
+	if validResult.APIVersion != compiler.BuildResultAPIVersionV1Alpha5 || validResult.Success {
+		t.Fatalf("valid v1alpha5 build result = apiVersion %q success %v", validResult.APIVersion, validResult.Success)
+	}
+	if len(validResult.Diagnostics) != 1 || validResult.Diagnostics[0].Code != "CAPABILITY_INPUT_UNTRUSTED" ||
+		!strings.HasPrefix(validResult.Diagnostics[0].Message, "fail-closed:") {
+		t.Fatalf("v1alpha5 fail-closed residual = %+v", validResult.Diagnostics)
+	}
+	if len(validResult.OutputFiles) != 0 || len(validResult.DependencyClosure) != 0 {
+		t.Fatalf("fail-closed v1alpha5 build emitted artifact data: %+v", validResult)
+	}
+
+	invalidPath := v1alpha5CLIRequestPath(t, "invalid")
+	invalid := runCLI(t, "build", "--request", invalidPath, "--out", filepath.Join(t.TempDir(), "invalid-out"), "--json")
+	if invalid.code != 1 {
+		t.Fatalf("invalid v1alpha5 build exit = %d, want 1; stderr = %s", invalid.code, invalid.stderr)
+	}
+	var invalidResult compiler.BuildResult
+	if err := json.Unmarshal([]byte(invalid.stdout), &invalidResult); err != nil {
+		t.Fatalf("invalid v1alpha5 build --json output: %v\n%s", err, invalid.stdout)
+	}
+	if invalidResult.APIVersion != compiler.BuildResultAPIVersionV1Alpha5 || invalidResult.Success {
+		t.Fatalf("invalid v1alpha5 build result = apiVersion %q success %v", invalidResult.APIVersion, invalidResult.Success)
+	}
+	if len(invalidResult.Diagnostics) != 6 {
+		t.Fatalf("invalid v1alpha5 build diagnostics = %+v, want 6", invalidResult.Diagnostics)
+	}
+	for _, diagnostic := range invalidResult.Diagnostics {
+		if !strings.HasPrefix(diagnostic.Code, "WAIT_") || diagnostic.Line == 0 || diagnostic.Column == 0 {
+			t.Fatalf("invalid v1alpha5 build diagnostic = %+v", diagnostic)
+		}
+	}
+}
+
+// TestCLIEndToEndV1Alpha5InspectDoesNotClaimIngressSupport keeps the deferred
+// DependencyInspection ingress wiring explicit: v1alpha5 inspection currently
+// exposes the inherited v1alpha4 envelope rejection instead of guessing a new
+// inventory projection.
+func TestCLIEndToEndV1Alpha5InspectDoesNotClaimIngressSupport(t *testing.T) {
+	inspection := runCLI(t, "inspect", "--request", v1alpha5CLIRequestPath(t, "valid"), "--json")
+	if inspection.code != 1 {
+		t.Fatalf("v1alpha5 inspect exit = %d, want 1", inspection.code)
+	}
+	var result compiler.DependencyInspection
+	if err := json.Unmarshal([]byte(inspection.stdout), &result); err != nil {
+		t.Fatalf("v1alpha5 inspect --json output: %v\n%s", err, inspection.stdout)
+	}
+	if result.APIVersion != compiler.DependencyInspectionAPIVersion {
+		t.Fatalf("v1alpha5 inspect apiVersion = %q", result.APIVersion)
+	}
+	codes := make(map[string]bool)
+	for _, diagnostic := range result.Diagnostics {
+		codes[diagnostic.Code] = true
+	}
+	if !codes["LANGUAGE_TARGET_UNSUPPORTED"] || !codes["REQUEST_INVALID"] {
+		t.Fatalf("unexpected v1alpha5 inspect diagnostics: %+v", result.Diagnostics)
+	}
+	if len(result.Callables) != 0 || len(result.Schemas) != 0 {
+		t.Fatalf("deferred v1alpha5 inspection must not claim ingress inventory: %+v", result)
+	}
+}
+
 func keysOf(files map[string][]byte) []string {
 	keys := make([]string, 0, len(files))
 	for name := range files {

@@ -1,7 +1,9 @@
 // Command parity-replay produces the Native Go result used as the parity
 // reference for the Chromium Worker test. It is tooling only: the Compiler core
-// is unchanged and the project layout is read through the same
-// internal/projectinput loader the reference CLI uses.
+// is unchanged and the input is either a project layout read through the same
+// internal/projectinput loader the reference CLI uses, or an explicit
+// BuildRequest JSON document decoded through compiler.DecodeBuildRequestJSON
+// (the same strict path the CLI --request and the WASM bridge use).
 package main
 
 import (
@@ -24,6 +26,7 @@ type outputFile struct {
 }
 
 type buildView struct {
+	APIVersion        string                `json:"apiVersion"`
 	Success           bool                  `json:"success"`
 	Diagnostics       []compiler.Diagnostic `json:"diagnostics"`
 	DependencyClosure []string              `json:"dependencyClosure"`
@@ -38,27 +41,48 @@ type view struct {
 
 func main() {
 	args := os.Args[1:]
-	project, emitRequest := "", ""
+	project, requestPath, emitRequest := "", "", ""
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "--emit-request=") {
 			emitRequest = strings.TrimPrefix(arg, "--emit-request=")
+			continue
+		}
+		if strings.HasPrefix(arg, "--request=") {
+			requestPath = strings.TrimPrefix(arg, "--request=")
 			continue
 		}
 		if project == "" {
 			project = arg
 		}
 	}
-	if project == "" {
+	if project == "" && requestPath == "" {
 		fmt.Fprintln(os.Stderr, "usage: parity-replay <project-dir> [--emit-request=path]")
+		fmt.Fprintln(os.Stderr, "       parity-replay --request=<BuildRequest.json>")
 		os.Exit(2)
 	}
-	root, err := filepath.Abs(project)
-	if err != nil {
-		fail(err)
+	if project != "" && requestPath != "" {
+		fmt.Fprintln(os.Stderr, "parity-replay: a project directory and --request must not be combined")
+		os.Exit(2)
 	}
-	req, err := projectinput.Load(root)
-	if err != nil {
-		fail(err)
+	var req compiler.BuildRequest
+	if requestPath != "" {
+		raw, err := os.ReadFile(requestPath)
+		if err != nil {
+			fail(err)
+		}
+		req, err = compiler.DecodeBuildRequestJSON(raw)
+		if err != nil {
+			fail(err)
+		}
+	} else {
+		root, err := filepath.Abs(project)
+		if err != nil {
+			fail(err)
+		}
+		req, err = projectinput.Load(root)
+		if err != nil {
+			fail(err)
+		}
 	}
 	if emitRequest != "" {
 		encoded, err := json.Marshal(req)
@@ -75,6 +99,7 @@ func main() {
 		Check:   check,
 		Inspect: compiler.InspectDependencies(req),
 		Build: buildView{
+			APIVersion:        result.APIVersion,
 			Success:           result.Success,
 			Diagnostics:       result.Diagnostics,
 			DependencyClosure: result.DependencyClosure,
