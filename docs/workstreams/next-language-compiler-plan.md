@@ -2,7 +2,8 @@
 
 **Status:** DRAFT — isolated v1alpha5 candidate implementation may start; public target enablement and release remain gated.  
 **Historical reference:** CA Skill Compiler v1.0.0 / CA-SL v1alpha4 remain available as historical release records; they are not compatibility constraints for the next implementation.  
-**Next language target:** `connectionagent.io/v1alpha5` is assigned in the CA-SL review candidate; it is NOT RELEASED / NOT QUALIFIED.
+**Next language target:** `connectionagent.io/v1alpha5` is assigned in the CA-SL review candidate; it is NOT RELEASED / NOT QUALIFIED.  
+**Harness handoff:** [DeepSeek Harness implementation Goal](deepseek-harness-v1alpha5-implementation-goal.zh-CN.md).
 
 ## 1. Objective
 
