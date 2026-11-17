@@ -1,0 +1,166 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-fixture-plan/v1alpha4",
+  "taskId": "WP3D-INTEGRATED-LINK-001",
+  "status": "PASS",
+  "note": "Agent-proposed bounded WP3D envelope; see docs/workstreams/wp3d-integrated-linking-v1alpha4.md. Frozen Harness profile still lists WP3D as maintainer-queued; this inventory records the executed fixtures for Draft PR review.",
+  "normativeAuthority": {
+    "repository": "odango-chan/ca-skills",
+    "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
+    "file": "docs/skill-language-spec.v1alpha4.zh-CN.md",
+    "blob": "b70064c5737b8ee2b3d1435fe496357f44b42773"
+  },
+  "rules": {
+    "expectedDiagnosticIdentity": "exact (Code, Phase)",
+    "compilerErrorPhase": "C_STATIC",
+    "dependencyInspectionIsSnapshotScoped": true,
+    "dependencyInspectionOmitsUnverifiedExports": true,
+    "inspectionDiagnosticsUseEmptyPathAndZeroLocation": true,
+    "authorReferenceDiagnosticsRetainOriginalYamlLocation": true,
+    "noNewDiagnosticCodes": true,
+    "inspectionNeverAuthorizes": true
+  },
+  "fixtures": [
+    {
+      "id": "WP3D-001",
+      "title": "Positive snapshot-scoped DependencyInspection projection",
+      "appendixE": "E01/E04 baseline",
+      "category": "positive",
+      "input": "Valid trusted snapshots with single-Owner bindings; request envelope valid; no Skill source semantics involved.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "No DependencyInspection diagnostic is emitted.",
+        "Callables and Schemas are listed with exact dependencyId/owner/kind/id/effect/sourcePath/schema IDs.",
+        "Inspection inspects supplied snapshots, not a Skill closure.",
+        "Ordering follows the frozen (dependencyId, owner, kind, id, sourcePath) and (dependencyId, owner, id, sourcePath) tuples.",
+        "Input snapshot/file order does not change the projection."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3D001PositiveDependencyInspection",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3D-002",
+      "title": "Supplied snapshot without trusted binding contributes no exports",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Remove the trusted dependency binding for one supplied snapshot while keeping its identity bytes valid.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_IDENTITY_UNVERIFIED",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "DEPENDENCY_IDENTITY_UNVERIFIED/C_STATIC is emitted.",
+        "The unbound snapshot contributes no callables or Schemas.",
+        "Other independently verified snapshots could still contribute (inspection is the union of verified snapshots)."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3D002InspectionMissingBinding",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3D-003",
+      "title": "Multi-Owner snapshot omits exports without trusted attribution",
+      "appendixE": "E39",
+      "category": "negative",
+      "input": "Multi-Owner snapshot with explicit attribution for the observation callable only.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_EXPORT_OWNER_UNVERIFIED",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Each un-attributed export is omitted from the inventory.",
+        "Two DEPENDENCY_EXPORT_OWNER_UNVERIFIED/C_STATIC diagnostics are emitted for the two Schema exports.",
+        "Inspection never falls back to the sole/first Owner when multiple Owners are authorized."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3D003InspectionOmitsUnattributedExports",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3D-004",
+      "title": "Unauthorized catalog Owner removes that catalog's callables",
+      "appendixE": "E05",
+      "category": "negative",
+      "input": "Change ToolCatalog metadata.owner to an unauthorized Owner and recompute the snapshot digest.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_OWNER_MISMATCH",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "DEPENDENCY_OWNER_MISMATCH/C_STATIC is emitted.",
+        "No callable from the untrusted catalog is exposed.",
+        "Independently attributable Schema exports may still be listed alongside the diagnostic."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3D004InspectionUntrustedCatalogOwner",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3D-005",
+      "title": "Ambiguous export identity is reported and omitted",
+      "appendixE": "E91",
+      "category": "negative",
+      "input": "Add a second ToolCatalog declaring the same callable ID as the first catalog in one snapshot.",
+      "expectedDiagnostics": [
+        {
+          "code": "EXPORT_ID_AMBIGUOUS",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "EXPORT_ID_AMBIGUOUS/C_STATIC is emitted.",
+        "The ambiguous callable is omitted from the inventory (no first-match selection).",
+        "Other unambiguous exports remain listed."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3D005InspectionOmitsAmbiguousExports",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3D-006",
+      "title": "Dedicated same-snapshot Reconcile READ anti-bypass",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Add a trusted ToolCatalog with a MUTATION callable declaring mutation.reconcile.callable=example.session.reconcile; change the Skill operation.tool to call that dedicated Reconcile READ directly.",
+      "expectedDiagnostics": [
+        {
+          "code": "RECONCILE_CONTRACT_INVALID",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "Exactly one RECONCILE_CONTRACT_INVALID/C_STATIC is emitted.",
+        "The diagnostic retains the Skill procedure source path/line/column.",
+        "An unused Mutation/Reconcile contract does not create an error (positive control).",
+        "The dedicated Reconcile READ is not linked as an ordinary callable.",
+        "Build remains failure-atomic."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3D006ReconcileAntiBypass",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/integrated-linking/base"
+    },
+    {
+      "id": "WP3D-007",
+      "title": "Selected-Skill closure isolation and determinism",
+      "appendixE": "E16",
+      "category": "positive-boundary",
+      "input": "Two selected Skills: the first references its declared aliases, the second references an alias declared only by the first.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "The first Skill closure is exactly its referenced aliases.",
+        "The second Skill closure stays empty (no cross-Skill leak).",
+        "The second Skill's alias-missing diagnostic stays inside its own package.",
+        "Closure ordering is deterministic."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3D007SelectedSkillClosureIsolation",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    }
+  ]
+}
