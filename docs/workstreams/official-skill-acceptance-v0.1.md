@@ -2,6 +2,9 @@
 
 Updated: 2026-11-12. This is a static Compiler result for the pinned ca-skills v0.2 snapshot and the approved CreatedSession ToolCatalog. It is not execution, Runtime qualification, or live 5GC evidence.
 
+> **已归档 / ARCHIVED — PRE-v1alpha4.** 本文记录早期 v0/v0.1 原型、迁移检查或设计阶段的验收结果。文中的语法、分支/PR 指令、样例诊断数量和验收结论均属于历史快照，不定义 CA-SL v1alpha4 或 Compiler v1.0.0 的当前要求。当前状态请以[工作流索引](README.md)和[最终验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)为准。
+
+
 ## Inputs and reproducibility
 
 - Official Skill source: `examples/ca-skills-v0.2`, pinned ca-skills commit `eeae62badf29f90eee257c7ef2ab504211bf7e30`.
