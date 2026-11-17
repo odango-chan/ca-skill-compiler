@@ -206,7 +206,7 @@ The §7 reference map uses the following independently pinned Release 19 documen
 This is a fixed review snapshot as of 2026-11-17, not a floating "latest" alias. A later baseline change must re-review the affected procedure steps, API/OpenAPI contracts, Tool mappings, failure branches and per-Node comments together. Do not update only the version string.
 
 A Stage 3 version pin does not qualify an Owner implementation. For each callable, the separate Owner traceability record must still pin the actual ToolCatalog publication, exact callable ID, Owner identity, kind, Effect, Schema IDs, guarantees, implementation repository and immutable source revision.
- 
+
 ## 9. Required traceability and qualification record
 
 Every business Node in a 5GC Procedure must have a traceability entry in the Skill's `SKILL.md` and a concise source comment beside the Node in `procedure.yaml`.
