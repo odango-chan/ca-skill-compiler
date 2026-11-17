@@ -43,6 +43,17 @@ type v1alpha5ResolvedTrigger struct {
 	InputSchemaID string
 }
 
+// v1alpha5WaitBindingSource carries the validated WP3 linking context forward to
+// the WP4 wait.output SourcePath pass. That pass reuses the exact same trusted
+// dependency scope, Schema resolution context and per-Wait export contract instead
+// of redoing trusted discovery; it is nil when a WP3 prerequisite failed (the
+// dependent WP4 Schema/typing diagnostics are then suppressed).
+type v1alpha5WaitBindingSource struct {
+	link         *v1alpha5LinkContext
+	scopeByAlias map[string]v1alpha5Dependency
+	contracts    map[string]*v1alpha5ExportContract
+}
+
 // v1alpha5ExportContract is the fully validated correlation contract of one
 // trusted Ingress Operation export.
 type v1alpha5ExportContract struct {
@@ -73,12 +84,13 @@ func v1alpha5ExportContractKey(export v1alpha5TrustedIngressExport) string {
 
 // validateV1Alpha5WaitBindings is the WP3 linking pass over one selected v1alpha5
 // Skill. It runs after the WP5 Procedure graph validation and returns only real
-// static diagnostics; Build remains fail-closed for the unimplemented later work
+// static diagnostics plus the validated linking context used by the WP4
+// wait.output pass. Build remains fail-closed for the unimplemented later work
 // packages.
-func validateV1Alpha5WaitBindings(req BuildRequest, skill *V1Alpha5SkillAST, procedurePath string, parsedFiles map[string]*yaml.Node) []Diagnostic {
+func validateV1Alpha5WaitBindings(req BuildRequest, skill *V1Alpha5SkillAST, procedurePath string, parsedFiles map[string]*yaml.Node) ([]Diagnostic, *v1alpha5WaitBindingSource) {
 	waitNodeIDs := make([]string, 0)
 	if skill == nil || skill.Procedure == nil {
-		return nil
+		return nil, nil
 	}
 	for _, nodeID := range sortedStringMapKeys(skill.Procedure.ByID) {
 		if node := skill.Procedure.ByID[nodeID]; node != nil && node.Wait != nil {
@@ -91,7 +103,7 @@ func validateV1Alpha5WaitBindings(req BuildRequest, skill *V1Alpha5SkillAST, pro
 	// trusted exports match and WAIT_INGRESS_EXPORT_NOT_FOUND is emitted. Build
 	// remains fail-closed separately.
 	if len(waitNodeIDs) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	var diagnostics []Diagnostic
@@ -106,13 +118,13 @@ func validateV1Alpha5WaitBindings(req BuildRequest, skill *V1Alpha5SkillAST, pro
 	if hasErrorDiagnostic(linkDiagnostics) {
 		// Trusted artifact/Schema prerequisite failed: suppress all dependent
 		// Ingress and Skill-path diagnostics.
-		return diagnostics
+		return diagnostics, nil
 	}
 
 	scope, scopeDiagnostics := collectV1Alpha5DependencyScope(req, declared, v1alpha5UsedDependencyAliases(skill))
 	diagnostics = append(diagnostics, scopeDiagnostics...)
 	if hasErrorDiagnostic(scopeDiagnostics) {
-		return diagnostics
+		return diagnostics, nil
 	}
 	scopeByAlias := make(map[string]v1alpha5Dependency, len(scope))
 	for _, dependency := range scope {
@@ -125,13 +137,14 @@ func validateV1Alpha5WaitBindings(req BuildRequest, skill *V1Alpha5SkillAST, pro
 		// A trusted Catalog failed admission (protocol artifact, Schema Closure or
 		// catalog structure). Its exports are not usable; suppress the dependent
 		// selector/trigger diagnostics instead of cascading (#62 §13).
-		return diagnostics
+		return diagnostics, nil
 	}
 
 	graph := buildV1Alpha5ProcedureGraph(skill.Procedure)
 	cache := newV1Alpha5ContractCache()
 	triggerIndexes := make(map[string]*v1alpha5SnapshotTriggerIndex)
 	reachable := graph.ReachableVertices()
+	contracts := make(map[string]*v1alpha5ExportContract, len(waitNodeIDs))
 
 	for _, nodeID := range waitNodeIDs {
 		wait := skill.Procedure.ByID[nodeID].Wait
@@ -150,9 +163,14 @@ func validateV1Alpha5WaitBindings(req BuildRequest, skill *V1Alpha5SkillAST, pro
 		if contract == nil {
 			continue
 		}
+		contracts[nodeID] = contract
 		diagnostics = append(diagnostics, v1alpha5ValidateWaitEntryPaths(procedurePath, nodeID, wait, graph, reachable, skill, contract, scopeByAlias)...)
 	}
-	return diagnostics
+	return diagnostics, &v1alpha5WaitBindingSource{
+		link:         link,
+		scopeByAlias: scopeByAlias,
+		contracts:    contracts,
+	}
 }
 
 func (cache *v1alpha5ContractCache) contractFor(export v1alpha5TrustedIngressExport, link *v1alpha5LinkContext, scope []v1alpha5Dependency, triggerIndexes map[string]*v1alpha5SnapshotTriggerIndex) (*v1alpha5ExportContract, []Diagnostic) {

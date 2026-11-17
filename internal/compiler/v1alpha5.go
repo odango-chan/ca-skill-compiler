@@ -1,14 +1,16 @@
 package compiler
 
-// CA-SL v1alpha5 static validation pipeline (WP2 + WP3 + WP5 slices).
+// CA-SL v1alpha5 static validation pipeline (WP2 + WP3 + WP4 + WP5 slices).
 //
 // Static source admission only: the v1alpha5 Procedure/Wait AST is parsed and
 // validated, the WP5 Procedure control-flow graph is built and validated (Wait
 // entry vertices, EVENT_RECEIVED/TIMEOUT control edges, DAG, exact route targets
-// and the final-Postcondition-PASS goal rule), and the WP3 trigger/correlation
+// and the final-Postcondition-PASS goal rule), the WP3 trigger/correlation
 // binding pass links every Wait selector to exactly one trusted Ingress Operation
 // export and proves the triggering Operation/correlation contract on every
-// reachable incoming path. wait.output SourcePath (WP4), response boundary (WP6),
+// reachable incoming path, and the WP4 wait.output pass binds that typed Producer
+// to the exact normalized request Schema, proves event-accepted-path availability
+// and applies conservative F.5 argument typing. The response boundary (WP6),
 // conformance mapping (WP7) and artifact assembly (WP8) are not implemented yet.
 // Build therefore stays fail-closed through the internal residual gate below after
 // source validation succeeds. This is not product or language qualification.
@@ -23,7 +25,7 @@ import (
 // Build fail-closed while later work packages are unimplemented. It is not a
 // v1alpha5 language diagnostic identity and must disappear as the pipeline is
 // completed.
-const v1alpha5ResidualFailClosedMessage = "v1alpha5 Node-entry Wait/Procedure AST validation, Procedure graph control-flow analysis and WP3 trigger/correlation binding are implemented, but WP3-WP8 work packages are not all complete: wait.output SourcePath (WP4), response boundary (WP6), conformance mapping (WP7) and artifact assembly (WP8) are not implemented; compilation fails closed"
+const v1alpha5ResidualFailClosedMessage = "v1alpha5 Node-entry Wait/Procedure AST validation, Procedure graph control-flow analysis, WP3 trigger/correlation binding and WP4 wait.output SourcePath binding are implemented, but WP3-WP8 work packages are not all complete: response boundary (WP6), conformance mapping (WP7) and artifact assembly (WP8) are not implemented; compilation fails closed"
 
 // validateV1Alpha5 is the defensive v1alpha5 Build path. It re-runs the strict
 // request admission, then source validation, then the internal residual gate.
@@ -124,9 +126,14 @@ func checkV1Alpha5Sources(req BuildRequest) []Diagnostic {
 		diagnostics = append(diagnostics, validateV1Alpha5ProcedureGraph(procedurePath, skill)...)
 		// WP3: after graph validation, exactly link every Wait selector to one
 		// trusted Ingress Operation export and validate the trigger/correlation
-		// binding on every reachable incoming path. Build stays fail-closed below
-		// for the later work packages.
-		diagnostics = append(diagnostics, validateV1Alpha5WaitBindings(req, skill, procedurePath, parsedFiles)...)
+		// binding on every reachable incoming path.
+		bindingDiagnostics, waitBindingSource := validateV1Alpha5WaitBindings(req, skill, procedurePath, parsedFiles)
+		diagnostics = append(diagnostics, bindingDiagnostics...)
+		// WP4: after WP3 binding, bind every wait.output Producer SourcePath to the
+		// exact linked normalized request Schema, reject unavailable paths using
+		// WP5 event-accepted-edge dominance and apply conservative argument typing.
+		// Build stays fail-closed below for the later work packages.
+		diagnostics = append(diagnostics, validateV1Alpha5WaitOutputSourcePaths(skill, procedurePath, waitBindingSource)...)
 	}
 
 	return sortedV1Alpha5Diagnostics(diagnostics)
