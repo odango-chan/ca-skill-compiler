@@ -2,7 +2,6 @@ package compiler
 
 import (
 	"regexp"
-	"strings"
 
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
