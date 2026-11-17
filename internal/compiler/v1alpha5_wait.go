@@ -20,7 +20,7 @@ import (
 
 const V1Alpha5Target = "connectionagent.io/v1alpha5"
 
-var v1alpha5WaitDurationPattern = )
+)
 
 type V1Alpha5WaitAST struct {
 	Raw      *yaml.Node
