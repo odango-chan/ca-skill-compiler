@@ -1,6 +1,6 @@
 # Workstream Records
 
-[简体中文](README.md)
+[简体中文](README.zh-CN.md)
 
 This directory contains implementation plans, bounded work-package records and historical migration reports. It is not a live task queue.
 
