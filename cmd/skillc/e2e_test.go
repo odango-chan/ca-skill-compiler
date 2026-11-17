@@ -132,6 +132,21 @@ func readTree(t *testing.T, root string) map[string][]byte {
 	return files
 }
 
+func TestCLIEndToEndVersion(t *testing.T) {
+	versioned := runCLI(t, "version")
+	if versioned.code != 0 {
+		t.Fatalf("version exit = %d, stderr = %s", versioned.code, versioned.stderr)
+	}
+	for _, want := range []string{"skillc " + compiler.CompilerVersion, "language target: " + compiler.V1Alpha4Target} {
+		if !strings.Contains(versioned.stdout, want) {
+			t.Fatalf("version output missing %q: %q", want, versioned.stdout)
+		}
+	}
+	if result := runCLI(t, "version", "extra"); result.code != 2 {
+		t.Fatalf("version with argument exit = %d, want 2", result.code)
+	}
+}
+
 func TestCLIEndToEndTrustedBuildAndDeterminism(t *testing.T) {
 	fixture := filepath.Join(repoRootForCLI(t), "web", "parity-success")
 

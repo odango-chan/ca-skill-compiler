@@ -1,7 +1,7 @@
 {
   "schemaVersion": "connectionagent.io/compiler-remaining-work/v1alpha4",
   "status": "IMPLEMENTATION_COMPLETE_LOCALLY_VERIFIED_NOT_QUALIFIED",
-  "lastVerifiedCommit": "160cfbd",
+  "lastVerifiedCommit": "v1.0.0",
   "implementableInRepo": [],
   "recordedRefinements": [
     { "wp": "WP8", "item": "Runtime merge-time recoverable-output value verification against the original operation output", "reason": "Compiler statically verifies the recoverable Schema/path pair, resolvability, same-owner READ and COMMITTED-only availability; the actual recovered value is produced and merged by the Host/Runtime, so its merge-time assignability is not a Compiler static obligation." }
