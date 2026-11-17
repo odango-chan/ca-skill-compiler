@@ -45,7 +45,7 @@ An Observation is a separate CA-SL stage and remains distinct from an Operation 
 - A standalone Observation-only Node is an exception. It requires an independently meaningful business decision boundary and an explicit rationale; it must not disguise Host admission, lifecycle checks or callback polling.
 - CA-SL stage order does not permit an Observation before an Operation in the same Node. If a required read must precede a later Operation and cannot be attached to an earlier suitable read-only Operation Node, it belongs in a preceding Node with a justified business boundary.
 
-An Observation is an authoritative state query, not a way to poll an asynchronous Operation. The Observation Owner must publish the exact query identity, READ Effect, QueryContext and Output Schemas, Scope, Correlation, temporal/freshness semantics and Evidence guarantees.
+An Observation is an authoritative state query, not a way to poll an asynchronous Operation. The Observation Owner must publish the exact query identity, READ Effect, QueryContext and Output Schemas, Scope, Correlation, temporal/freshness semantics and Evidence guarantees. For the SMF-focused Skills in this profile, query only the exact SMF-owned context/facts required by the next business decision and not already present in the Operation Result or published Host Subject Context. Non-SMF context required to complete an Operation remains inside the responsible Tool/Owner adapter; do not make the Skill query every NF's internal context.
 
 ### 2.2 Local Script placement
 
@@ -56,6 +56,12 @@ A local Script is not automatically a separate 3GPP interaction.
 - Do not create a Script Node solely for a temporary variable, local copy, one-line mapping, request reshaping or revalidation of data already checked by an earlier interaction.
 - Do not move native SMF processing into a Skill Script merely to make it visible in the graph. In the initial PDU Session profile, Step 8 UPF/session-address selection belongs inside the SMF N4 Owner operation that performs N4 Session Establishment; it is not a separate Skill Script Node.
 - A Script Operation is not an external Tool, has no ToolCatalog export and requires no Capability Grant.
+
+### 2.3 Subject identity and Host-private correlation
+
+Use the actual 3GPP identity fields required by the admitted business procedure and the published Context Schema. For the current PDU Session profile, the admitted SUPI is the UE subject identity; do not invent a Host-generated `ueRef` or make it a Skill parameter. A future Skill-visible context field is valid only when its exact Schema and trusted Owner publication exist.
+
+Host admission identity, ingress correlation, lifecycle/generation references, Invocation/Run identity, request ledgers and transport metadata remain Host/Runtime-private. They are not substitutes for SUPI, PDU Session ID or other 3GPP business fields and must not be copied into Skill-authored arguments. Tool/Owner adapters bind private execution metadata under their own contracts.
 
 ## 3. Standard-to-Tool mapping
 
@@ -72,6 +78,8 @@ Map each external 3GPP interaction to a real Owner-published callable before ref
 The Tool's Schemas must describe the actual Owner request and response contract. A Skill must not substitute its own guessed Schema, field mapping or output projection.
 
 The same callable may be reused by multiple Skills and Nodes. Do not create a new Tool merely to give one Skill a convenient business-step name. Multiple callable identities for one standard service are acceptable only when the Owner publishes distinct real interfaces or variants.
+
+A local CLI or client implementation repository is not automatically a CA-SL Tool Owner. In particular, `ca-client-tools` may provide the fixed local CLI backend for an adapter, but it does not by itself publish the ToolCatalog, CapabilityContracts, Owner identity or Deployment grants. Those remain separate trusted publications.
 
 ## 4. Capability mapping
 
@@ -100,6 +108,8 @@ Every Node/Operation mapping must be classified in traceability documentation as
 | `CA_EXTENSION` | A CA-only business function with no direct 3GPP operation counterpart | Use a clearly CA-prefixed identity; explicitly state that it has no direct 3GPP operation |
 
 A CA adapter must not claim that a standard NF Service Operation exists when it actually performs multi-step internal orchestration. A CA extension must not be disguised as a standard 3GPP interaction.
+
+MAS is not a 3GPP-defined NF, service or procedure. A MAS-oriented Skill is a CA-specific policy/adapter profile and its Nodes must be classified as `CA_ADAPTER` or `CA_EXTENSION` unless a Node maps to an exact published 3GPP NF Service Operation. Candidate MAS callable names from an OES plan are not Owner exports and are not qualified until the responsible Owner publishes their exact contracts.
 
 Host ingress admission, identity and duplicate checking, business-instance association, Invocation lifecycle, correlation, persistence, authorization, Action Budget accounting and internal mutation reconciliation are not Skill Nodes. They remain Host/Runtime/Owner responsibilities. Do not create `admit-*`, `hold-*`, `wait-*` or artificial 3GPP Nodes for these internals.
 
@@ -149,7 +159,7 @@ The reference procedure is UE-requested initial PDU Session Establishment from t
 | 20 | Conditional SM Policy Association Modification for Bridge/Router information when the trigger is armed | PCF Owner publishes the exact callable if the feature is in scope | Explicitly exclude when not supported; do not create a placeholder success |
 | 21 | Conditional UDM subscription unsubscription on the specified failure path when the SMF no longer handles a matching PDU Session | UDM Owner publishes the exact unsubscribe callable; Host/Owner retains cleanup responsibility | Failure-path behavior must be assigned to a real Owner/Host contract; do not invent a Skill cleanup Tool |
 
-The table is a traceability map, not a claim that every optional or conditional step is required in every Skill. Each Skill must state its admitted request profile, supported branches and exclusions. A required 3GPP behavior may be delegated to an Owner/Host adapter only when the responsible Owner publishes the exact contract and accepts that responsibility.
+The table is a traceability map, not a claim that every optional or conditional step is required in every Skill. Clause §4.3.2.2.1 covers non-roaming and roaming with local breakout; each Skill must state which admitted deployment profile it supports. Home-routed roaming under §4.3.2.2.2 is outside this map unless separately reviewed. Each Skill must also state its supported optional branches and exclusions. A required 3GPP behavior may be delegated to an Owner/Host adapter only when the responsible Owner publishes the exact contract and accepts that responsibility.
 
 ### 7.1 Proof boundaries that must remain distinct
 
@@ -163,6 +173,16 @@ The table is a traceability map, not a claim that every optional or conditional 
 - Step 16c UECM registration, when applicable, is part of the Step 16 work and precedes Step 17.
 - Step 17 protocol response is not itself the Skill Goal proof. The Skill Contract's final Postcondition and Host/Runtime resource-responsibility gate remain authoritative.
 - A confirmed business failure, an unresolved result and an unknown Mutation outcome are distinct. Failure handling must preserve the exact original Invocation, resource responsibility and late-result handling.
+
+### 7.2 Failure and conditional branches
+
+The normal success path must not erase the standard's failure branches:
+
+- If establishment fails between Step 5 and Step 11, Step 11 carries the PDU Session Establishment Reject and Steps 12–17 are skipped. Do not wait for a Step 15 request that will not arrive.
+- If Step 15 reports failed user-plane resource setup, or the required User Plane Enforcement Policy cannot be fulfilled, the normal Step 16 modification path is skipped. The SMF performs the required N4 release and Step 17 returns the paired rejection response. Do not record N4 forwarding as modified or the PDU Session as established.
+- If Step 15 succeeds and the applicable Step 16 actions complete, the paired Step 17 response follows those actions, including conditional Step 16c registration where applicable.
+- Step 18 is a conditional failure notification and resource-release path. Step 21 is conditional UDM unsubscription. Both must have explicit Owner/Host responsibility, exact request/response contracts and failure evidence; neither is implied by a generic Skill terminal status.
+- Step 19 and Step 20 are conditional features. A Skill that excludes IPv6 Router Advertisement or Bridge/Router information must state that scope; it must not emit placeholder successful results for those steps.
 
 ## 8. Fixed 3GPP reference set
 
