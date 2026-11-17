@@ -132,3 +132,45 @@ GitHub Actions 如果没有实际分配 Runner 或 Job 在任何步骤执行前�
 7. 是否存在对旧实现的删除或破坏性重构，以及理由。
 
 不要只报告“代码已提交”或“CI 失败”；必须区分源码失败、测试失败、CI 初始化失败和未执行。
+
+
+## 11. 必须实际回写 GitHub 仓库（不是本地演练）
+
+**本 Goal 的交付对象是 GitHub 仓库中的代码和 PR，不是 Harness 私有工作区中的本地修改。** 除非遇到明确的权限或基础设施阻塞，否则必须完成远端 push。
+
+### 11.1 仓库与现有分支
+
+- Repository：`odango-chan/ca-skill-compiler`
+- 本 Goal 文档当前位于 PR #29 的分支：`docs/next-compiler-plan-rebased-20261117`。从该分支读取本文件，不要假设它已进入 `main`。
+- WP2 已有实现 PR：[PR #30](https://github.com/odango-chan/ca-skill-compiler/pull/30)，实现分支：`feat/compiler-v1alpha5-wait-ast-20261117`。先 fetch 并检查最新远端状态，在此分支继续 WP2，优先更新现有 PR，不要另建重复的 Wait AST PR。
+- WP1 如无现有实现 PR，应从最新 `main` 创建独立分支并提交独立 PR；不要把 WP1 的代码提交到仅用于文档的 PR #29 分支。
+
+### 11.2 强制远端交付步骤
+
+1. 获取并阅读 PR #29 文档分支中的本 Goal。
+2. 获取仓库最新 `main`、PR #30 的 head branch 和相关开放 PR；检查工作区状态，禁止覆盖其他 Agent 尚未提交的工作。
+3. 在正确的实现分支中直接修改源代码、测试和必要文档。
+4. 执行本 Goal 要求的测试；记录真实命令、退出码和结果。
+5. 创建有意义的 Git commit。
+6. **将 commit push 到 `origin` 对应实现分支。** 仅本地 commit 不算完成；仅在 Harness 私有工作区中修改也不算完成。
+7. 更新对应 GitHub PR：同步 Summary、实现范围、测试证据、未完成事项和下一步；已有 PR #30 应直接更新，不得重复创建同一工作内容的 PR。
+8. push 后重新读取远端分支和 PR，核对远端 HEAD SHA 与本地提交一致，并在报告中给出 commit SHA、PR URL 和 GitHub 状态。
+
+### 11.3 安全边界与权限失败处理
+
+- 不得直接 push `main`。
+- 不得 force-push，不得重写或丢弃其他 Agent 的提交。
+- 不得自行合并 PR；保持 Draft，直到实际验收完成。用户另行明确要求合并时除外。
+- 若 GitHub 凭据、网络、权限或 Runner 不可用，必须明确报告 `REMOTE_WRITE_BLOCKED`，指出阻塞发生在哪一步、需要什么权限；保留本地工作并给出本地 HEAD SHA。
+- **不得把“本地修改完成”“本地 commit 完成”描述为“仓库已更新”。** 只有远端 push 成功且核对远端 SHA 后，才能报告 GitHub 仓库已更新。
+
+### 11.4 每轮交付报告增加
+
+除第 10 节原有内容外，必须报告：
+
+- 实际工作的仓库、分支和 PR；
+- 本地 commit SHA；
+- push 是否成功；
+- 远端分支 HEAD SHA；
+- 对应 PR URL、状态及是否 Draft；
+- 若未 push，明确标记 `REMOTE_WRITE_BLOCKED`，不得声称已完成远端交付。
