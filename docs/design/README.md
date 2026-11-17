@@ -16,6 +16,10 @@ The authority order is:
 
 For implementation status and qualification, use the [final acceptance record](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) and [known limitations](../known-limitations-v1alpha4.md). `LOCAL_ACCEPTANCE_PASS` records executed local verification; it does not mean every E-case is a whole-case PASS or that real Owner/Deployment and 5GC qualification has been completed. Product qualification remains **NOT_QUALIFIED**.
 
+## Domain and procedure profiles
+
+- [5GC SMF Procedure Profile](../profiles/5gc-smf-procedure-profile.md) — SMF-oriented 3GPP → Tool → Skill mapping, Node/Observation boundaries, v1alpha4 asynchronous behavior and the pinned PDU Session reference map.
+
 ## Current v1alpha4 contracts
 
 - [Compiler Contract](compiler-contract-v1alpha4.md) — Compiler responsibilities, compilation pipeline, static obligations and trust boundaries.
