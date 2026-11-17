@@ -1,0 +1,21 @@
+apiVersion: connectionagent.io/toolcatalog/v1alpha4
+kind: ToolCatalog
+metadata:
+  name: example-ue-queries
+  owner: example-ue-owner
+spec:
+  contracts:
+    - kind: observation
+      id: ue.registration.current
+      effect: READ
+      ownerOutcomes: [SUCCEEDED, FAILED]
+      adapter: example-ue-query
+      queryContextSchema:
+        $ref: urn:example:ca:registration-query:v1
+      outputSchema:
+        $ref: urn:example:ca:registration:v1
+      guarantees:
+        evidence:
+          provides:
+            - guarantee: ue.registration-state
+              path: output

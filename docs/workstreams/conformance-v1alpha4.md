@@ -150,3 +150,12 @@ The current ca-skills source inventory says the present 5GC Skill files are lega
 Compiler PR #11 adds source/graph admission and explicit fail-closed behavior when trusted Owner / CapabilityContracts inputs are missing. It does not implement the full linker, SourcePath/Evidence proof, Script ABI, E01–E120, complete H diagnostics or Native/WASM parity for v1alpha4.
 
 This document refresh itself is documentation only. No Go tests, WASM build, Chromium parity or 5GC tests are claimed PASS by this change.
+
+
+## WP3A fixture plan — first executable dependency slice
+
+The first DeepSeek task has a dedicated machine-readable fixture plan at [wp3a-fixture-plan.json](../../tests/conformance/v1alpha4/wp3a-fixture-plan.json).
+
+It covers the dependency identity diagnostics and the Appendix E cases E03, E04 and E16 that belong to this slice. The plan is **PLANNED_NOT_EXECUTED**: entries are not passing tests until executable fixture files, test assertions and CI evidence exist. E05/E39/E43 (Owner/export attribution) are reserved for WP3B; Capability/Scope cases are reserved for WP3C.
+
+No E or H status is changed to PASS by adding this plan.

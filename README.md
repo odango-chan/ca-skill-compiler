@@ -29,6 +29,13 @@ Do not use floating main, old v0.2 language docs, or old v0.1 Compiler contracts
 | [Studio integration](docs/studio-integration-v1alpha4.md) | Go/WASM and Studio boundary |
 | [Machine contracts](contracts/v1alpha4/README.md) | JSON Schemas and golden vectors |
 
+## DeepSeek implementation handoff
+
+- [DeepSeek Handoff v1alpha4](docs/workstreams/deepseek-handoff-v1alpha4.md) is the execution entrypoint.
+- The first bounded task is [WP3A Dependency Snapshot Identity](docs/workstreams/wp3a-dependency-identity-v1alpha4.md), with its machine-readable checklist at [wp3a-fixture-plan.json](tests/conformance/v1alpha4/wp3a-fixture-plan.json).
+- The assigned task branch is `feat/compiler-v1alpha4-wp3a-dependency-identity-20261116`, based on the WP2 head. The separate exploratory WP3 linker branch is not the approved task base.
+- WP3A is documentation-ready; code implementation and conformance remain NOT_QUALIFIED.
+
 ## Version identifiers
 
 These identifiers are independent and must be checked explicitly:

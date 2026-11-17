@@ -283,7 +283,11 @@
       "fixtureStatus": "SPEC_CASE_DEFINED",
       "executionStatus": "NOT_VERIFIED",
       "owner": "compiler",
-      "specLine": 3955
+      "specLine": 3955,
+      "workPackage": "WP3A",
+      "plannedFixtures": [
+        "WP3A-007"
+      ]
     },
     {
       "code": "DEPENDENCY_ALIAS_MISSING",
@@ -298,7 +302,11 @@
       "fixtureStatus": "FIXTURE_MISSING",
       "executionStatus": "NOT_VERIFIED",
       "owner": "compiler",
-      "specLine": 3956
+      "specLine": 3956,
+      "workPackage": "WP3A",
+      "plannedFixtures": [
+        "WP3A-008"
+      ]
     },
     {
       "code": "DEPENDENCY_SNAPSHOT_MISSING",
@@ -313,7 +321,11 @@
       "fixtureStatus": "FIXTURE_MISSING",
       "executionStatus": "NOT_VERIFIED",
       "owner": "compiler",
-      "specLine": 3957
+      "specLine": 3957,
+      "workPackage": "WP3A",
+      "plannedFixtures": [
+        "WP3A-005"
+      ]
     },
     {
       "code": "DEPENDENCY_IDENTITY_UNVERIFIED",
@@ -328,7 +340,12 @@
       "fixtureStatus": "SPEC_CASE_DEFINED",
       "executionStatus": "NOT_VERIFIED",
       "owner": "compiler",
-      "specLine": 3958
+      "specLine": 3958,
+      "workPackage": "WP3A",
+      "plannedFixtures": [
+        "WP3A-003",
+        "WP3A-004"
+      ]
     },
     {
       "code": "DEPENDENCY_ID_MISMATCH",
@@ -343,7 +360,11 @@
       "fixtureStatus": "SPEC_CASE_DEFINED",
       "executionStatus": "NOT_VERIFIED",
       "owner": "compiler",
-      "specLine": 3959
+      "specLine": 3959,
+      "workPackage": "WP3A",
+      "plannedFixtures": [
+        "WP3A-002"
+      ]
     },
     {
       "code": "DEPENDENCY_OWNER_MISMATCH",
@@ -388,7 +409,11 @@
       "fixtureStatus": "FIXTURE_MISSING",
       "executionStatus": "NOT_VERIFIED",
       "owner": "compiler",
-      "specLine": 3962
+      "specLine": 3962,
+      "workPackage": "WP3A",
+      "plannedFixtures": [
+        "WP3A-006"
+      ]
     },
     {
       "code": "CONTEXT_SCHEMA_UNDECLARED",
@@ -1018,7 +1043,11 @@
       "fixtureStatus": "FIXTURE_MISSING",
       "executionStatus": "NOT_VERIFIED",
       "owner": "compiler",
-      "specLine": 4004
+      "specLine": 4004,
+      "workPackage": "WP3A",
+      "plannedFixtures": [
+        "WP3A-010"
+      ]
     },
     {
       "code": "UNREACHABLE_NODE",

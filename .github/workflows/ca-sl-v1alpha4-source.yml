@@ -6,9 +6,11 @@ on:
       - feat/ca-sl-v1alpha4-target-source-20261115
       - feat/compiler-v1alpha4-wp1-core-20261116
       - feat/compiler-v1alpha4-wp2-yaml-ast-20261116
+      - feat/compiler-v1alpha4-wp3a-dependency-identity-20261116
   pull_request:
     branches:
       - docs/compiler-v1alpha4-contracts-20261116
+      - feat/compiler-v1alpha4-wp2-yaml-ast-20261116
 
 permissions:
   contents: read

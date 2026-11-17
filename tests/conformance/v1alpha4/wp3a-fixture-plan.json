@@ -1,0 +1,219 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-fixture-plan/v1alpha4",
+  "taskId": "WP3A-DEPENDENCY-IDENTITY-001",
+  "status": "PASS",
+  "normativeAuthority": {
+    "repository": "odango-chan/ca-skills",
+    "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
+    "file": "docs/skill-language-spec.v1alpha4.zh-CN.md",
+    "blob": "b70064c5737b8ee2b3d1435fe496357f44b42773"
+  },
+  "rules": {
+    "expectedDiagnosticIdentity": "exact (Code, Phase)",
+    "compilerErrorPhase": "C_STATIC",
+    "compilerWarningPhase": "C_WARNING",
+    "sourceDiagnosticsRequireOriginalYamlLocation": true,
+    "trustedRequestDiagnosticsUseEmptyPathAndZeroLocation": true,
+    "noNewDiagnosticCodes": true,
+    "positiveIdentityCasesDoNotQualifyWholeCompiler": true
+  },
+  "fixtures": [
+    {
+      "id": "WP3A-001",
+      "title": "Exact positive Alias-to-snapshot-to-trusted-binding identity",
+      "appendixE": null,
+      "category": "positive",
+      "input": "One selected Skill declares Alias ca -> stable package ID P; one ResolvedDependency has dependencyId ca and a digest equal to the recomputed original-byte digest; exactly one TrustedDependencyBinding matches (ca,digest) and carries stablePackageId P.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "WP3A emits no dependency identity error or warning.",
+        "The resolved identity tuple is exactly (ca, measuredDigest, P).",
+        "Reordering source files, snapshot files, ResolvedDependencies and DependencyBindings does not change the result.",
+        "Later unimplemented compiler stages still fail closed; Build is not expected to succeed."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A001PositiveIdentityAndPermutationStability",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3A-002",
+      "title": "Contract package ID differs from trusted package ID",
+      "appendixE": "E03",
+      "category": "negative",
+      "input": "Use the Appendix E.1-E.4 success baseline and change only Contract.dependencies.ca to a different valid Stable Package ID; recompute the snapshot digest and retain a trusted binding for the original package.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_ID_MISMATCH",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "The primary diagnostic is DEPENDENCY_ID_MISMATCH/C_STATIC.",
+        "The diagnostic is attached to the Contract dependency value node.",
+        "No filename, package display name or URI-prefix fallback is attempted."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A002DependencyPackageIDMismatch",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3A-003",
+      "title": "Trusted dependency identity binding is missing",
+      "appendixE": "E04",
+      "category": "negative",
+      "input": "Use the Appendix E.1-E.4 success baseline and remove the TrustedDependencyBinding for Alias ca while retaining the exact immutable snapshot.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_IDENTITY_UNVERIFIED",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "The primary diagnostic is DEPENDENCY_IDENTITY_UNVERIFIED/C_STATIC.",
+        "The diagnostic is attributed to trusted BuildRequest metadata (empty path, line 0, column 0).",
+        "No identity is inferred from ToolCatalog metadata or the snapshot contents."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A003MissingTrustedBinding",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3A-004",
+      "title": "Trusted binding refers to a different measured snapshot digest",
+      "appendixE": "E04",
+      "category": "negative",
+      "input": "Use the Appendix E.1-E.4 success baseline and retain a binding for Alias ca whose digest differs from the digest recomputed from the supplied snapshot bytes.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_IDENTITY_UNVERIFIED",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "The primary diagnostic is DEPENDENCY_IDENTITY_UNVERIFIED/C_STATIC.",
+        "The compiler matches both dependencyId and measured digest; matching dependencyId alone is insufficient."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A004BindingDigestMismatchIsUnverified",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3A-005",
+      "title": "A used Contract Alias has no supplied snapshot",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Use a selected Skill that references declared Alias ca from an operation.tool or external Schema reference, but omit the ResolvedDependency whose dependencyId is ca.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_SNAPSHOT_MISSING",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "The primary diagnostic is DEPENDENCY_SNAPSHOT_MISSING/C_STATIC.",
+        "Do not replace it with EXPORT_ID_MISSING or SCHEMA_MISSING."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A005UsedAliasSnapshotMissing",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3A-006",
+      "title": "Multiple snapshots or trusted bindings ambiguously match one Alias",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Provide two ResolvedDependency entries for the same used dependencyId, or two trusted bindings for the same exact (dependencyId, measuredDigest) identity.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_DUPLICATE",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "The primary diagnostic is DEPENDENCY_DUPLICATE/C_STATIC.",
+        "Do not select the first matching item or depend on input order."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A006DuplicateSnapshotAndBinding",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3A-007",
+      "title": "Contract dependency value is not a Stable Package ID string",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Change Contract.dependencies.ca from a valid absolute Stable Package ID string to a mapping, sequence or invalid URI value.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_REQUIREMENT_INVALID",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "The primary diagnostic is DEPENDENCY_REQUIREMENT_INVALID/C_STATIC.",
+        "The diagnostic retains the original Contract YAML key/value source location."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A007DependencyRequirementInvalid",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3A-008",
+      "title": "A supported external reference uses an undeclared Alias",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Use a syntactically valid Alias::ExportId or Alias::absolute-Schema-ID reference whose Alias is absent from Contract.dependencies.",
+      "expectedDiagnostics": [
+        {
+          "code": "DEPENDENCY_ALIAS_MISSING",
+          "phase": "C_STATIC"
+        }
+      ],
+      "assertions": [
+        "The primary diagnostic is DEPENDENCY_ALIAS_MISSING/C_STATIC.",
+        "Only frozen source positions are scanned; arbitrary strings containing :: are ignored."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A008UndeclaredAliasReference",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3A-009",
+      "title": "Unreferenced extra snapshot cannot become a global export",
+      "appendixE": "E16",
+      "category": "positive-boundary",
+      "input": "Use a valid selected Skill and its used dependency snapshots, then add one extra valid ResolvedDependency that no selected Skill declares or references.",
+      "expectedDiagnostics": [],
+      "assertions": [
+        "The extra snapshot is not included in the selected Skill dependency closure.",
+        "The extra snapshot is not parsed, indexed or exposed as a source of callable/Schema exports in WP3A.",
+        "The extra snapshot does not create an error solely because it is outside the selected Skill dependency closure.",
+        "Request-level raw-byte integrity and resource limits still apply to every supplied snapshot."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A009UnreferencedExtraSnapshot",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    },
+    {
+      "id": "WP3A-010",
+      "title": "Declared but unused Contract dependency is a warning",
+      "appendixE": null,
+      "category": "warning",
+      "input": "Declare a valid dependency Alias in Contract.dependencies but do not reference it from any supported source position in the selected Skill.",
+      "expectedDiagnostics": [
+        {
+          "code": "UNUSED_DEPENDENCY",
+          "phase": "C_WARNING"
+        }
+      ],
+      "assertions": [
+        "The diagnostic severity is warning and phase is C_WARNING.",
+        "The warning does not independently block Build.",
+        "The unused Alias does not enter the selected dependency closure."
+      ],
+      "executionStatus": "PASS",
+      "testName": "TestWP3A010UnusedDependencyWarning",
+      "actualFixturePath": "tests/conformance/v1alpha4/fixtures/dependency-identity/base"
+    }
+  ]
+}
