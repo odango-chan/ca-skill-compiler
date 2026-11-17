@@ -28,7 +28,7 @@ this run (account billing block) and is never reported as PASS.
 The v1alpha4 implementation was stacked in dependency order. PR #24 contained the
 WP9–WP12 work, CLI v1, artifact/parity/Studio integration and conformance slices; it was
 merged after PRs #11–#23. PR #25 added release metadata, release notes and the LF checkout
-policy. The old unmerged PRs #3–#8 are pre-v1alpha4 work and are being closed as superseded;
+policy. The old unmerged PRs #3–#8 are pre-v1alpha4 work and have been closed as superseded;
 their discussions and branches remain historical records.
 
 ## 2. Work-package implementation status

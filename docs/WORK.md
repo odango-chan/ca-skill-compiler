@@ -17,7 +17,7 @@
 
 The post-release repository hygiene work is being performed on `chore/post-v1.0.0-repository-hygiene`.
 
-This work does not change the v1.0.0 tag or language semantics. It removes unreachable pre-v1alpha4 implementation code, corrects stale maintenance/acceptance records, documents the current example set and closes superseded pre-v1alpha4 pull requests. Review and verification status are tracked by the associated PR.
+This work does not change the v1.0.0 tag or language semantics. It removes unreachable pre-v1alpha4 implementation code, corrects stale maintenance/acceptance records, documents the current example set and closes superseded pre-v1alpha4 pull requests. Review and verification status are tracked in [PR #26](https://github.com/odango-chan/ca-skill-compiler/pull/26).
 
 ## Supported language and Wait boundary
 
