@@ -80,8 +80,8 @@ Evidence、Mutation/Reconcile 和 Retry 的部分正向 Build 路径仍采用 fa
 ## 文档
 
 - [CLI 使用说明](docs/cli-v1alpha4.md)
-- [示例与测试样例](examples/README.md)
-- [文档索引](docs/README.md)
+- [示例与测试样例](examples/README.zh-CN.md)
+- [文档索引](docs/README.zh-CN.md)
 - [v1.0.0 发布说明](docs/release-notes-v1.0.0.md)
 
 编译器设计契约、集成说明和维护记录统一列在文档索引中。
