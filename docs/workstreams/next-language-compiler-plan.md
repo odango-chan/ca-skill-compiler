@@ -139,6 +139,22 @@ The EW and IN matrices are joint conformance inventories. Compiler must execute 
 
 The following remain Integration / Host / Runtime / deployment-conformance obligations, not Compiler tests: EW-001–EW-011, EW-017, EW-020, EW-023–EW-026, EW-028, EW-032; and IN-008–IN-012, IN-016–IN-017, IN-022, IN-024–IN-027, IN-033–IN-038, IN-041, IN-043, IN-048–IN-051, IN-053–IN-054. Shared cases such as IN-023, IN-039, IN-042 and IN-044–IN-047 may have both a Compiler static fixture and a separate Admission/Integration fixture; one must not be reported as the other.
 
+### 4.3 WP1 Schema Closure Digest v1 implementation boundary
+
+The current #62 proposal is more specific than a generic recursive `$ref` walk. The Compiler implementation must cover all of the following as one deterministic linker input:
+
+1. **Trusted artifact binding:** bind each opaque `artifactRef` one-to-one to its normalized snapshot-relative path, canonical document URI, source dialect, parsed document and complete raw source bytes. Recompute `artifactDigest` from the exact immutable bytes; never trust the digest declared by IngressCatalog or a vector.
+2. **Canonical URI rules:** validate the absolute hierarchical snapshot base URI; derive canonical document URIs from percent-encoded normalized paths; normalize scheme/host/default ports, dot segments and percent escapes; reject user-info, query, fragment, whitespace, backslash, malformed escapes and ambiguous document mappings. URI lookup is in-memory only; no network fetch.
+3. **Dialect-aware Schema discovery:** OpenAPI 3.0 roots come only from Schema Object positions in the OpenAPI document and use OpenAPI 3.0 Schema rules; JSON Schema Draft 2020-12 uses its declared dialect and Schema-valued keywords. Do not reinterpret one dialect as the other.
+4. **Nested resource identity:** OpenAPI 3.0 Schema Objects MUST reject `$id` as a base-URI mechanism. JSON Schema 2020-12 MUST resolve nested `$id` against the inherited base and register a unique immutable resource-URI alias to its exact artifact-relative Schema pointer.
+5. **Reference resolution:** resolve each `$ref` against the containing Schema's effective base URI; allow only canonical document URIs or registered nested-`$id` aliases in the same trusted snapshot. Percent-decode fragments exactly once as strict UTF-8; validate RFC 6901; translate a nested-resource-relative fragment back to the exact artifact-relative pointer.
+6. **Exact closure:** traverse only Schema-valued substructures supported by the declared dialect; include the root plus every and only transitive referenced Schema node; identify nodes by exact `(artifactRef, pointer)`; visit cycles once; reject missing/extra nodes, boolean Schemas, non-Schema pointers, unsupported anchors/dynamic references, invalid IDs and snapshot escapes.
+7. **Digest:** construct the specified manifest with each node's complete source-artifact digest and exact parsed Schema value; sort nodes by UTF-8 `artifactRef` then pointer; serialize with RFC 8785 JCS; hash the exact v1 domain separator plus JCS bytes.
+
+The Compiler conformance vector must prove both **source-byte binding** and **resolution**: a byte-only artifact change with an unchanged parsed Schema value still changes `artifactDigest` and the closure digest; a nested-`$id` fragment must resolve to a non-root artifact-relative pointer. A vector that supplies only pre-resolved edges or hard-coded digests is not sufficient to qualify the resolver.
+
+Keep this implementation isolated from the frozen v1alpha4 Schema Registry. v1alpha4's exact Schema identity and local-reference behavior must not be silently rewritten to adopt the new Ingress-specific URI-reference algorithm.
+
 ### 4.2 Diagnostic ownership and precedence
 
 Before code is written, the language and export owners must publish one collision-free diagnostic map:
@@ -156,7 +172,7 @@ Before code is written, the language and export owners must publish one collisio
 | WP | Work | Main output | Entry gate |
 |---|---|---|---|
 | WP0 | Language/API freeze inventory | Complete single-file spec, version identity, BuildRequest / DependencyInspection / Artifact contract decisions, diagnostic catalogue | Independent review of #61 / #62 |
-| WP1 | IngressCatalog admission/linking | Export parser, trusted Owner binding, Schema Closure Digest v1 and exact reference closure | WP0 |
+| WP1 | IngressCatalog admission/linking | Export parser, trusted Owner binding, raw-artifact digest verification, dialect-aware Schema Closure Digest v1 and exact transitive reference closure | WP0 |
 | WP2 | Wait syntax / AST | Node-entry grammar, duration parser, strict unknown-field diagnostics | WP0 |
 | WP3 | Trigger binding | Exact Operation identity, armInputSchema binding, start-context binding | WP1 + WP2 |
 | WP4 | wait.output dataflow | Normalized Schema resolution, JSON Pointer, assignability and edge/path-sensitive availability | WP1 + WP2 |
