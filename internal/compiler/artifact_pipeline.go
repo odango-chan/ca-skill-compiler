@@ -39,13 +39,13 @@ func unsupportedSemanticsReason(inputs map[string]artifactInput) string {
 			for _, predicateID := range sortedStringMapKeys(input.skill.Predicates.Definitions) {
 				predicate := input.skill.Predicates.Definitions[predicateID]
 				if predicate != nil && predicate.Evidence != nil {
-					return "Evidence Descriptor positive-path linking (Producer, Scope, Correlation and Freshness) has no frozen Owner publication; compilation fails closed"
+					return "Evidence guarantee linking (WP7) is not implemented; compilation fails closed"
 				}
 			}
 		}
 		for _, export := range input.ownerLinking.Exports {
 			if export.Effect == "MUTATION" {
-				return "complete Mutation/Reconcile positive-path semantics, including cross-snapshot association, are not implemented; compilation fails closed"
+				return "deep Mutation/Reconcile semantics (WP8) are not implemented; compilation fails closed"
 			}
 		}
 		if input.skill.Procedure != nil {
@@ -55,7 +55,7 @@ func unsupportedSemanticsReason(inputs map[string]artifactInput) string {
 					continue
 				}
 				if child(node.Operation.Raw, "retryOf") != nil {
-					return "full retry contract compatibility and path-coverage analysis are not implemented; compilation fails closed"
+					return "full retry contract semantics (WP8) are not implemented; compilation fails closed"
 				}
 			}
 		}
