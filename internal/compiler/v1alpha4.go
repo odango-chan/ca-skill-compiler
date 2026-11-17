@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"gopkg.in/yaml.v3"
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
 const V1Alpha4Target = "connectionagent.io/v1alpha4"
@@ -96,41 +96,57 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		if files[base+"SKILL.md"] == nil {
 			errorAt(base+"SKILL.md", nil, "SOURCE_ROOT_INVALID", "SKILL.md missing")
 		}
-		contract := v4ParseYAML(contractPath, files[contractPath], errorAt)
-		procedure := v4ParseYAML(procedurePath, files[procedurePath], errorAt)
-		predicates := v4ParseYAML(predicatesPath, files[predicatesPath], errorAt)
-		if contract != nil {
+
+		// Parse every YAML author file exactly once. Contract, Procedure,
+		// PredicateSet and local Schema checks share these normalized nodes.
+		parsedFiles := make(map[string]*yaml.Node)
+		for _, filename := range sortedStringMapKeys(files) {
+			if strings.HasPrefix(filename, base) && (strings.HasSuffix(filename, ".yaml") || strings.HasSuffix(filename, ".yml")) {
+				parsedFiles[filename] = v4ParseYAML(filename, files[filename], errorAt)
+			}
+		}
+		for _, required := range []string{contractPath, procedurePath, predicatesPath} {
+			if _, exists := parsedFiles[required]; !exists {
+				parsedFiles[required] = v4ParseYAML(required, nil, errorAt)
+			}
+		}
+
+		sourceAST := parseV1Alpha4SkillAST(name, parsedFiles)
+		contractAST := sourceAST.Contract
+		if contractAST != nil && contractAST.Raw != nil {
+			contract := contractAST.Raw
 			v4Allowed(contract, contractPath, v4ContractFields, errorAt)
-			if scalar(child(contract, "goal")) == "" {
+			if scalar(contractAST.Goal) == "" {
 				errorAt(contractPath, contract, "SOURCE_ROOT_INVALID", "Contract requires goal")
 			}
-			if gate := child(contract, "precondition"); gate != nil {
+			if gate := contractAST.Precondition; gate != nil {
 				if gate.Kind != yaml.ScalarNode || gate.Tag != "!!str" || !v4ContractGate.MatchString(gate.Value) {
 					errorAt(contractPath, gate, "ENTRY_PRECONDITION_REF_INVALID", "precondition is one scalar node.precondition, not a list")
 				}
 			}
-			if request := child(contract, "requestSchema"); request != nil {
+			if request := contractAST.RequestSchema; request != nil {
 				ref := scalar(request)
-				if !strings.HasPrefix(ref, "schemas/") || files[base+ref] == nil {
+				schemaPath := base + ref
+				if !strings.HasPrefix(ref, "schemas/") || files[schemaPath] == nil {
 					errorAt(contractPath, request, "REQUEST_SCHEMA_MISSING", "Skill-owned request Schema is missing")
-				} else {
-					v4CheckSchema(base+ref, files[base+ref], errorAt)
+				} else if schemaRoot := parsedFiles[schemaPath]; schemaRoot != nil {
+					v4CheckSchema(schemaPath, schemaRoot, errorAt)
 				}
 			}
-			if child(contract, "dependencies") != nil {
-				errorAt(contractPath, child(contract, "dependencies"), "DEPENDENCY_IDENTITY_UNVERIFIED",
+			if contractAST.Dependencies != nil {
+				errorAt(contractPath, contractAST.Dependencies, "DEPENDENCY_IDENTITY_UNVERIFIED",
 					"DependencySnapshot linking is not yet implemented; no dependency identity is inferred")
 			}
-			if child(contract, "capabilities") != nil {
-				errorAt(contractPath, child(contract, "capabilities"), "CAPABILITY_INPUT_UNTRUSTED",
+			if contractAST.Capabilities != nil {
+				errorAt(contractPath, contractAST.Capabilities, "CAPABILITY_INPUT_UNTRUSTED",
 					"CapabilityContracts linking is not yet implemented; trusted deployment data is not treated as linked")
 			}
 		}
-		if predicates != nil {
-			v4CheckPredicates(predicatesPath, predicates, errorAt)
+		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
+			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
 		}
-		if procedure != nil {
-			v4CheckProcedure(procedurePath, procedure, contract, errorAt)
+		if sourceAST.Procedure != nil && sourceAST.Procedure.Raw != nil {
+			v4CheckProcedure(procedurePath, sourceAST.Procedure, contractAST, errorAt)
 		}
 	}
 
@@ -141,39 +157,25 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 	return failedBuildResult(diagnostics)
 }
 
-func v4ParseYAML(file string,data []byte,add func(string,*yaml.Node,string,string))*yaml.Node{
-	if data==nil {
-		add(file,nil,"SOURCE_ROOT_INVALID","Required v1alpha4 author source is missing")
+func v4ParseYAML(file string, data []byte, add func(string, *yaml.Node, string, string)) *yaml.Node {
+	if data == nil {
+		add(file, nil, "SOURCE_ROOT_INVALID", "Required v1alpha4 author source is missing")
 		return nil
 	}
-	var document yaml.Node
-	if err:=yaml.Unmarshal(data,&document);err!=nil {
-		add(file,nil,"YAML_PARSE_ERROR",err.Error())
-		return nil
-	}
-	if len(document.Content)!=1 || document.Content[0].Kind!=yaml.MappingNode {
-		add(file,&document,"SOURCE_ROOT_INVALID","Expected YAML mapping source root")
-		return nil
-	}
-	root:=document.Content[0]
-	var checkDuplicate func(*yaml.Node)
-	checkDuplicate=func(node *yaml.Node){
-		if node==nil{return}
-		if node.Kind==yaml.MappingNode {
-			seen:=map[string]bool{}
-			for i:=0;i+1<len(node.Content);i+=2 {
-				key:=node.Content[i]
-				if key.Kind!=yaml.ScalarNode || key.Tag!="!!str" || seen[key.Value] {
-					add(file,key,"YAML_PARSE_ERROR","Invalid or duplicate YAML mapping key")
-				}
-				seen[key.Value]=true
-			}
+	root, err := yaml.Parse(data)
+	if err != nil {
+		line, column := yaml.ParseErrorLocation(err)
+		node := &yaml.Node{Line: line, Column: column}
+		code := "YAML_PARSE_ERROR"
+		if yaml.IsRootError(err) {
+			code = "SOURCE_ROOT_INVALID"
 		}
-		for _,item:=range node.Content {checkDuplicate(item)}
+		add(file, node, code, err.Error())
+		return nil
 	}
-	checkDuplicate(root)
 	return root
 }
+
 func v4Allowed(node *yaml.Node,file string,allowed map[string]bool,add func(string,*yaml.Node,string,string)){
 	if node==nil||node.Kind!=yaml.MappingNode {add(file,node,"SOURCE_ROOT_INVALID","Expected a mapping");return}
 	for i:=0;i+1<len(node.Content);i+=2 {
@@ -182,9 +184,10 @@ func v4Allowed(node *yaml.Node,file string,allowed map[string]bool,add func(stri
 		}
 	}
 }
-func v4CheckSchema(file string,data []byte,add func(string,*yaml.Node,string,string)){
-	root:=v4ParseYAML(file,data,add)
-	if root==nil{return}
+func v4CheckSchema(file string, root *yaml.Node, add func(string,*yaml.Node,string,string)) {
+	if root == nil {
+		return
+	}
 	if scalar(child(root,"$schema"))!="https://json-schema.org/draft/2020-12/schema" {
 		add(file,root,"SCHEMA_INVALID","Schema dialect must be Draft 2020-12")
 	}
@@ -213,7 +216,11 @@ func v4CheckSchema(file string,data []byte,add func(string,*yaml.Node,string,str
 	}
 	walk(root)
 }
-func v4CheckPredicates(file string,root *yaml.Node,add func(string,*yaml.Node,string,string)){
+func v4CheckPredicates(file string, source *V1Alpha4PredicateSetAST, add func(string,*yaml.Node,string,string)) {
+	if source == nil || source.Raw == nil {
+		return
+	}
+	root := source.Raw
 	v4Allowed(root,file,map[string]bool{"predicates":true},add)
 	set:=child(root,"predicates")
 	if set==nil || set.Kind!=yaml.MappingNode {
@@ -236,10 +243,14 @@ func v4CheckPredicates(file string,root *yaml.Node,add func(string,*yaml.Node,st
 	}
 }
 
-func v4CheckProcedure(file string,root,contract *yaml.Node,add func(string,*yaml.Node,string,string)){
+func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alpha4ContractAST, add func(string,*yaml.Node,string,string)) {
+	if source == nil || source.Raw == nil {
+		return
+	}
+	root := source.Raw
 	v4Allowed(root,file,map[string]bool{"start":true,"nodes":true},add)
-	start:=scalar(child(root,"start"))
-	nodes:=child(root,"nodes")
+	start:=scalar(source.Start)
+	nodes:=source.Nodes
 	if nodes==nil||nodes.Kind!=yaml.MappingNode {
 		add(file,nodes,"SOURCE_ROOT_INVALID","Procedure.nodes must be a mapping")
 		return
@@ -357,12 +368,12 @@ func v4CheckProcedure(file string,root,contract *yaml.Node,add func(string,*yaml
 	}
 	if ids[start] {visit(start)}
 	if cycle {add(file,root,"CONTROL_FLOW_CYCLE","Procedure must be a DAG")}
-	if contract!=nil {
-		gate:=scalar(child(contract,"precondition"))
+	if contract!=nil && contract.Precondition!=nil {
+		gate:=scalar(contract.Precondition)
 		if gate!="" {
 			parts:=strings.Split(gate,".")
 			if len(parts)!=2 || !ids[parts[0]]||child(child(nodes,parts[0]),"precondition")==nil {
-				add(file,child(contract,"precondition"),"ENTRY_PRECONDITION_REF_INVALID","Contract precondition must resolve to a declared Precondition stage")
+				add(file,contract.Precondition,"ENTRY_PRECONDITION_REF_INVALID","Contract precondition must resolve to a declared Precondition stage")
 			}
 		}
 	}

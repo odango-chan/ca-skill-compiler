@@ -52,7 +52,7 @@ Adapter requirements:
 
 The YAML 1.2, scalar and duplicate-key fixtures in the pinned conformance plan are mandatory acceptance gates. If the selected parser cannot satisfy them through its public AST/token API, stop and review the dependency choice; do not build a second YAML grammar or silently retain a parallel `yaml.v3` parser.
 
-The existing `gopkg.in/yaml.v3` implementation is a migration source only. It MUST be removed from the Compiler's production parse path when WP2 is complete. No dual-parser fallback or compatibility mode is permitted.
+WP2 implements this adapter in `internal/compiler/yamlast` and removes `gopkg.in/yaml.v3` from `go.mod`, `go.sum` and all production parse paths. The old parser is not retained as a fallback. No dual-parser compatibility mode is permitted.
 
 ## 4. JSON Schema engine
 
@@ -154,8 +154,8 @@ The selected direct dependency licenses are MIT, Apache-2.0 and BSD-3-Clause. No
 
 ## 10. Adoption status
 
-This ADR selects the implementation dependencies. It does **not** claim that they are already integrated or qualified.
+This ADR selects the implementation dependencies. It does **not** claim that all selected adapters are already integrated or qualified.
 
-The documentation PR does not add unused packages to `go.mod`. Each direct dependency is added in the work package that first consumes it, together with its adapter and tests. Until those gates pass, the corresponding implementation remains NOT_QUALIFIED.
+WP2 adds only `github.com/goccy/go-yaml v1.19.2` to `go.mod` and removes `gopkg.in/yaml.v3`. The normalized AST adapter, typed v1alpha4 Skill AST and parser fixtures pass the Go test, vet, Native and Go/WASM build gates. This is WP2 code/build evidence, not full YAML-language qualification or Compiler qualification. San, CEL, Python CST and JCS adapters remain NOT_QUALIFIED until their own work packages pass their exact conformance gates.
 
 The only executable domain acceptance baseline remains the conventional 5GC `establish-pdu-session` flow once real v1alpha4 Owner / Deployment contracts are available. MAS remains NOT_READY and is not a dependency-selection or end-to-end acceptance requirement.

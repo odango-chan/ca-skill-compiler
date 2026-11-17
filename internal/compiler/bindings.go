@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
 func (a *analysis) validateProcedureBindings(s *skillEntry, proc, nodes *yaml.Node, path string) {
@@ -1386,11 +1386,11 @@ func schemaNode(v any) *yaml.Node {
 	if e != nil {
 		return nil
 	}
-	var doc yaml.Node
-	if yaml.Unmarshal(b, &doc) != nil || len(doc.Content) == 0 {
+	node, err := yaml.ParseValue(b)
+	if err != nil {
 		return nil
 	}
-	return doc.Content[0]
+	return node
 }
 func schemaProperty(schema *yaml.Node, name string) *yaml.Node {
 	schema = unalias(schema)

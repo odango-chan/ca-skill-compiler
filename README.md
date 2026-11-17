@@ -50,8 +50,9 @@ A BuildRequest API version is not a substitute for languageTarget; ToolCatalog a
 - Compiler PR #5 is the Go v0.1 implementation base.
 - Compiler PR #11 adds a v1alpha4 source/graph admission slice and deliberately fails closed when trusted Owner / CapabilityContracts inputs are unavailable.
 - WP1 implementation is in [PR #13](https://github.com/odango-chan/ca-skill-compiler/pull/13): strict BuildRequest / output models, request limits, dependency snapshot digest, source-only CLI and strict Native/WASM transport. Go tests, vet, CGo-free Native build and Go/WASM build PASS; PR review is pending.
-- This document set defines the frozen Compiler v1alpha4 implementation target, the selected OSS dependency set and an optional DeepSeek Harness / Flash Low development profile. WP1 is being implemented directly without a DeepSeek pilot. The OSS choices are accepted for implementation but are not yet integrated or qualified. This document set does **not** claim Compiler v1alpha4 conformance, complete linking, browser runtime parity, Owner qualification or live 5GC acceptance.
-- No model pilot is required or included. WP1's unit/build gates pass, but review and later runtime / linker work remain outstanding. All later work packages remain NOT_QUALIFIED until their own implementation and acceptance evidence exists.
+- WP2 implementation is in [PR #14](https://github.com/odango-chan/ca-skill-compiler/pull/14): goccy/go-yaml v1.19.2 is now the only YAML parser; normalized source-positioned AST, typed v1alpha4 Skill AST, bounded alias expansion and YAML 1.2 scalar-style preservation are implemented. Go tests, vet, CGo-free Native build and Go/WASM build PASS.
+- The selected goccy YAML parser is integrated; San, CEL, Python CST and JCS adapters remain unintegrated. This document set does **not** claim Compiler v1alpha4 conformance, complete linking, browser runtime parity, Owner qualification or live 5GC acceptance.
+- No model pilot is required or included. WP1 and WP2 code/build gates pass; PR review and later linker/runtime work remain outstanding. All later work packages remain NOT_QUALIFIED until their own implementation and acceptance evidence exists.
 
 ## Status and review boundary
 
@@ -64,8 +65,8 @@ A BuildRequest API version is not a substitute for languageTarget; ToolCatalog a
 | Dependency snapshot digest | FROZEN Compiler / Studio interoperability algorithm |
 | Compiler Artifact physical format | FROZEN for implementation in this PR |
 | Compiler development workflow | FROZEN optional DeepSeek Harness / Flash Low profile; WP1 executed directly; no pilot |
-| OSS dependency selection | ACCEPTED FOR IMPLEMENTATION WITH CONFORMANCE GATES; integration NOT_QUALIFIED |
-| Compiler implementation | NOT_QUALIFIED overall; WP1 Go tests / vet / Native build / WASM build PASS, PR #13 review pending |
+| OSS dependency selection | ACCEPTED WITH CONFORMANCE GATES; goccy YAML adapter integrated and CI-verified, remaining adapters NOT_QUALIFIED |
+| Compiler implementation | NOT_QUALIFIED overall; WP1/WP2 Go tests / vet / Native build / WASM build PASS, PRs #13/#14 stacked for review |
 | Real 5GC Owner / deployment publications | NOT_QUALIFIED until actual v1alpha4 releases and §45.2 evidence exist |
 
 The old v0.1 documents and schemas remain historical records. They are not fallback contracts and must not be silently reused for v1alpha4.

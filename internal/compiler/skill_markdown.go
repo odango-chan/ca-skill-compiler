@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
 var skillNamePattern = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
@@ -25,22 +25,17 @@ func (a *analysis) parseSkillFrontmatter(skill *skillEntry) {
 		return
 	}
 	frontmatter := source[4 : 4+end]
-	var document yaml.Node
-	if err := yaml.Unmarshal(frontmatter, &document); err != nil || len(document.Content) != 1 || unalias(document.Content[0]).Kind != yaml.MappingNode {
+	root, err := yaml.Parse(frontmatter)
+	if err != nil || root == nil || unalias(root).Kind != yaml.MappingNode {
+		line, _ := yaml.ParseErrorLocation(err)
+		if line == 0 {
+			line = 1
+		}
 		message := "SKILL.md frontmatter must be one YAML mapping"
 		if err != nil {
 			message = err.Error()
 		}
-		a.errorAt(filename, 2, "SKILL_METADATA_INVALID", message)
-		return
-	}
-	root := document.Content[0]
-	if !boundedYAML(root, make(map[*yaml.Node]bool), new(int), 0) {
-		a.errorAt(filename, 2, "YAML_LIMIT", "Skill frontmatter aliases or nesting exceed safe bounds")
-		return
-	}
-	if line, key := duplicateYAMLKey(root); key != "" {
-		a.errorAt(filename, line+1, "YAML_DUPLICATE_KEY", "duplicate Skill frontmatter key: "+key)
+		a.errorAt(filename, line+1, "SKILL_METADATA_INVALID", message)
 		return
 	}
 	allowed := map[string]bool{"name": true, "description": true, "license": true, "compatibility": true, "allowed-tools": true, "metadata": true}

@@ -57,6 +57,24 @@ WP1 is accepted only when executable tests cover all of the following:
 
 A work-package test is not a full Compiler qualification. Until later work packages implement the linker and artifact pipeline, source-only requests still fail closed and nonempty DependencyInspection inventories remain NOT_QUALIFIED.
 
+### 3.2 WP2 YAML parser / normalized AST gates
+
+WP2 is accepted only when executable tests and the build matrix cover:
+
+- exactly one YAML parser: goccy/go-yaml v1.19.2 through the public lexer/parser/AST API; no yaml.v3 dependency or fallback;
+- one normalized Compiler-owned AST representation shared by v1alpha4 source checks, Schema source checks, Skill frontmatter and remaining internal analysis helpers;
+- typed v1alpha4 Skill / Contract / PredicateSet / Procedure / Node / Stage / PredicateCall views built from the normalized nodes, preserving source order and source spans;
+- every author-maintained .yaml / .yml file in a selected Skill is parsed once; Contract, Procedure, PredicateSet and local Schema checks consume the same parsed node, with no reparse of the same source file;
+- original scalar value, raw token, YAML tag, quote / block style, line and column are retained; exponent-only finite decimal notation is classified as a float independently of upstream implicit coercion;
+- duplicate mapping keys, non-string and complex mapping keys, multiple documents, custom / unsupported tags, directives, merge keys, undefined aliases and cyclic aliases are rejected;
+- YAML anchor rebinding follows the most-recent-preceding-anchor rule; alias expansion is bounded by 64 nesting levels, 4096 aliases and 20000 expanded nodes; token count is limited to 80000 and each document to 2 MiB;
+- strict ScalarLiteral helpers cover lowercase Boolean / null, signed 64-bit decimal integers, finite binary64 decimal floats, quoted one-line strings and rejection of block scalars / explicit tags / aliases;
+- JSON-originated values used by the existing Schema binding path enter the same normalized AST through ParseValue / ToValue; author-source Parse still requires a mapping root;
+- parser errors and semantic diagnostics retain file-local source positions;
+- Go unit tests, go vet, CGo-free Native build and Go/WASM build all pass.
+
+WP2 does not qualify the full CA-SL scalar / SourcePath grammar, Schema semantics, Procedure linking, CEL, Script ABI, Artifact, Chromium Worker runtime parity or real 5GC Owner publications. Those remain later work-package gates.
+
 ## 4. E01–E120 coverage ledger
 
 The test suite MUST maintain a machine-readable ledger with one row per normative E case and each independently testable variant. Each row is marked:

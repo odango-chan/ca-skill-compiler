@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"gopkg.in/yaml.v3"
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
 type toolEntry struct {
@@ -24,8 +24,8 @@ func nodeValue(n *yaml.Node) any {
 	if n == nil {
 		return nil
 	}
-	var value any
-	if n.Decode(&value) != nil {
+	value, err := yaml.ToValue(n)
+	if err != nil {
 		return nil
 	}
 	return value
