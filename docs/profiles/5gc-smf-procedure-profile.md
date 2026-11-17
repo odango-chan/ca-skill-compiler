@@ -197,24 +197,53 @@ The normal success path must not erase the standard's failure branches:
 
 ## 8. Fixed 3GPP reference set
 
-The §7 reference map uses the following independently pinned Release 19 documents, checked against ETSI publications on 2026-11-17. The TS versions are intentionally **not** normalized to one shared `V19.x.0`.
+### 8.1 Independently pinned Release 19 specifications
 
-| Specification | Pinned version | Scope in this profile | Official source |
-|---|---|---|---|
-| TS 23.501 | V19.9.0, Release 19 | 5GS architecture, SMF/UPF selection, SSC and session-address context | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/123500_123599/123501/19.09.00_60/ts_123501v190900p.pdf) |
-| TS 23.502 | V19.9.0, Release 19 | PDU Session Establishment procedure and N4 interaction steps | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/123500_123599/123502/19.09.00_60/ts_123502v190900p.pdf) |
-| TS 23.503 | V19.8.0, Release 19 | PCC / SM Policy framework and policy-trigger context | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/123500_123599/123503/19.08.00_60/ts_123503v190800p.pdf) |
-| TS 29.502 | V19.7.0, Release 19 | Nsmf_PDUSession service, CreateSMContext and UpdateSMContext API; OpenAPI Annex A.2 | [ETSI PDF / Annex A.2](https://www.etsi.org/deliver/etsi_ts/129500_129599/129502/19.07.00_60/ts_129502v190700p.pdf) |
-| TS 29.571 | V19.7.0, Release 19 | Common Data Types referenced by the pinned TS 29.502 OpenAPI, including `RefToBinaryData`; OpenAPI Annex A.2 | [ETSI PDF / Annex A.2](https://www.etsi.org/deliver/etsi_ts/129500_129599/129571/19.07.00_60/ts_129571v190700p.pdf) |
-| TS 29.500 | V19.7.1, Release 19 | SBI technical realization, common HTTP/2 retry and request-deadline behavior | [ETSI Work Programme](https://portal.etsi.org/webapp/WorkProgram/Frame_WorkItemList.asp?SearchPage=TRUE+++&butExpertSearch=++Search++&includeNonActiveTB=FALSE+++&optDisplay=ALL+++&qCURRENT_STATE_CODE=finalized+++&qINCLUDE_SUB_TB=True+++&qPROJECT_BOOLEAN=OR+++&qREPORT_TYPE=SUMMARY+++&qSORT=HIGHVERSION+++&qTITLE=TS+29.500+++&titleType=all+++) |
-| TS 29.503 | V19.7.0, Release 19 | UDM SDM and UECM services; OpenAPI Annex A.2 and A.3 | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129500_129599/129503/19.07.00_60/ts_129503v190700p.pdf) |
-| TS 29.512 | V19.6.0, Release 19 | Npcf_SMPolicyControl service; OpenAPI Annex A.2 | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129500_129599/129512/19.06.00_60/ts_129512v190600p.pdf) |
-| TS 29.518 | V19.8.0, Release 19 | Namf_Communication service and N1N2 Message Transfer; OpenAPI Annex A.2 | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129500_129599/129518/19.08.00_60/ts_129518v190800p.pdf) |
-| TS 29.244 | V19.6.0, Release 19 | PFCP/N4 Session Establishment, Modification and Release | [ETSI PDF](https://www.etsi.org/deliver/etsi_ts/129200_129299/129244/19.06.00_60/ts_129244v190600p.pdf) |
+The versions below are aligned with the source baseline recorded in `ca-skills` PR #58 and checked against ETSI publications on 2026-11-17. Each specification has its own version number; do not normalize them to a single shared `V19.x.0`.
 
-This is a fixed review snapshot as of 2026-11-17, not a floating "latest" alias. A later baseline change must re-review the affected procedure steps, API/OpenAPI contracts, Tool mappings, failure branches and per-Node comments together. Do not update only the version string.
+| Specification | Pinned version | Used for |
+|---|---|---|
+| TS 23.501 | V19.9.0 | 5GS architecture, SMF/UPF selection, SSC and address-allocation context |
+| TS 23.502 | V19.9.0 | PDU Session Establishment and N4 procedure steps |
+| TS 23.503 | V19.8.0 | PCC / SM Policy framework and policy-trigger context |
+| TS 29.502 | V19.7.0 | `Nsmf_PDUSession` service, CreateSMContext and UpdateSMContext API; OpenAPI Annex A.2 |
+| TS 29.500 | V19.7.1 | SBI technical realization, common HTTP/2 retry and request-deadline behavior |
+| TS 29.571 | V19.7.0 | Common SBI data types, including `RefToBinaryData`; OpenAPI Annex A.2 |
+| TS 29.503 | V19.7.0 | UDM SDM and UECM services; OpenAPI Annex A.2 and A.3 |
+| TS 29.512 | V19.6.0 | `Npcf_SMPolicyControl` service; OpenAPI Annex A.2 |
+| TS 29.518 | V19.8.0 | `Namf_Communication` service and N1N2 Message Transfer; OpenAPI Annex A.2 |
+| TS 29.244 | V19.6.0 | PFCP / N4 Session Establishment, Modification and Release |
 
-A Stage 3 version pin does not qualify an Owner implementation. For each callable, the separate Owner traceability record must still pin the actual ToolCatalog publication, exact callable ID, Owner identity, kind, Effect, Schema IDs, guarantees, implementation repository and immutable source revision.
+**Binary SBI payload contract:** TS 29.502 V19.7.0 §6.1.2.4 and OpenAPI Annex A.2 define `multipart/related` representations for Nsmf operations that carry N1 SM, N2 SM/NGAP or N4/PFCP payloads. The JSON part is `application/json`; binary parts use operation-specific media types including `application/vnd.3gpp.5gnas`, `application/vnd.3gpp.ngap` and `application/vnd.3gpp.pfcp`. Multiple binary parts may be present; the exact OpenAPI operation/response Schema determines which parts exist. TS 29.571 V19.7.0 §5.4.4.14 defines `RefToBinaryData`: its required `contentId` is the value of the `Content-ID` header on the referenced binary body part. The JSON reference is not the binary payload itself.
+
+The Tool Owner / HTTP adapter owns the `multipart/related` boundary and MIME framing, JSON root part, binary part bytes, per-part media types and `Content-ID` binding. It must support every binary part permitted by the selected OpenAPI operation. A Skill passes typed business data / payload references under the published Tool Schema; it does not construct raw HTTP multipart framing or invent base64-in-JSON encodings.
+
+Primary ETSI PDFs:
+
+- [TS 23.501 V19.9.0](https://www.etsi.org/deliver/etsi_ts/123500_123599/123501/19.09.00_60/ts_123501v190900p.pdf)
+- [TS 23.502 V19.9.0](https://www.etsi.org/deliver/etsi_ts/123500_123599/123502/19.09.00_60/ts_123502v190900p.pdf)
+- [TS 23.503 V19.8.0](https://www.etsi.org/deliver/etsi_ts/123500_123599/123503/19.08.00_60/ts_123503v190800p.pdf)
+- [TS 29.502 V19.7.0](https://www.etsi.org/deliver/etsi_ts/129500_129599/129502/19.07.00_60/ts_129502v190700p.pdf)
+- [TS 29.500 V19.7.1](https://www.etsi.org/deliver/etsi_ts/129500_129599/129500/19.07.01_60/ts_129500v190701p.pdf)
+- [TS 29.571 V19.7.0](https://www.etsi.org/deliver/etsi_ts/129500_129599/129571/19.07.00_60/ts_129571v190700p.pdf)
+- [TS 29.503 V19.7.0](https://www.etsi.org/deliver/etsi_ts/129500_129599/129503/19.07.00_60/ts_129503v190700p.pdf)
+- [TS 29.512 V19.6.0](https://www.etsi.org/deliver/etsi_ts/129500_129599/129512/19.06.00_60/ts_129512v190600p.pdf)
+- [TS 29.518 V19.8.0](https://www.etsi.org/deliver/etsi_ts/129500_129599/129518/19.08.00_60/ts_129518v190800p.pdf)
+- [TS 29.244 V19.6.0](https://www.etsi.org/deliver/etsi_ts/129200_129299/129244/19.06.00_60/ts_129244v190600p.pdf)
+
+For Stage 3 API traceability, use the exact OpenAPI files named by the applicable TS annex. A TS document version pin does not qualify a Tool Owner implementation, its ToolCatalog export, Schema, CapabilityContracts, Evidence or Deployment binding.
+
+### 8.2 Failure-path distinctions
+
+The normal success path must not collapse the standard's failure branches:
+
+- If establishment fails between Step 5 and Step 11, Step 11 carries the PDU Session Establishment Reject and Steps 12–17 are skipped.
+- If Step 15 reports failure of user-plane resource setup, the SMF rejects the establishment, releases the N4 Session with the UPF and skips Step 16 before returning the paired Step 17 response.
+- If the User Plane Enforcement Policy requires resources and the N2 result says no user-plane resources could be established, the SMF rejects and skips Step 16. Do not infer an N4-release action from the preceding failure branch unless its own trigger is present.
+- On a failure after Step 5, Step 18 notifies the AMF and releases any N4 sessions created, any allocated PDU Session address and the PCF association, if present.
+- Step 21 is not unconditional cleanup: it applies after failure following Step 4 only when the SMF no longer handles another PDU Session of the same UE for the same DNN and HPLMN S-NSSAI.
+
+Step 17 is the paired protocol response for Step 15, not the Skill Goal proof. The final CA-SL Postcondition and Host/Runtime resource-responsibility gate remain authoritative.
 
 ## 9. Required traceability and qualification record
 
