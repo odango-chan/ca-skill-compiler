@@ -24,8 +24,8 @@
 |---|---|---|---|
 | Node-entry Wait 语义 | ca-skills #60 | 已合并 | 语义基线 |
 | EVENT_ACCEPTED tombstone / stale-message 隔离 | ca-skills #64 | 已合并 | 运行时语义约束；Compiler 必须链接 correlation policy |
-| v1alpha5 单文件语言候选 | ca-skills #61，head `e6569713` | Draft；Target 已分配；语义基线标记为冻结；全文与符合性材料仍在独立评审 | 已有约 5,474 行单文件候选；附录 L 定义 Wait 语法/语义；附录 H 增加 9 个 C_STATIC WAIT 诊断；EW-001–EW-036 仍为仅规范义务 |
-| Integration Ingress Operation | ca-skills #62，head `d0fe2be` | Draft；当前 Schema / Vector 两个工作流 PASS；契约未冻结 | IngressCatalog、精确链接语义及诊断归属仍需收敛；原始字节与嵌套资源 Resolver 向量缺口已在当前 Head 修复 |
+| v1alpha5 单文件语言候选 | ca-skills #61，head `9fadd3f4` | Draft；Target 已分配；语义基线标记为冻结；全文与符合性材料仍在独立评审 | 已有约 5,474 行单文件候选；附录 L 定义 Wait 语法/语义；附录 H 增加 9 个 C_STATIC WAIT 诊断；EW-001–EW-036 仍为仅规范义务 |
+| Integration Ingress Operation | ca-skills #62，head `1c55ab8` | Draft；当前 Schema / Vector 两个工作流 PASS；契约未冻结 | IngressCatalog、精确链接语义及诊断归属仍需收敛；原始字节与嵌套资源 Resolver 向量缺口已在当前 Head 修复 |
 | Generic Host / Runtime continuation | ca-agent-demo #210 | Draft，设计文档 | Compiler 只消费语言和 Ingress 契约，不实现 Host/Runtime |
 | 5GC SBI continuation profile | ca-agent-demo #213（替代已关闭的 #209） | Draft，设计文档 | 3GPP 示例，不是 Compiler 的 5GC 专用语义 |
 
