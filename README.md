@@ -6,7 +6,8 @@ CA Skill Compiler compiles [ConnectionAgent Skill Language (CA-SL)](https://gith
 
 It provides a Go compiler core, a command-line tool (`skillc`), and a Go/WASM build for browser-based integrations.
 
-**Current release:** [v1.0.0](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v1.0.0)  
+**Current release:** [v1.0.0](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v1.0.0)
+
 **Language target:** CA-SL `connectionagent.io/v1alpha4`
 
 ## What it does
@@ -29,6 +30,8 @@ Download the binary for your platform from [Releases](https://github.com/odango-
 | Linux x86-64 | [skillc-v1.0.0-linux-amd64](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/skillc-v1.0.0-linux-amd64) |
 | macOS Apple Silicon | [skillc-v1.0.0-darwin-arm64](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/skillc-v1.0.0-darwin-arm64) |
 | macOS Intel | [skillc-v1.0.0-darwin-amd64](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/skillc-v1.0.0-darwin-amd64) |
+
+After downloading, place the native binary on your `PATH`. On macOS and Linux, make it executable before running it.
 
 The release also includes the [Go/WASM module](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/skillc-v1.0.0.wasm) and [SHA-256 checksums](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/SHA256SUMS).
 
