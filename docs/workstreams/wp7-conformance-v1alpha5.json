@@ -1,23 +1,23 @@
 {
   "schemaVersion": "connectionagent.io/wp7-conformance-register/v1",
   "languageTarget": "connectionagent.io/v1alpha5",
-  "status": "NORMATIVE_OBLIGATIONS_NOT_QUALIFIED",
-  "scope": "Static Compiler traceability only. No row is CI PASS, LOCAL_ACCEPTANCE_PASS or qualification. Host/Runtime/Integration rows are external obligations, not Compiler obligations. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED. WP1 IngressCatalog static admission lives on PR #31 (base main) and is not part of this WP2-based stack; those rows are deferred and not executed here.",
+  "status": "NORMATIVE_OBLIGATIONS_LOCALLY_TESTED_NOT_QUALIFIED",
+  "scope": "Post-integration static Compiler traceability. No row is CI PASS or qualification. 37 rows are implemented+tested by executable Go tests in this repository; 19 remain deferred to named work packages; 42 are Host/Runtime/Integration obligations, not Compiler obligations; 1 is specification-only. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED.",
   "counts": {
-    "COMPILER_STATIC_IMPLEMENTED_TESTED": 7,
-    "COMPILER_STATIC_DEFERRED": 50,
-    "HOST_RUNTIME_INTEGRATION_OWNED": 41,
+    "COMPILER_STATIC_IMPLEMENTED_TESTED": 37,
+    "COMPILER_STATIC_DEFERRED": 19,
+    "HOST_RUNTIME_INTEGRATION_OWNED": 42,
     "SPECIFICATION_ONLY_NOT_EXECUTED": 1,
     "ew": {
-      "COMPILER_STATIC_IMPLEMENTED_TESTED": 7,
-      "COMPILER_STATIC_DEFERRED": 10,
+      "COMPILER_STATIC_IMPLEMENTED_TESTED": 15,
+      "COMPILER_STATIC_DEFERRED": 2,
       "HOST_RUNTIME_INTEGRATION_OWNED": 18,
       "SPECIFICATION_ONLY_NOT_EXECUTED": 1
     },
     "in": {
-      "COMPILER_STATIC_IMPLEMENTED_TESTED": 0,
-      "COMPILER_STATIC_DEFERRED": 40,
-      "HOST_RUNTIME_INTEGRATION_OWNED": 23,
+      "COMPILER_STATIC_IMPLEMENTED_TESTED": 22,
+      "COMPILER_STATIC_DEFERRED": 17,
+      "HOST_RUNTIME_INTEGRATION_OWNED": 24,
       "SPECIFICATION_ONLY_NOT_EXECUTED": 0
     }
   },
@@ -91,15 +91,15 @@
     {
       "id": "EW-012",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "wait.output referenced on a timeout/bypass path must emit the inherited SOURCE_NOT_AVAILABLE diagnostic.",
       "diagnostic": {
         "code": "SOURCE_NOT_AVAILABLE",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP4",
-      "deferredNote": "wait.output SourcePath availability is owned by WP4; not implemented in this WP2-based stack."
+      "test": "TestV1Alpha5WP4TimeoutHandlerReadIsUnavailable"
     },
     {
       "id": "EW-013",
@@ -127,38 +127,45 @@
         "severity": "error",
         "messageKey": "wait.timeout.route.invalid",
         "template": "Node '{nodeId}' wait.routes must contain exactly TIMEOUT with a valid non-success target.",
-        "sourceLocation": "Line/column of the offending author-declared route key node, or the invalid TIMEOUT target value node, or the `wait.routes` value node when not a mapping, or the nearest existing parent (`wait` mapping) when `routes` is missing."
+        "sourceLocation": "Line/column of the offending route key/target value node, the `wait.routes` value node, or the `wait` mapping when missing."
       },
       "test": "TestV1Alpha5DiagnosticContractEWAnchors"
     },
     {
       "id": "EW-015",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Zero matches emit WAIT_INGRESS_EXPORT_NOT_FOUND; multiple matches emit WAIT_INGRESS_EXPORT_AMBIGUOUS.",
       "diagnostic": {
         "code": "WAIT_INGRESS_EXPORT_NOT_FOUND",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.ingress.export.not_found",
+        "template": "Node '{nodeId}' wait selector '{selector}' does not resolve to a trusted Ingress Operation export.",
+        "sourceLocation": "Line/column of the `wait.event` selector node."
       },
       "relatedCodes": [
         "WAIT_INGRESS_EXPORT_AMBIGUOUS"
       ],
-      "deferredTo": "WP3",
-      "deferredNote": "Trusted Ingress export selector linking is owned by WP3."
+      "tests": [
+        "TestV1Alpha5WP3SelectorNotFound",
+        "TestV1Alpha5WP3SelectorAmbiguous"
+      ]
     },
     {
       "id": "EW-016",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "One incoming path that cannot derive the correlation before the trigger emits WAIT_CORRELATION_BINDING_INVALID.",
       "diagnostic": {
         "code": "WAIT_CORRELATION_BINDING_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.correlation.binding.invalid",
+        "template": "Node '{nodeId}' cannot derive one exact correlation binding on every reachable entry path.",
+        "sourceLocation": "Line/column of the `wait.event` selector node."
       },
-      "deferredTo": "WP3",
-      "deferredNote": "Trigger/correlation binding is owned by WP3."
+      "test": "TestV1Alpha5WP3TriggerNotDominatingOnOnePath"
     },
     {
       "id": "EW-017",
@@ -169,28 +176,32 @@
     {
       "id": "EW-018",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Different incoming paths resolving to different Ingress exports/Schemas are rejected with WAIT_CORRELATION_BINDING_INVALID; authors must use distinct Wait Nodes.",
       "diagnostic": {
         "code": "WAIT_CORRELATION_BINDING_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.correlation.binding.invalid",
+        "template": "Node '{nodeId}' cannot derive one exact correlation binding on every reachable entry path.",
+        "sourceLocation": "Line/column of the `wait.event` selector node."
       },
-      "deferredTo": "WP3",
-      "deferredNote": "Trigger/correlation binding is owned by WP3."
+      "test": "TestV1Alpha5WP3TriggerNotDominatingOnOnePath"
     },
     {
       "id": "EW-019",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A normal accepted path that bypasses response.after emits WAIT_RESPONSE_BOUNDARY_INVALID. (The WP2 parser only rejects a present-but-syntactically-invalid after; path reachability/dominance is not EW-019 coverage.)",
       "diagnostic": {
         "code": "WAIT_RESPONSE_BOUNDARY_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.response.boundary.invalid",
+        "template": "Node '{nodeId}' wait.response.after does not identify one reachable response boundary on every accepted-event path.",
+        "sourceLocation": "Line/column of the `wait.response.after` value node, else the `response`/`wait` node."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "Response-boundary path analysis is owned by WP6."
+      "test": "TestV1Alpha5WP6SuccessBeforeBoundary"
     },
     {
       "id": "EW-020",
@@ -201,23 +212,24 @@
     {
       "id": "EW-021",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Body-bearing paired response without a typed Producer mapping emits WAIT_RESPONSE_MAPPING_INVALID.",
       "diagnostic": {
         "code": "WAIT_RESPONSE_MAPPING_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.response.mapping.invalid",
+        "template": "Node '{nodeId}' response boundary has no valid typed Producer-to-response mapping.",
+        "sourceLocation": "Line/column of the `wait.response.after` value node, else the `response`/`wait` node."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "Response-boundary Producer mapping is owned by WP6."
+      "test": "TestV1Alpha5WP6BoundaryNodeWithoutProducerStage"
     },
     {
       "id": "EW-022",
       "owner": "Compiler/Integration",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A single fixed bodyless paired response disposition completes without a typed response-result Producer (Compiler acceptance rule, WP6); Integration delivers the bodyless response and fabricates nothing.",
-      "deferredTo": "WP6",
-      "deferredNote": "Compiler half is owned by WP6; the delivery half remains Host/Integration-owned and external."
+      "test": "TestV1Alpha5WP6PositiveSingleBodylessDisposition"
     },
     {
       "id": "EW-023",
@@ -254,7 +266,7 @@
         "severity": "error",
         "messageKey": "wait.timeout.invalid",
         "template": "Node '{nodeId}' has an invalid wait.timeout; expected a positive fixed ISO-8601 duration in the v1alpha5 subset.",
-        "sourceLocation": "Line/column of the `wait.timeout` value node when present; nearest existing parent (`wait` mapping) when `timeout` is missing."
+        "sourceLocation": "Line/column of the `wait.timeout` value node; nearest existing parent (`wait` mapping) when missing."
       },
       "test": "TestV1Alpha5DiagnosticContractEWAnchors"
     },
@@ -277,23 +289,31 @@
       "diagnostic": {
         "code": "WAIT_RESPONSE_MAPPING_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.response.mapping.invalid",
+        "template": "Node '{nodeId}' response boundary has no valid typed Producer-to-response mapping.",
+        "sourceLocation": "Line/column of the `wait.response.after` value node, else the `response`/`wait` node."
       },
       "deferredTo": "WP6",
-      "deferredNote": "Response-boundary Producer mapping is owned by WP6."
+      "deferredNote": "The closed typed-mapping model makes a Skill-authored mapping selection of wait.output/Context/raw request data unrepresentable, so the required WAIT_RESPONSE_MAPPING_INVALID negative case still has no dedicated executable fixture in this slice."
     },
     {
       "id": "EW-030",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "response.after naming an unknown or unreachable Node emits WAIT_RESPONSE_BOUNDARY_INVALID.",
       "diagnostic": {
         "code": "WAIT_RESPONSE_BOUNDARY_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.response.boundary.invalid",
+        "template": "Node '{nodeId}' wait.response.after does not identify one reachable response boundary on every accepted-event path.",
+        "sourceLocation": "Line/column of the `wait.response.after` value node, else the `response`/`wait` node."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "Response-boundary reachability is owned by WP6."
+      "tests": [
+        "TestV1Alpha5GraphUnknownResponseAfterTarget",
+        "TestV1Alpha5WP6UnreachableBoundary"
+      ]
     },
     {
       "id": "EW-031",
@@ -303,10 +323,11 @@
       "diagnostic": {
         "code": "ENTRY_PRECONDITION_BYPASSED",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Inherited frozen identity: Compiler Diagnostic.path/line/column follow the emitted source location."
       },
       "deferredTo": "WP5",
-      "deferredNote": "Procedure graph dominance/precondition obligations are owned by WP5."
+      "deferredNote": "The v1alpha5 static global-Precondition-bypass/dominance obligation is not implemented; Runtime ownership alone does not satisfy EW-031."
     },
     {
       "id": "EW-032",
@@ -325,7 +346,7 @@
         "severity": "error",
         "messageKey": "wait.timeout.route.invalid",
         "template": "Node '{nodeId}' wait.routes must contain exactly TIMEOUT with a valid non-success target.",
-        "sourceLocation": "Line/column of the offending author-declared route key node, or the invalid TIMEOUT target value node, or the `wait.routes` value node when not a mapping, or the nearest existing parent (`wait` mapping) when `routes` is missing."
+        "sourceLocation": "Line/column of the offending route key/target value node, the `wait.routes` value node, or the `wait` mapping when missing."
       },
       "test": "TestV1Alpha5DiagnosticContractEWAnchors"
     },
@@ -340,7 +361,7 @@
         "severity": "error",
         "messageKey": "wait.timeout.route.invalid",
         "template": "Node '{nodeId}' wait.routes must contain exactly TIMEOUT with a valid non-success target.",
-        "sourceLocation": "Line/column of the offending author-declared route key node, or the invalid TIMEOUT target value node, or the `wait.routes` value node when not a mapping, or the nearest existing parent (`wait` mapping) when `routes` is missing."
+        "sourceLocation": "Line/column of the offending route key/target value node, the `wait.routes` value node, or the `wait` mapping when missing."
       },
       "test": "TestV1Alpha5DiagnosticContractEWAnchors"
     },
@@ -355,7 +376,7 @@
         "severity": "error",
         "messageKey": "wait.declaration.invalid",
         "template": "Node '{nodeId}' has an invalid wait declaration at '{fieldPath}'.",
-        "sourceLocation": "Line/column of the offending `event`/`response` value node; nearest existing parent (`event` mapping, else `wait` mapping) when the field or section is missing."
+        "sourceLocation": "Line/column of the offending `event`/`response` value node; nearest existing parent (`event`, else `wait` mapping) when missing."
       },
       "test": "TestV1Alpha5DiagnosticContractEWAnchors"
     },
@@ -370,48 +391,57 @@
         "severity": "error",
         "messageKey": "wait.timeout.invalid",
         "template": "Node '{nodeId}' has an invalid wait.timeout; expected a positive fixed ISO-8601 duration in the v1alpha5 subset.",
-        "sourceLocation": "Line/column of the `wait.timeout` value node when present; nearest existing parent (`wait` mapping) when `timeout` is missing."
+        "sourceLocation": "Line/column of the `wait.timeout` value node; nearest existing parent (`wait` mapping) when missing."
       },
       "test": "TestV1Alpha5DiagnosticContractEWAnchors"
     },
     {
       "id": "IN-001",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Resolve Ingress only in declared dependencies; zero matches emit WAIT_INGRESS_EXPORT_NOT_FOUND / C_STATIC; never guess from a global catalog.",
       "diagnostic": {
         "code": "WAIT_INGRESS_EXPORT_NOT_FOUND",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.ingress.export.not_found",
+        "template": "Node '{nodeId}' wait selector '{selector}' does not resolve to a trusted Ingress Operation export.",
+        "sourceLocation": "Line/column of the `wait.event` selector node."
       },
-      "deferredTo": "WP3",
-      "deferredNote": "Trusted Ingress selector resolution is owned by WP3."
+      "tests": [
+        "TestV1Alpha5WaitWithoutIngressExportIsNotFound",
+        "TestV1Alpha5WP3PositiveTrustedIngressLink"
+      ]
     },
     {
       "id": "IN-002",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Selector with no matching export emits WAIT_INGRESS_EXPORT_NOT_FOUND / C_STATIC.",
       "diagnostic": {
         "code": "WAIT_INGRESS_EXPORT_NOT_FOUND",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.ingress.export.not_found",
+        "template": "Node '{nodeId}' wait selector '{selector}' does not resolve to a trusted Ingress Operation export.",
+        "sourceLocation": "Line/column of the `wait.event` selector node."
       },
-      "deferredTo": "WP3",
-      "deferredNote": "Trusted Ingress selector resolution is owned by WP3."
+      "test": "TestV1Alpha5WP3SelectorNotFound"
     },
     {
       "id": "IN-003",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Selector matching multiple exports emits WAIT_INGRESS_EXPORT_AMBIGUOUS / C_STATIC.",
       "diagnostic": {
         "code": "WAIT_INGRESS_EXPORT_AMBIGUOUS",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.ingress.export.ambiguous",
+        "template": "Node '{nodeId}' wait selector '{selector}' resolves to more than one trusted Ingress Operation export.",
+        "sourceLocation": "Line/column of the `wait.event` selector node."
       },
-      "deferredTo": "WP3",
-      "deferredNote": "Trusted Ingress selector resolution is owned by WP3."
+      "test": "TestV1Alpha5WP3SelectorAmbiguous"
     },
     {
       "id": "IN-004",
@@ -421,65 +451,68 @@
       "diagnostic": {
         "code": "DEPENDENCY_EXPORT_OWNER_UNVERIFIED",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
       },
       "relatedCodes": [
         "DEPENDENCY_OWNER_MISMATCH"
       ],
-      "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "deferredTo": "WP3",
+      "deferredNote": "The v1alpha5 envelope emits DEPENDENCY_EXPORT_OWNER_UNVERIFIED for malformed export-owner records, but the exact missing/mismatched Owner binding case and the inherited DEPENDENCY_OWNER_MISMATCH identity still lack a dedicated executable fixture in this slice."
     },
     {
       "id": "IN-005",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Duplicate export id emits INGRESS_EXPORT_ID_DUPLICATE / C_STATIC.",
       "diagnostic": {
         "code": "INGRESS_EXPORT_ID_DUPLICATE",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.export.id.duplicate",
+        "template": "Ingress Operation export id '{exportId}' is duplicated in this trusted Catalog.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "test": "TestCatalogDuplicateExportID"
     },
     {
       "id": "IN-006",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "OpenAPI artifact raw-byte digest mismatch emits the reused DEPENDENCY_IDENTITY_UNVERIFIED identity; must not emit INGRESS_PROTOCOL_ARTIFACT_INVALID.",
       "diagnostic": {
         "code": "DEPENDENCY_IDENTITY_UNVERIFIED",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Inherited frozen identity: Compiler Diagnostic.path/line/column follow the emitted source location."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "test": "TestCatalogProtocolArtifactIdentityUnverified"
     },
     {
       "id": "IN-007",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Mixing 3GPP Service-Operation names with the pinned OpenAPI operationId emits INGRESS_PROTOCOL_ARTIFACT_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "INGRESS_PROTOCOL_ARTIFACT_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.protocol.artifact.invalid",
+        "template": "Ingress export '{exportId}' does not match the pinned protocol artifact metadata at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "test": "TestCatalogProtocolMetadataMismatch"
     },
     {
       "id": "IN-008",
       "owner": "Compiler/Integration",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "HOST_RUNTIME_INTEGRATION_OWNED",
       "expected": "A wire method/path/API-version mismatch is rejected by Integration; Catalog metadata contradicting the trusted OpenAPI artifact emits INGRESS_PROTOCOL_ARTIFACT_INVALID / C_STATIC (IN-057).",
       "diagnostic": {
         "code": "INGRESS_PROTOCOL_ARTIFACT_INVALID",
         "phase": "C_STATIC",
         "severity": "error"
-      },
-      "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      }
     },
     {
       "id": "IN-009",
@@ -508,18 +541,15 @@
     {
       "id": "IN-013",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Missing or unsupported normalized Schema emits SCHEMA_MISSING or SCHEMA_INVALID (reused identities).",
       "diagnostic": {
         "code": "SCHEMA_MISSING",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Inherited frozen identity: Compiler Diagnostic.path/line/column follow the emitted source location."
       },
-      "relatedCodes": [
-        "SCHEMA_INVALID"
-      ],
-      "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "test": "TestCatalogMissingSchemaClosure"
     },
     {
       "id": "IN-014",
@@ -529,10 +559,11 @@
       "diagnostic": {
         "code": "INGRESS_NORMALIZATION_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
       },
       "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "deferredNote": "IngressCatalog request normalization semantics remain unimplemented beyond structural admission."
     },
     {
       "id": "IN-015",
@@ -542,10 +573,11 @@
       "diagnostic": {
         "code": "INGRESS_NORMALIZATION_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
       },
       "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "deferredNote": "Required wire-field coverage in request normalization remains unimplemented."
     },
     {
       "id": "IN-016",
@@ -555,10 +587,13 @@
       "diagnostic": {
         "code": "INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.binary.content.lifecycle.invalid",
+        "template": "Ingress export '{exportId}' has an invalid immutable binary-content reference or lifecycle contract at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "deferredNote": "Request-side immutable binary-content part lifecycle remains unimplemented (the response-side lifecycle slice is implemented by WP6)."
     },
     {
       "id": "IN-017",
@@ -569,18 +604,21 @@
     {
       "id": "IN-018",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A trigger callable that is not an exact ToolCatalog Operation emits EXPORT_ID_MISSING or EXPORT_ID_AMBIGUOUS in the exact Package ID + Owner scope.",
       "diagnostic": {
         "code": "EXPORT_ID_MISSING",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Inherited frozen identity: Compiler Diagnostic.path/line/column follow the emitted source location."
       },
       "relatedCodes": [
         "EXPORT_ID_AMBIGUOUS"
       ],
-      "deferredTo": "WP3",
-      "deferredNote": "Trigger Operation linking is owned by WP3."
+      "tests": [
+        "TestV1Alpha5WP3TriggerOperationMissing",
+        "TestV1Alpha5WP3TriggerOperationAmbiguous"
+      ]
     },
     {
       "id": "IN-019",
@@ -590,36 +628,41 @@
       "diagnostic": {
         "code": "SOURCE_NOT_AVAILABLE",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "deferredTo": "WP3",
-      "deferredNote": "Trigger binding availability is owned by WP3."
+      "deferredNote": "The current pass reports WAIT_CORRELATION_BINDING_INVALID for an unavailable trigger argument; the required reused SOURCE_NOT_AVAILABLE identity has no dedicated executable assertion yet."
     },
     {
       "id": "IN-020",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A start Wait without a verifiable correlation Context binding emits WAIT_CORRELATION_BINDING_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "WAIT_CORRELATION_BINDING_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.correlation.binding.invalid",
+        "template": "Node '{nodeId}' cannot derive one exact correlation binding on every reachable entry path.",
+        "sourceLocation": "Line/column of the `wait.event` selector node."
       },
-      "deferredTo": "WP3",
-      "deferredNote": "Correlation binding is owned by WP3."
+      "test": "TestV1Alpha5WP3StartWaitWithoutArmingStart"
     },
     {
       "id": "IN-021",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "An incoming path that cannot uniquely derive the trigger Operation/correlation binding emits WAIT_CORRELATION_BINDING_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "WAIT_CORRELATION_BINDING_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.correlation.binding.invalid",
+        "template": "Node '{nodeId}' cannot derive one exact correlation binding on every reachable entry path.",
+        "sourceLocation": "Line/column of the `wait.event` selector node."
       },
-      "deferredTo": "WP3",
-      "deferredNote": "Correlation binding is owned by WP3."
+      "test": "TestV1Alpha5WP3TriggerNotDominatingOnOnePath"
     },
     {
       "id": "IN-022",
@@ -630,18 +673,23 @@
     {
       "id": "IN-023",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "An Ingress-own declaration without a provable wire discriminator or single-flight/tombstone stale-delivery policy emits INGRESS_CORRELATION_INVALID / C_STATIC; a selected Skill path that cannot prove the binding emits WAIT_CORRELATION_BINDING_INVALID.",
       "diagnostic": {
         "code": "INGRESS_CORRELATION_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.correlation.invalid",
+        "template": "Ingress export '{exportId}' has an invalid correlation or stale-delivery declaration at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "relatedCodes": [
         "WAIT_CORRELATION_BINDING_INVALID"
       ],
-      "deferredTo": "WP3",
-      "deferredNote": "Stale-delivery/correlation safety is owned by WP3."
+      "tests": [
+        "TestV1Alpha5WP3RetentionWindowInvalid",
+        "TestV1Alpha5WP3TriggerNotDominatingOnOnePath"
+      ]
     },
     {
       "id": "IN-024",
@@ -669,31 +717,35 @@
       "diagnostic": {
         "code": "INGRESS_RESPONSE_CONTRACT_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.response.contract.invalid",
+        "template": "Ingress export '{exportId}' has an invalid paired-response contract at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "deferredTo": "WP6",
-      "deferredNote": "Paired-response contract validation is owned by WP6."
+      "deferredNote": "Dispositions/result/early-failure contract checks are implemented, but missing deadline-policy/recovery declarations are structural/admission-owned rather than the required INGRESS_RESPONSE_CONTRACT_INVALID identity."
     },
     {
       "id": "IN-028",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A single fixed bodyless paired response disposition does not require a response-result Producer; multiple dispositions still require a typed result selector.",
-      "deferredTo": "WP6",
-      "deferredNote": "Paired-response contract validation is owned by WP6."
+      "test": "TestV1Alpha5WP6PositiveSingleBodylessDisposition"
     },
     {
       "id": "IN-029",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A body-bearing paired response without a result Producer emits WAIT_RESPONSE_MAPPING_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "WAIT_RESPONSE_MAPPING_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.response.mapping.invalid",
+        "template": "Node '{nodeId}' response boundary has no valid typed Producer-to-response mapping.",
+        "sourceLocation": "Line/column of the `wait.response.after` value node, else the `response`/`wait` node."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "Response Producer mapping is owned by WP6."
+      "test": "TestV1Alpha5WP6BoundaryNodeWithoutProducerStage"
     },
     {
       "id": "IN-030",
@@ -703,55 +755,65 @@
       "diagnostic": {
         "code": "WAIT_RESPONSE_BOUNDARY_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "wait.response.boundary.invalid",
+        "template": "Node '{nodeId}' wait.response.after does not identify one reachable response boundary on every accepted-event path.",
+        "sourceLocation": "Line/column of the `wait.response.after` value node, else the `response`/`wait` node."
       },
       "deferredTo": "WP6",
-      "deferredNote": "Response boundary Producer linking is owned by WP6."
+      "deferredNote": "The implemented pass reports WAIT_RESPONSE_MAPPING_INVALID when the export-required Producer stage is absent; the required WAIT_RESPONSE_BOUNDARY_INVALID identity for IN-030 is not aligned yet."
     },
     {
       "id": "IN-031",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A boundary Producer Output not assignable to responseResultSchema emits INPUT_TYPE_MISMATCH / C_STATIC; an unavailable Producer SourcePath emits SOURCE_NOT_AVAILABLE; WAIT_RESPONSE_MAPPING_INVALID must not substitute for ordinary type diagnostics.",
       "diagnostic": {
         "code": "INPUT_TYPE_MISMATCH",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Inherited frozen identity: Compiler Diagnostic.path/line/column follow the emitted source location."
       },
       "relatedCodes": [
         "SOURCE_NOT_AVAILABLE"
       ],
-      "deferredTo": "WP6",
-      "deferredNote": "Response assignability is owned by WP6."
+      "tests": [
+        "TestV1Alpha5WP6ProducerOutputSchemaIncompatible",
+        "TestV1Alpha5WP6ProducerOutputSchemaUnavailable"
+      ]
     },
     {
       "id": "IN-032",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "An Ingress-own response mapping that misses required protocol response fields emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; a missing Skill Producer mapping emits WAIT_RESPONSE_MAPPING_INVALID.",
       "diagnostic": {
         "code": "INGRESS_RESPONSE_MAPPING_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.response.mapping.invalid",
+        "template": "Ingress export '{exportId}' has an invalid protocol response representation or mapping at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "relatedCodes": [
         "WAIT_RESPONSE_MAPPING_INVALID"
       ],
-      "deferredTo": "WP6",
-      "deferredNote": "Response mapping validation is owned by WP6."
+      "test": "TestV1Alpha5WP6MappingCoverageIncomplete"
     },
     {
       "id": "IN-033",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A Run ending in an allowed failure terminal before the response boundary while the export declares no valid early-failure response mapping emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC; with a complete declaration the execution half is an Integration conformance responsibility.",
       "diagnostic": {
         "code": "INGRESS_RESPONSE_CONTRACT_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.response.contract.invalid",
+        "template": "Ingress export '{exportId}' has an invalid paired-response contract at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "Early-failure response contract validation is owned by WP6."
+      "test": "TestV1Alpha5WP6EarlyFailureMappingMissing"
     },
     {
       "id": "IN-034",
@@ -791,10 +853,11 @@
       "diagnostic": {
         "code": "INGRESS_NORMALIZATION_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
       },
       "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "deferredNote": "acceptedMediaTypes/sourceSchemas/normalization.representations correspondence remains unimplemented."
     },
     {
       "id": "IN-040",
@@ -804,10 +867,13 @@
       "diagnostic": {
         "code": "INGRESS_RESPONSE_CONTRACT_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.response.contract.invalid",
+        "template": "Ingress export '{exportId}' has an invalid paired-response contract at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "deferredTo": "WP6",
-      "deferredNote": "Paired-response contract validation is owned by WP6."
+      "deferredNote": "The duplicate disposition id/status code path exists, but no dedicated executable fixture asserts that identity in this slice."
     },
     {
       "id": "IN-041",
@@ -823,10 +889,13 @@
       "diagnostic": {
         "code": "INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.binary.content.lifecycle.invalid",
+        "template": "Ingress export '{exportId}' has an invalid immutable binary-content reference or lifecycle contract at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "deferredNote": "Request-side binaryContent retention vs consumer/recovery-window validation remains unimplemented; the response-side lifecycle checks exist."
     },
     {
       "id": "IN-043",
@@ -842,10 +911,13 @@
       "diagnostic": {
         "code": "INGRESS_RESPONSE_MAPPING_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.response.mapping.invalid",
+        "template": "Ingress export '{exportId}' has an invalid protocol response representation or mapping at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "deferredTo": "WP6",
-      "deferredNote": "Response mapping validation is owned by WP6."
+      "deferredNote": "Cross-checking pinned OpenAPI response shape against declared JSON-only mappings is not implemented."
     },
     {
       "id": "IN-045",
@@ -855,10 +927,13 @@
       "diagnostic": {
         "code": "INGRESS_RESPONSE_MAPPING_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.response.mapping.invalid",
+        "template": "Ingress export '{exportId}' has an invalid protocol response representation or mapping at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "deferredTo": "WP6",
-      "deferredNote": "Response mapping validation is owned by WP6."
+      "deferredNote": "The N1 SM Reject binary-container mapping obligation against the pinned protocol response is not implemented."
     },
     {
       "id": "IN-046",
@@ -868,23 +943,28 @@
       "diagnostic": {
         "code": "INGRESS_CORRELATION_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.correlation.invalid",
+        "template": "Ingress export '{exportId}' has an invalid correlation or stale-delivery declaration at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "deferredTo": "WP3",
-      "deferredNote": "Stale-delivery/correlation safety is owned by WP3."
+      "deferredNote": "idempotency-key discriminator source/scope declaration validation is not implemented."
     },
     {
       "id": "IN-047",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A discriminatorRetention less than or equal to maximumLateArrival + clockSkewAllowance emits INGRESS_CORRELATION_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "INGRESS_CORRELATION_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.correlation.invalid",
+        "template": "Ingress export '{exportId}' has an invalid correlation or stale-delivery declaration at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP3",
-      "deferredNote": "Stale-delivery/correlation safety is owned by WP3."
+      "test": "TestV1Alpha5WP3RetentionWindowInvalid"
     },
     {
       "id": "IN-048",
@@ -931,41 +1011,47 @@
     {
       "id": "IN-055",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Missing, wrong or unsupported Catalog apiVersion/kind/root structure emits INGRESS_CATALOG_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "INGRESS_CATALOG_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.catalog.invalid",
+        "template": "IngressCatalog at '{catalogPath}' is structurally invalid or declares an unsupported apiVersion.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "test": "TestCatalogInvalidAPIVersionAndKind"
     },
     {
       "id": "IN-056",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Two different export IDs declaring the same exact event.source + event.service + event.operation emit INGRESS_EVENT_SELECTOR_DUPLICATE / C_STATIC.",
       "diagnostic": {
         "code": "INGRESS_EVENT_SELECTOR_DUPLICATE",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.event.selector.duplicate",
+        "template": "Ingress event selector '{source}/{service}/{operation}' is declared by more than one export.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "test": "TestCatalogDuplicateEventSelector"
     },
     {
       "id": "IN-057",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A trusted OpenAPI artifact whose release, API URI version, method, path or operationId contradicts the Catalog declaration (after byte-digest verification) emits INGRESS_PROTOCOL_ARTIFACT_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "INGRESS_PROTOCOL_ARTIFACT_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.protocol.artifact.invalid",
+        "template": "Ingress export '{exportId}' does not match the pinned protocol artifact metadata at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "test": "TestCatalogProtocolMetadataMismatch"
     },
     {
       "id": "IN-058",
@@ -975,10 +1061,11 @@
       "diagnostic": {
         "code": "INGRESS_PEER_PROFILE_REFERENCE_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
       },
       "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "deferredNote": "Peer authentication/authorization profile reference resolution remains unimplemented."
     },
     {
       "id": "IN-059",
@@ -988,10 +1075,11 @@
       "diagnostic": {
         "code": "INGRESS_NORMALIZATION_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
       },
       "deferredTo": "WP1",
-      "deferredNote": "WP1 IngressCatalog static admission is implemented on the separate feat/compiler-v1alpha5-wp1-ingress-catalog-20261117 branch (PR #31, base main); it is not part of this WP2-based stack and is neither executed nor claimed here."
+      "deferredNote": "Request normalization mapping coverage/target/transform validation remains unimplemented."
     },
     {
       "id": "IN-060",
@@ -1001,13 +1089,16 @@
       "diagnostic": {
         "code": "INGRESS_CORRELATION_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.correlation.invalid",
+        "template": "Ingress export '{exportId}' has an invalid correlation or stale-delivery declaration at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "relatedCodes": [
         "WAIT_CORRELATION_BINDING_INVALID"
       ],
       "deferredTo": "WP3",
-      "deferredNote": "Stale-delivery/correlation safety is owned by WP3."
+      "deferredNote": "The keyFields/staleDelivery slices are validated and tested, but the full duplicate identity/scope/staleDelivery declaration matrix is not."
     },
     {
       "id": "IN-061",
@@ -1017,42 +1108,53 @@
       "diagnostic": {
         "code": "INGRESS_RESPONSE_CONTRACT_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.response.contract.invalid",
+        "template": "Ingress export '{exportId}' has an invalid paired-response contract at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "deferredTo": "WP6",
-      "deferredNote": "Paired-response contract validation is owned by WP6."
+      "deferredNote": "response.mode/dispositions/result checks exist, but deadline policy and delivery-recovery contract validation is Host/Integration-owned and not the required identity."
     },
     {
       "id": "IN-062",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "An invalid Ingress-own response representation/Schema mapping/multipart part mapping/required field mapping emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; a Skill Producer mapping failure emits WAIT_RESPONSE_MAPPING_INVALID.",
       "diagnostic": {
         "code": "INGRESS_RESPONSE_MAPPING_INVALID",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "messageKey": "ingress.response.mapping.invalid",
+        "template": "Ingress export '{exportId}' has an invalid protocol response representation or mapping at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "relatedCodes": [
         "WAIT_RESPONSE_MAPPING_INVALID"
       ],
-      "deferredTo": "WP6",
-      "deferredNote": "Response mapping validation is owned by WP6."
+      "tests": [
+        "TestV1Alpha5WP6MappingCoverageIncomplete",
+        "TestV1Alpha5WP6MultipartBinaryPartUnmapped"
+      ]
     },
     {
       "id": "IN-063",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A Trigger ToolCatalog Operation missing or ambiguous in the exact Package ID + Owner scope emits EXPORT_ID_MISSING or EXPORT_ID_AMBIGUOUS; no Ingress or Wait selector diagnostic.",
       "diagnostic": {
         "code": "EXPORT_ID_MISSING",
         "phase": "C_STATIC",
-        "severity": "error"
+        "severity": "error",
+        "sourceLocation": "Inherited frozen identity: Compiler Diagnostic.path/line/column follow the emitted source location."
       },
       "relatedCodes": [
         "EXPORT_ID_AMBIGUOUS"
       ],
-      "deferredTo": "WP3",
-      "deferredNote": "Trigger Operation linking is owned by WP3."
+      "tests": [
+        "TestV1Alpha5WP3TriggerOperationMissing",
+        "TestV1Alpha5WP3TriggerOperationAmbiguous"
+      ]
     }
   ]
 }

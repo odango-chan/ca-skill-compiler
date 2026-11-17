@@ -12,6 +12,7 @@ package compiler
 import (
 	"encoding/json"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -66,17 +67,83 @@ var v1Alpha5NormativeDiagnostics = map[string]v1alpha5DiagnosticContract{
 	},
 }
 
-// v1Alpha5WaitImplementedDiagnosticCodes is the exact subset the WP2 static path
-// currently emits: four L.11 codes mapped to the seven implemented EW rows plus
-// WAIT_RESPONSE_BOUNDARY_INVALID for the present-but-syntactically-invalid
-// wait.response.after slice (not EW-019/EW-030 reachability coverage, WP6).
-var v1Alpha5WaitImplementedDiagnosticCodes = map[string]bool{
-	"WAIT_DECLARATION_INVALID":       true,
-	"WAIT_TIMEOUT_INVALID":           true,
-	"WAIT_TIMEOUT_ROUTE_INVALID":     true,
-	"WAIT_NODE_STAGE_REQUIRED":       true,
-	"WAIT_RESPONSE_BOUNDARY_INVALID": true,
+// v1Alpha5IngressDiagnosticRegistry is the package-local projection of the
+// normative Ingress diagnostic registry v1alpha1 (connectionagent.io/
+// ingress-diagnostics/v1alpha1) for the Ingress-owned codes the integrated
+// v1alpha5 path can emit. The values are the exact registry messageKey/template
+// strings; the compiler.Diagnostic wire envelope still carries no messageKey.
+var v1Alpha5IngressDiagnosticRegistry = map[string]v1alpha5DiagnosticContract{
+	"INGRESS_CATALOG_INVALID": {
+		MessageKey: "ingress.catalog.invalid",
+		Template:   "IngressCatalog at '{catalogPath}' is structurally invalid or declares an unsupported apiVersion.",
+	},
+	"INGRESS_EXPORT_ID_DUPLICATE": {
+		MessageKey: "ingress.export.id.duplicate",
+		Template:   "Ingress Operation export id '{exportId}' is duplicated in this trusted Catalog.",
+	},
+	"INGRESS_EVENT_SELECTOR_DUPLICATE": {
+		MessageKey: "ingress.event.selector.duplicate",
+		Template:   "Ingress event selector '{source}/{service}/{operation}' is declared by more than one export.",
+	},
+	"INGRESS_PROTOCOL_ARTIFACT_INVALID": {
+		MessageKey: "ingress.protocol.artifact.invalid",
+		Template:   "Ingress export '{exportId}' does not match the pinned protocol artifact metadata at '{fieldPath}'.",
+	},
+	"INGRESS_CORRELATION_INVALID": {
+		MessageKey: "ingress.correlation.invalid",
+		Template:   "Ingress export '{exportId}' has an invalid correlation or stale-delivery declaration at '{fieldPath}'.",
+	},
+	"INGRESS_RESPONSE_CONTRACT_INVALID": {
+		MessageKey: "ingress.response.contract.invalid",
+		Template:   "Ingress export '{exportId}' has an invalid paired-response contract at '{fieldPath}'.",
+	},
+	"INGRESS_RESPONSE_MAPPING_INVALID": {
+		MessageKey: "ingress.response.mapping.invalid",
+		Template:   "Ingress export '{exportId}' has an invalid protocol response representation or mapping at '{fieldPath}'.",
+	},
+	"INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID": {
+		MessageKey: "ingress.binary.content.lifecycle.invalid",
+		Template:   "Ingress export '{exportId}' has an invalid immutable binary-content reference or lifecycle contract at '{fieldPath}'.",
+	},
 }
+
+// v1alpha5NormativeDiagnosticContract resolves one diagnostic identity to its
+// normative messageKey/template, whether it is a CA-SL L.11 identity or an
+// Ingress-owned registry identity.
+func v1alpha5NormativeDiagnosticContract(code string) (v1alpha5DiagnosticContract, bool) {
+	if contract, ok := v1Alpha5NormativeDiagnostics[code]; ok {
+		return contract, true
+	}
+	contract, ok := v1Alpha5IngressDiagnosticRegistry[code]
+	return contract, ok
+}
+
+// v1Alpha5WaitImplementedDiagnosticCodes is the exact L.11 subset the integrated
+// v1alpha5 static path can emit from the Appendix L.12 EW cases.
+var v1Alpha5WaitImplementedDiagnosticCodes = map[string]bool{
+	"WAIT_DECLARATION_INVALID":         true,
+	"WAIT_TIMEOUT_INVALID":             true,
+	"WAIT_INGRESS_EXPORT_NOT_FOUND":    true,
+	"WAIT_INGRESS_EXPORT_AMBIGUOUS":    true,
+	"WAIT_CORRELATION_BINDING_INVALID": true,
+	"WAIT_TIMEOUT_ROUTE_INVALID":       true,
+	"WAIT_NODE_STAGE_REQUIRED":         true,
+	"WAIT_RESPONSE_BOUNDARY_INVALID":   true,
+	"WAIT_RESPONSE_MAPPING_INVALID":    true,
+}
+
+// v1Alpha5ImplementedDiagnosticCodes is the union of normative identities the
+// integrated v1alpha5 static path is allowed to emit (L.11 + Ingress registry).
+var v1Alpha5ImplementedDiagnosticCodes = func() map[string]bool {
+	codes := map[string]bool{}
+	for code := range v1Alpha5NormativeDiagnostics {
+		codes[code] = true
+	}
+	for code := range v1Alpha5IngressDiagnosticRegistry {
+		codes[code] = true
+	}
+	return codes
+}()
 
 const v1alpha5ContractNodeID = "wait-node"
 
@@ -304,6 +371,50 @@ func TestV1Alpha5DiagnosticContractMessageKeyRegistry(t *testing.T) {
 	// A Host admission diagnostic is never a C_STATIC Compiler identity.
 	if _, ok := v1Alpha5NormativeDiagnostics["WAIT_DURATION_LIMIT_EXCEEDED"]; ok {
 		t.Fatal("WAIT_DURATION_LIMIT_EXCEEDED is an L.11.2 Host admission identity, not a Compiler C_STATIC code")
+	}
+
+	wantIngress := map[string]v1alpha5DiagnosticContract{
+		"INGRESS_CATALOG_INVALID": {
+			"ingress.catalog.invalid",
+			"IngressCatalog at '{catalogPath}' is structurally invalid or declares an unsupported apiVersion.",
+		},
+		"INGRESS_EXPORT_ID_DUPLICATE": {
+			"ingress.export.id.duplicate",
+			"Ingress Operation export id '{exportId}' is duplicated in this trusted Catalog.",
+		},
+		"INGRESS_EVENT_SELECTOR_DUPLICATE": {
+			"ingress.event.selector.duplicate",
+			"Ingress event selector '{source}/{service}/{operation}' is declared by more than one export.",
+		},
+		"INGRESS_PROTOCOL_ARTIFACT_INVALID": {
+			"ingress.protocol.artifact.invalid",
+			"Ingress export '{exportId}' does not match the pinned protocol artifact metadata at '{fieldPath}'.",
+		},
+		"INGRESS_CORRELATION_INVALID": {
+			"ingress.correlation.invalid",
+			"Ingress export '{exportId}' has an invalid correlation or stale-delivery declaration at '{fieldPath}'.",
+		},
+		"INGRESS_RESPONSE_CONTRACT_INVALID": {
+			"ingress.response.contract.invalid",
+			"Ingress export '{exportId}' has an invalid paired-response contract at '{fieldPath}'.",
+		},
+		"INGRESS_RESPONSE_MAPPING_INVALID": {
+			"ingress.response.mapping.invalid",
+			"Ingress export '{exportId}' has an invalid protocol response representation or mapping at '{fieldPath}'.",
+		},
+		"INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID": {
+			"ingress.binary.content.lifecycle.invalid",
+			"Ingress export '{exportId}' has an invalid immutable binary-content reference or lifecycle contract at '{fieldPath}'.",
+		},
+	}
+	if !reflect.DeepEqual(v1Alpha5IngressDiagnosticRegistry, wantIngress) {
+		t.Fatalf("Ingress registry message-key projection drifted from the normative registry:\n got: %#v\nwant: %#v",
+			v1Alpha5IngressDiagnosticRegistry, wantIngress)
+	}
+	for code := range v1Alpha5ImplementedDiagnosticCodes {
+		if _, ok := v1alpha5NormativeDiagnosticContract(code); !ok {
+			t.Fatalf("implemented diagnostic %s has no normative messageKey/template", code)
+		}
 	}
 }
 
@@ -629,18 +740,45 @@ nodes:
 	)
 
 	allowed := map[string]bool{
-		// WP2-implemented L.11 identities.
-		"WAIT_DECLARATION_INVALID":       true,
-		"WAIT_TIMEOUT_INVALID":           true,
-		"WAIT_TIMEOUT_ROUTE_INVALID":     true,
-		"WAIT_NODE_STAGE_REQUIRED":       true,
-		"WAIT_RESPONSE_BOUNDARY_INVALID": true,
-		// Inherited real identities reused by the v1alpha5 source admission.
-		"UNKNOWN_FIELD":           true,
-		"YAML_PARSE_ERROR":        true,
-		"PROCEDURE_START_MISSING": true,
-		"NODE_ID_RESERVED":        true,
-		"SOURCE_ROOT_INVALID":     true,
+		// Integrated L.11 identities.
+		"WAIT_DECLARATION_INVALID":         true,
+		"WAIT_TIMEOUT_INVALID":             true,
+		"WAIT_INGRESS_EXPORT_NOT_FOUND":    true,
+		"WAIT_INGRESS_EXPORT_AMBIGUOUS":    true,
+		"WAIT_CORRELATION_BINDING_INVALID": true,
+		"WAIT_TIMEOUT_ROUTE_INVALID":       true,
+		"WAIT_NODE_STAGE_REQUIRED":         true,
+		"WAIT_RESPONSE_BOUNDARY_INVALID":   true,
+		"WAIT_RESPONSE_MAPPING_INVALID":    true,
+		// Inherited real identities reused by the v1alpha5 source admission and
+		// trusted-linking prerequisites.
+		"UNKNOWN_FIELD":                      true,
+		"YAML_PARSE_ERROR":                   true,
+		"PROCEDURE_START_MISSING":            true,
+		"NODE_ID_RESERVED":                   true,
+		"SOURCE_ROOT_INVALID":                true,
+		"DEPENDENCY_IDENTITY_UNVERIFIED":     true,
+		"DEPENDENCY_EXPORT_OWNER_UNVERIFIED": true,
+		"DEPENDENCY_DUPLICATE":               true,
+		"DEPENDENCY_ID_MISMATCH":             true,
+		"DEPENDENCY_SNAPSHOT_MISSING":        true,
+		"DEPENDENCY_REQUIREMENT_INVALID":     true,
+		"EXPORT_ID_MISSING":                  true,
+		"EXPORT_ID_AMBIGUOUS":                true,
+		"SCHEMA_MISSING":                     true,
+		"SCHEMA_INVALID":                     true,
+		"SOURCE_PATH_INVALID":                true,
+		"SOURCE_NOT_AVAILABLE":               true,
+		"INPUT_TYPE_MISMATCH":                true,
+		"INPUT_NULLABILITY_MISMATCH":         true,
+		"CONTROL_FLOW_DANGLING":              true,
+		"CONTROL_FLOW_CYCLE":                 true,
+		"REQUEST_INVALID":                    true,
+		"PACKAGE_PATH_INVALID":               true,
+		"INPUT_LIMIT":                        true,
+	}
+	for code := range v1Alpha5IngressDiagnosticRegistry {
+		allowed[code] = true
 	}
 
 	for _, procedure := range procedures {
@@ -653,14 +791,16 @@ nodes:
 					t.Fatalf("WAIT_* code outside the implemented L.11 slice emitted: %#v", diagnostic)
 				}
 			}
+			if strings.HasPrefix(diagnostic.Code, "INGRESS_") {
+				if _, ok := v1Alpha5IngressDiagnosticRegistry[diagnostic.Code]; !ok {
+					t.Fatalf("invented INGRESS_* code emitted: %#v", diagnostic)
+				}
+			}
 			if diagnostic.Code == "WAIT_DURATION_LIMIT_EXCEEDED" {
 				t.Fatal("L.11.2 Host admission code must never be emitted by the Compiler static path")
 			}
-			if strings.HasPrefix(diagnostic.Code, "INGRESS_") {
-				t.Fatalf("IngressCatalog registry code must not be attributed to a CA-SL Wait source: %#v", diagnostic)
-			}
 			if !allowed[diagnostic.Code] {
-				t.Fatalf("diagnostic code %q is not a real L.11 or inherited identity: %#v",
+				t.Fatalf("diagnostic code %q is not a real L.11/Ingress or inherited identity: %#v",
 					diagnostic.Code, diagnostic)
 			}
 		}
@@ -745,4 +885,196 @@ func wp7EnvelopeKeys(m map[string]json.RawMessage) []string {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+// v1alpha5IntegratedContractFixtures renders one synthetic trusted-linking
+// fixture per integrated diagnostic identity. Every fixture is SYNTHETIC and is
+// not a real Owner artifact, deployment profile or 5GC/2GPP publication claim.
+func v1alpha5IntegratedContractFixtures(t *testing.T) map[string][]Diagnostic {
+	t.Helper()
+	_, digests := wp3Artifacts(t)
+
+	// Zero trusted selector match: rename the declared event operation.
+	notFound := wp3Check(t, wp3FixtureOptions{
+		catalogText: func(openAPIDigest, requestDigest, normalizedDigest string) string {
+			return strings.Replace(wp3DefaultCatalogText(openAPIDigest, requestDigest, normalizedDigest),
+				"operation: UpdateSMContext", "operation: UpdateSmContext", 1)
+		},
+	})
+
+	// Two trusted Catalogs declare the same exact event selector.
+	secondCatalog := wp3DefaultCatalogText(
+		wp3Digest([]byte(wp3OpenAPIDocument)), digests[wp3RequestArtifactRef], digests[wp3NormalizedArtifactRef])
+	secondCatalog = strings.Replace(secondCatalog,
+		"id: nsmf-pdusession.update-sm-context", "id: nsmf-pdusession.update-sm-context.second", 1)
+	ambiguous := Check(wp3BuildRequest(t, wp3FixtureOptions{
+		extraFiles:     []File{{Path: "ingress/catalog-second.yaml", Bytes: []byte(secondCatalog)}},
+		extraOwners:    []ExportOwner{{ExportKind: v1alpha5ExportKindIngressOperation, ExportID: "nsmf-pdusession.update-sm-context.second", Owner: wp3IntegrationOwner}},
+		extraOwnersFor: wp3IntegrationDependency,
+	}))
+
+	// One incoming path bypasses the triggering Operation.
+	correlation := wp3Check(t, wp3FixtureOptions{procedure: wp3BypassTriggerProcedure})
+
+	// Export-side stale-delivery retention window is not strictly greater than
+	// maximumLateArrival + clockSkewAllowance.
+	ingressCorrelation := wp3Check(t, wp3FixtureOptions{
+		catalogText: func(openAPIDigest, requestDigest, normalizedDigest string) string {
+			text := wp3DefaultCatalogText(openAPIDigest, requestDigest, normalizedDigest)
+			return strings.Replace(text, "tombstoneRetention: PT60S", "tombstoneRetention: PT35S", 1)
+		},
+	})
+
+	// Catalog protocol metadata contradicts the pinned OpenAPI artifact.
+	protocolArtifact := wp3Check(t, wp3FixtureOptions{
+		catalogText: func(openAPIDigest, requestDigest, normalizedDigest string) string {
+			return strings.Replace(wp3DefaultCatalogText(openAPIDigest, requestDigest, normalizedDigest),
+				"operationId: UpdateSmContext", "operationId: NotThePinnedOperation", 1)
+		},
+	})
+
+	// WP6 Skill-side mapping and boundary defects through the shared fixtures.
+	responseMapping := wp6Check(t, wp6FixtureOptions{procedure: wp6BoundaryWithoutProducerProcedure})
+	responseBoundary := wp6Check(t, wp6FixtureOptions{procedure: wp6SuccessBeforeBoundaryProcedure})
+
+	// Ingress-owned response contract/mapping defects.
+	responseContract := wp6Check(t, wp6FixtureOptions{response: wp6JSONBodyResponseBlockWithoutEarlyFailures})
+	responseMappingIngress := wp6Check(t, wp6FixtureOptions{response: wp6JSONBodyResponseBlockMissingMapping})
+	// A declared binary part larger than the bounded binary-content lifecycle is a
+	// semantic lifecycle defect that still passes the structural Catalog schema.
+	responseBinary := wp6Check(t, wp6FixtureOptions{response: func(d wp6Digests) string {
+		block := wp6MultipartResponseBlock(d)
+		return strings.Replace(block, "                    maxBytes: 4096", "                    maxBytes: 16384", 1)
+	}})
+
+	return map[string][]Diagnostic{
+		"WAIT_INGRESS_EXPORT_NOT_FOUND":            notFound,
+		"WAIT_INGRESS_EXPORT_AMBIGUOUS":            ambiguous,
+		"WAIT_CORRELATION_BINDING_INVALID":         correlation,
+		"WAIT_RESPONSE_MAPPING_INVALID":            responseMapping,
+		"WAIT_RESPONSE_BOUNDARY_INVALID":           responseBoundary,
+		"INGRESS_CORRELATION_INVALID":              ingressCorrelation,
+		"INGRESS_PROTOCOL_ARTIFACT_INVALID":        protocolArtifact,
+		"INGRESS_RESPONSE_CONTRACT_INVALID":        responseContract,
+		"INGRESS_RESPONSE_MAPPING_INVALID":         responseMappingIngress,
+		"INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID": responseBinary,
+	}
+}
+
+func v1alpha5FindEmittedDiagnostic(diagnostics []Diagnostic, code string) *Diagnostic {
+	for index := range diagnostics {
+		if diagnostics[index].Code == code {
+			return &diagnostics[index]
+		}
+	}
+	return nil
+}
+
+// v1alpha5TemplateLiteralParts splits a canonical template into its literal
+// segments around the "{placeholder}" tokens.
+func v1alpha5TemplateLiteralParts(template string) []string {
+	parts := regexp.MustCompile(`\{[a-zA-Z]+\}`).Split(template, -1)
+	literals := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if part != "" {
+			literals = append(literals, part)
+		}
+	}
+	return literals
+}
+
+// TestV1Alpha5DiagnosticContractIntegratedIdentitySet asserts that every identity
+// emitted by the integrated v1alpha5 static path is a real normative identity
+// (L.11 or Ingress registry or inherited), that the WAIT_* canonical messages are
+// exactly rendered from the L.11.1 registry, and that Ingress-owned messages
+// follow the normative Ingress registry template shape.
+func TestV1Alpha5DiagnosticContractIntegratedIdentitySet(t *testing.T) {
+	fixtures := v1alpha5IntegratedContractFixtures(t)
+	for expectedCode, diagnostics := range fixtures {
+		diagnostic := v1alpha5FindEmittedDiagnostic(diagnostics, expectedCode)
+		if diagnostic == nil {
+			t.Fatalf("fixture for %s emitted %#v instead", expectedCode, diagnostics)
+		}
+		if diagnostic.Phase != "C_STATIC" || diagnostic.Severity != "error" {
+			t.Fatalf("%s identity = %s/%s, want C_STATIC/error",
+				expectedCode, diagnostic.Phase, diagnostic.Severity)
+		}
+	}
+
+	// No emitted identity may sit outside the known normative/inherited sets.
+	inherited := map[string]bool{
+		"UNKNOWN_FIELD": true, "YAML_PARSE_ERROR": true, "SOURCE_ROOT_INVALID": true,
+		"SCHEMA_MISSING": true, "SCHEMA_INVALID": true,
+		"DEPENDENCY_IDENTITY_UNVERIFIED": true, "DEPENDENCY_EXPORT_OWNER_UNVERIFIED": true,
+		"DEPENDENCY_OWNER_MISMATCH": true, "INPUT_TYPE_MISMATCH": true,
+		"INPUT_NULLABILITY_MISMATCH": true, "SOURCE_NOT_AVAILABLE": true,
+		"SOURCE_PATH_INVALID": true, "EXPORT_ID_MISSING": true, "EXPORT_ID_AMBIGUOUS": true,
+		"CONTROL_FLOW_DANGLING": true, "CONTROL_FLOW_CYCLE": true, "REQUEST_INVALID": true,
+	}
+	for fixture, diagnostics := range fixtures {
+		for _, diagnostic := range diagnostics {
+			if !v1Alpha5ImplementedDiagnosticCodes[diagnostic.Code] && !inherited[diagnostic.Code] {
+				t.Fatalf("%s fixture emitted an unknown identity: %#v", fixture, diagnostic)
+			}
+			contract, registered := v1alpha5NormativeDiagnosticContract(diagnostic.Code)
+			if !registered {
+				continue
+			}
+			literals := v1alpha5TemplateLiteralParts(contract.Template)
+			if len(literals) == 0 {
+				t.Fatalf("%s has an empty normative template", diagnostic.Code)
+			}
+			if !strings.HasPrefix(diagnostic.Message, literals[0]) ||
+				!strings.HasSuffix(diagnostic.Message, literals[len(literals)-1]) {
+				t.Fatalf("%s message %q does not follow the normative template %q",
+					diagnostic.Code, diagnostic.Message, contract.Template)
+			}
+		}
+	}
+
+	// Exact L.11.1 messages for the newly integrated Wait identities.
+	exact := []struct {
+		code      string
+		nodeID    string
+		selector  string
+		lineCheck bool
+	}{
+		{"WAIT_INGRESS_EXPORT_NOT_FOUND", "wait-sm-context", "AMF/Nsmf_PDUSession/UpdateSMContext", true},
+		{"WAIT_INGRESS_EXPORT_AMBIGUOUS", "wait-sm-context", "AMF/Nsmf_PDUSession/UpdateSMContext", true},
+		{"WAIT_CORRELATION_BINDING_INVALID", "wait-sm-context", "", true},
+		{"WAIT_RESPONSE_MAPPING_INVALID", "update-sm-context", "", true},
+	}
+	for _, want := range exact {
+		diagnostics := fixtures[want.code]
+		diagnostic := v1alpha5FindEmittedDiagnostic(diagnostics, want.code)
+		if diagnostic == nil {
+			t.Fatalf("%s fixture emitted %#v", want.code, diagnostics)
+		}
+		wantMessage := renderV1Alpha5NormativeDiagnostic(want.code, want.nodeID, "", want.selector)
+		if diagnostic.Message != wantMessage {
+			t.Fatalf("%s message = %q, want exact L.11.1 template %q",
+				want.code, diagnostic.Message, wantMessage)
+		}
+		if want.lineCheck && (diagnostic.Path == "" || diagnostic.Line <= 0) {
+			t.Fatalf("%s must keep a source path and positive line: %#v", want.code, diagnostic)
+		}
+	}
+
+	// Ingress-owned diagnostics keep the Compiler Diagnostic.path source location
+	// (trusted dependency snapshot path), not an invented line/column.
+	for _, code := range []string{
+		"INGRESS_CORRELATION_INVALID",
+		"INGRESS_PROTOCOL_ARTIFACT_INVALID",
+		"INGRESS_RESPONSE_CONTRACT_INVALID",
+		"INGRESS_RESPONSE_MAPPING_INVALID",
+		"INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID",
+	} {
+		diagnostic := v1alpha5FindEmittedDiagnostic(fixtures[code], code)
+		if diagnostic == nil {
+			t.Fatalf("%s fixture emitted %#v", code, fixtures[code])
+		}
+		if diagnostic.Path == "" {
+			t.Fatalf("%s must carry the trusted snapshot path: %#v", code, diagnostic)
+		}
+	}
 }

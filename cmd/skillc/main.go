@@ -97,7 +97,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stdout, "build request apiVersion: %s (candidate)\n", compiler.BuildRequestAPIVersionV1Alpha5)
 		fmt.Fprintf(stdout, "build result apiVersion: %s (frozen)\n", compiler.BuildResultAPIVersion)
 		fmt.Fprintf(stdout, "build result apiVersion: %s (candidate)\n", compiler.BuildResultAPIVersionV1Alpha5)
-		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s (frozen; v1alpha5 ingress not yet wired)\n", compiler.DependencyInspectionAPIVersion)
+		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s (frozen)\n", compiler.DependencyInspectionAPIVersion)
+		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s (candidate)\n", compiler.DependencyInspectionAPIVersionV1Alpha5)
 		return 0
 	}
 	if command != "check" && command != "build" && command != "inspect" {
@@ -321,12 +322,19 @@ func runInspect(req compiler.BuildRequest, opts options, stdout, stderr io.Write
 }
 
 func printInspection(w io.Writer, inspection compiler.DependencyInspection) {
-	fmt.Fprintf(w, "Dependency inspection OK: %d callable(s), %d schema(s)\n", len(inspection.Callables), len(inspection.Schemas))
+	fmt.Fprintf(w, "Dependency inspection OK: %d callable(s), %d schema(s), %d ingress operation(s)\n",
+		len(inspection.Callables), len(inspection.Schemas), len(inspection.IngressOperations))
 	for _, callable := range inspection.Callables {
 		fmt.Fprintf(w, "  %-12s %s/%s owner=%s effect=%s\n", callable.Kind, callable.DependencyID, callable.ID, callable.Owner, callable.Effect)
 	}
 	for _, schema := range inspection.Schemas {
 		fmt.Fprintf(w, "  %-12s %s/%s owner=%s\n", "schema", schema.DependencyID, schema.ID, schema.Owner)
+	}
+	for _, operation := range inspection.IngressOperations {
+		fmt.Fprintf(w, "  %-12s %s/%s owner=%s event=%s/%s/%s %s %s\n",
+			operation.Kind, operation.DependencyID, operation.ID, operation.Owner,
+			operation.EventSource, operation.EventService, operation.EventOperation,
+			operation.Method, operation.Path)
 	}
 }
 

@@ -45,8 +45,8 @@ production path uses.
 
 | Deferred item | Why it is not claimed |
 |---|---|
-| v1alpha5 `DependencyInspection` ingress inventory (`ingressOperations` or equivalent) | The v1alpha5 inspection API version is reserved but the ingress projection is not implemented; `inspect` currently reports the inherited v1alpha4 envelope rejection rather than guessing a contract |
-| Studio v1alpha5 successful-Build rendering | The parity harness does not add a v1alpha5 Studio phase in this slice; Studio remains v1alpha4-success plus the existing presentations |
+| Studio v1alpha5 successful-Build rendering | The parity harness does not add a v1alpha5 Studio success phase in this slice; Studio remains v1alpha4-success plus the existing fail-closed presentations |
+| v1alpha5 trusted-ingress `DependencyInspection` **Chromium byte-parity fixture** | The independent `ingressOperations` inventory and the v1alpha5 `inspect` dispatch are implemented and unit-tested (WP7b), but the checked-in Chromium parity phase still exercises author-only inspection requests, so trusted IngressCatalog inventory byte-parity in the real Worker is not claimed |
 | Non-Wait tool/predicate/Schema/CEL/script/evidence/mutation semantics | Not implemented as v1alpha5 passes; a Wait-free candidate Skill can Build while ordinary tool references remain unvalidated. See `docs/known-limitations-v1alpha5.md` |
 | Real Owner/Deployment/5GC/MAS qualification | Compiler parity is not product qualification; remains **NOT_QUALIFIED** |
 | GitHub Actions CI evidence | No runner executed steps in this environment - **CI_UNAVAILABLE** (see section 6) |
@@ -57,14 +57,16 @@ production path uses.
 |---|---|
 | `internal/compiler/v1alpha5_artifact.go` | Deterministic successful-Build artifact assembly: canonical normalized Procedure document, per-Wait linked Ingress/response metadata, measured dependency closure, canonical manifest with sorted output-file digests |
 | `internal/compiler/v1alpha5_artifact_verify.go` | Candidate v1alpha5 artifact verification (canonical manifest, complete listing, sha256 match, per-Skill coherence, ingress-link self-consistency, closure identity) |
-| `internal/compiler/v1alpha5.go` | Retired the WP2-era residual gate: Build assembles the artifact after zero-error validation and fails atomically on real diagnostics/assembly inconsistency |
-| `internal/compiler/api_v1alpha4.go` | `VerifyBuildResult` dispatches on the v1alpha5 result API version; frozen v1alpha4 `artifact.Verify` path unchanged |
-| `internal/compiler/api_v1alpha5_test.go`, `v1alpha5_response_test.go`, `v1alpha5_artifact_test.go` | Updated fail-closed expectations; new positive trusted Build, Wait-free Build, paired-response metadata, determinism, invalid-atomicity and tamper tests |
-| `cmd/skillc/main.go`, `cmd/skillc/e2e_test.go` | Allow the v1alpha5 top-level manifest output path; v1alpha5 Build e2e now expects success + written tree, invalid/unresolved cases still exit 1 with no artifact |
-| `cmd/parity-replay/main.go` | Reference view already carries `build.apiVersion` (from the earlier WP8 slice) and `--request=` mode; unchanged in this slice |
-| `scripts/chromium-parity.mjs`, `web/parity-v1alpha5/trusted-build-request.json` | v1alpha5 artifact phases: successful Wait-free Build, trusted Wait-bearing Build with linked Ingress identity, invalid case; per-file sha256 comparison and Worker `VerifyArtifact` |
-| `internal/parity/chromium_test.go`, `internal/parity/v1alpha5_fixture_test.go` | Require the artifact markers; static guard that the checked-in trusted fixture decodes/Builds/verifies deterministically |
+| `internal/compiler/v1alpha5.go` | WP4 wait.output pass wired after WP3; residual gate retired once the artifact slice landed: Build assembles the artifact after zero-error validation and fails atomically on real diagnostics/assembly inconsistency |
+| `internal/compiler/v1alpha5_inspection.go`, `v1alpha5_inspection_test.go` | Independent v1alpha5 `InspectedIngressOperation` / `IngressOperations` inventory, trusted-only discovery reuse, deterministic ordering; v1alpha4 inspection unchanged |
+| `internal/compiler/api_v1alpha4.go`, `api_v1alpha5.go` | `VerifyBuildResult` dispatches on the v1alpha5 result API version; v1alpha5 `InspectDependencies` dispatch and ingress-inventory field; frozen v1alpha4 paths/output unchanged |
+| `internal/compiler/*` test updates | Updated fail-closed expectations; positive trusted Build, Wait-free Build, paired-response metadata, determinism, invalid-atomicity and tamper tests; post-integration WP7 classification/diagnostic-contract tests |
+| `cmd/skillc/main.go`, `cmd/skillc/e2e_test.go` | `version`/help document both targets and independent API versions; v1alpha5 Build e2e now expects success + written tree; v1alpha5 inspect e2e exercises the real inspection dispatch; invalid/unresolved cases still exit 1 with no artifact |
+| `cmd/parity-replay/main.go` | `--request=<BuildRequest.json>` mode using the same strict decode path; reference view carries `build.apiVersion`; project mode unchanged |
+| `scripts/chromium-parity.mjs`, `web/parity-v1alpha5/*` | v1alpha5 artifact phases: successful Wait-free Build, trusted Wait-bearing Build with linked Ingress identity, invalid case; per-file sha256 comparison and Worker `VerifyArtifact` |
+| `internal/parity/chromium_test.go`, `internal/parity/v1alpha5_fixture_test.go` | Require the artifact/parity markers; static guard that the checked-in trusted fixture decodes/Builds/verifies deterministically |
 | `contracts/v1alpha5/artifact-manifest.schema.json`, `contracts/v1alpha5/README.md` | Candidate/DRAFT compiler-owned manifest contract and layout |
+| `docs/workstreams/wp7-conformance-v1alpha5.{md,json}` | Post-integration 99-case reclassification (37 implemented+tested / 19 deferred / 42 external / 1 spec-only), deterministic register, divergence notes |
 | `docs/design/compiler-artifact-v1alpha5.md`, `docs/known-limitations-v1alpha5.md`, this file | Candidate artifact contract, traceability, proven-vs-deferred record and remaining unvalidated obligations |
 
 `web/parity.html` and `web/skillc-worker.js` needed no change: the page already
@@ -168,6 +170,21 @@ ok: v1alpha5 trusted linked Ingress metadata identical
 ok: v1alpha5 Chromium Worker VerifyArtifact PASS
 PASS: Native and real Chromium Worker v1alpha5 artifact parity
 PASS: Native and real Chromium Worker projections are identical
+--- PASS: TestChromiumWorkerParity (49.32s)
+```
+
+CLI surface:
+
+```text
+skillc v1.0.0
+language target: connectionagent.io/v1alpha4 (frozen)
+language target: connectionagent.io/v1alpha5 (candidate)
+build request apiVersion: connectionagent.io/compiler-build-request/v1alpha4 (frozen)
+build request apiVersion: connectionagent.io/compiler-build-request/v1alpha5 (candidate)
+build result apiVersion: connectionagent.io/compiler-build-result/v1alpha4 (frozen)
+build result apiVersion: connectionagent.io/compiler-build-result/v1alpha5 (candidate)
+dependency inspection apiVersion: connectionagent.io/compiler-dependency-inspection/v1alpha4 (frozen)
+dependency inspection apiVersion: connectionagent.io/compiler-dependency-inspection/v1alpha5 (candidate)
 ```
 
 `dist/` build output is local only and not committed.
