@@ -9,18 +9,7 @@ import (
 
 const V1Alpha5Target = "connectionagent.io/v1alpha5"
 
-var v1alpha5WaitDurationPattern = regexp.MustCompile(`^P([1-9][0-9]*D)?(T([1-9][0-9]*H)?([1-9][0-9]*M)?([1-9][0-9]*S)?)?package compiler
-
-import (
-	"regexp"
-	"strings"
-
-	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
-)
-
-const V1Alpha5Target = "connectionagent.io/v1alpha5"
-
-)
+var v1alpha5WaitDurationPattern = regexp.MustCompile(`^P([1-9][0-9]*D)?(T([1-9][0-9]*H)?([1-9][0-9]*M)?([1-9][0-9]*S)?)?$`)
 
 type V1Alpha5WaitAST struct {
 	Raw      *yaml.Node
