@@ -1,0 +1,21 @@
+# Repository text policy: check out text files with LF on every platform.
+#
+# Compiler acceptance tests read Skill fixtures and contracts as raw bytes and
+# perform exact string replacement / digest checks on them. A CRLF working tree
+# (the default with core.autocrlf=true on Windows) would silently change those
+# test inputs and make local acceptance results platform-dependent. Git stores
+# these files as LF already; this attribute keeps the checkout identical too.
+
+* text=auto eol=lf
+
+# Binary payloads must never be converted.
+*.wasm binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.gz binary
+*.exe binary
+*.pdf binary

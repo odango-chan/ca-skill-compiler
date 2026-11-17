@@ -17,9 +17,11 @@ import (
 )
 
 // CompilerVersion is the generator semantic version recorded in Artifact
-// manifests. The immutable build commit is not detected here, so the optional
-// manifest commit field stays absent rather than being fabricated.
-const CompilerVersion = "v1alpha4-dev"
+// manifests. It is the Compiler product version and is independent of the
+// frozen CA-SL language target (connectionagent.io/v1alpha4). The immutable build
+// commit is not detected here, so the optional manifest commit field stays
+// absent rather than being fabricated.
+const CompilerVersion = "v1.0.0"
 
 func generateV1Alpha4Artifact(req BuildRequest, skillName string, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, scripts scriptSchemaSet) ([]artifact.File, error) {
 	if skill == nil || skill.Contract == nil {

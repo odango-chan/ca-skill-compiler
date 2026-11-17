@@ -24,6 +24,7 @@ Usage:
   skillc build   --request <REQUEST.json> --out <DIR>
   skillc inspect <PROJECT>                       inspect dependency snapshots and bindings
   skillc inspect --request <REQUEST.json>
+  skillc version                                 print the Compiler product version
   skillc help                                    show this help
 
 Options:
@@ -68,6 +69,14 @@ func run(args []string, stdout, stderr io.Writer) int {
 	command := args[0]
 	if command == "help" || command == "-h" || command == "--help" {
 		fmt.Fprint(stdout, usageText)
+		return 0
+	}
+	if command == "version" {
+		if len(args) > 1 {
+			fmt.Fprintln(stderr, "skillc: version takes no arguments")
+			return 2
+		}
+		fmt.Fprintf(stdout, "skillc %s\nlanguage target: %s\n", compiler.CompilerVersion, compiler.V1Alpha4Target)
 		return 0
 	}
 	if command != "check" && command != "build" && command != "inspect" {
