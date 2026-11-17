@@ -1,6 +1,9 @@
 # WP12 Skill Studio integration (v1alpha4)
 
-**Status:** Minimal read-only Studio integration surface implemented and exercised in real headless Chromium — **PASS** for the checked fixture.
+**Status:** COMPLETED — merged via PR #24 and included in CA Skill Compiler v1.0.0; retained as a historical implementation record.
+
+> **已完成 / COMPLETED — MERGED INTO v1.0.0.** 本文记录 WP 实施时的任务边界、测试和决策。对应实现已通过 [PR #24](https://github.com/odango-chan/ca-skill-compiler/pull/24) 合并并纳入 v1.0.0。原分支名、Draft 审查状态和停止条件是历史信息；本文保留为实现证据，不是待执行任务。当前状态见[最终验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)和[已知限制](../known-limitations-v1alpha4.md)。
+
 This is transport/UI-consumption evidence, not a claim of a full Studio product acceptance or that the Compiler is qualified.
 
 ## What is implemented

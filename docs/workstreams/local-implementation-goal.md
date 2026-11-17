@@ -1,6 +1,9 @@
 # Local Harness Goal · Implement Skill Compiler v0 (BREAKING ONLY)
 
 - Repo: `odango-chan/ca-skill-compiler`
+
+> **已归档 / ARCHIVED — PRE-v1alpha4.** 本文记录早期 v0/v0.1 原型、迁移检查或设计阶段的验收结果。文中的语法、分支/PR 指令、样例诊断数量和验收结论均属于历史快照，不定义 CA-SL v1alpha4 或 Compiler v1.0.0 的当前要求。当前状态请以[工作流索引](README.md)和[最终验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)为准。
+
 - Start from the **latest** `origin/feat/compiler-v0-bootstrap` (Draft [PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2)), not the bare `main` and not the old `ca-skill-toolchain`.
 - Issue: [#1](https://github.com/odango-chan/ca-skill-compiler/issues/1)
 - Status at handoff: design frozen, prototype exists, **compiler Go/WASM and browser checks NOT_RUN**.

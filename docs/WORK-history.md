@@ -1,9 +1,9 @@
-# Historical Compiler Work Log — v0 / v0.1
+# Compiler Development History — v0, v0.1 and v1alpha4
 
 **Status:** ARCHIVED / NON-NORMATIVE  
-**Purpose:** Preserve the prior `docs/WORK.md` record for historical traceability. This file is not an implementation authority for CA-SL v1alpha4.
+**Purpose:** Preserve development records and point-in-time verification evidence. Every branch, PR, status, diagnostic count and test result in this file describes the date of its original record; none should be read as the current repository or release status. For the current state, see [Maintenance Status](WORK.md), [Release Notes](release-notes-v1.0.0.md) and the [v1alpha4 acceptance record](COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md).
 
-# Current v1alpha4 implementation freeze (2026-11-16)
+## v1alpha4 implementation planning snapshot (2026-11-16; superseded by v1.0.0)
 
 **Normative language:** CA-SL v1alpha4 is frozen at odango-chan/ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d (b70064c5737b8ee2b3d1435fe496357f44b42773).
 
@@ -15,17 +15,17 @@
 
 **Conformance inventory:** [E01–E120 case index](../tests/conformance/v1alpha4/case-index.json) and [Appendix H diagnostic index](../tests/conformance/v1alpha4/diagnostic-index.json) are derived from the pinned specification. They are inventories, not passing tests or executable fixture coverage.
 
-**Current implementation status:** PR #11 remains a source/graph admission slice. WP1 is on [PR #13](https://github.com/odango-chan/ca-skill-compiler/pull/13); WP2 is on [PR #14](https://github.com/odango-chan/ca-skill-compiler/pull/14), stacked on #13. WP1 adds the strict BuildRequest / output APIs, request validation, snapshot digest and source-only CLI. WP2 replaces yaml.v3 with goccy/go-yaml v1.19.2, adds the normalized AST and typed v1alpha4 Skill AST, and parses every YAML author file once for shared checks. Go tests, go vet, CGo-free Native build and Go/WASM build PASS. No Chromium runtime parity is claimed. Full linker, trusted inputs, Schema/CEL/Python/JCS adapters, E01–E120 fixture coverage, exact H diagnostic coverage, Native/WASM/Chromium parity and real 5GC qualification remain NOT_QUALIFIED.
+**Implementation status at the time of this snapshot:** PR #11 was a source/graph admission slice. WP1 is on [PR #13](https://github.com/odango-chan/ca-skill-compiler/pull/13); WP2 is on [PR #14](https://github.com/odango-chan/ca-skill-compiler/pull/14), stacked on #13. WP1 adds the strict BuildRequest / output APIs, request validation, snapshot digest and source-only CLI. WP2 replaces yaml.v3 with goccy/go-yaml v1.19.2, adds the normalized AST and typed v1alpha4 Skill AST, and parses every YAML author file once for shared checks. Go tests, go vet, CGo-free Native build and Go/WASM build PASS. No Chromium runtime parity is claimed. Full linker, trusted inputs, Schema/CEL/Python/JCS adapters, E01–E120 fixture coverage, exact H diagnostic coverage, Native/WASM/Chromium parity and real 5GC qualification remain NOT_QUALIFIED.
 
 **Explicitly unqualified external contracts:** real Evidence Descriptor publications, physical identity-input provenance, cross-snapshot Reconcile association, actual 5GC Owner / Deployment publications and MAS execution remain outside this freeze. Compiler must fail closed rather than invent these inputs.
 
 ---
 
-> **Current development target (2026-11-16): CA-SL v1alpha4.** The active Compiler contract set is indexed in the repository [README](../README.md). The implementation target is defined by docs/design/*-v1alpha4.md and contracts/v1alpha4/*.json. The historical v0 / v0.1 implementation notes below are retained for traceability; they are not current language or API authority and do not establish v1alpha4 conformance. Current status: PR #11 is a source/graph admission slice; full linker, trusted inputs, Script ABI, Artifact, E01–E120 and Native/WASM parity remain unqualified.
+> **Development target recorded on 2026-11-16: CA-SL v1alpha4.** The active Compiler contract set is indexed in the repository [README](../README.md). The implementation target is defined by docs/design/*-v1alpha4.md and contracts/v1alpha4/*.json. The historical v0 / v0.1 implementation notes below are retained for traceability; they are not current language or API authority and do not establish v1alpha4 conformance. At that time, PR #11 was a source/graph admission slice; full linker, trusted inputs, Script ABI, Artifact, E01–E120 and Native/WASM parity remained unqualified.
 
 ---
 
-# Skill Compiler v0 implementation status
+## Skill Compiler v0 implementation status
 
 Updated: 2026-11-12. The initial sections retain the v0 closeout record from implementation branch `feat/compiler-v0-complete` (code `431b67e4a44f4e7037aa5448cbb1595ff6212f22`, closeout docs `57a3fcc52e2b97ba2c336bbc21e49480020c193b`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`; [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3)). The v0.1 migration status and evidence follow below; neither section claims complete acceptance beyond its stated gates.
 
@@ -96,7 +96,7 @@ The final v0 result remains **PARTIAL**: Procedure result Schema syntax is absen
 
 Updated: 2026-11-12. Implementation branch: `feat/compiler-v01-implementation-20261111`, based on current design PR #4 head `4672621dbe4abe5a8df6e23c24395626f57199d` and the merged v0 closeout ancestry. The v0.1 contract is being implemented as a separate full migration, with no v0 compatibility layer.
 
-### Current v0.1 evidence
+### v0.1 evidence at the time of the record
 
 | Area | Status | Evidence / remaining work |
 |---|---|---|
@@ -198,7 +198,7 @@ Test/evidence code commit: `30ccbfbc`.
 
 The browser harness now loads the checked-in 62-path manifest and per-file SHA-256 map for the pinned ca-skills v0.2 snapshot, verifies every fetched file against the upstream SHA-256 manifest, and runs `check` through the WASM Worker. Chromium 156 returned the same 235 ordered diagnostics as the Native JSON golden. A Go regression verifies the manifest and checksum map against the pinned snapshot and compares Native diagnostics to that golden. The pinned input is 62 files (267,111 source bytes), and Chromium reports 235 official diagnostics. The official check remains expected nonzero because Owner schemas and MAS Operations are absent; parity establishes the same static result, not acceptance or runtime readiness.
 
-### Current upstream refresh
+### Upstream refresh recorded 2026-11-12
 
 Read-only upstream refs were refreshed on 2026-11-12. `ca-skills/main` is `3fce09aca32b6a6faf6ec3e9a204d38cc129ec38`; `ca-agent-demo/main` is `4395982fa6efb97714b97901603b2dfb7018c4d0`. The latest Skill Language spec on ca-skills/main identifies v0.2. The selected PDU/MAS package files and ToolCatalog match the PR #4 pinned snapshot byte-for-byte. After the binding refinements, both current-main and pinned checks return PDU 102 / MAS 133 static findings. The earlier recorded language conflict was stale and has been corrected. See [language alignment](workstreams/language-alignment-v0.1.md) for exact refs and breakdown.
 

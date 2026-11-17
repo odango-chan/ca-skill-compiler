@@ -1,7 +1,10 @@
 # WP5 — Procedure Graph Reachability and Global Precondition Dominance
 
 **Task ID:** `WP5-PROCEDURE-GRAPH-001`  
-**Status:** AGENT-PROPOSED BOUNDED ENVELOPE (slice 1) — implemented on `feat/compiler-v1alpha4-wp5-procedure-graph-20261116` for Draft PR review. Existing v1alpha4.go already enforces the frozen stage/route/cycle/terminal/final-success checks; this slice adds reachability and dominance proofs that require the reachable graph and trusted callable Effects.  
+
+> **已完成 / COMPLETED — MERGED INTO v1.0.0.** 本文记录 WP 实施时的任务边界、测试和决策。对应实现已通过 [PR #22](https://github.com/odango-chan/ca-skill-compiler/pull/22) 合并并纳入 v1.0.0。原分支名、Draft 审查状态和停止条件是历史信息；本文保留为实现证据，不是待执行任务。当前状态见[最终验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)和[已知限制](../known-limitations-v1alpha4.md)。
+
+**Status:** COMPLETED — merged via PR #22 and included in CA Skill Compiler v1.0.0; retained as a historical implementation record.
 **Depends on:** WP4D (`d78aedf`, PR #21)  
 **Task branch:** `feat/compiler-v1alpha4-wp5-procedure-graph-20261116`
 

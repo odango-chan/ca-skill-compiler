@@ -1,6 +1,6 @@
 # Compiler Output API Contract v1alpha4
 
-**Status:** FROZEN Compiler-owned output contract. **Implementation conformance:** NOT_QUALIFIED until the conformance gates have executable CI evidence.
+**Status:** FROZEN Compiler-owned output contract. **v1.0.0 implementation:** locally verified (`LOCAL_ACCEPTANCE_PASS`; see the [Compiler acceptance record](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)). **GitHub Actions:** unavailable for the release run and not claimed as PASS. **Product qualification:** NOT_QUALIFIED for real Owner/Deployment and 5GC integration.
 
 This document defines the observable outputs of Check, Build and InspectDependencies. It is subordinate to the frozen CA-SL language specification and the Compiler Contract.
 
@@ -99,7 +99,7 @@ InspectDependencies(BuildRequest) is a read-only inventory operation for Studio.
 
 If the request envelope itself is invalid, return diagnostics and empty callables / schemas arrays.
 
-Until WP3 implements trusted dependency linking and export parsing, the current Compiler slice returns `DEPENDENCY_IDENTITY_UNVERIFIED` for every nonempty dependency inventory and emits no callable or Schema rows. This is an explicit fail-closed implementation boundary, not a qualified or complete DependencyInspection result. An empty dependency list returns empty inventory arrays.
+WP3A–WP3D are implemented in v1.0.0. The current implementation validates supplied snapshot digests and trusted dependency / Owner bindings, then returns callable and Schema metadata only for exports whose identity and Owner can be established. It emits the applicable frozen diagnostics and omits unverified exports; it does not reject every nonempty inventory with `DEPENDENCY_IDENTITY_UNVERIFIED`. This behaviour is covered by `owner_linking_test.go` and `dependency_inspection_test.go` and is included in the local acceptance record. DependencyInspection remains an inventory projection: it does not evaluate Capability Grants or qualify a real Owner publication.
 
 ## 7. Failure and trust boundaries
 

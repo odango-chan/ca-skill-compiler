@@ -54,6 +54,4 @@ accepted. See [Known Limitations](../known-limitations-v1alpha4.md).
 - Identity-input trusted publication provenance.
 - Cross-snapshot Reconcile association.
 
-Everything else in stages 1–14 has executable static evidence and is covered by
-the repository test suite; see [E-coverage](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md#4-e-coverage)
-for per-case status.
+The stage map identifies implementation and test evidence for the static checks that are present; it does not mean every E-case is a whole-case PASS or that every positive Build path is enabled. Feature-scoped Evidence, Mutation/Reconcile and Retry Build gates remain conservative where complete static obligations or trusted external contracts are unavailable. See [E-coverage](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md#4-e-coverage) for per-case dispositions and [Known Limitations](../known-limitations-v1alpha4.md) for the exact fail-closed boundaries.

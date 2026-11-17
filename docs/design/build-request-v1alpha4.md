@@ -1,6 +1,6 @@
 # BuildRequest v1alpha4
 
-**Status:** FROZEN Compiler-owned API transport contract for implementation. **Implementation conformance:** NOT_QUALIFIED until executable CI evidence exists. Machine-readable schema: [build-request.schema.json](../../contracts/v1alpha4/build-request.schema.json).
+**Status:** FROZEN Compiler-owned API transport contract. **v1.0.0 implementation:** locally verified (`LOCAL_ACCEPTANCE_PASS`; see the [Compiler acceptance record](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)). **GitHub Actions:** unavailable for the release run and not claimed as PASS. **Product qualification:** NOT_QUALIFIED for real Owner/Deployment and 5GC integration. Machine-readable schema: [build-request.schema.json](../../contracts/v1alpha4/build-request.schema.json).
 
 ## 1. Two independent versions
 

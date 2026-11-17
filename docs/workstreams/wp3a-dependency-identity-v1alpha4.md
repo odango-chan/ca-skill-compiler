@@ -1,7 +1,10 @@
 # WP3A — Dependency Snapshot Identity and Trust Binding
 
 **Task ID:** `WP3A-DEPENDENCY-IDENTITY-001`  
-**Status:** IMPLEMENTED — Draft PR #15 under maintainer review; all 10 fixture-plan entries execute PASS locally (see the PR description for the run record).\
+
+> **已完成 / COMPLETED — MERGED INTO v1.0.0.** 本文记录 WP 实施时的任务边界、测试和决策。对应实现已通过 [PR #15](https://github.com/odango-chan/ca-skill-compiler/pull/15) 合并并纳入 v1.0.0。原分支名、Draft 审查状态和停止条件是历史信息；本文保留为实现证据，不是待执行任务。当前状态见[最终验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)和[已知限制](../known-limitations-v1alpha4.md)。
+
+**Status:** COMPLETED — merged via PR #15 and included in CA Skill Compiler v1.0.0; retained as a historical implementation record.
 **Scope:** Compiler / static linking only  
 **Task branch:** `feat/compiler-v1alpha4-wp3a-dependency-identity-20261116`  
 **Required PR base:** `feat/compiler-v1alpha4-wp2-yaml-ast-20261116`

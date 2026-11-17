@@ -1,3 +1,5 @@
+[简体中文](cli-v1alpha4.zh-CN.md)
+
 # skillc CLI v1alpha4
 
 **Status:** Implemented reference CLI for the frozen CA-SL v1alpha4 Compiler Core.
