@@ -948,18 +948,22 @@ func TestV1Alpha5WP6Deterministic(t *testing.T) {
 	}
 }
 
-// TestV1Alpha5WP6BuildRemainsFailClosed proves that Build stays fail-closed after
-// the WP6 static pass succeeds.
-func TestV1Alpha5WP6BuildRemainsFailClosed(t *testing.T) {
+// TestV1Alpha5WP6BuildSucceedsWithArtifact proves that a zero-diagnostic WP6
+// response-boundary contract now yields a successful Build with a verifiable
+// deterministic artifact tree instead of the retired residual gate.
+func TestV1Alpha5WP6BuildSucceedsWithArtifact(t *testing.T) {
 	request := wp6BuildRequest(t, wp6FixtureOptions{})
 	if diagnostics := Check(request); len(diagnostics) != 0 {
 		t.Fatalf("positive WP6 fixture must pass Check, got %#v", diagnostics)
 	}
 	result := Build(request)
-	if result.Success {
-		t.Fatalf("WP6 static pass must not open the v1alpha5 Build gate")
+	if !result.Success {
+		t.Fatalf("WP6 static pass must yield a successful v1alpha5 Build, diagnostics = %#v", result.Diagnostics)
 	}
-	if !hasV1Alpha5Diagnostic(result.Diagnostics, "CAPABILITY_INPUT_UNTRUSTED") {
-		t.Fatalf("Build must stay fail-closed through the residual gate, got %#v", result.Diagnostics)
+	if hasV1Alpha5Diagnostic(result.Diagnostics, "CAPABILITY_INPUT_UNTRUSTED") {
+		t.Fatalf("successful Build must not carry the retired residual gate, got %#v", result.Diagnostics)
+	}
+	if err := VerifyBuildResult(result); err != nil {
+		t.Fatalf("VerifyBuildResult: %v", err)
 	}
 }

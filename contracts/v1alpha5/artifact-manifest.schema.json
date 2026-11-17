@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:connectionagent:compiler:artifact-manifest:v1alpha5",
+  "title": "CA Skill Compiler candidate v1alpha5 artifact manifest",
+  "description": "CANDIDATE / DRAFT compiler-owned schema for the connectionagent.io/compiler-artifact/v1alpha5 manifest emitted by a successful CA-SL v1alpha5 Build. It is independent of the frozen v1alpha4 artifact contract and is not an Owner publication, deployment authorization, Runtime admission or product/5GC qualification claim. The manifest is serialized as canonical RFC 8785 JCS. It lists every emitted artifact file except itself; each listed sha256 is the digest of the exact emitted bytes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "languageTarget", "generator", "dependencyClosure", "skills", "outputFiles"],
+  "properties": {
+    "apiVersion": {
+      "const": "connectionagent.io/compiler-artifact/v1alpha5"
+    },
+    "languageTarget": {
+      "const": "connectionagent.io/v1alpha5"
+    },
+    "generator": {
+      "$ref": "#/$defs/generator"
+    },
+    "dependencyClosure": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dependency" }
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/skill" }
+    },
+    "outputFiles": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/outputFile" }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "ca-skill-compiler" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 80 }
+      }
+    },
+    "exportRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exportKind", "exportId", "owner"],
+      "properties": {
+        "exportKind": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "exportId": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "owner": { "type": "string", "minLength": 1, "maxLength": 160 }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dependencyId", "stablePackageId", "exports"],
+      "properties": {
+        "dependencyId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "stablePackageId": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "exports": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/exportRef" }
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "service", "operation"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "service": { "type": "string", "minLength": 1 },
+        "operation": { "type": "string", "minLength": 1 }
+      }
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["specification", "release", "apiUriVersion", "operationId", "method", "path"],
+      "properties": {
+        "specification": { "type": "string" },
+        "release": { "type": "string" },
+        "apiUriVersion": { "type": "string" },
+        "operationId": { "type": "string" },
+        "method": { "type": "string" },
+        "path": { "type": "string" }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dependencyAlias",
+        "catalogOwner",
+        "snapshotPath",
+        "operationId",
+        "normalizedSchemaRef",
+        "normalizedSchemaClosureDigest",
+        "protocol"
+      ],
+      "properties": {
+        "dependencyAlias": { "type": "string", "minLength": 1 },
+        "catalogOwner": { "type": "string", "minLength": 1 },
+        "snapshotPath": { "type": "string", "minLength": 1 },
+        "operationId": { "type": "string", "minLength": 1 },
+        "normalizedSchemaRef": { "type": "string", "minLength": 1 },
+        "normalizedSchemaClosureDigest": { "$ref": "#/$defs/sha256" },
+        "normalizedSchemaSnapshotPath": { "type": "string" },
+        "protocol": { "$ref": "#/$defs/protocol" }
+      }
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "declared", "boundaryNodeId", "earlyFailureTerminals"],
+      "properties": {
+        "mode": { "enum": ["none", "paired"] },
+        "declared": { "type": "boolean" },
+        "boundaryNodeId": { "type": "string", "minLength": 1 },
+        "producerStage": { "type": "string" },
+        "responseResultSchemaRef": { "type": "string" },
+        "responseResultSchemaClosureDigest": { "$ref": "#/$defs/sha256" },
+        "earlyFailureTerminals": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "waitLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "event", "timeout", "timeoutRoute", "ingress", "response"],
+      "properties": {
+        "nodeId": { "type": "string", "minLength": 1 },
+        "event": { "$ref": "#/$defs/event" },
+        "timeout": { "type": "string", "minLength": 1 },
+        "timeoutRoute": { "type": "string", "minLength": 1 },
+        "ingress": { "$ref": "#/$defs/ingress" },
+        "response": { "$ref": "#/$defs/response" }
+      }
+    },
+    "skill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sourceDigest", "sourceFiles", "compiledFiles", "waitLinks"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$" },
+        "sourceDigest": { "$ref": "#/$defs/sha256" },
+        "sourceFiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^skills/" }
+        },
+        "compiledFiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^skills/[A-Za-z0-9_-]+/compiled/" }
+        },
+        "waitLinks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/waitLink" }
+        }
+      }
+    },
+    "outputFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^(manifest\\.json|skills/)"
+        },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

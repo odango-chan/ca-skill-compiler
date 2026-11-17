@@ -336,6 +336,9 @@ func failedBuildResult(diagnostics []Diagnostic) BuildResult {
 // artifact tree (unique paths, canonical manifest per Skill, complete file
 // listing, generated Script Output Schema identity). It never writes to disk and
 // returns nil for an empty or failed result.
+//
+// v1alpha5 results dispatch to the candidate v1alpha5 artifact contract
+// verification; the frozen v1alpha4 artifact verification is unchanged.
 func VerifyBuildResult(result BuildResult) error {
 	if !result.Success {
 		return nil
@@ -343,6 +346,9 @@ func VerifyBuildResult(result BuildResult) error {
 	files := make([]artifact.File, 0, len(result.OutputFiles))
 	for _, file := range result.OutputFiles {
 		files = append(files, artifact.File{Path: file.Path, Bytes: file.Bytes})
+	}
+	if result.APIVersion == BuildResultAPIVersionV1Alpha5 {
+		return verifyV1Alpha5ArtifactTree(result, files)
 	}
 	return artifact.Verify(files)
 }
