@@ -3,11 +3,11 @@
 // It builds the Go/WASM compiler, serves a static page, launches real headless
 // Chromium, runs Check/Build/Inspect through the same Web Worker transport used by
 // Skill Studio, and compares the browser results with the Native Go reference for
-// the same BuildRequest. The frozen v1alpha4 flow keeps its full projection and
-// successful-Build artifact byte parity. The candidate v1alpha5 case proves Check
-// diagnostics and the fail-closed Build residual are identical across Native and
-// the real Chromium Worker; successful-Build v1alpha5 artifact byte parity is
-// deferred until WP3-WP6 complete the pipeline. Run from the repository root:
+// the same BuildRequest. Both the frozen v1alpha4 flow and the candidate v1alpha5
+// flow compare full projections, including successful-Build artifact byte parity
+// and Go Core artifact-integrity verification inside the Chromium Worker. The
+// v1alpha5 trusted fixture is SYNTHETIC and compiler-owned. Run from the
+// repository root:
 //
 //   GOTOOLCHAIN=go1.27.4 node scripts/chromium-parity.mjs
 //
@@ -78,8 +78,9 @@ function nativeReference() {
 }
 
 // writeV1Alpha5Requests converts the checked-in synthetic v1alpha5 author sources
-// into explicit BuildRequest JSON files. They contain author files only, so no
-// trusted dependency snapshot is needed for Check or for the fail-closed Build.
+// into explicit BuildRequest JSON files. The valid/invalid files contain author
+// files only; the trusted fixture is a compiler-owned SYNTHETIC trusted request
+// (not a real Owner artifact) that exercises a Wait-bearing successful Build.
 function writeV1Alpha5Requests() {
   const requests = {};
   for (const name of ['valid', 'invalid']) {
@@ -97,7 +98,24 @@ function writeV1Alpha5Requests() {
     writeFileSync(path.join(webRoot, file), JSON.stringify(request));
     requests[name] = file;
   }
+  const trusted = 'parity-v1alpha5-trusted-request.json';
+  writeFileSync(path.join(webRoot, trusted), readFileSync(path.join(v1alpha5FixtureRoot, 'trusted-build-request.json')));
+  requests.trusted = trusted;
   return requests;
+}
+
+function browserArtifactHashes(build) {
+  // parity-replay's reference view records the bare sha256 hex digest.
+  return (build.outputFiles || []).map(file => ({
+    path: file.path,
+    sha256: createHash('sha256').update(Buffer.from(file.bytes, 'base64')).digest('hex'),
+  })).sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
+}
+
+function browserArtifactJSON(build, filePath) {
+  const file = (build.outputFiles || []).find(candidate => candidate.path === filePath);
+  if (!file) return null;
+  return JSON.parse(Buffer.from(file.bytes, 'base64').toString('utf8'));
 }
 
 // nativeRequestReference runs the Native Go reference against an explicit
@@ -281,29 +299,57 @@ async function main() {
     if (!studioSuccess.artifactReadOnly) fail('Studio success-path artifact view must be read-only');
     console.log('ok: Studio success-path artifact presentation identical');
 
-    // v1alpha5 candidate-target phase (WP8 slice). Check diagnostics and the
-    // fail-closed Build residual are provable now because WP2 implements the
-    // Wait/Procedure AST validation. Successful-Build artifact byte parity is
-    // intentionally NOT asserted here: artifact assembly is deferred until
-    // WP3-WP6 complete the pipeline.
+    // v1alpha5 candidate-target artifact phase (WP8 completion). Check
+    // diagnostics, successful Build artifact bytes and the linked Ingress
+    // metadata of a Wait-bearing Skill are compared between Native Go and the
+    // real Chromium Worker. The trusted fixture is SYNTHETIC and compiler-owned;
+    // it is not a real Owner publication or qualification claim.
     const v1alpha5Requests = writeV1Alpha5Requests();
     const nativeV1Alpha5Valid = nativeRequestReference(path.join(webRoot, v1alpha5Requests.valid));
     const nativeV1Alpha5Invalid = nativeRequestReference(path.join(webRoot, v1alpha5Requests.invalid));
+    const nativeV1Alpha5Trusted = nativeRequestReference(path.join(webRoot, v1alpha5Requests.trusted));
 
+    // (a) Wait-free author-only fixture: zero-diagnostic successful Build.
     if (nativeV1Alpha5Valid.check.length !== 0) {
-      fail(`v1alpha5 valid Wait procedure must Check with zero diagnostics, got ${stable(nativeV1Alpha5Valid.check)}`);
+      fail(`v1alpha5 valid procedure must Check with zero diagnostics, got ${stable(nativeV1Alpha5Valid.check)}`);
     }
-    if (nativeV1Alpha5Valid.build.success) fail('v1alpha5 Build must stay fail-closed until WP3-WP6 complete');
+    if (!nativeV1Alpha5Valid.build.success) {
+      fail(`v1alpha5 valid Build must succeed, diagnostics = ${stable(nativeV1Alpha5Valid.build.diagnostics)}`);
+    }
     if (nativeV1Alpha5Valid.build.apiVersion !== v1alpha5ResultAPIVersion) {
       fail(`v1alpha5 BuildResult apiVersion = ${JSON.stringify(nativeV1Alpha5Valid.build.apiVersion)}`);
     }
-    const v1alpha5Residual = nativeV1Alpha5Valid.build.diagnostics;
-    if (v1alpha5Residual.length !== 1 || v1alpha5Residual[0].code !== 'CAPABILITY_INPUT_UNTRUSTED' ||
-        !String(v1alpha5Residual[0].message).startsWith('fail-closed:')) {
-      fail(`unexpected v1alpha5 fail-closed residual: ${stable(v1alpha5Residual)}`);
+    if (nativeV1Alpha5Valid.build.diagnostics.length !== 0) {
+      fail(`v1alpha5 valid Build diagnostics = ${stable(nativeV1Alpha5Valid.build.diagnostics)}`);
+    }
+    if ((nativeV1Alpha5Valid.build.outputFiles || []).length !== 3) {
+      fail(`v1alpha5 valid Build emitted ${(nativeV1Alpha5Valid.build.outputFiles || []).length} files, want 3`);
     }
     console.log('ok: v1alpha5 valid Check returns zero diagnostics');
+    console.log('ok: v1alpha5 valid Build succeeds with deterministic artifact');
 
+    // (b) Trusted Wait-bearing fixture: zero-diagnostic successful Build with the
+    // measured dependency closure and linked Ingress identity.
+    if (nativeV1Alpha5Trusted.check.length !== 0) {
+      fail(`v1alpha5 trusted fixture must Check with zero diagnostics, got ${stable(nativeV1Alpha5Trusted.check)}`);
+    }
+    if (!nativeV1Alpha5Trusted.build.success) {
+      fail(`v1alpha5 trusted Build must succeed, diagnostics = ${stable(nativeV1Alpha5Trusted.build.diagnostics)}`);
+    }
+    if (nativeV1Alpha5Trusted.build.apiVersion !== v1alpha5ResultAPIVersion) {
+      fail(`v1alpha5 trusted BuildResult apiVersion = ${JSON.stringify(nativeV1Alpha5Trusted.build.apiVersion)}`);
+    }
+    if (stable(nativeV1Alpha5Trusted.build.dependencyClosure) !== stable(['integration', 'tools'])) {
+      fail(`v1alpha5 trusted dependencyClosure = ${stable(nativeV1Alpha5Trusted.build.dependencyClosure)}`);
+    }
+    const trustedPaths = (nativeV1Alpha5Trusted.build.outputFiles || []).map(file => file.path);
+    for (const required of ['manifest.json', 'skills/example/compiled/procedure.json', 'skills/example/compiled/ingress-links.json']) {
+      if (!trustedPaths.includes(required)) fail(`v1alpha5 trusted artifact is missing ${required}`);
+    }
+    console.log(`ok: v1alpha5 trusted Build succeeds with dependency closure (${trustedPaths.length} files)`);
+
+    // (c) Invalid author fixture: deterministic located WAIT_* diagnostics and no
+    // artifact. A failed Build never emits partial output.
     if (nativeV1Alpha5Invalid.check.length === 0) fail('v1alpha5 invalid Wait procedure unexpectedly Checked clean');
     for (const diagnostic of nativeV1Alpha5Invalid.check) {
       if (!String(diagnostic.code).startsWith('WAIT_')) fail(`invalid v1alpha5 case emitted non-WAIT_* code ${diagnostic.code}`);
@@ -311,30 +357,89 @@ async function main() {
       if (diagnostic.path !== 'skills/example/assurance/procedure.yaml') fail(`v1alpha5 diagnostic path = ${JSON.stringify(diagnostic.path)}`);
     }
     if (stable(nativeV1Alpha5Invalid.build.diagnostics) !== stable(nativeV1Alpha5Invalid.check)) {
-      fail('v1alpha5 invalid Check and fail-closed Build diagnostics must be identical');
+      fail('v1alpha5 invalid Check and failed Build diagnostics must be identical');
     }
     if (nativeV1Alpha5Invalid.build.success) fail('invalid v1alpha5 fixture unexpectedly Build succeeded');
+    if ((nativeV1Alpha5Invalid.build.outputFiles || []).length !== 0) fail('failed v1alpha5 Build emitted artifact files');
     if (nativeV1Alpha5Invalid.build.apiVersion !== v1alpha5ResultAPIVersion) {
       fail(`v1alpha5 invalid BuildResult apiVersion = ${JSON.stringify(nativeV1Alpha5Invalid.build.apiVersion)}`);
     }
     console.log(`ok: v1alpha5 invalid WAIT_* diagnostics positioned and deterministic (${nativeV1Alpha5Invalid.check.length} diagnostics)`);
 
+    // Native vs real Chromium Worker: valid successful Build.
     const browserV1Alpha5Valid = await cdpEvaluate(`http://127.0.0.1:${debugPort}/json/version`, `http://127.0.0.1:${port}/parity.html?request=${v1alpha5Requests.valid}`);
     if (!browserV1Alpha5Valid.ok) fail(`Chromium Worker v1alpha5 valid error: ${browserV1Alpha5Valid.error}`);
-    if (browserV1Alpha5Valid.artifactError !== '') fail(`v1alpha5 fail-closed artifact verification failed: ${browserV1Alpha5Valid.artifactError}`);
+    if (browserV1Alpha5Valid.artifactError !== '') fail(`v1alpha5 artifact verification failed in Chromium Worker: ${browserV1Alpha5Valid.artifactError}`);
+    console.log('ok: v1alpha5 Chromium Worker VerifyArtifact PASS');
     compare('v1alpha5 check', nativeV1Alpha5Valid.check, browserV1Alpha5Valid.check);
     compare('v1alpha5 build.success', nativeV1Alpha5Valid.build.success, browserV1Alpha5Valid.build.success);
     compare('v1alpha5 build.apiVersion', nativeV1Alpha5Valid.build.apiVersion, browserV1Alpha5Valid.build.apiVersion);
     compare('v1alpha5 build.diagnostics', nativeV1Alpha5Valid.build.diagnostics, browserV1Alpha5Valid.build.diagnostics);
+    compare('v1alpha5 build.dependencyClosure', nativeV1Alpha5Valid.build.dependencyClosure, browserV1Alpha5Valid.build.dependencyClosure);
+    compare('v1alpha5 build.outputFiles.paths',
+      (nativeV1Alpha5Valid.build.outputFiles || []).map(file => file.path),
+      (browserV1Alpha5Valid.build.outputFiles || []).map(file => file.path));
+    const browserV1Alpha5ValidHashes = browserArtifactHashes(browserV1Alpha5Valid.build);
+    compare('v1alpha5 successful-Build artifact hashes', nativeV1Alpha5Valid.build.outputFiles, browserV1Alpha5ValidHashes);
+    console.log(`ok: v1alpha5 successful-Build artifact byte parity (${browserV1Alpha5ValidHashes.length} files)`);
     compare('v1alpha5 inspect', nativeV1Alpha5Valid.inspect, browserV1Alpha5Valid.inspect);
 
+    // Native vs real Chromium Worker: invalid fixture.
     const browserV1Alpha5Invalid = await cdpEvaluate(`http://127.0.0.1:${debugPort}/json/version`, `http://127.0.0.1:${port}/parity.html?request=${v1alpha5Requests.invalid}`);
     if (!browserV1Alpha5Invalid.ok) fail(`Chromium Worker v1alpha5 invalid error: ${browserV1Alpha5Invalid.error}`);
     compare('v1alpha5 invalid-diagnostics', nativeV1Alpha5Invalid.check, browserV1Alpha5Invalid.check);
     compare('v1alpha5 invalid build.diagnostics', nativeV1Alpha5Invalid.build.diagnostics, browserV1Alpha5Invalid.build.diagnostics);
     compare('v1alpha5 invalid inspect', nativeV1Alpha5Invalid.inspect, browserV1Alpha5Invalid.inspect);
 
-    console.log('PASS: Native and real Chromium Worker v1alpha5 parity');
+    // Native vs real Chromium Worker: trusted Wait-bearing successful Build.
+    const browserV1Alpha5Trusted = await cdpEvaluate(`http://127.0.0.1:${debugPort}/json/version`, `http://127.0.0.1:${port}/parity.html?request=${v1alpha5Requests.trusted}`);
+    if (!browserV1Alpha5Trusted.ok) fail(`Chromium Worker v1alpha5 trusted error: ${browserV1Alpha5Trusted.error}`);
+    if (browserV1Alpha5Trusted.artifactError !== '') fail(`v1alpha5 trusted artifact verification failed in Chromium Worker: ${browserV1Alpha5Trusted.artifactError}`);
+    compare('v1alpha5 trusted check', nativeV1Alpha5Trusted.check, browserV1Alpha5Trusted.check);
+    compare('v1alpha5 trusted build.success', nativeV1Alpha5Trusted.build.success, browserV1Alpha5Trusted.build.success);
+    compare('v1alpha5 trusted build.apiVersion', nativeV1Alpha5Trusted.build.apiVersion, browserV1Alpha5Trusted.build.apiVersion);
+    compare('v1alpha5 trusted build.diagnostics', nativeV1Alpha5Trusted.build.diagnostics, browserV1Alpha5Trusted.build.diagnostics);
+    compare('v1alpha5 trusted dependencyClosure', nativeV1Alpha5Trusted.build.dependencyClosure, browserV1Alpha5Trusted.build.dependencyClosure);
+    compare('v1alpha5 trusted build.outputFiles.paths',
+      (nativeV1Alpha5Trusted.build.outputFiles || []).map(file => file.path),
+      (browserV1Alpha5Trusted.build.outputFiles || []).map(file => file.path));
+    const browserV1Alpha5TrustedHashes = browserArtifactHashes(browserV1Alpha5Trusted.build);
+    compare('v1alpha5 trusted successful-Build artifact hashes', nativeV1Alpha5Trusted.build.outputFiles, browserV1Alpha5TrustedHashes);
+    console.log(`ok: v1alpha5 trusted successful-Build artifact byte parity (${browserV1Alpha5TrustedHashes.length} files)`);
+
+    // Byte parity implies the Native manifest equals the browser manifest; the
+    // browser manifest is decoded here to assert the linked Ingress identity and
+    // dependency closure explicitly.
+    const trustedManifest = browserArtifactJSON(browserV1Alpha5Trusted.build, 'manifest.json');
+    if (!trustedManifest) fail('v1alpha5 trusted artifact has no manifest.json');
+    if (trustedManifest.apiVersion !== 'connectionagent.io/compiler-artifact/v1alpha5' ||
+        trustedManifest.languageTarget !== v1alpha5LanguageTarget) {
+      fail(`v1alpha5 trusted manifest identity = ${JSON.stringify({ apiVersion: trustedManifest.apiVersion, languageTarget: trustedManifest.languageTarget })}`);
+    }
+    if (stable((trustedManifest.dependencyClosure || []).map(entry => entry.dependencyId)) !== stable(['integration', 'tools'])) {
+      fail(`v1alpha5 trusted manifest dependencyClosure = ${stable(trustedManifest.dependencyClosure)}`);
+    }
+    const trustedSkill = (trustedManifest.skills || [])[0];
+    const trustedWait = trustedSkill && (trustedSkill.waitLinks || [])[0];
+    if (!trustedWait) fail('v1alpha5 trusted manifest has no Wait link');
+    const trustedIngress = trustedWait.ingress || {};
+    if (trustedIngress.dependencyAlias !== 'integration' ||
+        trustedIngress.snapshotPath !== 'ingress/catalog.yaml' ||
+        trustedIngress.operationId !== 'nsmf-pdusession.update-sm-context' ||
+        trustedIngress.normalizedSchemaRef !== 'urn:example:schema:update-normalized' ||
+        !String(trustedIngress.normalizedSchemaClosureDigest || '').startsWith('sha256:')) {
+      fail(`v1alpha5 trusted Ingress identity = ${stable(trustedIngress)}`);
+    }
+    if (!trustedWait.response || trustedWait.response.mode !== 'none') {
+      fail(`v1alpha5 trusted Wait response metadata = ${stable(trustedWait.response)}`);
+    }
+    if ((trustedManifest.outputFiles || []).length !== browserV1Alpha5TrustedHashes.length - 1) {
+      fail('v1alpha5 trusted manifest outputFiles does not list every emitted file');
+    }
+    console.log('ok: v1alpha5 trusted linked Ingress metadata identical');
+    console.log('ok: v1alpha5 Chromium Worker VerifyArtifact PASS');
+
+    console.log('PASS: Native and real Chromium Worker v1alpha5 artifact parity');
 
     console.log('PASS: Native and real Chromium Worker projections are identical');
   } finally {

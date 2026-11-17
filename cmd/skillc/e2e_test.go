@@ -518,30 +518,61 @@ func TestCLIEndToEndV1Alpha5CheckRequest(t *testing.T) {
 	}
 }
 
-// TestCLIEndToEndV1Alpha5BuildFailClosed proves Build is fail-closed for the
-// candidate target in both directions: a valid Procedure fails closed on the
-// documented residual gate, while an invalid one preserves its WAIT_*
-// diagnostics. Every v1alpha5 BuildResult is stamped with the v1alpha5 API
-// version, and no artifact files are emitted.
-func TestCLIEndToEndV1Alpha5BuildFailClosed(t *testing.T) {
+// TestCLIEndToEndV1Alpha5Build proves Build assembles the candidate artifact in
+// both directions: a valid Procedure writes the deterministic tree and exits 0,
+// while unresolved/invalid Procedures still exit 1 with their exact diagnostics
+// and write no artifact.
+func TestCLIEndToEndV1Alpha5Build(t *testing.T) {
 	validPath := v1alpha5CLIRequestPath(t, "valid")
-	valid := runCLI(t, "build", "--request", validPath, "--out", filepath.Join(t.TempDir(), "valid-out"), "--json")
-	if valid.code != 1 {
-		t.Fatalf("valid v1alpha5 build exit = %d, want 1; stderr = %s", valid.code, valid.stderr)
+	validOut := filepath.Join(t.TempDir(), "valid-out")
+	valid := runCLI(t, "build", "--request", validPath, "--out", validOut, "--json")
+	if valid.code != 0 {
+		t.Fatalf("valid v1alpha5 build exit = %d, want 0; stderr = %s", valid.code, valid.stderr)
 	}
 	var validResult compiler.BuildResult
 	if err := json.Unmarshal([]byte(valid.stdout), &validResult); err != nil {
 		t.Fatalf("valid v1alpha5 build --json output: %v\n%s", err, valid.stdout)
 	}
-	if validResult.APIVersion != compiler.BuildResultAPIVersionV1Alpha5 || validResult.Success {
+	if validResult.APIVersion != compiler.BuildResultAPIVersionV1Alpha5 || !validResult.Success {
 		t.Fatalf("valid v1alpha5 build result = apiVersion %q success %v", validResult.APIVersion, validResult.Success)
 	}
-	if len(validResult.Diagnostics) != 1 || validResult.Diagnostics[0].Code != "CAPABILITY_INPUT_UNTRUSTED" ||
-		!strings.HasPrefix(validResult.Diagnostics[0].Message, "fail-closed:") {
-		t.Fatalf("v1alpha5 fail-closed residual = %+v", validResult.Diagnostics)
+	if len(validResult.Diagnostics) != 0 {
+		t.Fatalf("valid v1alpha5 build diagnostics = %+v, want []", validResult.Diagnostics)
 	}
-	if len(validResult.OutputFiles) != 0 || len(validResult.DependencyClosure) != 0 {
-		t.Fatalf("fail-closed v1alpha5 build emitted artifact data: %+v", validResult)
+	if len(validResult.OutputFiles) != 3 || len(validResult.DependencyClosure) != 0 {
+		t.Fatalf("unexpected v1alpha5 build result: %+v", validResult)
+	}
+	if err := compiler.VerifyBuildResult(validResult); err != nil {
+		t.Fatalf("VerifyBuildResult: %v", err)
+	}
+	tree := readTree(t, validOut)
+	if len(tree) != len(validResult.OutputFiles) {
+		t.Fatalf("written tree has %d files, result has %d", len(tree), len(validResult.OutputFiles))
+	}
+	for _, file := range validResult.OutputFiles {
+		if !bytes.Equal(tree[file.Path], file.Bytes) {
+			t.Fatalf("written artifact %q differs from BuildResult bytes", file.Path)
+		}
+	}
+	if _, ok := tree["manifest.json"]; !ok {
+		t.Fatalf("written tree is missing manifest.json: %v", keysOf(tree))
+	}
+
+	validHuman := runCLI(t, "build", "--request", validPath, "--out", filepath.Join(t.TempDir(), "valid-human"))
+	if validHuman.code != 0 || !strings.Contains(validHuman.stdout, "Skill build complete") {
+		t.Fatalf("valid v1alpha5 human build exit = %d stdout = %q stderr = %q", validHuman.code, validHuman.stdout, validHuman.stderr)
+	}
+
+	unresolvedPath := v1alpha5CLIRequestPath(t, "wait-no-ingress")
+	unresolvedOut := filepath.Join(t.TempDir(), "unresolved-out")
+	if result := runCLI(t, "build", "--request", unresolvedPath, "--out", unresolvedOut); result.code != 1 {
+		t.Fatalf("unresolved v1alpha5 build exit = %d, want 1", result.code)
+	}
+	if _, err := os.Stat(unresolvedOut); err == nil {
+		entries, readErr := os.ReadDir(unresolvedOut)
+		if readErr != nil || len(entries) != 0 {
+			t.Fatalf("failed v1alpha5 build wrote artifact output: %v", entries)
+		}
 	}
 
 	invalidPath := v1alpha5CLIRequestPath(t, "invalid")
@@ -556,8 +587,8 @@ func TestCLIEndToEndV1Alpha5BuildFailClosed(t *testing.T) {
 	if invalidResult.APIVersion != compiler.BuildResultAPIVersionV1Alpha5 || invalidResult.Success {
 		t.Fatalf("invalid v1alpha5 build result = apiVersion %q success %v", invalidResult.APIVersion, invalidResult.Success)
 	}
-	if len(invalidResult.Diagnostics) != 6 {
-		t.Fatalf("invalid v1alpha5 build diagnostics = %+v, want 6", invalidResult.Diagnostics)
+	if len(invalidResult.Diagnostics) != 6 || len(invalidResult.OutputFiles) != 0 {
+		t.Fatalf("invalid v1alpha5 build result: %+v", invalidResult)
 	}
 	for _, diagnostic := range invalidResult.Diagnostics {
 		if !strings.HasPrefix(diagnostic.Code, "WAIT_") || diagnostic.Line == 0 || diagnostic.Column == 0 {

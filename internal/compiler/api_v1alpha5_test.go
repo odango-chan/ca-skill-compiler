@@ -111,35 +111,31 @@ func TestCheckDispatchesV1Alpha5TargetAndFailsClosedOnUnknownTarget(t *testing.T
 	assertV1Alpha5DiagnosticCodeOnly(t, diagnostics, "LANGUAGE_TARGET_UNSUPPORTED")
 }
 
-func TestBuildV1Alpha5FailsClosedAfterASTValidation(t *testing.T) {
+func TestBuildV1Alpha5SucceedsAfterFullValidation(t *testing.T) {
 	// The complete trusted fixture validates without source diagnostics, so the
-	// residual fail-closed gate is the only remaining result.
+	// candidate Build assembles the deterministic artifact tree.
 	result := Build(wp3BuildRequest(t, wp3FixtureOptions{}))
-	if result.Success {
-		t.Fatal("v1alpha5 Build must stay fail-closed while WP4/WP6-WP8 are unimplemented")
+	if !result.Success {
+		t.Fatalf("v1alpha5 Build must succeed after zero-error validation, diagnostics = %#v", result.Diagnostics)
 	}
 	if result.APIVersion != BuildResultAPIVersionV1Alpha5 {
 		t.Fatalf("BuildResult.apiVersion = %q, want %q", result.APIVersion, BuildResultAPIVersionV1Alpha5)
 	}
-	if len(result.Diagnostics) != 1 {
-		t.Fatalf("expected exactly the residual fail-closed diagnostic, got %#v", result.Diagnostics)
+	if len(result.Diagnostics) != 0 {
+		t.Fatalf("successful Build must not report diagnostics, got %#v", result.Diagnostics)
 	}
-	diagnostic := result.Diagnostics[0]
-	if diagnostic.Severity != "error" || diagnostic.Phase != "C_STATIC" {
-		t.Fatalf("unexpected residual diagnostic identity: %#v", diagnostic)
+	if len(result.OutputFiles) < 3 {
+		t.Fatalf("successful Build must emit the artifact tree, got %v", v1alpha5ArtifactPaths(result))
 	}
-	if !strings.HasPrefix(diagnostic.Message, "fail-closed: ") {
-		t.Fatalf("residual gate must be clearly marked fail-closed: %#v", diagnostic)
+	if strings.Join(result.DependencyClosure, ",") != "integration,tools" {
+		t.Fatalf("dependencyClosure = %v, want [integration tools]", result.DependencyClosure)
 	}
-	if !strings.Contains(diagnostic.Message, "WP7 conformance mapping") || !strings.Contains(diagnostic.Message, "WP8 artifact assembly") {
-		t.Fatalf("residual gate must name the unimplemented work packages: %#v", diagnostic)
-	}
-	if strings.Contains(diagnostic.Message, "WP3-WP8") {
-		t.Fatalf("residual gate must not blanket-name already implemented work packages: %#v", diagnostic)
+	if err := VerifyBuildResult(result); err != nil {
+		t.Fatalf("VerifyBuildResult: %v", err)
 	}
 
 	// A Wait whose trusted Ingress export cannot exist is a real source
-	// diagnostic, not a silent residual-gate-only failure.
+	// diagnostic and still blocks Build.
 	dependencyFree := Build(v1alpha5TestProcedureRequest(validV1Alpha5WaitProcedure()))
 	if dependencyFree.Success {
 		t.Fatal("dependency-free v1alpha5 Build must not succeed")
@@ -147,9 +143,12 @@ func TestBuildV1Alpha5FailsClosedAfterASTValidation(t *testing.T) {
 	if !hasV1Alpha5Diagnostic(dependencyFree.Diagnostics, "WAIT_INGRESS_EXPORT_NOT_FOUND") {
 		t.Fatalf("dependency-free Wait must report WAIT_INGRESS_EXPORT_NOT_FOUND, got %#v", dependencyFree.Diagnostics)
 	}
+	if len(dependencyFree.OutputFiles) != 0 {
+		t.Fatalf("failed Build emitted artifact files: %v", v1alpha5ArtifactPaths(dependencyFree))
+	}
 }
 
-func TestBuildV1Alpha5ReportsWaitDiagnosticsBeforeResidualGate(t *testing.T) {
+func TestBuildV1Alpha5ReportsWaitDiagnosticsAndEmitsNoArtifact(t *testing.T) {
 	procedure := `start: wait-node
 nodes:
   wait-node:
@@ -179,9 +178,12 @@ nodes:
 		!hasV1Alpha5Diagnostic(result.Diagnostics, "WAIT_TIMEOUT_ROUTE_INVALID") {
 		t.Fatalf("expected exact Wait diagnostics, got %#v", result.Diagnostics)
 	}
+	if len(result.OutputFiles) != 0 || len(result.DependencyClosure) != 0 {
+		t.Fatalf("failed Build emitted artifact data: %#v", result)
+	}
 	for _, diagnostic := range result.Diagnostics {
 		if strings.HasPrefix(diagnostic.Message, "fail-closed: ") {
-			t.Fatalf("residual gate must not mask real source diagnostics: %#v", result.Diagnostics)
+			t.Fatalf("artifact assembly must not mask real source diagnostics: %#v", result.Diagnostics)
 		}
 	}
 }

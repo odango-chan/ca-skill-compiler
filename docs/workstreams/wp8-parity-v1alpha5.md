@@ -1,15 +1,16 @@
-﻿# WP8 鈥?Native / WASM / real Chromium Worker parity (v1alpha5 candidate slice)
+# WP8 - Native / WASM / real Chromium Worker parity (v1alpha5 candidate)
 
-**Status:** candidate-target slice implemented and locally verified 鈥?**PASS**
-for the checked projections. This is cross-runtime parity evidence for the
-candidate `connectionagent.io/v1alpha5` target, not language publication,
-product qualification, Host/Runtime implementation or 5GC/MAS qualification.
-v1alpha4 remains the only published authoring contract and its behavior is
-unchanged.
+**Status:** candidate-target artifact slice implemented and locally verified -
+**PASS** for the checked projections, including successful-Build artifact byte
+parity across Native Go and the real Chromium Worker. This is cross-runtime
+parity evidence for the candidate `connectionagent.io/v1alpha5` target, not
+language publication, product qualification, Host/Runtime implementation or
+5GC/MAS qualification. v1alpha4 remains the only published authoring contract and
+its behavior/artifact bytes are unchanged.
 
-**Branch:** `feat/compiler-v1alpha5-wp8-parity-20261117` (based on WP2 HEAD
-`34993dc`). Stacked Draft PR with base `feat/compiler-v1alpha5-wait-ast-20261117`
-(PR #30).
+**Branch:** `feat/compiler-v1alpha5-artifact-20261117` (based on integration HEAD
+`dfad653`). Draft PR stacked on `feat/compiler-v1alpha5-integration-20261117`
+(PR #38). This supersedes the earlier WP8 Check/fail-closed parity record.
 
 ## 1. Scope proven now
 
@@ -17,13 +18,15 @@ unchanged.
 |---|---|
 | One deterministic Go Core is shared by the CLI, the Native parity reference, Go/WASM and the real Chromium Web Worker | `cmd/skillc`, `cmd/parity-replay`, `cmd/skillc-wasm`, `web/skillc-worker.js` all call `internal/compiler.Check`/`Build`/`InspectDependencies`; only the transport differs |
 | CLI `check --request` dispatches a `BuildRequest` with `languageTarget: connectionagent.io/v1alpha5` to the v1alpha5 Check | `TestCLIEndToEndV1Alpha5CheckRequest` |
-| A valid v1alpha5 Procedure without a Wait produces `Diagnostics == []`-equivalent output (JSON `[]`, exit 0) | CLI e2e test; Chromium `ok: v1alpha5 valid Check returns zero diagnostics` |
-| A syntactically valid dependency-free Wait resolves to zero trusted Ingress Operation exports and reports `WAIT_INGRESS_EXPORT_NOT_FOUND` (exact L.3.1 identity), never a silent pass | CLI `TestCLIEndToEndV1Alpha5CheckRequest` (`wait-no-ingress` fixture) |
-| An invalid v1alpha5 Procedure produces deterministic, positioned `WAIT_*` diagnostics (6 diagnostics, exact code/line/column) | CLI e2e test; Chromium `ok: v1alpha5 invalid WAIT_* diagnostics positioned and deterministic (6 diagnostics)` |
-| Validation diagnostics are identical between Native Go and the real Chromium Worker for the same request | `ok: v1alpha5 check projection identical`, `ok: v1alpha5 invalid-diagnostics projection identical` |
-| `Build` stays fail-closed for v1alpha5 in both directions: a valid Procedure yields exactly the one documented internal residual diagnostic; an invalid Procedure preserves its `WAIT_*` diagnostics | CLI e2e test; `ok: v1alpha5 build.success projection identical`, `ok: v1alpha5 build.diagnostics projection identical`, `ok: v1alpha5 invalid build.diagnostics projection identical` |
-| Every v1alpha5 `BuildResult` is stamped with `connectionagent.io/compiler-build-result/v1alpha5`, including fail-closed results, and emits no artifact files | CLI e2e test; `ok: v1alpha5 build.apiVersion projection identical` |
-| The frozen v1alpha4 projections 鈥?including successful-Build artifact byte parity 鈥?still pass unchanged | `ok: successful-Build artifact byte parity (5 files)` and the unchanged v1alpha4 markers |
+| A valid v1alpha5 Procedure (Wait-free) produces `[]` diagnostics and a **successful** deterministic Build with 3 artifact files | CLI `TestCLIEndToEndV1Alpha5Build`; Chromium `ok: v1alpha5 valid Build succeeds with deterministic artifact`, `ok: v1alpha5 successful-Build artifact byte parity (3 files)` |
+| A trusted Wait-bearing v1alpha5 Skill with synthetic IngressCatalog/ToolCatalog/Schema artifacts produces a successful Build with the measured dependency closure `[integration, tools]` and a linked Ingress Operation identity in the artifact | Chromium `ok: v1alpha5 trusted Build succeeds with dependency closure (3 files)`, `ok: v1alpha5 trusted successful-Build artifact byte parity (3 files)`, `ok: v1alpha5 trusted linked Ingress metadata identical` |
+| Artifact bytes are identical between Native Go and the real Chromium Worker for every file (manifest, compiled Procedure document, ingress-link document), and the Go Core `VerifyArtifact` callback passes inside Chromium | `ok: v1alpha5 successful-Build artifact byte parity`, `ok: v1alpha5 trusted successful-Build artifact byte parity`, `ok: v1alpha5 Chromium Worker VerifyArtifact PASS` |
+| An invalid v1alpha5 Procedure still fails Build atomically with its deterministic positioned `WAIT_*` diagnostics and no artifact files | CLI e2e; Chromium `ok: v1alpha5 invalid WAIT_* diagnostics positioned and deterministic (6 diagnostics)`, `ok: v1alpha5 invalid build.diagnostics projection identical` |
+| A syntactically valid dependency-free Wait still reports `WAIT_INGRESS_EXPORT_NOT_FOUND` and does not Build | CLI `TestCLIEndToEndV1Alpha5CheckRequest`, `TestCLIEndToEndV1Alpha5Build` (`wait-no-ingress` fixture) |
+| `BuildResult.apiVersion`, `dependencyClosure`, `diagnostics` and `outputFiles` projections are identical Native vs Chromium | `ok: v1alpha5 build.* / build.outputFiles.paths projection identical`, trusted-phase equivalents |
+| The frozen v1alpha4 projections - including successful-Build artifact byte parity - still pass unchanged | `ok: successful-Build artifact byte parity (5 files)` and all unchanged v1alpha4 markers |
+| `inspect` still does not fabricate a v1alpha5 ingress inventory | `ok: v1alpha5 inspect projection identical`; deferred scope below |
+| `skillc build --request <valid v1alpha5> --out DIR` exits 0, writes the verified tree and prints completion | `TestCLIEndToEndV1Alpha5Build` |
 | CLI `version`/`help` document both language targets and the independent request/result API versions | `TestCLIEndToEndV1Alpha5VersionAndHelp` |
 
 The invalid fixture exercises `WAIT_NODE_STAGE_REQUIRED`,
@@ -32,73 +35,86 @@ The invalid fixture exercises `WAIT_NODE_STAGE_REQUIRED`,
 `Severity=error`, `Phase=C_STATIC`, path
 `skills/example/assurance/procedure.yaml`, with non-zero line/column.
 
+The trusted fixture is **SYNTHETIC and compiler-owned**: its IngressCatalog,
+ToolCatalog, OpenAPI and Schema artifacts are generated by the compiler tests,
+not published by any real Owner. The schema closure digests are recomputed from
+those exact bytes by the same Schema Closure Digest v1 implementation the
+production path uses.
+
 ## 2. Deferred scope (explicit)
 
 | Deferred item | Why it is not claimed |
 |---|---|
-| Successful-Build v1alpha5 **artifact byte parity** | Artifact assembly and the remaining static pipeline are WP3鈥揥P6 work; WP2 `Build` intentionally fails closed after AST validation, so there is no successful v1alpha5 artifact to compare yet |
 | v1alpha5 `DependencyInspection` ingress inventory (`ingressOperations` or equivalent) | The v1alpha5 inspection API version is reserved but the ingress projection is not implemented; `inspect` currently reports the inherited v1alpha4 envelope rejection rather than guessing a contract |
-| Studio v1alpha5 success-path rendering | Follows from the deferred successful Build; Studio remains v1alpha4-success + both fail-closed presentations |
+| Studio v1alpha5 successful-Build rendering | The parity harness does not add a v1alpha5 Studio phase in this slice; Studio remains v1alpha4-success plus the existing presentations |
+| Non-Wait tool/predicate/Schema/CEL/script/evidence/mutation semantics | Not implemented as v1alpha5 passes; a Wait-free candidate Skill can Build while ordinary tool references remain unvalidated. See `docs/known-limitations-v1alpha5.md` |
 | Real Owner/Deployment/5GC/MAS qualification | Compiler parity is not product qualification; remains **NOT_QUALIFIED** |
-| GitHub Actions CI evidence | No runner executed steps in this environment 鈥?**CI_UNAVAILABLE** (see 搂6) |
+| GitHub Actions CI evidence | No runner executed steps in this environment - **CI_UNAVAILABLE** (see section 6) |
 
 ## 3. Changes in this slice
 
 | File | Change |
 |---|---|
-| `cmd/skillc/main.go` | Additive `version` output (both language targets, independent request/result API versions) and help text documenting `--request` target selection, language targets and API versions; no command or exit-code behavior changed |
-| `cmd/skillc/e2e_test.go` | New v1alpha5 CLI end-to-end tests for version/help, valid + invalid `check --request`, fail-closed `build --request` (`apiVersion`, residual, invalid diagnostics, no output files) and deferred `inspect` behavior; existing v1alpha4 tests untouched |
-| `cmd/parity-replay/main.go` | Additive `--request=<BuildRequest.json>` mode using the same strict `compiler.DecodeBuildRequestJSON` path as the CLI/WASM bridge; project mode unchanged. The reference view now also carries `build.apiVersion` |
-| `scripts/chromium-parity.mjs` | New v1alpha5 phase: writes explicit v1alpha5 `BuildRequest` JSON from checked-in synthetic author fixtures, runs the Native reference through `--request`, runs the same request through `web/parity.html` 鈫?`web/skillc-worker.js` 鈫?the same Go/WASM Core in real headless Chromium, and compares check/build/result-version/inspect projections; prints explicit v1alpha5 markers |
-| `web/parity-v1alpha5/valid-procedure.yaml`, `invalid-procedure.yaml` | Synthetic v1alpha5 Wait author fixtures (author files only; no trusted dependency snapshot needed) |
-| `internal/parity/chromium_test.go` | Requires the new v1alpha5 markers so a missing/regressed v1alpha5 comparison fails the opt-in test |
-| `docs/workstreams/wp8-parity-v1alpha5.md` | This record |
+| `internal/compiler/v1alpha5_artifact.go` | Deterministic successful-Build artifact assembly: canonical normalized Procedure document, per-Wait linked Ingress/response metadata, measured dependency closure, canonical manifest with sorted output-file digests |
+| `internal/compiler/v1alpha5_artifact_verify.go` | Candidate v1alpha5 artifact verification (canonical manifest, complete listing, sha256 match, per-Skill coherence, ingress-link self-consistency, closure identity) |
+| `internal/compiler/v1alpha5.go` | Retired the WP2-era residual gate: Build assembles the artifact after zero-error validation and fails atomically on real diagnostics/assembly inconsistency |
+| `internal/compiler/api_v1alpha4.go` | `VerifyBuildResult` dispatches on the v1alpha5 result API version; frozen v1alpha4 `artifact.Verify` path unchanged |
+| `internal/compiler/api_v1alpha5_test.go`, `v1alpha5_response_test.go`, `v1alpha5_artifact_test.go` | Updated fail-closed expectations; new positive trusted Build, Wait-free Build, paired-response metadata, determinism, invalid-atomicity and tamper tests |
+| `cmd/skillc/main.go`, `cmd/skillc/e2e_test.go` | Allow the v1alpha5 top-level manifest output path; v1alpha5 Build e2e now expects success + written tree, invalid/unresolved cases still exit 1 with no artifact |
+| `cmd/parity-replay/main.go` | Reference view already carries `build.apiVersion` (from the earlier WP8 slice) and `--request=` mode; unchanged in this slice |
+| `scripts/chromium-parity.mjs`, `web/parity-v1alpha5/trusted-build-request.json` | v1alpha5 artifact phases: successful Wait-free Build, trusted Wait-bearing Build with linked Ingress identity, invalid case; per-file sha256 comparison and Worker `VerifyArtifact` |
+| `internal/parity/chromium_test.go`, `internal/parity/v1alpha5_fixture_test.go` | Require the artifact markers; static guard that the checked-in trusted fixture decodes/Builds/verifies deterministically |
+| `contracts/v1alpha5/artifact-manifest.schema.json`, `contracts/v1alpha5/README.md` | Candidate/DRAFT compiler-owned manifest contract and layout |
+| `docs/design/compiler-artifact-v1alpha5.md`, `docs/known-limitations-v1alpha5.md`, this file | Candidate artifact contract, traceability, proven-vs-deferred record and remaining unvalidated obligations |
 
 `web/parity.html` and `web/skillc-worker.js` needed no change: the page already
 fetches a named request file and the worker already delegates to the shared Go
-Core callbacks, so the candidate target flows through the same transport.
+Core callbacks, so both artifact verification and the candidate target flow
+through the same transport.
 
 ## 4. Harness sequence (real Chromium)
 
-`scripts/chromium-parity.mjs` now runs, in order:
+`scripts/chromium-parity.mjs` runs, in order:
 
 1. CGo-free Go/WASM build (`GOOS=js GOARCH=wasm`) into `.parity-web/skillc.wasm`
    plus the pinned toolchain `wasm_exec.js`, Worker, parity page and Studio page.
-2. Frozen v1alpha4 project phase (`web/parity-project`) 鈥?unchanged comparisons.
-3. Frozen v1alpha4 Studio integration phase 鈥?unchanged comparisons.
-4. Frozen v1alpha4 successful-Build phase (`web/parity-success`) 鈥?unchanged,
+2. Frozen v1alpha4 project phase (`web/parity-project`) - unchanged comparisons.
+3. Frozen v1alpha4 Studio integration phase - unchanged comparisons.
+4. Frozen v1alpha4 successful-Build phase (`web/parity-success`) - unchanged,
    including SHA-256 artifact byte parity for all 5 files.
-5. **v1alpha5 candidate phase** (new): writes
-   `.parity-web/parity-v1alpha5-{valid,invalid}-request.json`, computes the
-   Native reference with `cmd/parity-replay --request=...`, then loads the same
-   request in real headless Chromium through `web/parity.html` + the Web Worker,
-   and compares `check`, `build.success`, `build.apiVersion`,
-   `build.diagnostics`, `inspect`, and the invalid-case diagnostics.
-
-The phase asserts natively first that the valid fixture Checks clean, that the
-valid Build is fail-closed with exactly one `CAPABILITY_INPUT_UNTRUSTED`
-residual message prefixed `fail-closed:`, that every invalid diagnostic is a
-`WAIT_*` code with non-zero line/column and the expected path, and that the
-invalid Build echoes the same diagnostics.
+5. **v1alpha5 candidate artifact phase**:
+   - Wait-free author fixture: Native reference through
+     `cmd/parity-replay --request=...`, then the same request in real headless
+     Chromium through `web/parity.html` + the Web Worker; compares `check`,
+     `build.success`, `build.apiVersion`, `build.diagnostics`,
+     `build.dependencyClosure`, `build.outputFiles.paths`, per-file sha256 and
+     `inspect`; the Worker `VerifyArtifact` callback must return no error.
+   - Trusted Wait-bearing fixture (`web/parity-v1alpha5/trusted-build-request.json`):
+     same comparison plus the decoded manifest's dependency closure and linked
+     Ingress Operation identity (`integration`, `ingress/catalog.yaml`,
+     `nsmf-pdusession.update-sm-context`, normalized Schema ref/closure digest,
+     response mode).
+   - Invalid author fixture: deterministic positioned `WAIT_*` diagnostics,
+     failed Build with zero artifact files, identical in Native and Chromium.
 
 ## 5. Local verification (executed)
 
 Environment: Windows; Go `go1.26.6 windows/amd64`; Node `v24.18.0`; Chrome
 `158.0.8127.37`; `GOWORK=off`, `CGO_ENABLED=0` for the native gates. Worktree
-`wt/ca-wp8` on the branch above.
+`wt/ca-artifact` on the branch above.
 
 | Command | Result |
 |---|---|
-| `go test ./... -count=1` | **PASS** (`cmd/skillc`, `cmd/skillc-wasm`, `internal/artifact`, `internal/compiler`, `internal/compiler/yamlast`, `internal/parity`, `internal/projectinput` all `ok`) |
-| `go vet ./...` | **PASS** (exit 0, no findings) |
+| `go test ./... -count=1` | **PASS** |
+| `go vet ./...` | **PASS** (exit 0) |
 | `CGO_ENABLED=0 go build ./...` | **PASS** (exit 0) |
 | `CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -o dist/skillc.wasm ./cmd/skillc-wasm` | **PASS** (exit 0) |
-| `go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | **PASS** (13/13, including the 4 new v1alpha5 tests) |
+| `go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | **PASS** (13/13) |
 | `git diff --check` | **PASS** (no whitespace errors) |
-| `CHROMIUM_PARITY=1 go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | **PASS** (49.32 s; see output below) |
+| `CHROMIUM_PARITY=1 go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | **PASS** (`--- PASS: TestChromiumWorkerParity (56.40s)`) |
 
-Real Chromium Worker parity output (from the official gate command above; markers
-are required by `internal/parity/chromium_test.go`):
+Real Chromium Worker parity output (from the official gate command; markers are
+required by `internal/parity/chromium_test.go`):
 
 ```text
 ok: check projection identical
@@ -124,31 +140,34 @@ ok: studio-success.buildSuccess projection identical
 ok: studio-success.artifactPaths projection identical
 ok: Studio success-path artifact presentation identical
 ok: v1alpha5 valid Check returns zero diagnostics
+ok: v1alpha5 valid Build succeeds with deterministic artifact
+ok: v1alpha5 trusted Build succeeds with dependency closure (3 files)
 ok: v1alpha5 invalid WAIT_* diagnostics positioned and deterministic (6 diagnostics)
+ok: v1alpha5 Chromium Worker VerifyArtifact PASS
 ok: v1alpha5 check projection identical
 ok: v1alpha5 build.success projection identical
 ok: v1alpha5 build.apiVersion projection identical
 ok: v1alpha5 build.diagnostics projection identical
+ok: v1alpha5 build.dependencyClosure projection identical
+ok: v1alpha5 build.outputFiles.paths projection identical
+ok: v1alpha5 successful-Build artifact hashes projection identical
+ok: v1alpha5 successful-Build artifact byte parity (3 files)
 ok: v1alpha5 inspect projection identical
 ok: v1alpha5 invalid-diagnostics projection identical
 ok: v1alpha5 invalid build.diagnostics projection identical
 ok: v1alpha5 invalid inspect projection identical
-PASS: Native and real Chromium Worker v1alpha5 parity
+ok: v1alpha5 trusted check projection identical
+ok: v1alpha5 trusted build.success projection identical
+ok: v1alpha5 trusted build.apiVersion projection identical
+ok: v1alpha5 trusted build.diagnostics projection identical
+ok: v1alpha5 trusted dependencyClosure projection identical
+ok: v1alpha5 trusted build.outputFiles.paths projection identical
+ok: v1alpha5 trusted successful-Build artifact hashes projection identical
+ok: v1alpha5 trusted successful-Build artifact byte parity (3 files)
+ok: v1alpha5 trusted linked Ingress metadata identical
+ok: v1alpha5 Chromium Worker VerifyArtifact PASS
+PASS: Native and real Chromium Worker v1alpha5 artifact parity
 PASS: Native and real Chromium Worker projections are identical
---- PASS: TestChromiumWorkerParity (49.32s)
-```
-
-CLI surface:
-
-```text
-skillc v1.0.0
-language target: connectionagent.io/v1alpha4 (frozen)
-language target: connectionagent.io/v1alpha5 (candidate)
-build request apiVersion: connectionagent.io/compiler-build-request/v1alpha4 (frozen)
-build request apiVersion: connectionagent.io/compiler-build-request/v1alpha5 (candidate)
-build result apiVersion: connectionagent.io/compiler-build-result/v1alpha4 (frozen)
-build result apiVersion: connectionagent.io/compiler-build-result/v1alpha5 (candidate)
-dependency inspection apiVersion: connectionagent.io/compiler-dependency-inspection/v1alpha4 (frozen; v1alpha5 ingress not yet wired)
 ```
 
 `dist/` build output is local only and not committed.
@@ -156,7 +175,7 @@ dependency inspection apiVersion: connectionagent.io/compiler-dependency-inspect
 ## 6. CI status
 
 **CI_UNAVAILABLE.** No GitHub Actions runner executed any step for this branch in
-this environment; the workflow files were not exercised and no remote CI result
-is claimed. All evidence above is local execution evidence only. `go test` and
-every listed gate were actually executed on the worktree; the real Chromium
-Worker run did launch Chrome and the WASM Worker, as recorded by the markers.
+this environment; no remote CI result is claimed. All evidence above is local
+execution evidence only. `go test` and every listed gate were actually executed
+on the worktree; the real Chromium Worker run did launch Chrome and the WASM
+Worker, as recorded by the markers.

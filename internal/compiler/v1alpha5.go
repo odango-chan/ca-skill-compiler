@@ -1,22 +1,26 @@
 package compiler
 
-// CA-SL v1alpha5 static validation pipeline (WP2 + WP3 + WP4 + WP5 + WP6 slices).
+// CA-SL v1alpha5 static validation pipeline (WP2 + WP3 + WP4 + WP5 + WP6) and
+// deterministic artifact assembly (WP8).
 //
-// Static source admission only: the v1alpha5 Procedure/Wait AST is parsed and
-// validated, the WP5 Procedure control-flow graph is built and validated (Wait
-// entry vertices, EVENT_RECEIVED/TIMEOUT control edges, DAG, exact route targets
-// and the final-Postcondition-PASS goal rule), the WP3 trigger/correlation
-// binding pass links every Wait selector to exactly one trusted Ingress Operation
-// export and proves the triggering Operation/correlation contract on every
-// reachable incoming path, the WP4 wait.output pass binds that typed Producer to
-// the exact normalized request Schema, proves event-accepted-path availability
-// and applies conservative F.5 argument typing, and the WP6 response-boundary
-// pass proves the paired response boundary, post-dominance, typed response-result
-// Producer Output Schema compatibility and the Ingress-owned response
-// contract/mapping completeness. Conformance mapping (WP7) and artifact assembly
-// (WP8) are not implemented yet.
-// Build therefore stays fail-closed through the internal residual gate below after
-// source validation succeeds. This is not product or language qualification.
+// The v1alpha5 Procedure/Wait AST is parsed and validated, the WP5 Procedure
+// control-flow graph is built and validated (Wait entry vertices,
+// EVENT_RECEIVED/TIMEOUT control edges, DAG, exact route targets and the
+// final-Postcondition-PASS goal rule), the WP3 trigger/correlation binding pass
+// links every Wait selector to exactly one trusted Ingress Operation export and
+// proves the triggering Operation/correlation contract on every reachable
+// incoming path, the WP4 wait.output pass binds that typed Producer to the exact
+// normalized request Schema, proves event-accepted-path availability and applies
+// conservative F.5 argument typing, and the WP6 response-boundary pass proves
+// the paired response boundary, post-dominance, typed response-result Producer
+// Output Schema compatibility and the Ingress-owned response contract/mapping
+// completeness.
+//
+// Build then assembles the candidate deterministic artifact tree through
+// v1alpha5_artifact.go. Build success is static-compilation evidence only: it is
+// not Runtime authorization, deployment qualification or product/5GC
+// qualification. Remaining unvalidated candidate obligations are recorded in
+// docs/known-limitations-v1alpha5.md.
 
 import (
 	"strings"
@@ -24,14 +28,11 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-// v1alpha5ResidualFailClosedMessage marks the internal residual gate that keeps
-// Build fail-closed while later work packages are unimplemented. It is not a
-// v1alpha5 language diagnostic identity and must disappear as the pipeline is
-// completed.
-const v1alpha5ResidualFailClosedMessage = "v1alpha5 Node-entry Wait/Procedure AST validation, Procedure graph control-flow analysis, WP3 trigger/correlation binding, WP4 wait.output SourcePath binding and WP6 response boundary/mapping validation are implemented, but WP7 conformance mapping and WP8 artifact assembly are not implemented; compilation fails closed"
-
-// validateV1Alpha5 is the defensive v1alpha5 Build path. It re-runs the strict
-// request admission, then source validation, then the internal residual gate.
+// validateV1Alpha5 is the v1alpha5 Build path. It re-runs the strict request
+// admission and the full static pipeline, then assembles the deterministic
+// artifact tree only when no error diagnostic was produced. Assembly failures
+// fail the whole Build atomically with a clearly marked internal diagnostic;
+// real source diagnostics are never masked.
 func validateV1Alpha5(req BuildRequest) BuildResult {
 	if diagnostics := validateBuildRequestV1Alpha5(req); len(diagnostics) > 0 {
 		return failedV1Alpha5BuildResult(diagnostics)
@@ -40,14 +41,18 @@ func validateV1Alpha5(req BuildRequest) BuildResult {
 	if hasErrorDiagnostic(diagnostics) {
 		return failedV1Alpha5BuildResult(diagnostics)
 	}
-	diagnostics = append(diagnostics, Diagnostic{
-		Severity: "error",
-		Phase:    "C_STATIC",
-		Code:     "CAPABILITY_INPUT_UNTRUSTED",
-		Path:     "",
-		Message:  limitDiagnosticMessage("fail-closed: " + v1alpha5ResidualFailClosedMessage),
-	})
-	return failedV1Alpha5BuildResult(diagnostics)
+	result, err := assembleV1Alpha5SuccessResult(req)
+	if err != nil {
+		diagnostics = append(diagnostics, Diagnostic{
+			Severity: "error",
+			Phase:    "C_STATIC",
+			Code:     "CAPABILITY_INPUT_UNTRUSTED",
+			Path:     "",
+			Message:  limitDiagnosticMessage("fail-closed: v1alpha5 artifact assembly failed: " + err.Error()),
+		})
+		return failedV1Alpha5BuildResult(diagnostics)
+	}
+	return result
 }
 
 // checkV1Alpha5Sources parses every selected Skill package exactly once and

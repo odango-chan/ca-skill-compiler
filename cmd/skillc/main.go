@@ -442,6 +442,11 @@ func rejectSymlinkAncestors(abs string) error {
 }
 
 func validOutputPath(value string) bool {
+	// The candidate v1alpha5 artifact has exactly one top-level manifest; the
+	// frozen v1alpha4 tree never emits it, so its behavior is unchanged.
+	if value == compiler.V1Alpha5ArtifactManifestPath {
+		return true
+	}
 	if value == "" || len(value) > 240 || !strings.HasPrefix(value, "skills/") ||
 		path.Clean(value) != value || strings.ContainsAny(value, "\\:\x00") {
 		return false

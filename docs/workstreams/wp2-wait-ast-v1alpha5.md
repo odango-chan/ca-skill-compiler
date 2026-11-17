@@ -109,7 +109,7 @@ Anchor policy (asserted exactly by tests):
 | API version validated before target; wrong envelope rejected | `TestValidateBuildRequestV1Alpha5RejectsWrongAPIVersion` |
 | Exact language target; no fallback/sniffing; unknown target fails closed through `LANGUAGE_TARGET_UNSUPPORTED` | `TestCheckDispatchesV1Alpha5TargetAndFailsClosedOnUnknownTarget` |
 | Non-empty files, normalized paths, duplicate/case-folded paths, nil bytes, size/count limits | `TestValidateBuildRequestV1Alpha5RejectsEmptyFiles`, `.../RejectsUnnormalizedPath`, `.../RejectsDuplicatePath`, `.../RejectsNilBytes` |
-| `Check` returns only real diagnostics; `Build` remains fail-closed after AST validation through a clearly marked internal residual gate | `TestBuildV1Alpha5FailsClosedAfterASTValidation`, `TestBuildV1Alpha5ReportsWaitDiagnosticsBeforeResidualGate` |
+| `Check` returns only real diagnostics; `Build` currently assembles the candidate artifact after zero-error validation (the WP2-era residual gate was retired by the WP8 artifact slice; see `docs/design/compiler-artifact-v1alpha5.md`) | `TestBuildV1Alpha5SucceedsAfterFullValidation`, `TestBuildV1Alpha5ReportsWaitDiagnosticsAndEmitsNoArtifact` |
 | v1alpha4 keeps rejecting author Wait; no v1alpha5 diagnostics on the v1alpha4 path | `TestV1Alpha4TargetStillRejectsAuthorWait` |
 
 ### 3.6 Appendix L.12 executable-slice mapping
@@ -131,13 +131,16 @@ Anchor policy (asserted exactly by tests):
 
 - `Check(req)` dispatches on `req.LanguageTarget == V1Alpha5Target` **before**
   the v1alpha4 envelope validation, then calls `CheckV1Alpha5`.
-- `Build(req)` dispatches the same way, returns
+- `Build(req)` dispatches the same way and returns
   `BuildResult.apiVersion = connectionagent.io/compiler-build-result/v1alpha5`
-  in all outcomes, and after successful AST validation emits exactly one
-  internal residual-gate diagnostic (`CAPABILITY_INPUT_UNTRUSTED`, message
-  prefixed `fail-closed:`) naming WP3–WP8. This is an internal placeholder, not
-  a new v1alpha5 language diagnostic identity, and it must disappear as the
-  pipeline lands.
+  in all outcomes.
+- **Update (WP8 artifact integration, `dfad653`+):** the WP2-era internal
+  residual gate was retired. After the integrated WP2/WP3/WP4/WP5/WP6 pipeline
+  returns zero error diagnostics, Build assembles the candidate deterministic
+  v1alpha5 artifact tree and returns `Success=true`; real diagnostics still block
+  Build atomically with no output files. See
+  [`docs/design/compiler-artifact-v1alpha5.md`](../design/compiler-artifact-v1alpha5.md)
+  and [`docs/known-limitations-v1alpha5.md`](../known-limitations-v1alpha5.md).
 - All other targets keep the v1alpha4 path byte-identically, including the
   frozen rejection of author Wait in v1alpha4.
 - WP2 `CheckV1Alpha5` parses only `skills/<name>/assurance/procedure.yaml` as a
@@ -173,10 +176,10 @@ required or executed for this WP.
 | Wait entry-control vertex, `EVENT_RECEIVED`/`TIMEOUT` graph edges, DAG/reachability/dominance, terminal reachability, `CONTROL_FLOW_DANGLING` for undeclared TIMEOUT/`response.after` targets | WP5 |
 | `response.after` reachability/post-dominance (both when present and for the default Wait-bearing-Node boundary when absent), response-boundary Producer and `responseResultSchema`, `WAIT_RESPONSE_BOUNDARY_INVALID` reachability cases, `WAIT_RESPONSE_MAPPING_INVALID` | WP6 |
 | EW-001–EW-036 conformance fixtures/diagnostic index/messageKey mapping | WP7 |
-| Native/WASM/Chromium parity for v1alpha5 API | WP8 |
+| Native/WASM/Chromium parity for v1alpha5 API | WP8 — delivered by the WP8 artifact slice (see `docs/workstreams/wp8-parity-v1alpha5.md`) |
 | Host maximum duration admission (`WAIT_DURATION_LIMIT_EXCEEDED`, not C_STATIC) | Host/Runtime contract |
 | `response.after` self-target/cycle and `TIMEOUT` self-target detection | WP5 graph (parsed lexically today only as NodeId) |
-| Full v1alpha5 Skill package requirements (`SKILL.md`, `contract.yaml`, `predicates.yaml`, schemas, dependencies) and artifact assembly | Later work packages; `Build` stays fail-closed |
+| Full v1alpha5 Skill package requirements (`SKILL.md`, `contract.yaml`, `predicates.yaml`, schemas, dependencies) and artifact assembly | Artifact assembly delivered by the WP8 artifact slice for the implemented pipeline; remaining candidate package obligations are recorded in `docs/known-limitations-v1alpha5.md` |
 
 ## 7. CI status
 
