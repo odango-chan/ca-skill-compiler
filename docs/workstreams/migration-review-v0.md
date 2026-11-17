@@ -2,6 +2,9 @@
 
 Updated: 2026-11-11. These checks use the pinned, unmodified `examples/ca-agent-demo-project` source and select each Skill independently with the current Compiler. The diagnostic counts are local static migration evidence; they do not describe Runtime or 5GC readiness.
 
+> **已归档 / ARCHIVED — PRE-v1alpha4.** 本文记录早期 v0/v0.1 原型、迁移检查或设计阶段的验收结果。文中的语法、分支/PR 指令、样例诊断数量和验收结论均属于历史快照，不定义 CA-SL v1alpha4 或 Compiler v1.0.0 的当前要求。当前状态请以[工作流索引](README.md)和[最终验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)为准。
+
+
 ## `establish-pdu-session`
 
 Observed: **124 errors**.
