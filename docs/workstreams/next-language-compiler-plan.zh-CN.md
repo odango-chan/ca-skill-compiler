@@ -2,7 +2,8 @@
 
 **状态：** DRAFT — 可以开始隔离的 v1alpha5 候选实现；公开 Target 启用与发布仍受门槛约束。  
 **历史基准：** CA Skill Compiler v1.0.0 / CA-SL v1alpha4 作为历史发布记录保留；它们不是下一版实现必须遵守的兼容性约束。  
-**下一语言目标：** `connectionagent.io/v1alpha5` 已在 CA-SL 评审候选中分配，但仍为 NOT RELEASED / NOT QUALIFIED。
+**下一语言目标：** `connectionagent.io/v1alpha5` 已在 CA-SL 评审候选中分配，但仍为 NOT RELEASED / NOT QUALIFIED。  
+**Harness 执行入口：** [DeepSeek Harness v1alpha5 实施 Goal](deepseek-harness-v1alpha5-implementation-goal.zh-CN.md)。
 
 ## 1. 目标
 
