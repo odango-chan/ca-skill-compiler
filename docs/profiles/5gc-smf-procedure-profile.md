@@ -1,8 +1,11 @@
 # 5GC SMF Procedure Profile — 3GPP → Tool → Skill
 
-**Status:** FROZEN for the CA-SL v1alpha4 structural and authoring boundaries defined here.  
-**Language authority:** [CA-SL v1alpha4](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md), pinned to `7f84393ee8c395e4d8c39a74cb5000a1f896588d`.  
-**3GPP reference baseline:** Release 19, version 19.5.0 for the specifications listed in §8. This is a fixed review baseline, not a floating "latest" reference.  
+**Status:** FROZEN for the CA-SL v1alpha4 structural and authoring boundaries defined here.
+
+**Language authority:** [CA-SL v1alpha4](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md), pinned to `7f84393ee8c395e4d8c39a74cb5000a1f896588d`.
+
+**3GPP reference baseline:** Release 19, version 19.5.0 for the specifications listed in §8. This is a fixed review baseline, not a floating "latest" reference.
+
 **Qualification:** Real Owner callable, Schema, Evidence and Deployment publications remain **NOT_QUALIFIED**. This profile does not claim that a sample is linked, runnable or accepted by a live 5GC.
 
 This profile defines how a 5GC Skill maps the SMF's standard business procedure onto CA-SL v1alpha4. It does not extend CA-SL syntax, replace 3GPP specifications or authorize an unpublished Tool.
