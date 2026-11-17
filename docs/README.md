@@ -13,6 +13,7 @@ This directory contains the technical reference and maintenance records for CA S
 
 ## Language and compiler contracts
 
+- [Compiler design documents](design/README.md) — current v1alpha4 Compiler contracts and archived design records.
 - [CA-SL v1alpha4 specification](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md) — normative language definition.
 - [Compiler Contract](design/compiler-contract-v1alpha4.md) — compiler responsibilities and behaviour.
 - [Compiler Pipeline](design/compiler-pipeline-v1alpha4.md) — validation stages and implementation mapping.
