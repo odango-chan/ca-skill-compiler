@@ -91,7 +91,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*v1alpha5WaitA
 	event := child(waitNode, "event")
 	event = unalias(event)
 	if event == nil || event.Kind != yaml.MappingNode {
-		add(event, "WAIT_DECLARATION_INVALID", "Node "+nodeID+" wait.event must be a mapping")
+		add(waitNode, "WAIT_DECLARATION_INVALID", "Node "+nodeID+" wait.event must be a mapping")
 	} else {
 		v1alpha5CheckUnknownFields(event, map[string]bool{
 			"source": true, "service": true, "operation": true,
@@ -101,7 +101,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*v1alpha5WaitA
 			valueNode := child(event, field)
 			value, ok := v1alpha5String(valueNode)
 			if !ok || value == "" {
-				add(valueNode, "WAIT_DECLARATION_INVALID", "Node "+nodeID+" wait.event."+field+" must be a non-empty YAML string")
+				add(v1alpha5FallbackNode(valueNode, event), "WAIT_DECLARATION_INVALID", "Node "+nodeID+" wait.event."+field+" must be a non-empty YAML string")
 				continue
 			}
 			switch field {
@@ -118,7 +118,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*v1alpha5WaitA
 	timeoutNode := child(waitNode, "timeout")
 	timeout, timeoutIsString := v1alpha5String(timeoutNode)
 	if !timeoutIsString || !validV1Alpha5FixedDuration(timeout) {
-		add(timeoutNode, "WAIT_TIMEOUT_INVALID", "Node "+nodeID+" wait.timeout must be a positive fixed duration in the v1alpha5 ISO-8601 subset")
+		add(v1alpha5FallbackNode(timeoutNode, waitNode), "WAIT_TIMEOUT_INVALID", "Node "+nodeID+" wait.timeout must be a positive fixed duration in the v1alpha5 ISO-8601 subset")
 	} else {
 		result.Timeout = timeout
 	}
@@ -145,7 +145,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*v1alpha5WaitA
 	routesNode := child(waitNode, "routes")
 	routesNode = unalias(routesNode)
 	if routesNode == nil || routesNode.Kind != yaml.MappingNode {
-		add(routesNode, "WAIT_TIMEOUT_ROUTE_INVALID", "Node "+nodeID+" wait.routes must be a mapping containing exactly TIMEOUT")
+		add(v1alpha5FallbackNode(routesNode, waitNode), "WAIT_TIMEOUT_ROUTE_INVALID", "Node "+nodeID+" wait.routes must be a mapping containing exactly TIMEOUT")
 	} else {
 		keys := mapKeys(routesNode)
 		if len(keys) != 1 || keys[0] != "TIMEOUT" {
@@ -176,6 +176,13 @@ func v1alpha5CheckUnknownFields(node *yaml.Node, allowed map[string]bool, add fu
 		}
 		add(key, "UNKNOWN_FIELD", "Unsupported v1alpha5 author field "+key.Value)
 	}
+}
+
+func v1alpha5FallbackNode(node, fallback *yaml.Node) *yaml.Node {
+	if node != nil {
+		return node
+	}
+	return fallback
 }
 
 func v1alpha5String(node *yaml.Node) (string, bool) {
