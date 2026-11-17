@@ -15,6 +15,7 @@ This directory contains the technical reference and maintenance records for CA S
 - [Compiler Contract](design/compiler-contract-v1alpha4.md) — compiler responsibilities and behaviour.
 - [Compiler Pipeline](design/compiler-pipeline-v1alpha4.md) — validation stages and implementation mapping.
 - [BuildRequest](design/build-request-v1alpha4.md) — compiler input contract.
+- [Dependency Snapshot Digest](design/dependency-snapshot-digest-v1alpha4.md) — digest calculation and cross-language test vectors.
 - [Compiler Output API](design/compiler-output-contract-v1alpha4.md) — Check, BuildResult and DependencyInspection.
 - [Owner Contract Linking](design/owner-contracts-v1alpha4.md) — dependency ownership and capability linking.
 - [Procedure Linker](design/procedure-link-v1alpha4.md) — Procedure graph and static analysis.
