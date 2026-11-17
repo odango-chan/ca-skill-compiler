@@ -1,4 +1,4 @@
-# Compiler v1alpha4 â€?Implementation & Acceptance Status
+# Compiler v1alpha4 â€” Implementation & Acceptance Status
 
 **Status:** Compiler implementation complete for all frozen, implementable semantics and
 locally verified. Product conformance / real deployment qualification is **NOT_QUALIFIED**
@@ -13,20 +13,22 @@ blob `b70064c5737b8ee2b3d1435fe496357f44b42773`.
 **Acceptance method:** local reproducible commands only. GitHub Actions is unavailable for
 this run (account billing block) and is never reported as PASS.
 
-## 1. Repository and PR state
+## 1. Repository and release state
 
 | Item | State |
 |---|---|
 | Repository | `odango-chan/ca-skill-compiler` |
-| Active branch | `feat/compiler-v1alpha4-wp9-script-abi-20261116` |
-| Active PR | Draft [#24](https://github.com/odango-chan/ca-skill-compiler/pull/24), base `feat/compiler-v1alpha4-wp6-sourcepath-20261116` |
-| Historical stack | PR #11â€?23 open; none merged, closed or force-pushed |
-| Direct-to-main commits | none |
-| Working tree | clean at the verified head (see Â§9) |
+| Release | Compiler **v1.0.0**, [release notes](release-notes-v1.0.0.md) |
+| Language target | frozen CA-SL v1alpha4 (unchanged) |
+| Main branch | contains the merged v1alpha4 implementation |
+| Merged PRs | #11â€“#24, merged in dependency order; #2â€“#8 (superseded v0/v0.1/spike work) not merged |
+| Release branch | `release/v1.0.0` (version metadata, release notes, LF checkout policy) |
+| Force-push / direct-to-main commits | none |
 
-The v1alpha4 implementation is stacked in dependency order. PR #24 is the continuation
-branch; it contains the WP9â€“WP12 work, the CLI v1 completion, artifact/parity/Studio
-integration and the conformance slices. No PR is merged automatically.
+The v1alpha4 implementation was stacked in dependency order. PR #24 contained the
+WP9â€“WP12 work, the CLI v1 completion, artifact/parity/Studio integration and the
+conformance slices; it was merged last after PRs #11â€“#23. The release branch then added
+only release metadata, release notes and the LF checkout policy.
 
 ## 2. Work-package implementation status
 
@@ -94,8 +96,8 @@ E01â€“E120:
 |---|---|---|
 | `PARTIAL_STATIC_EVIDENCE` | 71 | At least one sub-branch has executed static evidence; the case is not claimed as a whole-case PASS |
 | `NOT_APPLICABLE_TO_COMPILER` | 39 | Case owner is Host/Runtime only |
-| `BLOCKED_EXTERNAL_CONTRACT` | 7 | E38, E46, E68, E87, E101, E102, E109 â€?require an unfrozen external publication |
-| `BLOCKED_NORMATIVE_MAPPING` | 2 | E71, E74 â€?frozen expected code cannot be distinguished without clarification |
+| `BLOCKED_EXTERNAL_CONTRACT` | 7 | E38, E46, E68, E87, E101, E102, E109 â€” require an unfrozen external publication |
+| `BLOCKED_NORMATIVE_MAPPING` | 2 | E71, E74 â€” frozen expected code cannot be distinguished without clarification |
 | Whole-case `PASS` | **0** | No case is claimed as a whole-case conformance PASS |
 
 **Discipline:** BLOCKED is never counted as PASS, N/A is never counted as PASS, and
@@ -126,8 +128,8 @@ Recorded environment: `go1.26.6 windows/amd64`, `node v24.18.0`, system Google C
 | `CGO_ENABLED=0 go build ./...` | **PASS** (exit 0) |
 | `CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -o dist/skillc.wasm ./cmd/skillc-wasm` | **PASS** (exit 0) |
 | `git diff --check` | **PASS** (exit 0) |
-| `go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | **PASS** (8 CLI end-to-end tests) |
-| `CHROMIUM_PARITY=1 go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | **PASS** (real headless Chromium, 32.3 s) |
+| `go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | **PASS** (9 CLI end-to-end tests) |
+| `CHROMIUM_PARITY=1 go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | **PASS** (real headless Chromium, 39.2 s) |
 
 Chromium parity evidence includes: identical check diagnostics, build
 success/diagnostics/dependencyClosure/output paths, inspect projection, in-Worker artifact
@@ -147,9 +149,10 @@ Coverage requirement map and exact commands:
 |---|---|
 | [README](../README.md) | rewritten to current implementation, CLI quick start, docs index, status |
 | [CLI v1alpha4](cli-v1alpha4.md) | new: commands, options, layouts, JSON contracts, exit codes, fail-closed properties |
-| [Compiler Pipeline v1alpha4](design/compiler-pipeline-v1alpha4.md) | new: contract stage â†?code â†?test traceability |
+| [Compiler Pipeline v1alpha4](design/compiler-pipeline-v1alpha4.md) | contract stage â†’ implementation file â†’ test traceability |
 | [Local Verification](local-verification-v1alpha4.md) | new: reproducible gates and requirement coverage map |
-| [Known Limitations](known-limitations-v1alpha4.md) | new: external contracts, fail-closed branches, WP13, cleanup |
+| [Known Limitations](known-limitations-v1alpha4.md) | external contracts, fail-closed branches, WP13, cleanup |
+| [Release Notes v1.0.0](release-notes-v1.0.0.md) | features, verification evidence, artifacts and known limitations |
 | BuildRequest / Output / Owner linkage / Procedure / Script / Artifact contracts | unchanged frozen contracts; consistent with current code |
 | [WORK](WORK.md) | updated to current branch/PR/status; history remains in WORK-history |
 
@@ -162,7 +165,7 @@ Only genuinely external items remain; see
 [Known Limitations](known-limitations-v1alpha4.md):
 
 1. Eight E-cases need unfrozen external publications (Evidence Descriptor physical format,
-   deployment Scope algebra, identity-input trusted publication) â€?fail-closed.
+   deployment Scope algebra, identity-input trusted publication) â€” fail-closed.
 2. E71/E74 need a normative clarification for `PREDICATE_EVIDENCE_REQUIRED`.
 3. WP13 real 5GC/MAS qualification is NOT_QUALIFIED.
 4. GitHub Actions is unavailable; local commands are the acceptance evidence.
@@ -174,10 +177,22 @@ Only genuinely external items remain; see
 | Dimension | Result |
 |---|---|
 | **Compiler Implementation** | **COMPLETE** for all frozen, implementable CA-SL v1alpha4 semantics; unfrozen external branches fail closed |
-| **Local Verification** | **PASS** â€?all commands in Â§6 executed with exit 0 |
-| **Artifact** | **AVAILABLE LOCALLY** â€?successful builds generate a deterministic, integrity-verified tree; no release/publishing artifact is produced |
-| **External Owner Integration** | **NOT AVAILABLE** â€?no frozen Evidence/Owner publications supplied; fail-closed paths are correct |
-| **Product Qualification** | **NOT DONE** â€?WP13 NOT_QUALIFIED; no real 5GC/MAS E2E is claimed |
+| **Local Verification** | **PASS** â€” all commands in Â§6 executed with exit 0 |
+| **Artifact** | **AVAILABLE** â€” successful builds generate a deterministic, integrity-verified tree; v1.0.0 release assets include Native CLI binaries, Go/WASM and SHA-256 checksums |
+| **External Owner Integration** | **NOT AVAILABLE** â€” no frozen Evidence/Owner publications supplied; fail-closed paths are correct |
+| **Product Qualification** | **NOT DONE** â€” WP13 NOT_QUALIFIED; no real 5GC/MAS E2E is claimed |
 
 Language freezing, Compiler implementation completion and product conformance are three
 distinct results; only the first two are asserted here.
+
+## 10. v1.0.0 release acceptance
+
+Release acceptance is `LOCAL_ACCEPTANCE_PASS`: the commands in Â§6 were executed on the
+release commit with all exit codes `0`, including the real headless-Chromium parity run.
+GitHub Actions is unavailable (account billing) and is not reported as PASS.
+
+The published release artifacts are built from the tagged release commit with
+`CGO_ENABLED=0` and `-trimpath`; their SHA-256 checksums are published in the release
+`SHA256SUMS` asset. See the [release notes](release-notes-v1.0.0.md) for the artifact list
+and the cross-compilation caveat: only the Windows binary and the WASM module were executed
+locally; Linux/macOS binaries are build-verified, not runtime-tested.

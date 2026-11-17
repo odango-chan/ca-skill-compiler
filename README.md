@@ -7,6 +7,16 @@ deterministic artifact file tree. One Go Core serves Native Go, Go/WASM and the 
 CLI; it performs no network access, dependency acquisition, Python execution or Runtime
 dispatch.
 
+## Release
+
+**CA Skill Compiler v1.0.0** (CA-SL v1alpha4 language target) is the first formal
+Compiler CLI release. Product version and language version are independent; the release
+contains prebuilt Native CLI binaries, the Go/WASM module and SHA-256 checksums. See the
+[release notes](docs/release-notes-v1.0.0.md) and the GitHub Releases page.
+
+The Compiler product version recorded in Artifact manifests is `v1.0.0`; the language
+target remains the frozen `connectionagent.io/v1alpha4`.
+
 ## Normative authority
 
 - **CA-SL v1alpha4:** [ca-skills immutable commit 7f84393](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md)
@@ -25,6 +35,7 @@ Build the reference CLI and run the checked-in trusted fixture:
 ```bash
 CGO_ENABLED=0 go build -o skillc ./cmd/skillc
 
+./skillc version
 ./skillc check   web/parity-success
 ./skillc inspect web/parity-success
 ./skillc build   web/parity-success --out /tmp/skillc-out
@@ -33,6 +44,7 @@ CGO_ENABLED=0 go build -o skillc ./cmd/skillc
 Machine-readable output:
 
 ```bash
+./skillc version
 ./skillc check   web/parity-success --json   # Diagnostic[]
 ./skillc inspect web/parity-success --json   # DependencyInspection
 ./skillc build   web/parity-success --out /tmp/skillc-out-2 --json  # BuildResult
@@ -52,7 +64,7 @@ dependency is reported, never inferred. Full reference: [CLI v1alpha4](docs/cli-
 | `internal/pythoncst` | Python CST adapter (parse only; never executes Python) |
 | `internal/artifact` | deterministic artifact tree, JCS manifest and integrity verification |
 | `internal/projectinput` | shared local project loader used by the CLI and parity tooling |
-| `cmd/skillc` | reference Native CLI (check / build / inspect) |
+| `cmd/skillc` | reference Native CLI (check / build / inspect / version) |
 | `cmd/skillc-wasm` | Go/WASM entry points for the same Core |
 | `cmd/parity-replay` | Native reference projection for the Chromium parity harness |
 | `web/` | Worker/Studio pages and parity fixtures |
@@ -65,7 +77,7 @@ dependency is reported, never inferred. Full reference: [CLI v1alpha4](docs/cli-
 | Document | Purpose |
 |---|---|
 | [Compiler Contract v1alpha4](docs/design/compiler-contract-v1alpha4.md) | Scope, semantics and acceptance boundary |
-| [Compiler Pipeline v1alpha4](docs/design/compiler-pipeline-v1alpha4.md) | Contract pipeline stage â†?implementation file â†?test map |
+| [Compiler Pipeline v1alpha4](docs/design/compiler-pipeline-v1alpha4.md) | Contract pipeline stage â†’ implementation file â†’ test map |
 | [BuildRequest v1alpha4](docs/design/build-request-v1alpha4.md) | Source, dependency snapshots and trusted build context |
 | [Compiler Output API v1alpha4](docs/design/compiler-output-contract-v1alpha4.md) | Check, BuildResult, DependencyInspection and deterministic ordering |
 | [Owner Contract Linking v1alpha4](docs/design/owner-contracts-v1alpha4.md) | ToolCatalog, CapabilityContracts, Evidence and trusted Owner attribution |
@@ -77,6 +89,7 @@ dependency is reported, never inferred. Full reference: [CLI v1alpha4](docs/cli-
 | [CLI v1alpha4](docs/cli-v1alpha4.md) | Commands, options, project layout, exit codes, JSON output |
 | [Local Verification v1alpha4](docs/local-verification-v1alpha4.md) | Reproducible acceptance commands and coverage map |
 | [Known Limitations v1alpha4](docs/known-limitations-v1alpha4.md) | External contracts, fail-closed branches, WP13 boundary |
+| [Release Notes v1.0.0](docs/release-notes-v1.0.0.md) | Formal release features, verification, artifacts and known limitations |
 | [Acceptance Status](docs/COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) | Live implementation/E-coverage status and evidence |
 | [Conformance plan](docs/workstreams/conformance-v1alpha4.md) | E01â€“E120, H diagnostics, Native/WASM and 5GC gates |
 | [Studio integration](docs/studio-integration-v1alpha4.md) | Go/WASM Worker and read-only Studio boundary |
@@ -107,20 +120,20 @@ historical completion claims.
 
 | WP | Scope | Status |
 |---|---|---|
-| WP0 | OSS selection / frozen contracts | DONE â€?goccy/go-yaml v1.19.2, San v6.0.3, cel-go v0.33.2, gositter v0.2.0, gowebpki/jcs v1.0.2 integrated |
+| WP0 | OSS selection / frozen contracts | DONE â€” goccy/go-yaml v1.19.2, San v6.0.3, cel-go v0.33.2, gositter v0.2.0, gowebpki/jcs v1.0.2 integrated |
 | WP1 | BuildRequest, digest, limits, Native/WASM transport | PASS (local) |
 | WP2 | Single normalized YAML AST with source positions | PASS (local) |
 | WP3Aâ€“WP3D | Dependency identity, Owner/ToolCatalog, Capability, integrated linking/inspection | PASS (local, fixtures) |
 | WP4Aâ€“WP4D | G.4 Schema allowlist, registry/closure, F.5 assignability, CEL subset | PASS (local, fixtures) |
-| WP5 | Procedure graph, stages, routes, dominance, retry/reconcile | PARTIAL â€?implemented slices pass; exact auto-advance dominance and final-Postcondition precision remain |
-| WP6 | SourcePath grammar, typing, dominance/availability | PARTIAL â€?implemented slices pass; identity-input provenance is fail-closed (unfrozen publication) |
-| WP7 | Evidence binding, independence, static satisfiability | PARTIAL â€?static linking/checks pass; Descriptor content/Producer/Scope/Correlation/Freshness fail closed (unfrozen format) |
-| WP8 | Mutation/Reconcile/retry contracts | PARTIAL â€?same-snapshot semantics pass; cross-snapshot association and Runtime retry admission fail closed / outside Compiler |
-| WP9 | Python CST + Script ABI | PARTIAL (near complete) â€?CST, typed input/strict TypedDict output, call-site keys, F.5 typing, key access/guards, PredicateInput projection; Evidence projection blocked |
-| WP10 | Deterministic Artifact (JCS tree/manifest) | PASS (local) â€?successful builds emit byte-deterministic, integrity-verified artifacts |
-| WP11 | Native/WASM/Chromium parity | PASS (local, real headless Chromium) â€?check/build/inspect and artifact bytes identical |
-| WP12 | Skill Studio read-only integration | PASS (local, real Chromium) â€?unified Worker result, diagnostics with positions, read-only artifact view; Studio product editor is outside this repo |
-| WP13 | Real 5GC/MAS qualification | NOT_QUALIFIED (external) â€?no real v1alpha4 publications, MAS not runnable |
+| WP5 | Procedure graph, stages, routes, dominance, retry/reconcile | PASS (local) â€” edge-exact global-Precondition dominance and reachability-exact final-Postcondition classification; Runtime join-AND remains Host-side |
+| WP6 | SourcePath grammar, typing, dominance/availability | PARTIAL (fail-closed) â€” implemented slices pass; identity-input provenance is fail-closed (unfrozen publication) |
+| WP7 | Evidence binding, independence, static satisfiability | PARTIAL â€” static linking/checks pass; Descriptor content/Producer/Scope/Correlation/Freshness fail closed (unfrozen format) |
+| WP8 | Mutation/Reconcile/retry contracts | PARTIAL â€” same-snapshot semantics pass; cross-snapshot association and Runtime retry admission fail closed / outside Compiler |
+| WP9 | Python CST + Script ABI | PARTIAL (near complete) â€” CST, typed input/strict TypedDict output, call-site keys, F.5 typing, key access/guards, PredicateInput projection; Evidence projection blocked |
+| WP10 | Deterministic Artifact (JCS tree/manifest) | PASS (local) â€” successful builds emit byte-deterministic, integrity-verified artifacts |
+| WP11 | Native/WASM/Chromium parity | PASS (local, real headless Chromium) â€” check/build/inspect and artifact bytes identical |
+| WP12 | Skill Studio read-only integration | PASS (local, real Chromium) â€” unified Worker result, diagnostics with positions, read-only artifact view; Studio product editor is outside this repo |
+| WP13 | Real 5GC/MAS qualification | NOT_QUALIFIED (external) â€” no real v1alpha4 publications, MAS not runnable |
 
 **Compiler implementation:** complete for all frozen semantics that do not require an
 unfrozen external publication, and locally verified. **Not claimed:** product conformance
@@ -155,7 +168,8 @@ successful BuildResult is a static compilation result, not an authorization toke
 
 ## Development workflow
 
-The v1alpha4 implementation proceeds in stacked Draft PRs (#11â€?24); no PR is merged and
-no branch is force-pushed. PR #24 is the current continuation branch based on the WP6
-branch. See [Acceptance Status Â§Git](docs/COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) for the
-current branch/PR state; do not treat historical status notes as present evidence.
+The v1alpha4 implementation was delivered through stacked PRs #11â€“#24, merged into `main`
+in dependency order for the v1.0.0 release; no force-push was used and #2â€“#8 (superseded
+v0/v0.1 work) were not merged. Release metadata and release notes were merged through the
+`release/v1.0.0` PR. See [Acceptance Status](docs/COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)
+for the current state; historical status notes are not present evidence.

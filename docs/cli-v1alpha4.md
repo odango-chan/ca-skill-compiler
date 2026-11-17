@@ -11,6 +11,7 @@
 | `skillc check` | Static analysis only; never writes artifacts | `Check(BuildRequest)` |
 | `skillc build` | Compile, link, verify and write the deterministic artifact tree | `Build(BuildRequest)` + `VerifyBuildResult` |
 | `skillc inspect` | Read-only dependency snapshot / trusted binding inventory | `InspectDependencies(BuildRequest)` |
+| `skillc version` | Print the Compiler product version and language target | `compiler.CompilerVersion` |
 | `skillc help` | Usage text | — |
 
 No other subcommands exist. There is deliberately no dependency resolver, package manager, network fetch, release publisher or Runtime dispatcher in the CLI.
@@ -170,6 +171,7 @@ The CLI enforces the same trust boundary as the Compiler Core:
 Using the checked-in trusted fixture:
 
 ```bash
+skillc version
 skillc check   web/parity-success
 skillc inspect web/parity-success
 skillc build   web/parity-success --out /tmp/skillc-out
@@ -211,6 +213,7 @@ CLI-level end-to-end tests build the real binary and execute it as a subprocess:
 | `TestCLIEndToEndRequestTransport` | BuildRequest JSON mode, malformed request and flag conflicts |
 | `TestCLIEndToEndOutputFreshness` | stale/nonempty output rejected |
 | `TestCLIEndToEndSkillTarget` | `--skill` target selection and unknown target failure |
+| `TestCLIEndToEndVersion` | product version / language target output and argument rejection |
 
 Run them with:
 

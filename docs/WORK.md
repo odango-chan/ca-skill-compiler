@@ -1,4 +1,4 @@
-# CA Skill Compiler â€?Current Work (v1alpha4)
+# CA Skill Compiler â€” Current Work (v1alpha4)
 
 **Language:** CA-SL v1alpha4, frozen at
 `odango-chan/ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d`
@@ -24,7 +24,7 @@ locally verified; external-contract branches fail closed.
 |---|---|
 | Branch | `feat/compiler-v1alpha4-wp9-script-abi-20261116` |
 | Active PR | Draft [#24](https://github.com/odango-chan/ca-skill-compiler/pull/24), base `feat/compiler-v1alpha4-wp6-sourcepath-20261116` |
-| Historical stack | PR #11â€?23 remain open; none is merged or auto-mergeable |
+| Historical stack | PR #11â€“#23 remain open; none is merged or auto-mergeable |
 | CLI | `skillc check` / `build` / `inspect` implemented; see [CLI](cli-v1alpha4.md) |
 | Local gates | PASS (recorded in Local Verification; GitHub Actions unavailable, not used as evidence) |
 
@@ -36,8 +36,8 @@ merged and no branch is pushed directly to `main`.
 All remaining items are recorded in [Known Limitations](known-limitations-v1alpha4.md):
 
 1. Eight E-cases need an unfrozen external publication (Evidence Descriptor format,
-   deployment Scope algebra, identity-input trusted publication) â€?`BLOCKED_EXTERNAL_CONTRACT`.
-2. E71/E74 need a normative clarification for `PREDICATE_EVIDENCE_REQUIRED` â€?   `BLOCKED_NORMATIVE_MAPPING`.
+   deployment Scope algebra, identity-input trusted publication) â€” `BLOCKED_EXTERNAL_CONTRACT`.
+2. E71/E74 need a normative clarification for `PREDICATE_EVIDENCE_REQUIRED` â€”   `BLOCKED_NORMATIVE_MAPPING`.
 3. WP13 real 5GC/MAS qualification is NOT_QUALIFIED.
 4. GitHub Actions remains unavailable; local commands are the acceptance evidence.
 
