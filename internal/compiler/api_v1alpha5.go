@@ -21,9 +21,9 @@ const (
 	// BuildResultAPIVersionV1Alpha5 is stamped on every v1alpha5 BuildResult,
 	// including fail-closed results.
 	BuildResultAPIVersionV1Alpha5 = "connectionagent.io/compiler-build-result/v1alpha5"
-	// DependencyInspectionAPIVersionV1Alpha5 reserves the independent
-	// dependency-inspection API version for the v1alpha5 target. Ingress
-	// inspection types are a later work package.
+	// DependencyInspectionAPIVersionV1Alpha5 is the independent
+	// dependency-inspection API version for the v1alpha5 target. The v1alpha5
+	// inventory adds the separate IngressOperation projection.
 	DependencyInspectionAPIVersionV1Alpha5 = "connectionagent.io/compiler-dependency-inspection/v1alpha5"
 )
 

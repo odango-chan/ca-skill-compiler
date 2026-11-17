@@ -566,31 +566,48 @@ func TestCLIEndToEndV1Alpha5BuildFailClosed(t *testing.T) {
 	}
 }
 
-// TestCLIEndToEndV1Alpha5InspectDoesNotClaimIngressSupport keeps the deferred
-// DependencyInspection ingress wiring explicit: v1alpha5 inspection currently
-// exposes the inherited v1alpha4 envelope rejection instead of guessing a new
-// inventory projection.
-func TestCLIEndToEndV1Alpha5InspectDoesNotClaimIngressSupport(t *testing.T) {
-	inspection := runCLI(t, "inspect", "--request", v1alpha5CLIRequestPath(t, "valid"), "--json")
-	if inspection.code != 1 {
-		t.Fatalf("v1alpha5 inspect exit = %d, want 1", inspection.code)
+// TestCLIEndToEndV1Alpha5InspectIngressInventory proves `inspect --request` now
+// dispatches to the real v1alpha5 DependencyInspection: the author-only request
+// succeeds with the independent v1alpha5 inspection API version, zero
+// diagnostics, no fabricated callables/schemas and an empty ingress inventory
+// (trusted-prerequisite diagnostics only appear when snapshots/bindings are
+// supplied). Output stays byte-deterministic.
+func TestCLIEndToEndV1Alpha5InspectIngressInventory(t *testing.T) {
+	requestPath := v1alpha5CLIRequestPath(t, "valid")
+	first := runCLI(t, "inspect", "--request", requestPath, "--json")
+	if first.code != 0 {
+		t.Fatalf("v1alpha5 inspect exit = %d, stderr = %s", first.code, first.stderr)
 	}
 	var result compiler.DependencyInspection
-	if err := json.Unmarshal([]byte(inspection.stdout), &result); err != nil {
-		t.Fatalf("v1alpha5 inspect --json output: %v\n%s", err, inspection.stdout)
+	if err := json.Unmarshal([]byte(first.stdout), &result); err != nil {
+		t.Fatalf("v1alpha5 inspect --json output: %v\n%s", err, first.stdout)
 	}
-	if result.APIVersion != compiler.DependencyInspectionAPIVersion {
-		t.Fatalf("v1alpha5 inspect apiVersion = %q", result.APIVersion)
+	if result.APIVersion != compiler.DependencyInspectionAPIVersionV1Alpha5 {
+		t.Fatalf("v1alpha5 inspect apiVersion = %q, want %q",
+			result.APIVersion, compiler.DependencyInspectionAPIVersionV1Alpha5)
 	}
-	codes := make(map[string]bool)
-	for _, diagnostic := range result.Diagnostics {
-		codes[diagnostic.Code] = true
+	if len(result.Diagnostics) != 0 {
+		t.Fatalf("author-only v1alpha5 inspect diagnostics = %+v, want []", result.Diagnostics)
 	}
-	if !codes["LANGUAGE_TARGET_UNSUPPORTED"] || !codes["REQUEST_INVALID"] {
-		t.Fatalf("unexpected v1alpha5 inspect diagnostics: %+v", result.Diagnostics)
+	if len(result.Callables) != 0 || len(result.Schemas) != 0 || len(result.IngressOperations) != 0 {
+		t.Fatalf("author-only v1alpha5 inspect must not fabricate inventory: %+v", result)
 	}
-	if len(result.Callables) != 0 || len(result.Schemas) != 0 {
-		t.Fatalf("deferred v1alpha5 inspection must not claim ingress inventory: %+v", result)
+
+	second := runCLI(t, "inspect", "--request", requestPath, "--json")
+	if second.code != 0 {
+		t.Fatalf("repeat v1alpha5 inspect exit = %d", second.code)
+	}
+	if first.stdout != second.stdout {
+		t.Fatalf("v1alpha5 inspect output must be deterministic:\nfirst=%s\nsecond=%s",
+			first.stdout, second.stdout)
+	}
+
+	human := runCLI(t, "inspect", "--request", requestPath)
+	if human.code != 0 {
+		t.Fatalf("human v1alpha5 inspect exit = %d, stderr = %s", human.code, human.stderr)
+	}
+	if !strings.Contains(human.stdout, "Dependency inspection OK") {
+		t.Fatalf("human v1alpha5 inspect output: %q", human.stdout)
 	}
 }
 

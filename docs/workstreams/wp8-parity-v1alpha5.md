@@ -37,7 +37,7 @@ The invalid fixture exercises `WAIT_NODE_STAGE_REQUIRED`,
 | Deferred item | Why it is not claimed |
 |---|---|
 | Successful-Build v1alpha5 **artifact byte parity** | Artifact assembly and the remaining static pipeline are WP3鈥揥P6 work; WP2 `Build` intentionally fails closed after AST validation, so there is no successful v1alpha5 artifact to compare yet |
-| v1alpha5 `DependencyInspection` ingress inventory (`ingressOperations` or equivalent) | The v1alpha5 inspection API version is reserved but the ingress projection is not implemented; `inspect` currently reports the inherited v1alpha4 envelope rejection rather than guessing a contract |
+| v1alpha5 trusted-ingress `DependencyInspection` **Chromium byte-parity fixture** | The independent `ingressOperations` inventory and the v1alpha5 `inspect` dispatch are implemented and unit-tested (WP7b), but the checked-in Chromium parity phase still exercises author-only inspection requests, so trusted IngressCatalog inventory byte-parity in the real Worker is not claimed |
 | Studio v1alpha5 success-path rendering | Follows from the deferred successful Build; Studio remains v1alpha4-success + both fail-closed presentations |
 | Real Owner/Deployment/5GC/MAS qualification | Compiler parity is not product qualification; remains **NOT_QUALIFIED** |
 | GitHub Actions CI evidence | No runner executed steps in this environment 鈥?**CI_UNAVAILABLE** (see 搂6) |
@@ -47,12 +47,12 @@ The invalid fixture exercises `WAIT_NODE_STAGE_REQUIRED`,
 | File | Change |
 |---|---|
 | `cmd/skillc/main.go` | Additive `version` output (both language targets, independent request/result API versions) and help text documenting `--request` target selection, language targets and API versions; no command or exit-code behavior changed |
-| `cmd/skillc/e2e_test.go` | New v1alpha5 CLI end-to-end tests for version/help, valid + invalid `check --request`, fail-closed `build --request` (`apiVersion`, residual, invalid diagnostics, no output files) and deferred `inspect` behavior; existing v1alpha4 tests untouched |
+| `cmd/skillc/e2e_test.go` | New v1alpha5 CLI end-to-end tests for version/help, valid + invalid `check --request`, fail-closed `build --request` (`apiVersion`, residual, invalid diagnostics, no output files) and the real v1alpha5 `inspect --request` dispatch (v1alpha5 inspection API version, zero diagnostics, empty non-fabricated inventory, deterministic output); existing v1alpha4 tests untouched |
 | `cmd/parity-replay/main.go` | Additive `--request=<BuildRequest.json>` mode using the same strict `compiler.DecodeBuildRequestJSON` path as the CLI/WASM bridge; project mode unchanged. The reference view now also carries `build.apiVersion` |
 | `scripts/chromium-parity.mjs` | New v1alpha5 phase: writes explicit v1alpha5 `BuildRequest` JSON from checked-in synthetic author fixtures, runs the Native reference through `--request`, runs the same request through `web/parity.html` 鈫?`web/skillc-worker.js` 鈫?the same Go/WASM Core in real headless Chromium, and compares check/build/result-version/inspect projections; prints explicit v1alpha5 markers |
 | `web/parity-v1alpha5/valid-procedure.yaml`, `invalid-procedure.yaml` | Synthetic v1alpha5 Wait author fixtures (author files only; no trusted dependency snapshot needed) |
 | `internal/parity/chromium_test.go` | Requires the new v1alpha5 markers so a missing/regressed v1alpha5 comparison fails the opt-in test |
-| `docs/workstreams/wp8-parity-v1alpha5.md` | This record |
+| `docs/workstreams/wp8-parity-v1alpha5.md` | This record; WP7b updated the inspect row/CLI surface |
 
 `web/parity.html` and `web/skillc-worker.js` needed no change: the page already
 fetches a named request file and the worker already delegates to the shared Go
@@ -148,7 +148,8 @@ build request apiVersion: connectionagent.io/compiler-build-request/v1alpha4 (fr
 build request apiVersion: connectionagent.io/compiler-build-request/v1alpha5 (candidate)
 build result apiVersion: connectionagent.io/compiler-build-result/v1alpha4 (frozen)
 build result apiVersion: connectionagent.io/compiler-build-result/v1alpha5 (candidate)
-dependency inspection apiVersion: connectionagent.io/compiler-dependency-inspection/v1alpha4 (frozen; v1alpha5 ingress not yet wired)
+dependency inspection apiVersion: connectionagent.io/compiler-dependency-inspection/v1alpha4 (frozen)
+dependency inspection apiVersion: connectionagent.io/compiler-dependency-inspection/v1alpha5 (candidate)
 ```
 
 `dist/` build output is local only and not committed.

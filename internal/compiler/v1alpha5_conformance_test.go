@@ -1,11 +1,11 @@
 package compiler
 
-// WP7: v1alpha5 EW/IN conformance-register integrity test.
+// WP7b: post-integration v1alpha5 EW/IN conformance-register integrity test.
 //
 // The register is machine-readable traceability, not an executed conformance
 // suite. This test enforces that the register is complete, deterministic and in
-// sync with the Markdown matrix, that every implemented row names a test that
-// actually exists, and that every referenced diagnostic identity is a real
+// sync with the Markdown matrix, that every implemented row names tests that
+// actually exist, and that every referenced diagnostic identity is a real
 // L.11 / Ingress-registry / inherited identity. It never asserts that a
 // deferred, external or specification-only row passed anything.
 
@@ -42,9 +42,8 @@ const (
 	wp7INCount = 63
 )
 
-// Normative code sets for the register integrity check. These are hard-coded
-// here from Appendix L.11/L.11.2 and the Ingress diagnostic registry v1alpha1;
-// the register may not reference anything else.
+// Normative code sets for the register integrity check (hard-coded from
+// Appendix L.11/L.11.2 and the Ingress diagnostic registry v1alpha1).
 var (
 	wp7NormativeV1Alpha5Codes = map[string]bool{
 		"WAIT_DECLARATION_INVALID":         true,
@@ -72,9 +71,6 @@ var (
 		"INGRESS_RESPONSE_CONTRACT_INVALID":        true,
 		"INGRESS_RESPONSE_MAPPING_INVALID":         true,
 	}
-	// Inherited frozen v1alpha4 Appendix H identities explicitly reused by
-	// Appendix L.11; they are not new v1alpha5 codes and have no messageKey in
-	// the L.11.1 registry.
 	wp7InheritedCodes = map[string]bool{
 		"YAML_PARSE_ERROR":                   true,
 		"UNKNOWN_FIELD":                      true,
@@ -83,41 +79,69 @@ var (
 		"SOURCE_PATH_INVALID":                true,
 		"SOURCE_NOT_AVAILABLE":               true,
 		"INPUT_TYPE_MISMATCH":                true,
+		"INPUT_NULLABILITY_MISMATCH":         true,
 		"SCHEMA_MISSING":                     true,
 		"SCHEMA_INVALID":                     true,
 		"DEPENDENCY_EXPORT_OWNER_UNVERIFIED": true,
 		"DEPENDENCY_OWNER_MISMATCH":          true,
 		"DEPENDENCY_IDENTITY_UNVERIFIED":     true,
+		"DEPENDENCY_DUPLICATE":               true,
+		"DEPENDENCY_ID_MISMATCH":             true,
+		"DEPENDENCY_SNAPSHOT_MISSING":        true,
+		"DEPENDENCY_REQUIREMENT_INVALID":     true,
 		"EXPORT_ID_MISSING":                  true,
 		"EXPORT_ID_AMBIGUOUS":                true,
 		"ENTRY_PRECONDITION_BYPASSED":        true,
-		// The v1alpha5 Procedure source admission also reuses these frozen
-		// source/procedure identities.
-		"PROCEDURE_START_MISSING":     true,
-		"NODE_ID_RESERVED":            true,
-		"SOURCE_ROOT_INVALID":         true,
-		"REQUEST_INVALID":             true,
-		"INPUT_LIMIT":                 true,
-		"PACKAGE_PATH_INVALID":        true,
-		"LANGUAGE_TARGET_UNSUPPORTED": true,
+		"PROCEDURE_START_MISSING":            true,
+		"NODE_ID_RESERVED":                   true,
+		"SOURCE_ROOT_INVALID":                true,
+		"REQUEST_INVALID":                    true,
+		"INPUT_LIMIT":                        true,
+		"PACKAGE_PATH_INVALID":               true,
+		"LANGUAGE_TARGET_UNSUPPORTED":        true,
 	}
 	wp7KnownDeferredWPs = map[string]bool{
 		"WP1": true, "WP3": true, "WP4": true, "WP5": true, "WP6": true,
 	}
 )
 
-// wp7TestTable is the explicit Go map/test-name table. Referencing the real
-// functions makes a renamed or removed test a compile failure, so a stale
-// register entry cannot survive.
+// wp7TestTable is the explicit same-package Go map/test-name table. Referencing
+// the real functions makes a renamed or removed test a compile failure.
 var wp7TestTable = map[string]func(*testing.T){
-	"TestV1Alpha5DiagnosticContractEWAnchors":              TestV1Alpha5DiagnosticContractEWAnchors,
-	"TestV1Alpha5DiagnosticContractMessageKeyRegistry":     TestV1Alpha5DiagnosticContractMessageKeyRegistry,
-	"TestV1Alpha5DiagnosticContractResponseBoundaryScope":  TestV1Alpha5DiagnosticContractResponseBoundaryScope,
-	"TestV1Alpha5DiagnosticContractDeterminismAndOrdering": TestV1Alpha5DiagnosticContractDeterminismAndOrdering,
-	"TestV1Alpha5DiagnosticContractSourceLocations":        TestV1Alpha5DiagnosticContractSourceLocations,
-	"TestV1Alpha5DiagnosticContractNoInventedWaitCodes":    TestV1Alpha5DiagnosticContractNoInventedWaitCodes,
-	"TestV1Alpha5DiagnosticEnvelopeUnchanged":              TestV1Alpha5DiagnosticEnvelopeUnchanged,
-	"TestV1Alpha5WaitDiagnosticAnchors":                    TestV1Alpha5WaitDiagnosticAnchors,
+	"TestV1Alpha5DiagnosticContractEWAnchors":          TestV1Alpha5DiagnosticContractEWAnchors,
+	"TestV1Alpha5GraphUnknownResponseAfterTarget":      TestV1Alpha5GraphUnknownResponseAfterTarget,
+	"TestV1Alpha5WaitWithoutIngressExportIsNotFound":   TestV1Alpha5WaitWithoutIngressExportIsNotFound,
+	"TestV1Alpha5WP3PositiveTrustedIngressLink":        TestV1Alpha5WP3PositiveTrustedIngressLink,
+	"TestV1Alpha5WP3RetentionWindowInvalid":            TestV1Alpha5WP3RetentionWindowInvalid,
+	"TestV1Alpha5WP3SelectorAmbiguous":                 TestV1Alpha5WP3SelectorAmbiguous,
+	"TestV1Alpha5WP3SelectorNotFound":                  TestV1Alpha5WP3SelectorNotFound,
+	"TestV1Alpha5WP3StartWaitWithoutArmingStart":       TestV1Alpha5WP3StartWaitWithoutArmingStart,
+	"TestV1Alpha5WP3TriggerNotDominatingOnOnePath":     TestV1Alpha5WP3TriggerNotDominatingOnOnePath,
+	"TestV1Alpha5WP3TriggerOperationAmbiguous":         TestV1Alpha5WP3TriggerOperationAmbiguous,
+	"TestV1Alpha5WP3TriggerOperationMissing":           TestV1Alpha5WP3TriggerOperationMissing,
+	"TestV1Alpha5WP4TimeoutHandlerReadIsUnavailable":   TestV1Alpha5WP4TimeoutHandlerReadIsUnavailable,
+	"TestV1Alpha5WP6BoundaryNodeWithoutProducerStage":  TestV1Alpha5WP6BoundaryNodeWithoutProducerStage,
+	"TestV1Alpha5WP6EarlyFailureMappingMissing":        TestV1Alpha5WP6EarlyFailureMappingMissing,
+	"TestV1Alpha5WP6MappingCoverageIncomplete":         TestV1Alpha5WP6MappingCoverageIncomplete,
+	"TestV1Alpha5WP6MultipartBinaryPartUnmapped":       TestV1Alpha5WP6MultipartBinaryPartUnmapped,
+	"TestV1Alpha5WP6PositiveSingleBodylessDisposition": TestV1Alpha5WP6PositiveSingleBodylessDisposition,
+	"TestV1Alpha5WP6ProducerOutputSchemaIncompatible":  TestV1Alpha5WP6ProducerOutputSchemaIncompatible,
+	"TestV1Alpha5WP6ProducerOutputSchemaUnavailable":   TestV1Alpha5WP6ProducerOutputSchemaUnavailable,
+	"TestV1Alpha5WP6SuccessBeforeBoundary":             TestV1Alpha5WP6SuccessBeforeBoundary,
+	"TestV1Alpha5WP6UnreachableBoundary":               TestV1Alpha5WP6UnreachableBoundary,
+}
+
+// wp7CrossPackageTestTable names implemented tests that live in another package
+// of this repository (the WP1 IngressCatalog admission tests). They cannot be
+// referenced as Go function values from package compiler, so their existence is
+// verified by scanning that package's checked-in test sources.
+var wp7CrossPackageTestTable = map[string]string{
+	"TestCatalogDuplicateEventSelector":             "internal/ingresscatalog",
+	"TestCatalogDuplicateExportID":                  "internal/ingresscatalog",
+	"TestCatalogInvalidAPIVersionAndKind":           "internal/ingresscatalog",
+	"TestCatalogMissingSchemaClosure":               "internal/ingresscatalog",
+	"TestCatalogProtocolArtifactIdentityUnverified": "internal/ingresscatalog",
+	"TestCatalogProtocolMetadataMismatch":           "internal/ingresscatalog",
 }
 
 type wp7Diagnostic struct {
@@ -139,6 +163,7 @@ type wp7Case struct {
 	DeferredTo     string         `json:"deferredTo,omitempty"`
 	DeferredNote   string         `json:"deferredNote,omitempty"`
 	Test           string         `json:"test,omitempty"`
+	Tests          []string       `json:"tests,omitempty"`
 }
 
 type wp7Counts struct {
@@ -165,7 +190,6 @@ func wp7RepoRoot(t *testing.T) string {
 	if !ok {
 		t.Fatal("cannot resolve the WP7 test source location")
 	}
-	// internal/compiler/<this file> -> repository root.
 	return filepath.Clean(filepath.Join(filepath.Dir(file), "..", ".."))
 }
 
@@ -205,6 +229,44 @@ func wp7ThreeDigits(value int) string {
 	}
 }
 
+// wp7CaseTests returns every executable test name named by one register row.
+func wp7CaseTests(c wp7Case) []string {
+	tests := make([]string, 0, 1+len(c.Tests))
+	if c.Test != "" {
+		tests = append(tests, c.Test)
+	}
+	tests = append(tests, c.Tests...)
+	return tests
+}
+
+func wp7TestExists(t *testing.T, name string) bool {
+	t.Helper()
+	if _, ok := wp7TestTable[name]; ok {
+		return true
+	}
+	packageDir, ok := wp7CrossPackageTestTable[name]
+	if !ok {
+		return false
+	}
+	matches, err := filepath.Glob(filepath.Join(wp7RepoRoot(t), packageDir, "*_test.go"))
+	if err != nil || len(matches) == 0 {
+		return false
+	}
+	pattern := regexp.MustCompile(`^func ` + regexp.QuoteMeta(name) + `\(`)
+	for _, path := range matches {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("read cross-package test source %s: %v", path, err)
+		}
+		for _, line := range strings.Split(string(data), "\n") {
+			if pattern.MatchString(strings.TrimSpace(line)) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // TestV1Alpha5ConformanceRegisterIntegrity is the register integrity gate.
 func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 	register := loadWP7Register(t)
@@ -215,7 +277,7 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 	if register.LanguageTarget != V1Alpha5Target {
 		t.Fatalf("register.languageTarget = %q, want %q", register.LanguageTarget, V1Alpha5Target)
 	}
-	if register.Status != "NORMATIVE_OBLIGATIONS_NOT_QUALIFIED" {
+	if register.Status != "NORMATIVE_OBLIGATIONS_LOCALLY_TESTED_NOT_QUALIFIED" {
 		t.Fatalf("register.status = %q; WP7 must not claim qualification or PASS", register.Status)
 	}
 	if strings.Contains(strings.ToUpper(register.Status), "PASS") {
@@ -233,8 +295,7 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 	seen := make(map[string]bool, len(register.Cases))
 	idPattern := regexp.MustCompile(`^(EW|IN)-[0-9]{3}$`)
 	counts := map[string]int{}
-	ewCounts := map[string]int{}
-	inCounts := map[string]int{}
+	var implementedIDs []string
 
 	for index, testCase := range register.Cases {
 		if !idPattern.MatchString(testCase.ID) {
@@ -244,12 +305,10 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 			t.Fatalf("duplicate case id %q", testCase.ID)
 		}
 		seen[testCase.ID] = true
-		// Deterministic ordering: exactly EW-001..EW-036 then IN-001..IN-063.
 		if testCase.ID != expected[index] {
 			t.Fatalf("case %d id = %q, want deterministic order position %q",
 				index, testCase.ID, expected[index])
 		}
-
 		if testCase.Owner == "" {
 			t.Fatalf("%s owner must be set", testCase.ID)
 		}
@@ -260,11 +319,6 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 			t.Fatalf("%s has invalid classification %q", testCase.ID, testCase.Classification)
 		}
 		counts[testCase.Classification]++
-		if strings.HasPrefix(testCase.ID, "EW-") {
-			ewCounts[testCase.Classification]++
-		} else {
-			inCounts[testCase.Classification]++
-		}
 
 		if testCase.Diagnostic != nil {
 			if testCase.Diagnostic.Code == "" {
@@ -273,16 +327,8 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 			if !wp7KnownCode(testCase.Diagnostic.Code) {
 				t.Fatalf("%s references unknown diagnostic code %q", testCase.ID, testCase.Diagnostic.Code)
 			}
-			if strings.HasPrefix(testCase.Diagnostic.Code, "WAIT_") &&
-				!wp7NormativeV1Alpha5Codes[testCase.Diagnostic.Code] &&
-				!wp7HostAdmissionCodes[testCase.Diagnostic.Code] {
-				t.Fatalf("%s references invented WAIT_* code %q", testCase.ID, testCase.Diagnostic.Code)
-			}
-			if strings.HasPrefix(testCase.Diagnostic.Code, "INGRESS_") &&
-				!wp7IngressRegistryCodes[testCase.Diagnostic.Code] {
-				t.Fatalf("%s references unknown Ingress registry code %q", testCase.ID, testCase.Diagnostic.Code)
-			}
-			if testCase.Classification == wp7Implemented || testCase.Classification == wp7Deferred {
+			switch testCase.Classification {
+			case wp7Implemented, wp7Deferred:
 				if testCase.Diagnostic.Phase != "C_STATIC" {
 					t.Fatalf("%s compiler diagnostic phase = %q, want C_STATIC",
 						testCase.ID, testCase.Diagnostic.Phase)
@@ -301,52 +347,53 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 
 		switch testCase.Classification {
 		case wp7Implemented:
-			if testCase.Test == "" {
+			names := wp7CaseTests(testCase)
+			if len(names) == 0 {
 				t.Fatalf("%s is implemented+tested but names no executable test", testCase.ID)
 			}
-			baseTest := strings.SplitN(testCase.Test, "/", 2)[0]
-			if _, ok := wp7TestTable[baseTest]; !ok {
-				t.Fatalf("%s names test %q that is not in the checked-in Go test table",
-					testCase.ID, testCase.Test)
+			for _, name := range names {
+				if !wp7TestExists(t, name) {
+					t.Fatalf("%s names test %q that does not exist in its checked-in package",
+						testCase.ID, name)
+				}
 			}
-			if testCase.Diagnostic == nil {
-				t.Fatalf("%s is implemented+tested but has no diagnostic identity", testCase.ID)
-			}
-			contract, ok := v1Alpha5NormativeDiagnostics[testCase.Diagnostic.Code]
-			if !ok {
-				t.Fatalf("%s implemented diagnostic %q has no L.11.1 registry entry",
-					testCase.ID, testCase.Diagnostic.Code)
-			}
-			if testCase.Diagnostic.MessageKey != contract.MessageKey {
-				t.Fatalf("%s messageKey = %q, want %q", testCase.ID,
-					testCase.Diagnostic.MessageKey, contract.MessageKey)
-			}
-			if testCase.Diagnostic.Template != contract.Template {
-				t.Fatalf("%s template = %q, want %q", testCase.ID,
-					testCase.Diagnostic.Template, contract.Template)
-			}
-			if testCase.Diagnostic.SourceLocation == "" {
-				t.Fatalf("%s implemented diagnostic must document its sourceLocation rule", testCase.ID)
-			}
-			if !v1Alpha5WaitImplementedDiagnosticCodes[testCase.Diagnostic.Code] {
-				t.Fatalf("%s claims a code the WP2 static path does not implement: %q",
-					testCase.ID, testCase.Diagnostic.Code)
+			implementedIDs = append(implementedIDs, testCase.ID)
+			if testCase.Diagnostic != nil {
+				if contract, ok := v1alpha5NormativeDiagnosticContract(testCase.Diagnostic.Code); ok {
+					if testCase.Diagnostic.MessageKey != contract.MessageKey {
+						t.Fatalf("%s messageKey = %q, want %q", testCase.ID,
+							testCase.Diagnostic.MessageKey, contract.MessageKey)
+					}
+					if testCase.Diagnostic.Template != contract.Template {
+						t.Fatalf("%s template = %q, want %q", testCase.ID,
+							testCase.Diagnostic.Template, contract.Template)
+					}
+				} else if !wp7InheritedCodes[testCase.Diagnostic.Code] {
+					t.Fatalf("%s implemented diagnostic %q has no normative registry entry",
+						testCase.ID, testCase.Diagnostic.Code)
+				}
+				if testCase.Diagnostic.SourceLocation == "" {
+					t.Fatalf("%s implemented diagnostic must document its sourceLocation rule", testCase.ID)
+				}
 			}
 		case wp7Deferred:
-			if testCase.Test != "" {
-				t.Fatalf("%s is deferred but claims executable test %q", testCase.ID, testCase.Test)
+			if len(wp7CaseTests(testCase)) != 0 {
+				t.Fatalf("%s is deferred but claims executable tests %v",
+					testCase.ID, wp7CaseTests(testCase))
 			}
 			if !wp7KnownDeferredWPs[testCase.DeferredTo] {
 				t.Fatalf("%s deferredTo = %q, want one of WP1/WP3/WP4/WP5/WP6",
 					testCase.ID, testCase.DeferredTo)
 			}
 		case wp7External:
-			if testCase.Test != "" {
-				t.Fatalf("%s is external but claims executable test %q", testCase.ID, testCase.Test)
+			if len(wp7CaseTests(testCase)) != 0 {
+				t.Fatalf("%s is external but claims executable tests %v",
+					testCase.ID, wp7CaseTests(testCase))
 			}
 		case wp7Specification:
-			if testCase.Test != "" {
-				t.Fatalf("%s is specification-only but claims executable test %q", testCase.ID, testCase.Test)
+			if len(wp7CaseTests(testCase)) != 0 {
+				t.Fatalf("%s is specification-only but claims executable tests %v",
+					testCase.ID, wp7CaseTests(testCase))
 			}
 		}
 	}
@@ -357,36 +404,25 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 		}
 	}
 
-	// Exactly the WP2-implemented EW set may be COMPILER_STATIC_IMPLEMENTED_TESTED.
+	// The post-integration implemented+tested set is pinned so this register
+	// cannot silently inflate or shrink.
 	wantImplemented := []string{
-		"EW-013", "EW-014", "EW-027", "EW-033", "EW-034", "EW-035", "EW-036",
+		"EW-012", "EW-013", "EW-014", "EW-015", "EW-016", "EW-018", "EW-019",
+		"EW-021", "EW-022", "EW-027", "EW-030", "EW-033", "EW-034", "EW-035", "EW-036",
+		"IN-001", "IN-002", "IN-003", "IN-005", "IN-006", "IN-007", "IN-013",
+		"IN-018", "IN-020", "IN-021", "IN-023", "IN-028", "IN-029", "IN-031",
+		"IN-032", "IN-033", "IN-047", "IN-055", "IN-056", "IN-057", "IN-062", "IN-063",
 	}
-	var gotImplemented []string
-	for _, testCase := range register.Cases {
-		if testCase.Classification == wp7Implemented {
-			gotImplemented = append(gotImplemented, testCase.ID)
-		}
-	}
-	if strings.Join(gotImplemented, ",") != strings.Join(wantImplemented, ",") {
-		t.Fatalf("implemented+tested set = %v, want exactly %v", gotImplemented, wantImplemented)
+	if strings.Join(implementedIDs, ",") != strings.Join(wantImplemented, ",") {
+		t.Fatalf("implemented+tested set = %v, want exactly %v", implementedIDs, wantImplemented)
 	}
 
-	if counts[wp7Implemented] != 7 ||
-		counts[wp7Deferred] != 50 ||
-		counts[wp7External] != 41 ||
+	if counts[wp7Implemented] != 37 ||
+		counts[wp7Deferred] != 19 ||
+		counts[wp7External] != 42 ||
 		counts[wp7Specification] != 1 {
 		t.Fatalf("unexpected classification totals: %#v", counts)
 	}
-	if ewCounts[wp7Implemented] != 7 || ewCounts[wp7Deferred] != 10 ||
-		ewCounts[wp7External] != 18 || ewCounts[wp7Specification] != 1 {
-		t.Fatalf("unexpected EW classification totals: %#v", ewCounts)
-	}
-	if inCounts[wp7Implemented] != 0 || inCounts[wp7Deferred] != 40 ||
-		inCounts[wp7External] != 23 || inCounts[wp7Specification] != 0 {
-		t.Fatalf("unexpected IN classification totals: %#v", inCounts)
-	}
-
-	// The register's own summary counts must agree with the rows.
 	if register.Counts.Implemented != counts[wp7Implemented] ||
 		register.Counts.Deferred != counts[wp7Deferred] ||
 		register.Counts.External != counts[wp7External] ||
@@ -394,23 +430,24 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 		t.Fatalf("register summary counts disagree with rows: summary=%#v rows=%#v",
 			register.Counts, counts)
 	}
-	if register.Counts.EW[wp7Implemented] != ewCounts[wp7Implemented] ||
-		register.Counts.EW[wp7Deferred] != ewCounts[wp7Deferred] ||
-		register.Counts.EW[wp7External] != ewCounts[wp7External] ||
-		register.Counts.EW[wp7Specification] != ewCounts[wp7Specification] ||
-		register.Counts.IN[wp7Deferred] != inCounts[wp7Deferred] ||
-		register.Counts.IN[wp7External] != inCounts[wp7External] {
-		t.Fatalf("register per-set counts disagree with rows: summary=%#v ew=%#v in=%#v",
-			register.Counts, ewCounts, inCounts)
+	if register.Counts.EW[wp7Implemented] != 15 || register.Counts.EW[wp7Deferred] != 2 ||
+		register.Counts.EW[wp7External] != 18 || register.Counts.EW[wp7Specification] != 1 {
+		t.Fatalf("unexpected EW summary counts: %#v", register.Counts.EW)
+	}
+	if register.Counts.IN[wp7Implemented] != 22 || register.Counts.IN[wp7Deferred] != 17 ||
+		register.Counts.IN[wp7External] != 24 || register.Counts.IN[wp7Specification] != 0 {
+		t.Fatalf("unexpected IN summary counts: %#v", register.Counts.IN)
 	}
 }
 
 func wp7KnownCode(code string) bool {
-	return wp7NormativeV1Alpha5Codes[code] ||
+	if wp7NormativeV1Alpha5Codes[code] ||
 		wp7HostAdmissionCodes[code] ||
 		wp7IngressRegistryCodes[code] ||
-		wp7InheritedCodes[code] ||
-		code == "WAIT_DURATION_LIMIT_EXCEEDED"
+		wp7InheritedCodes[code] {
+		return true
+	}
+	return false
 }
 
 // TestV1Alpha5ConformanceMarkdownSync asserts that the Markdown matrix and the
@@ -437,9 +474,8 @@ func TestV1Alpha5ConformanceMarkdownSync(t *testing.T) {
 		}
 		classification := strings.Trim(strings.TrimSpace(cells[3]), "`")
 		if !wp7Classifications[classification] {
-			// Non-matrix tables in the document (for example the diagnostic
-			// identity table) also start with a case id; they are not the
-			// classification matrix, so they are skipped rather than parsed.
+			// Non-matrix tables (for example the diagnostic identity table)
+			// also start with a case id; they are not the classification matrix.
 			continue
 		}
 		id := match[1]
@@ -463,23 +499,23 @@ func TestV1Alpha5ConformanceMarkdownSync(t *testing.T) {
 				testCase.ID, classification, testCase.Classification)
 		}
 	}
-	for id := range markdown {
-		if !regexp.MustCompile(`^(EW|IN)-[0-9]{3}$`).MatchString(id) {
-			t.Fatalf("markdown matrix contains unknown case id %q", id)
-		}
-	}
 }
 
 // TestV1Alpha5ConformanceNoPassClaims asserts the register never represents a
-// deferred/external/specification-only row as an executed result. This guards
-// against traceability inflation in the machine-readable register.
+// deferred/external/specification-only row as an executed result.
 func TestV1Alpha5ConformanceNoPassClaims(t *testing.T) {
 	register := loadWP7Register(t)
 	for _, testCase := range register.Cases {
 		switch testCase.Classification {
 		case wp7Implemented:
-			if _, ok := wp7TestTable[strings.SplitN(testCase.Test, "/", 2)[0]]; !ok {
-				t.Fatalf("%s claims a non-existent executable test %q", testCase.ID, testCase.Test)
+			names := wp7CaseTests(testCase)
+			if len(names) == 0 {
+				t.Fatalf("%s claims implemented+tested but names no test", testCase.ID)
+			}
+			for _, name := range names {
+				if !wp7TestExists(t, name) {
+					t.Fatalf("%s claims a non-existent executable test %q", testCase.ID, name)
+				}
 			}
 		case wp7Deferred, wp7External, wp7Specification:
 			if wp7PassClaimPattern.MatchString(strings.ToUpper(testCase.Expected)) {

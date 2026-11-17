@@ -165,6 +165,12 @@ type DependencyInspection struct {
 	Diagnostics []Diagnostic        `json:"diagnostics"`
 	Callables   []InspectedCallable `json:"callables"`
 	Schemas     []InspectedSchema   `json:"schemas"`
+
+	// IngressOperations is the independent v1alpha5 Ingress Operation inventory.
+	// It is empty for the frozen v1alpha4 target, so the v1alpha4 JSON projection
+	// is byte-compatible (omitempty). Ingress operations are never mixed into
+	// Callables.
+	IngressOperations []InspectedIngressOperation `json:"ingressOperations,omitempty"`
 }
 
 // DecodeBuildRequestJSON applies the strict JSON object contract before the
@@ -315,6 +321,11 @@ func Build(req BuildRequest) BuildResult {
 // It never resolves Skill author references, evaluates Capability Grants or
 // authorizes invocation.
 func InspectDependencies(req BuildRequest) DependencyInspection {
+	// Exact target dispatch before the v1alpha4 snapshot inspection, which
+	// deliberately treats every other target (including v1alpha5) as unsupported.
+	if req.LanguageTarget == V1Alpha5Target {
+		return inspectV1Alpha5Dependencies(req)
+	}
 	return inspectDependencies(req)
 }
 
