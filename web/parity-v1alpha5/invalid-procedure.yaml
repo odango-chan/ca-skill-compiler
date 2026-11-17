@@ -1,0 +1,14 @@
+start: wait-only-node
+nodes:
+  wait-only-node:
+    wait:
+      event:
+        source: AMF
+        service: Nsmf_PDUSession
+        operation: ""
+      timeout: PT0S
+      response:
+        after: SUCCEEDED
+      routes:
+        TIMEOUT: SUCCEEDED
+        EVENT_RECEIVED: SAFE_STOPPED

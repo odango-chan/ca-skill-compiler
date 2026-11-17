@@ -1,9 +1,13 @@
-// Chromium Worker parity harness (WP11).
+// Chromium Worker parity harness (WP8/WP11).
 //
 // It builds the Go/WASM compiler, serves a static page, launches real headless
 // Chromium, runs Check/Build/Inspect through the same Web Worker transport used by
 // Skill Studio, and compares the browser results with the Native Go reference for
-// the same BuildRequest. Run from the repository root:
+// the same BuildRequest. The frozen v1alpha4 flow keeps its full projection and
+// successful-Build artifact byte parity. The candidate v1alpha5 case proves Check
+// diagnostics and the fail-closed Build residual are identical across Native and
+// the real Chromium Worker; successful-Build v1alpha5 artifact byte parity is
+// deferred until WP3-WP6 complete the pipeline. Run from the repository root:
 //
 //   GOTOOLCHAIN=go1.27.4 node scripts/chromium-parity.mjs
 //
@@ -18,8 +22,13 @@ import path from 'node:path';
 const repoRoot = process.cwd();
 const webRoot = path.join(repoRoot, '.parity-web');
 const projectRoot = path.join(repoRoot, 'web', 'parity-project');
+const v1alpha5FixtureRoot = path.join(repoRoot, 'web', 'parity-v1alpha5');
 const chromePath = process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const env = { ...process.env, GOTOOLCHAIN: 'go1.27.4', GOWORK: 'off', CGO_ENABLED: '0' };
+
+const v1alpha5RequestAPIVersion = 'connectionagent.io/compiler-build-request/v1alpha5';
+const v1alpha5LanguageTarget = 'connectionagent.io/v1alpha5';
+const v1alpha5ResultAPIVersion = 'connectionagent.io/compiler-build-result/v1alpha5';
 
 function fail(message) {
   console.error(`FAIL: ${message}`);
@@ -65,6 +74,37 @@ function writeRequest() {
 
 function nativeReference() {
   const stdout = execFileSync('go', ['run', './cmd/parity-replay', projectRoot], { cwd: repoRoot, env }).toString();
+  return JSON.parse(stdout);
+}
+
+// writeV1Alpha5Requests converts the checked-in synthetic v1alpha5 author sources
+// into explicit BuildRequest JSON files. They contain author files only, so no
+// trusted dependency snapshot is needed for Check or for the fail-closed Build.
+function writeV1Alpha5Requests() {
+  const requests = {};
+  for (const name of ['valid', 'invalid']) {
+    const procedure = readFileSync(path.join(v1alpha5FixtureRoot, `${name}-procedure.yaml`));
+    const request = {
+      apiVersion: v1alpha5RequestAPIVersion,
+      languageTarget: v1alpha5LanguageTarget,
+      files: [{
+        path: 'skills/example/assurance/procedure.yaml',
+        bytes: Buffer.from(procedure).toString('base64'),
+      }],
+      resolvedDependencies: [],
+    };
+    const file = `parity-v1alpha5-${name}-request.json`;
+    writeFileSync(path.join(webRoot, file), JSON.stringify(request));
+    requests[name] = file;
+  }
+  return requests;
+}
+
+// nativeRequestReference runs the Native Go reference against an explicit
+// BuildRequest JSON through parity-replay's --request mode, the same strict
+// DecodeBuildRequestJSON path the CLI and WASM bridge use.
+function nativeRequestReference(requestPath) {
+  const stdout = execFileSync('go', ['run', './cmd/parity-replay', `--request=${requestPath}`], { cwd: repoRoot, env }).toString();
   return JSON.parse(stdout);
 }
 
@@ -185,6 +225,7 @@ async function main() {
     if (!browser.ok) fail(`Chromium Worker error: ${browser.error}`);
     compare('check', native.check, browser.check);
     compare('build.success', native.build.success, browser.build.success);
+    compare('build.apiVersion', native.build.apiVersion, browser.build.apiVersion);
     compare('build.diagnostics', native.build.diagnostics, browser.build.diagnostics);
     compare('build.dependencyClosure', native.build.dependencyClosure, browser.build.dependencyClosure);
     const nativePaths = (native.build.outputFiles || []).map(file => file.path);
@@ -218,6 +259,7 @@ async function main() {
     console.log('ok: Chromium Worker artifact integrity verification PASS');
     compare('success.check', nativeSuccess.check, browserSuccess.check);
     compare('success.build.success', nativeSuccess.build.success, browserSuccess.build.success);
+    compare('success.build.apiVersion', nativeSuccess.build.apiVersion, browserSuccess.build.apiVersion);
     compare('success.build.diagnostics', nativeSuccess.build.diagnostics, browserSuccess.build.diagnostics);
     compare('success.build.dependencyClosure', nativeSuccess.build.dependencyClosure, browserSuccess.build.dependencyClosure);
     const nativeArtifact = nativeSuccess.build.outputFiles;
@@ -238,6 +280,61 @@ async function main() {
     compare('studio-success.artifactPaths', nativeArtifact.map(file => file.path), studioSuccess.artifactPaths);
     if (!studioSuccess.artifactReadOnly) fail('Studio success-path artifact view must be read-only');
     console.log('ok: Studio success-path artifact presentation identical');
+
+    // v1alpha5 candidate-target phase (WP8 slice). Check diagnostics and the
+    // fail-closed Build residual are provable now because WP2 implements the
+    // Wait/Procedure AST validation. Successful-Build artifact byte parity is
+    // intentionally NOT asserted here: artifact assembly is deferred until
+    // WP3-WP6 complete the pipeline.
+    const v1alpha5Requests = writeV1Alpha5Requests();
+    const nativeV1Alpha5Valid = nativeRequestReference(path.join(webRoot, v1alpha5Requests.valid));
+    const nativeV1Alpha5Invalid = nativeRequestReference(path.join(webRoot, v1alpha5Requests.invalid));
+
+    if (nativeV1Alpha5Valid.check.length !== 0) {
+      fail(`v1alpha5 valid Wait procedure must Check with zero diagnostics, got ${stable(nativeV1Alpha5Valid.check)}`);
+    }
+    if (nativeV1Alpha5Valid.build.success) fail('v1alpha5 Build must stay fail-closed until WP3-WP6 complete');
+    if (nativeV1Alpha5Valid.build.apiVersion !== v1alpha5ResultAPIVersion) {
+      fail(`v1alpha5 BuildResult apiVersion = ${JSON.stringify(nativeV1Alpha5Valid.build.apiVersion)}`);
+    }
+    const v1alpha5Residual = nativeV1Alpha5Valid.build.diagnostics;
+    if (v1alpha5Residual.length !== 1 || v1alpha5Residual[0].code !== 'CAPABILITY_INPUT_UNTRUSTED' ||
+        !String(v1alpha5Residual[0].message).startsWith('fail-closed:')) {
+      fail(`unexpected v1alpha5 fail-closed residual: ${stable(v1alpha5Residual)}`);
+    }
+    console.log('ok: v1alpha5 valid Check returns zero diagnostics');
+
+    if (nativeV1Alpha5Invalid.check.length === 0) fail('v1alpha5 invalid Wait procedure unexpectedly Checked clean');
+    for (const diagnostic of nativeV1Alpha5Invalid.check) {
+      if (!String(diagnostic.code).startsWith('WAIT_')) fail(`invalid v1alpha5 case emitted non-WAIT_* code ${diagnostic.code}`);
+      if (!(diagnostic.line > 0) || !(diagnostic.column > 0)) fail(`v1alpha5 diagnostic ${diagnostic.code} lacks line/column`);
+      if (diagnostic.path !== 'skills/example/assurance/procedure.yaml') fail(`v1alpha5 diagnostic path = ${JSON.stringify(diagnostic.path)}`);
+    }
+    if (stable(nativeV1Alpha5Invalid.build.diagnostics) !== stable(nativeV1Alpha5Invalid.check)) {
+      fail('v1alpha5 invalid Check and fail-closed Build diagnostics must be identical');
+    }
+    if (nativeV1Alpha5Invalid.build.success) fail('invalid v1alpha5 fixture unexpectedly Build succeeded');
+    if (nativeV1Alpha5Invalid.build.apiVersion !== v1alpha5ResultAPIVersion) {
+      fail(`v1alpha5 invalid BuildResult apiVersion = ${JSON.stringify(nativeV1Alpha5Invalid.build.apiVersion)}`);
+    }
+    console.log(`ok: v1alpha5 invalid WAIT_* diagnostics positioned and deterministic (${nativeV1Alpha5Invalid.check.length} diagnostics)`);
+
+    const browserV1Alpha5Valid = await cdpEvaluate(`http://127.0.0.1:${debugPort}/json/version`, `http://127.0.0.1:${port}/parity.html?request=${v1alpha5Requests.valid}`);
+    if (!browserV1Alpha5Valid.ok) fail(`Chromium Worker v1alpha5 valid error: ${browserV1Alpha5Valid.error}`);
+    if (browserV1Alpha5Valid.artifactError !== '') fail(`v1alpha5 fail-closed artifact verification failed: ${browserV1Alpha5Valid.artifactError}`);
+    compare('v1alpha5 check', nativeV1Alpha5Valid.check, browserV1Alpha5Valid.check);
+    compare('v1alpha5 build.success', nativeV1Alpha5Valid.build.success, browserV1Alpha5Valid.build.success);
+    compare('v1alpha5 build.apiVersion', nativeV1Alpha5Valid.build.apiVersion, browserV1Alpha5Valid.build.apiVersion);
+    compare('v1alpha5 build.diagnostics', nativeV1Alpha5Valid.build.diagnostics, browserV1Alpha5Valid.build.diagnostics);
+    compare('v1alpha5 inspect', nativeV1Alpha5Valid.inspect, browserV1Alpha5Valid.inspect);
+
+    const browserV1Alpha5Invalid = await cdpEvaluate(`http://127.0.0.1:${debugPort}/json/version`, `http://127.0.0.1:${port}/parity.html?request=${v1alpha5Requests.invalid}`);
+    if (!browserV1Alpha5Invalid.ok) fail(`Chromium Worker v1alpha5 invalid error: ${browserV1Alpha5Invalid.error}`);
+    compare('v1alpha5 invalid-diagnostics', nativeV1Alpha5Invalid.check, browserV1Alpha5Invalid.check);
+    compare('v1alpha5 invalid build.diagnostics', nativeV1Alpha5Invalid.build.diagnostics, browserV1Alpha5Invalid.build.diagnostics);
+    compare('v1alpha5 invalid inspect', nativeV1Alpha5Invalid.inspect, browserV1Alpha5Invalid.inspect);
+
+    console.log('PASS: Native and real Chromium Worker v1alpha5 parity');
 
     console.log('PASS: Native and real Chromium Worker projections are identical');
   } finally {
