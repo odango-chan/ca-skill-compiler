@@ -37,6 +37,8 @@
 - 当前 #62 已增加对每个 Artifact 原始字节的 `artifactDigest` 复算，并验证嵌套 `$id` Fragment 能映射到非根 Artifact Pointer；两个工作流通过。但 PR 仍为 Draft，Ingress 导出契约以及 `INGRESS_*` 与既有诊断的归属/优先级尚未冻结。
 
 **实施决定：** 可以基于 #61 精确的 v1alpha5 候选启动隔离的 WP2 Wait Grammar / AST；WP1 Schema Closure 继续通过内部接口实现。不得启用公开 v1alpha5 Build Target，不得修改 v1alpha4，也不得提前宣称 Compiler 符合性。
+
+第一项隔离的 WP2 实现已建立为 [ca-skill-compiler PR #30](https://github.com/odango-chan/ca-skill-compiler/pull/30)：独立包内的 Wait AST / Parser，覆盖固定时长、Selector、Response Boundary 和 TIMEOUT 路由检查。它没有增加 BuildRequest Dispatch，也没有链接 IngressCatalog。当前 GitHub Actions Job 没有分配 Runner（`runner_id=0`，没有执行步骤）；这是 CI / Runner 可用性问题，不能当作测试失败结论。目前只有固定时长语法做了独立本地 Go 检查；完整 Go tests / vet / Native / WASM 验收仍为 NOT_RUN。
 - #62 的 IngressCatalog 是独立 package-scoped export，不是 ToolCatalog Operation、Observation 或 Capability。
 - #62 的 Schema Closure Digest v1 目前仍是提案。其 golden vector / CI 通过只证明算法样例，不等于 Owner 已发布真实 Schema。
 - 真实 Owner / Deployment 发布与实时 5GC qualification 不阻止 Compiler 独立实现；实现阶段可使用明确标记的 synthetic trusted fixtures。不得将 synthetic fixtures 报告为真实互操作通过。
