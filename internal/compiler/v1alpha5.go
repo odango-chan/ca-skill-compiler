@@ -1,13 +1,16 @@
 package compiler
 
-// CA-SL v1alpha5 static validation pipeline (WP2 slice).
+// CA-SL v1alpha5 static validation pipeline (WP2 + WP5 slices).
 //
 // Static source admission only: the v1alpha5 Procedure/Wait AST is parsed and
-// validated. Trigger/correlation linking (WP3), wait.output SourcePath (WP4),
-// Procedure graph control flow (WP5), response boundary (WP6), conformance
-// mapping (WP7) and artifact assembly (WP8) are not implemented yet. Build
-// therefore stays fail-closed through the internal residual gate below after
-// source validation succeeds. This is not product or language qualification.
+// validated, then the WP5 Procedure control-flow graph is built and validated
+// (Wait entry vertices, EVENT_RECEIVED/TIMEOUT control edges, DAG, exact route
+// targets and the final-Postcondition-PASS goal rule). Trigger/correlation
+// linking (WP3), wait.output SourcePath (WP4), response boundary post-dominance
+// (WP6), conformance mapping (WP7) and artifact assembly (WP8) are not
+// implemented yet. Build therefore stays fail-closed through the internal
+// residual gate below after source validation succeeds. This is not product or
+// language qualification.
 
 import (
 	"strings"
@@ -19,7 +22,7 @@ import (
 // Build fail-closed while later work packages are unimplemented. It is not a
 // v1alpha5 language diagnostic identity and must disappear as the pipeline is
 // completed.
-const v1alpha5ResidualFailClosedMessage = "v1alpha5 Node-entry Wait/Procedure AST validation is implemented, but WP3-WP8 trigger/correlation linking, wait.output SourcePath, Procedure graph control flow, response boundary, dependency/Schema linking and artifact assembly are not yet implemented; compilation fails closed"
+const v1alpha5ResidualFailClosedMessage = "v1alpha5 Node-entry Wait/Procedure AST validation and Procedure graph control-flow analysis are implemented, but WP3-WP8 trigger/correlation linking, wait.output SourcePath, response boundary, dependency/Schema linking and artifact assembly are not yet implemented; compilation fails closed"
 
 // validateV1Alpha5 is the defensive v1alpha5 Build path. It re-runs the strict
 // request admission, then source validation, then the internal residual gate.
@@ -113,8 +116,11 @@ func checkV1Alpha5Sources(req BuildRequest) []Diagnostic {
 			parsedFiles[procedurePath] = v1alpha5ParseYAML(procedurePath, nil, add)
 		}
 
-		_, skillDiagnostics := parseV1Alpha5SkillAST(name, parsedFiles)
+		skill, skillDiagnostics := parseV1Alpha5SkillAST(name, parsedFiles)
 		diagnostics = append(diagnostics, skillDiagnostics...)
+		// WP5: validate the v1alpha5 Procedure control-flow graph after the AST
+		// parse, in the same static pipeline as the WP2 Wait rules.
+		diagnostics = append(diagnostics, validateV1Alpha5ProcedureGraph(procedurePath, skill)...)
 	}
 
 	return sortedV1Alpha5Diagnostics(diagnostics)
