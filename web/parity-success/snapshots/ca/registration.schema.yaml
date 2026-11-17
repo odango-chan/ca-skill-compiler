@@ -1,0 +1,12 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: urn:example:ca:registration:v1
+type: object
+additionalProperties: false
+required: [state, accessState]
+properties:
+  state:
+    type: string
+    enum: [REGISTERED, DEREGISTERED]
+  accessState:
+    type: string
+    enum: [ACTIVE, IDLE]

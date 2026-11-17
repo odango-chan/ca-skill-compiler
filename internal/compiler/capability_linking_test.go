@@ -76,7 +76,7 @@ func wp3cLinking(t *testing.T, req BuildRequest) capabilityLinkingResult {
 func wp3cDiagnostics(diagnostics []Diagnostic) []Diagnostic {
 	filtered := make([]Diagnostic, 0)
 	for _, diagnostic := range diagnostics {
-		if diagnostic.Message == v1alpha4ResidualFailClosedMessage {
+		if diagnostic.Message == v1alpha4ResidualFailClosedMessage || strings.HasPrefix(diagnostic.Message, "fail-closed:") {
 			continue
 		}
 		if wp3cDiagnosticCodes[diagnostic.Code] {

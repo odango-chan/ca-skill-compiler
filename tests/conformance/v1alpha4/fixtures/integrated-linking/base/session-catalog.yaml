@@ -18,13 +18,13 @@ spec:
       mutation:
         commitProof:
           schema: urn:example:ca:registration:v1
-          path: receipt.commit
+          path: state
           bind: originalInvocationId
         reconcile:
           callable: example.session.reconcile
           bind: originalInvocationId
           proofSchema: urn:example:ca:registration:v1
-          proofPath: receipt.commit
+          proofPath: state
     - kind: operation
       id: example.session.reconcile
       effect: READ

@@ -1,0 +1,744 @@
+﻿{
+  "schemaVersion": "connectionagent.io/compiler-conformance-e-coverage/v1alpha4",
+  "status": "PARTIAL_NOT_QUALIFIED",
+  "purpose": "Executable-coverage view over the frozen E01-E120 inventory. PARTIAL means at least one sub-branch of the case has a concrete executed test in this repository; it is not a PASS claim for the whole normative case. NOT_RUN means no executable evidence exists yet.",
+  "summary": {
+    "total": 120,
+    "partial": 71,
+    "notRun": 0,
+    "passed": 0,
+    "blocked": 10,
+    "notApplicable": 39
+  },
+  "cases": [
+    {
+      "id": "E01",
+      "status": "PARTIAL",
+      "evidence": "full E.1-E.4 baseline with trusted deployment input links without dependency/authorization errors (e_final2_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E02",
+      "status": "PARTIAL",
+      "evidence": "procedure.goal -> SOURCE_ROOT_INVALID (e_early_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E03",
+      "status": "PARTIAL",
+      "evidence": "dependency snapshot digest original-byte tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E04",
+      "status": "PARTIAL",
+      "evidence": "trusted binding digest mismatch/identity tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E05",
+      "status": "PARTIAL",
+      "evidence": "dependency alias/snapshot resolution tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E06",
+      "status": "PARTIAL",
+      "evidence": "stable package id exact match tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E07",
+      "status": "PARTIAL",
+      "evidence": "capability/effect membership tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E08",
+      "status": "PARTIAL",
+      "evidence": "extra Predicate parameter -> PREDICATE_ARITY_MISMATCH (e_early_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E09",
+      "status": "PARTIAL",
+      "evidence": "context string argument for schema-typed Predicate parameter -> PREDICATE_TYPE_MISMATCH (e_early_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E10",
+      "status": "PARTIAL",
+      "evidence": "E10a: a SourcePath on a non-SUCCEEDED Producer path -> SOURCE_NOT_AVAILABLE (source_path_paths_test); E10b: a COMMITTED-only MUTATION output read with no declared recoverable success output -> RECONCILE_OUTPUT_UNAVAILABLE (e56_e10_test.go TestE10bReconcileOutputUnavailable). Both E10 expectations are separately asserted.",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E11",
+      "status": "PARTIAL",
+      "evidence": "no-SUCCEEDED procedure with legal stops -> no FINAL_POSTCONDITION_MISSING; direct SUCCEEDED without final Postcondition -> FINAL_POSTCONDITION_MISSING (e_late_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E12",
+      "status": "PARTIAL",
+      "evidence": "removed contract.contextSchema -> CONTEXT_SCHEMA_UNDECLARED (e_early_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E13",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E14",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E15",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E16",
+      "status": "PARTIAL",
+      "evidence": "unused dependency warning test",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E17",
+      "status": "PARTIAL",
+      "evidence": "static subset: normal single Producer and non-SUCCEEDED-path SOURCE_NOT_AVAILABLE priority (source_path_paths_test/E10 evidence); recovery dual-Producer variants are Host-side",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E18",
+      "status": "PARTIAL",
+      "evidence": "COMMITTED route to SUCCEEDED with a reachable legal final Postcondition edge -> SUCCESS_BYPASSES_FINAL_POSTCONDITION (e_early_test).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E19",
+      "status": "PARTIAL",
+      "evidence": "catalog without provides -> PREDICATE_EVIDENCE_UNSATISFIABLE (predicate_evidence_static_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E20",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E21",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E22",
+      "status": "PARTIAL",
+      "evidence": "OUTCOME_UNKNOWN routed to business Mutation/FAILED -> RECONCILE_CONTRACT_INVALID (route_unknown_target_test); safe-terminal variant accepted",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E23",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E24",
+      "status": "PARTIAL",
+      "evidence": "Schema registry closure subset",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E25",
+      "status": "PARTIAL",
+      "evidence": "F.5 assignability tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E26",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E27",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E28",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E29",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E30",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E31",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E32",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E33",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E34",
+      "status": "PARTIAL",
+      "evidence": "removed root inputs -> SOURCE_ROOT_INVALID; input.ueRef -> SOURCE_PATH_INVALID; context Node ID -> NODE_ID_RESERVED (e_mid_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E35",
+      "status": "PARTIAL",
+      "evidence": "object dependency requirement -> DEPENDENCY_REQUIREMENT_INVALID (e_late_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E36",
+      "status": "PARTIAL",
+      "evidence": "bare string argument -> SOURCE_PATH_INVALID (e_mid_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E37",
+      "status": "PARTIAL",
+      "evidence": "optional producer output field -> SOURCE_NOT_AVAILABLE (e_mid_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E38",
+      "status": "BLOCKED",
+      "evidence": "provides references a nonexistent guarantee descriptor -> requires the unfrozen Owner Evidence descriptor publication",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
+    },
+    {
+      "id": "E39",
+      "status": "PARTIAL",
+      "evidence": "procedure graph reachability tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E40",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E41",
+      "status": "PARTIAL",
+      "evidence": "A Postcondition-only start whose aggregate PASS routes directly to SUCCEEDED establishes the Goal without a goal field and does not report FINAL_POSTCONDITION_MISSING (e_mid_test.go TestE41PostconditionOnlyStartEstablishesGoal).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E42",
+      "status": "PARTIAL",
+      "evidence": "Precondition PASS to SUCCEEDED without a reachable final Postcondition -> FINAL_POSTCONDITION_MISSING; the legal final Postcondition PASS variant is accepted (e_mid_test TestE42FinalSuccessMustComeFromLastPostcondition).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E43",
+      "status": "PARTIAL",
+      "evidence": "route obligation tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E44",
+      "status": "PARTIAL",
+      "evidence": "source path typing subset",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E45",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E46",
+      "status": "BLOCKED",
+      "evidence": "descriptor scope.subject root misuse -> requires the unfrozen Owner Evidence descriptor publication",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
+    },
+    {
+      "id": "E47",
+      "status": "PARTIAL",
+      "evidence": "same-Node Precondition reading its own Observation output -> SOURCE_NOT_AVAILABLE (e_mid_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E48",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E49",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E50",
+      "status": "PARTIAL",
+      "evidence": "duplicate PredicateId call members are legal (e_route_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E51",
+      "status": "PARTIAL",
+      "evidence": "procedure script ABI subset",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E52",
+      "status": "PARTIAL",
+      "evidence": "entry Precondition reference variants (Postcondition ref, missing Node, list, empty) plus the sixth variant where a syntactically valid Precondition stage is not start-reachable -> ENTRY_PRECONDITION_REF_INVALID, with ENTRY_PRECONDITION_BYPASSED suppressed by priority (e_late_test TestE52EntryPreconditionReferenceVariants, TestE52UnreachableGlobalPreconditionReference).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E53",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E54",
+      "status": "PARTIAL",
+      "evidence": "non-last stage normal Outcome route -> ROUTE_NORMAL_OUTCOME_NOT_ALLOWED (procedure_stages_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E55",
+      "status": "PARTIAL",
+      "evidence": "missing last-stage normal Outcome route -> ROUTE_OUTCOME_MISSING (procedure_stages_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E56",
+      "status": "PARTIAL",
+      "evidence": "Terminal spelling as Node ID -> NODE_ID_RESERVED; terminal as procedure start -> PROCEDURE_START_MISSING (e56_e10_test.go; reserved Node ID also e_mid_test.go E34).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E57",
+      "status": "PARTIAL",
+      "evidence": "CONTROL_FLOW_DANGLING fixture",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E58",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E59",
+      "status": "PARTIAL",
+      "evidence": "OUTCOME_UNKNOWN to FAILED/business Mutation -> RECONCILE_CONTRACT_INVALID (route_unknown_target_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E60",
+      "status": "PARTIAL",
+      "evidence": "Reconcile bind other than originalInvocationId -> RECONCILE_CONTRACT_INVALID (e_late_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E61",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E62",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E63",
+      "status": "PARTIAL",
+      "evidence": "COMMITTED-only MUTATION output without a declared recoverable success output -> RECONCILE_OUTPUT_UNAVAILABLE (e56_e10_test.go TestE10bReconcileOutputUnavailable; emitter source_path_producer.go).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E64",
+      "status": "PARTIAL",
+      "evidence": "Reachable legal final Postcondition PASS->SUCCEEDED edge plus another reachable branch whose local Postcondition PASS is followed by a Mutation requesting SUCCEEDED -> SUCCESS_BYPASSES_FINAL_POSTCONDITION (not FINAL_POSTCONDITION_MISSING) (e64_test.go TestE64LocalPostconditionPassThenMutationCannotSucceed).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E65",
+      "status": "PARTIAL",
+      "evidence": "unreachable Node -> UNREACHABLE_NODE warning (e_late_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E66",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E67",
+      "status": "PARTIAL",
+      "evidence": "Procedure Script call-site arguments and key access",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E68",
+      "status": "BLOCKED",
+      "evidence": "authoritative/Freshness rule duplication -> requires the unfrozen Owner Evidence descriptor publication",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
+    },
+    {
+      "id": "E69",
+      "status": "PARTIAL",
+      "evidence": "Mutation missing OUTCOME_UNKNOWN route -> ROUTE_OUTCOME_MISSING (e_final2_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E70",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E71",
+      "status": "BLOCKED",
+      "evidence": "ambiguous mapping: Appendix E71 expects PREDICATE_EVIDENCE_REQUIRED for an omitted guarantee declaration while E19 expects PREDICATE_EVIDENCE_UNSATISFIABLE for a removed provides entry; no unambiguous frozen trigger distinguishes them, so this is recorded instead of guessed",
+      "disposition": "BLOCKED_NORMATIVE_MAPPING"
+    },
+    {
+      "id": "E72",
+      "status": "PARTIAL",
+      "evidence": "second same-effect Capability member / duplicate membership -> EFFECT_MISMATCH / CAPABILITY_MEMBERSHIP_DUPLICATE (capability_linking_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E73",
+      "status": "BLOCKED",
+      "evidence": "Requires two independent Evidence Descriptor decoders over a frozen physical descriptor publication plus a category-mismatch Producer reference; no such format is frozen, so the branch fails closed and is recorded as BLOCKED_EXTERNAL_CONTRACT.",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
+    },
+    {
+      "id": "E74",
+      "status": "BLOCKED",
+      "evidence": "ambiguous mapping: expected PREDICATE_EVIDENCE_REQUIRED for an external Script-derived value bound without a guarantee, while the implemented satisfiability rule reports PREDICATE_EVIDENCE_UNSATISFIABLE; needs normative clarification",
+      "disposition": "BLOCKED_NORMATIVE_MAPPING"
+    },
+    {
+      "id": "E75",
+      "status": "PARTIAL",
+      "evidence": "Predicate Script input projection",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E76",
+      "status": "PARTIAL",
+      "evidence": "non-last READ normal auto-advance legal; last READ missing SUCCEEDED or Owner FAILED route -> ROUTE_OUTCOME_MISSING (e_route_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E77",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E78",
+      "status": "PARTIAL",
+      "evidence": "Reconcile association changed off the original invocation -> RECONCILE_CONTRACT_INVALID (e_late_test E60 bind variant)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E79",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E80",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E81",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E82",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E83",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E84",
+      "status": "PARTIAL",
+      "evidence": "unpublished NOT_COMMITTED and unlinked Reconcile COMMITTED route keys -> ROUTE_OUTCOME_UNKNOWN (e_route_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E85",
+      "status": "PARTIAL",
+      "evidence": "retry bypass edge and second-generation retryOf -> RETRY_CONTRACT_INVALID (e_route_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E86",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E87",
+      "status": "BLOCKED",
+      "evidence": "Capability Scope intersection/modelling -> deployment Scope policy algebra is not present in frozen CapabilityContracts",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
+    },
+    {
+      "id": "E88",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E89",
+      "status": "PARTIAL",
+      "evidence": "optional output property binding -> SOURCE_NOT_AVAILABLE (E37 fixture, same frozen rule)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E90",
+      "status": "PARTIAL",
+      "evidence": "invalid GoalId -> IDENTIFIER_INVALID; bare context argument -> SOURCE_PATH_INVALID (e_route_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E91",
+      "status": "PARTIAL",
+      "evidence": "CEL subset checks",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E92",
+      "status": "PARTIAL",
+      "evidence": "retryOf bypass (original SUCCEEDED reached) and second-generation retry both -> RETRY_CONTRACT_INVALID (retry_contracts_test.go; e_route_test.go TestE85RetryBypassAndSecondGeneration).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E93",
+      "status": "PARTIAL",
+      "evidence": "capability input digest mismatch / untrusted publisher -> CAPABILITY_INPUT_DIGEST_MISMATCH / CAPABILITY_INPUT_UNTRUSTED (api_v1alpha4_test, capability_linking_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E94",
+      "status": "PARTIAL",
+      "evidence": "Duplicate Capability ID in one deployment artifact set -> CAPABILITY_DEFINITION_CONFLICT (capability_linking_test.go TestWP3C007CapabilityDefinitionConflict).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E95",
+      "status": "PARTIAL",
+      "evidence": "Closed Host Context root changed to an open root or a reserved request property -> CONTEXT_REQUEST_COLLISION (schema_registry_test.go TestWP4B004ContextRootCollision).",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E96",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E97",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E98",
+      "status": "PARTIAL",
+      "evidence": "provides path must cover the referenced value; narrow path bound to wider value -> PREDICATE_EVIDENCE_UNSATISFIABLE (e_final2_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E99",
+      "status": "PARTIAL",
+      "evidence": "internal reachable-stage graph invariant unit test",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E100",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E101",
+      "status": "BLOCKED",
+      "evidence": "identity-input provenance -> requires the unfrozen identity-input trusted publication format",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
+    },
+    {
+      "id": "E102",
+      "status": "BLOCKED",
+      "evidence": "cross-domain independence / factIdentity mapping -> requires the unfrozen Owner Evidence descriptor and trusted-relation publication",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
+    },
+    {
+      "id": "E103",
+      "status": "PARTIAL",
+      "evidence": "Snapshot digest is stable under file-array order and sensitive to original content bytes; golden vectors and tampering are asserted (api_v1alpha4_test.go TestDependencySnapshotDigestGoldenVectors, TestDependencySnapshotDigestIsOrderIndependentAndContentSensitive, TestBuildRequestVerifiesDependencySnapshotDigest). Newline/encoding mutation is not separately fixtured.",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E104",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E105",
+      "status": "PARTIAL",
+      "evidence": "PredicateId/Alias/ExportId/QualifiedSchemaId variants; LocalScriptPath variant covered by Script path tests",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E106",
+      "status": "PARTIAL",
+      "evidence": "independence-group structural linking: valid pairs, pair outside requires, single-member group, duplicate member -> EVIDENCE_GUARANTEE_LINK_INVALID; runtime same-record UNKNOWN is Host-side",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E107",
+      "status": "PARTIAL",
+      "evidence": "Reconcile kind/effect/proofPath variants via Check; extra-writable-input and capability-only-original variants covered by capability/Schema slices",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E108",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E109",
+      "status": "BLOCKED",
+      "evidence": "Reconcile Evidence Producer lineage -> requires the unfrozen Owner Evidence descriptor publication",
+      "disposition": "BLOCKED_EXTERNAL_CONTRACT"
+    },
+    {
+      "id": "E110",
+      "status": "PARTIAL",
+      "evidence": "Unsupported anyOf and pattern Schema variants are rejected as SCHEMA_INVALID (schema_g4_test.go TestWP4AG4AllowlistUnit); the dynamic-reference variant is not separately fixtured.",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E111",
+      "status": "PARTIAL",
+      "evidence": "CEL guard/has/null-guard/index variants (cel_check_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E112",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E113",
+      "status": "PARTIAL",
+      "evidence": "Host Root / requestSchema closure: REQUEST_SCHEMA_MISSING, CONTEXT_REQUEST_COLLISION (schema_registry_test, source_path_schema_test, schema_g4_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E114",
+      "status": "PARTIAL",
+      "evidence": "PACKAGE_PATH_INVALID: traversal/duplicate/legacy-lib (api_v1alpha4_test) plus absolute, backslash, case-fold collision fixtures (e114_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E115",
+      "status": "PARTIAL",
+      "evidence": "single-member and two-member Pre/Postcondition predicates lists link structurally (e115_test)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E116",
+      "status": "NOT_APPLICABLE",
+      "evidence": "",
+      "disposition": "NOT_APPLICABLE_TO_COMPILER"
+    },
+    {
+      "id": "E117",
+      "status": "PARTIAL",
+      "evidence": "static subset: final Postcondition PASS->SUCCEEDED required edge and FINAL_POSTCONDITION_MISSING / SUCCESS_BYPASSES_FINAL_POSTCONDITION fixtures; runtime Goal re-check remains Host-side",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E118",
+      "status": "PARTIAL",
+      "evidence": "static argument source/type/Evidence checks: F.5 typing, SourcePath availability, Predicate Evidence satisfiability fixtures",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E119",
+      "status": "PARTIAL",
+      "evidence": "structural negatives: empty predicates list, member missing arguments, member carrying routes, removed Postcondition goal field (PREDICATE_GROUP_INVALID / UNKNOWN_FIELD priority)",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    },
+    {
+      "id": "E120",
+      "status": "PARTIAL",
+      "evidence": "Edge-exact global Precondition dominance: a reachable path that skips the gate -> ENTRY_PRECONDITION_BYPASSED; the gate FAIL branch cannot prove the Goal or dispatch a business Mutation; the fully gated / all-paths variant produces no false bypass (e120_test TestE120GlobalPreconditionDominance, TestE120GateFailRouteDoesNotProveGoal, TestE120GateFailRouteCannotDispatchMutation); Runtime join-AND execution remains Host-side.",
+      "disposition": "PARTIAL_STATIC_EVIDENCE"
+    }
+  ],
+  "dispositionSummary": {
+    "partialStaticEvidence": 71,
+    "pendingStaticConformance": 0,
+    "notApplicableToCompiler": 39,
+    "claimedPass": 0,
+    "note": "PENDING_STATIC_CONFORMANCE means the frozen case lists the compiler as an owner but no executed fixture variant exists yet. NOT_APPLICABLE_TO_COMPILER means the case is Host/Runtime-only. No case is claimed PASS.",
+    "blockedExternalContract": 8,
+    "blockedNormativeMapping": 2
+  }
+}

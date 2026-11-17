@@ -94,6 +94,7 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 	}
 	sort.Strings(names)
 
+	artifactInputs := map[string]artifactInput{}
 	for _, name := range names {
 		base := "skills/" + name + "/"
 		contractPath := base + "assurance/contract.yaml"
@@ -118,6 +119,10 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 		}
 
 		sourceAST := parseV1Alpha4SkillAST(name, parsedFiles)
+		identity := validateV1Alpha4DependencyIdentity(req, sourceAST)
+		// WP9: derive the Python Script ABI and input Schemas once per Skill so
+		// Procedure argument typing and Predicate Script checks share them.
+		scriptSchemas := validateV1Alpha4ScriptABI(req, identity, sourceAST, files, procedurePath, predicatesPath, errorAt)
 		contractAST := sourceAST.Contract
 		if contractAST != nil && contractAST.Raw != nil {
 			contract := contractAST.Raw
@@ -163,7 +168,6 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			}
 			// WP3A: prove Alias -> snapshot digest -> trusted binding -> Stable
 			// Package ID for the selected Skill only. Later stages stay fail-closed.
-			identity := validateV1Alpha4DependencyIdentity(req, sourceAST)
 			diagnostics = append(diagnostics, identity.Diagnostics...)
 			// WP3B: index the verified snapshots' exact callable/Schema exports and
 			// prove trusted Owner attribution for the references the Skill uses.
@@ -189,32 +193,48 @@ func validateV1Alpha4(req BuildRequest) BuildResult {
 			diagnostics = append(diagnostics, argumentKeyDiagnostics...)
 			argumentValueDiagnostics := validateV1Alpha4ArgumentValueTypes(req, sourceAST, identity, ownerLinking, procedurePath)
 			diagnostics = append(diagnostics, argumentValueDiagnostics...)
+			scriptValueDiagnostics := validateV1Alpha4ScriptValueTypes(req, sourceAST, identity, ownerLinking, scriptSchemas.Inputs, procedurePath)
+			diagnostics = append(diagnostics, scriptValueDiagnostics...)
 			predicateArgumentDiagnostics := validateV1Alpha4PredicateArgumentTypes(req, sourceAST, identity, ownerLinking, procedurePath)
 			diagnostics = append(diagnostics, predicateArgumentDiagnostics...)
 			mutationContractDiagnostics := validateV1Alpha4MutationContracts(req, sourceAST, identity)
 			diagnostics = append(diagnostics, mutationContractDiagnostics...)
+			validateV1Alpha4ReconcileContracts(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
+			validateV1Alpha4RetryMutationFamilies(sourceAST, ownerLinking, procedurePath, errorAt)
+			validateV1Alpha4RouteKeyEligibility(sourceAST, ownerLinking, procedurePath, errorAt)
+			validateV1Alpha4PredicateEvidence(req, sourceAST, ownerLinking, procedurePath, errorAt)
+			artifactInputs[name] = artifactInput{skill: sourceAST, identity: identity, ownerLinking: ownerLinking, scripts: scriptSchemas}
 		}
 		if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {
 			v4CheckPredicates(predicatesPath, sourceAST.Predicates, errorAt)
 			v4CheckPredicateCEL(predicatesPath, sourceAST.Predicates, errorAt)
 			validateV1Alpha4EvidenceRequirements(predicatesPath, sourceAST.Predicates, errorAt)
+			validateV1Alpha4IndependenceGroups(predicatesPath, sourceAST.Predicates, errorAt)
 			validateV1Alpha4PredicateScriptEvaluators(sourceAST, files, predicatesPath, errorAt)
+			validateV1Alpha4InlineArgumentExpressions(sourceAST, procedurePath, errorAt)
+			validateV1Alpha4ScriptArguments(sourceAST, scriptSchemas.Inputs, procedurePath, errorAt)
 		}
 		if sourceAST.Procedure != nil && sourceAST.Procedure.Raw != nil {
 			v4CheckProcedure(procedurePath, sourceAST.Procedure, contractAST, errorAt)
 			validateV1Alpha4ProcedureStageRoutes(procedurePath, sourceAST.Procedure, errorAt)
 			validateV1Alpha4ScriptPaths(sourceAST, files, procedurePath, errorAt)
 			validateV1Alpha4RetryContracts(sourceAST, procedurePath, errorAt)
+			validateV1Alpha4RetryReachability(sourceAST, procedurePath, errorAt)
 			validateV1Alpha4QualifiedCallableReferences(sourceAST, procedurePath, errorAt)
 			validateV1Alpha4SourcePaths(procedurePath, sourceAST, errorAt)
 		}
 	}
 
-	// A warning alone must not hide the later-stage fail-closed boundary: no
-	// successful Build may be returned while WP3B-WP12 semantics are unimplemented.
 	if !hasErrorDiagnostic(diagnostics) {
-		errorAt("", nil, "CAPABILITY_INPUT_UNTRUSTED",
-			"v1alpha4 semantic linking and Owner qualification are not yet implemented; compilation fails closed")
+		if reason := unsupportedSemanticsReason(artifactInputs); reason != "" {
+			errorAt("", nil, "CAPABILITY_INPUT_UNTRUSTED", "fail-closed: "+reason)
+		}
+	}
+	if hasErrorDiagnostic(diagnostics) {
+		return failedBuildResult(diagnostics)
+	}
+	if result, ok := assembleV1Alpha4SuccessResult(req, names, artifactInputs, diagnostics, errorAt); ok {
+		return result
 	}
 	return failedBuildResult(diagnostics)
 }
@@ -244,8 +264,17 @@ func v4Allowed(node *yaml.Node, file string, allowed map[string]bool, add func(s
 		return
 	}
 	for i := 0; i+1 < len(node.Content); i += 2 {
-		if !allowed[node.Content[i].Value] {
-			add(file, node.Content[i], "UNKNOWN_FIELD", "Unsupported v1alpha4 author field "+node.Content[i].Value)
+		name := node.Content[i].Value
+		if allowed[name] {
+			continue
+		}
+		switch v4LegacyFieldClass(name) {
+		case "wait":
+			add(file, node.Content[i], "UNSUPPORTED_WAIT", "Wait/Await control structures are not part of CA-SL v1alpha4")
+		case "v02":
+			add(file, node.Content[i], "UNSUPPORTED_V02_SYNTAX", "Recognized legacy v0.2 syntax is not part of CA-SL v1alpha4")
+		default:
+			add(file, node.Content[i], "UNKNOWN_FIELD", "Unsupported v1alpha4 author field "+name)
 		}
 	}
 }
@@ -261,6 +290,9 @@ func v4CheckPredicates(file string, source *V1Alpha4PredicateSetAST, add func(st
 		return
 	}
 	for i := 0; i+1 < len(set.Content); i += 2 {
+		if key := unalias(set.Content[i]); key == nil || !validExportID(scalar(key)) {
+			add(file, key, "IDENTIFIER_INVALID", "PredicateId must satisfy the Dotted Identifier grammar")
+		}
 		def := set.Content[i+1]
 		v4Allowed(def, file, v4PredicateFields, add)
 		params := child(def, "parameters")
@@ -285,7 +317,16 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 		return
 	}
 	root := source.Raw
-	v4Allowed(root, file, map[string]bool{"start": true, "nodes": true}, add)
+	procedureFields := map[string]bool{"start": true, "nodes": true}
+	if goalNode := child(root, "goal"); goalNode != nil {
+		add(file, goalNode, "SOURCE_ROOT_INVALID", "Procedure must not declare a goal; the goal belongs to the Contract")
+		procedureFields["goal"] = true
+	}
+	if inputsNode := child(root, "inputs"); inputsNode != nil {
+		add(file, inputsNode, "SOURCE_ROOT_INVALID", "Procedure root must not declare the removed inputs field")
+		procedureFields["inputs"] = true
+	}
+	v4Allowed(root, file, procedureFields, add)
 	start := scalar(source.Start)
 	nodes := source.Nodes
 	if nodes == nil || nodes.Kind != yaml.MappingNode {
@@ -300,7 +341,6 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 		add(file, child(root, "start"), "PROCEDURE_START_MISSING", "start must resolve to a declared Node")
 	}
 	adjacency := map[string][]string{}
-	legalSuccess, anySuccess := false, false
 	for i := 0; i+1 < len(nodes.Content); i += 2 {
 		id, n := nodes.Content[i].Value, nodes.Content[i+1]
 		if !v4NodeID.MatchString(id) || v4Terminals[id] || id == "context" {
@@ -331,6 +371,12 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 				if stage == "operation" {
 					allowed["script"] = true
 					allowed["retryOf"] = true
+				}
+			}
+			if stage == "postcondition" {
+				if goalNode := child(body, "goal"); goalNode != nil {
+					add(file, goalNode, "PREDICATE_GROUP_INVALID", "Postcondition must not declare the removed goal field")
+					allowed["goal"] = true
 				}
 			}
 			v4Allowed(body, file, allowed, add)
@@ -383,15 +429,9 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 			for _, outcome := range mapKeys(routes) {
 				target := scalar(child(routes, outcome))
 				if target == "" || (!ids[target] && !v4Terminals[target]) {
-					add(file, child(routes, outcome), "ROUTE_TARGET_INVALID", "Unknown route target")
+					add(file, child(routes, outcome), "CONTROL_FLOW_DANGLING", "Route value is neither a terminal nor an existing Node")
 				} else if ids[target] {
 					adjacency[id] = append(adjacency[id], target)
-				}
-				if target == "SUCCEEDED" {
-					anySuccess = true
-					if stage == "postcondition" && outcome == "PASS" {
-						legalSuccess = true
-					}
 				}
 				if outcome == "OUTCOME_UNKNOWN" && target != "UNRESOLVED" && target != "SAFE_STOPPED" {
 					add(file, child(routes, outcome), "ROUTE_OUTCOME_UNKNOWN", "OUTCOME_UNKNOWN may only safely stop")
@@ -401,10 +441,43 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 			// Tool/Schema publication. No guessed Owner result classification.
 		}
 	}
+	// Final-Postcondition precision: only a reachable final Postcondition PASS
+	// edge proves the Goal (E42/E117/E120). An unreachable legal-looking edge is
+	// reported as UNREACHABLE_NODE by the graph slice and must not mask a missing
+	// reachable goal proof or legitimize a bypass.
+	reachable := map[string]bool{}
+	if _, declared := ids[start]; declared {
+		queue := []string{start}
+		for len(queue) > 0 {
+			current := queue[0]
+			queue = queue[1:]
+			if reachable[current] {
+				continue
+			}
+			reachable[current] = true
+			queue = append(queue, adjacency[current]...)
+		}
+	}
+	anySuccess, legalSuccess := false, false
+	for id := range reachable {
+		n := child(nodes, id)
+		for _, stage := range []string{"precondition", "operation", "observation", "postcondition"} {
+			routes := child(child(n, stage), "routes")
+			for _, outcome := range mapKeys(routes) {
+				if scalar(child(routes, outcome)) != "SUCCEEDED" {
+					continue
+				}
+				anySuccess = true
+				if stage == "postcondition" && outcome == "PASS" {
+					legalSuccess = true
+				}
+			}
+		}
+	}
 	if anySuccess && !legalSuccess {
 		add(file, root, "FINAL_POSTCONDITION_MISSING", "Only a final Postcondition PASS may request SUCCEEDED")
 	} else if legalSuccess {
-		for _, id := range mapKeys(nodes) {
+		for id := range reachable {
 			n := child(nodes, id)
 			for _, stage := range []string{"precondition", "operation", "observation", "postcondition"} {
 				for _, outcome := range mapKeys(child(child(n, stage), "routes")) {
@@ -447,6 +520,11 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 			parts := strings.Split(gate, ".")
 			if len(parts) != 2 || !ids[parts[0]] || child(child(nodes, parts[0]), "precondition") == nil {
 				add(file, contract.Precondition, "ENTRY_PRECONDITION_REF_INVALID", "Contract precondition must resolve to a declared Precondition stage")
+			} else if ids[start] && !reachable[parts[0]] {
+				// E52 sixth variant: a syntactically valid Precondition stage that is
+				// not in the start-reachable DAG is an invalid global reference and
+				// takes precedence over the entry-bypass diagnosis.
+				add(file, contract.Precondition, "ENTRY_PRECONDITION_REF_INVALID", "Contract precondition must resolve to a start-reachable Precondition stage")
 			}
 		}
 	}

@@ -46,9 +46,19 @@ func marshalResult(command string, result any) string {
 
 func main() {
 	check, build, inspect := respond("check"), respond("build"), respond("inspect")
-	callbacks = append(callbacks, check, build, inspect)
+	verify := js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) != 1 || args[0].Type() != js.TypeString {
+			return "expected JSON string"
+		}
+		if err := compiler.VerifyBuildResultJSON([]byte(args[0].String())); err != nil {
+			return err.Error()
+		}
+		return ""
+	})
+	callbacks = append(callbacks, check, build, inspect, verify)
 	js.Global().Set("skillcCheck", check)
 	js.Global().Set("skillcBuild", build)
 	js.Global().Set("skillcInspectDependencies", inspect)
+	js.Global().Set("skillcVerifyArtifact", verify)
 	select {}
 }

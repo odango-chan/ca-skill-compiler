@@ -20,12 +20,7 @@ spec:
       outputSchema: {$ref: urn:example:ca:registration:v1}
       receiptSchema: {$ref: urn:example:ca:registration:v1}
       mutation:
-        commitProof: {schema: urn:example:ca:registration:v1, path: receipt.commit, bind: originalInvocationId}
-        reconcile:
-          callable: example.session.reconcile
-          bind: originalInvocationId
-          proofSchema: urn:example:ca:registration:v1
-          proofPath: receipt.commit
+        commitProof: {schema: urn:example:ca:registration:v1, path: state, bind: originalInvocationId}
 `))
 	fixture.refreshSnapshotDigests(t)
 	diagnostics := Check(fixture.request(t))

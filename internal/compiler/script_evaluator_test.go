@@ -17,7 +17,7 @@ func scriptEvaluatorPredicates(script string) string {
 
 func TestWP9PredicateScriptEvaluatorPositive(t *testing.T) {
 	request := v4TestRequest(v4TestContract, v4TestProcedure, scriptEvaluatorPredicates("scripts/ready.py"), v4TestSchema)
-	request.Files = append(request.Files, File{Path: "skills/pdu/scripts/ready.py", Bytes: []byte("def main(input):\n    return {}\n")})
+	request.Files = append(request.Files, File{Path: "skills/pdu/scripts/ready.py", Bytes: []byte(predicateScriptABI)})
 	if v4HasCode(Check(request), "SCRIPT_CONTRACT_INVALID") {
 		t.Fatalf("valid script evaluator rejected: %+v", Check(request))
 	}

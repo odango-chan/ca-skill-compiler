@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>RUNNING</title>
+<script>
+// Real Chromium Worker parity page: the Web Worker loads the same Go/WASM Core and
+// runs Check/Build/Inspect on the same BuildRequest that the Native reference used.
+const worker = new Worker('./skillc-worker.js');
+let nextId = 1;
+const pending = new Map();
+worker.onmessage = event => {
+  const { id, result, error } = event.data ?? {};
+  const entry = pending.get(id);
+  if (!entry) return;
+  pending.delete(id);
+  if (error) entry.reject(new Error(error)); else entry.resolve(result);
+};
+worker.onerror = event => { window.__parityDebug = `worker error: ${event.message}`; for (const entry of pending.values()) entry.reject(new Error(event.message)); pending.clear(); };
+window.addEventListener("error", event => { window.__parityDebug = `window error: ${event.message}`; });
+window.addEventListener("unhandledrejection", event => { window.__parityDebug = `rejection: ${event.reason}`; });
+function call(command, request) {
+  const id = nextId++;
+  return new Promise((resolve, reject) => {
+    pending.set(id, { resolve, reject });
+    worker.postMessage({ id, command, request });
+  });
+}
+function withTimeout(promise, ms) {
+  return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))]);
+}
+(async () => {
+  try {
+    const requestName = new URLSearchParams(location.search).get('request') || 'parity-request.json';
+    const request = await (await fetch('./' + requestName)).json();
+    const check = await withTimeout(call('check', request), 30000);
+    const build = await withTimeout(call('build', request), 30000);
+    const inspect = await withTimeout(call('inspect', request), 30000);
+    const artifactError = String(await withTimeout(call('verifyArtifact', build), 30000));
+    window.__parity = { ok: true, check, build, inspect, artifactError };
+  } catch (error) {
+    window.__parity = { ok: false, error: String(error && error.message ? error.message : error) };
+  }
+  document.documentElement.dataset.parity = window.__parity.ok ? 'done' : 'error';
+  document.title = window.__parity.ok ? 'DONE' : 'ERROR';
+})();
+</script>

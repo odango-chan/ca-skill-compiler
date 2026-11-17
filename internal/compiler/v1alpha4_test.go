@@ -107,7 +107,15 @@ func TestV1Alpha4RejectsLegacyAuthorFieldsAndUnknownTarget(t *testing.T){
 	if !v4HasCode(out,"LANGUAGE_TARGET_UNSUPPORTED"){t.Fatalf("unknown target accepted: %+v",out)}
 }
 func TestV1Alpha4RejectsBypassAndCycle(t *testing.T){
-	req:=v4TestRequest(v4TestContract,strings.Replace(v4TestProcedure,"PASS: SUCCEEDED","PASS: FAILED",1)+
+	// A reachable non-final SUCCEEDED request with no reachable legal final
+	// PASS edge is FINAL_POSTCONDITION_MISSING.
+	procedure:=strings.Replace(v4TestProcedure,"        SUCCEEDED: final","        SUCCEEDED: SUCCEEDED",1)
+	procedure=strings.Replace(procedure,"        PASS: SUCCEEDED","        PASS: FAILED",1)
+	req:=v4TestRequest(v4TestContract,procedure,v4TestPredicates,v4TestSchema)
+	if !v4HasCode(Check(req),"FINAL_POSTCONDITION_MISSING"){t.Fatal("failed to reject non-final success edge")}
+	// An unreachable illegal SUCCEEDED edge is only UNREACHABLE_NODE; it neither
+	// creates a reachable success request nor proves the Goal (spec H.0 row 4).
+	unreachable:=v4TestRequest(v4TestContract,strings.Replace(v4TestProcedure,"PASS: SUCCEEDED","PASS: FAILED",1)+
 		`  unsafe:
     operation:
       tool: ca::example.mutate
@@ -116,7 +124,11 @@ func TestV1Alpha4RejectsBypassAndCycle(t *testing.T){
         SUCCEEDED: SUCCEEDED
         OUTCOME_UNKNOWN: SAFE_STOPPED
 `,v4TestPredicates,v4TestSchema)
-	if !v4HasCode(Check(req),"FINAL_POSTCONDITION_MISSING"){t.Fatal("failed to reject non-final success edge")}
+	diagnostics:=Check(unreachable)
+	if v4HasCode(diagnostics,"FINAL_POSTCONDITION_MISSING")||v4HasCode(diagnostics,"SUCCESS_BYPASSES_FINAL_POSTCONDITION"){
+		t.Fatalf("unreachable success edge treated as a reachable success request: %+v",diagnostics)
+	}
+	if !v4HasCode(diagnostics,"UNREACHABLE_NODE"){t.Fatalf("unreachable Node not reported: %+v",diagnostics)}
 	req=v4TestRequest(v4TestContract,strings.Replace(v4TestProcedure,"SUCCEEDED: final","SUCCEEDED: check",1),v4TestPredicates,v4TestSchema)
 	if !v4HasCode(Check(req),"CONTROL_FLOW_CYCLE"){t.Fatal("failed to reject cycle")}
 }

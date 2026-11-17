@@ -1,0 +1,24 @@
+{
+  "dependencyBindings": [
+    {
+      "authorizedOwners": [
+        "example-ue-owner"
+      ],
+      "dependencyId": "ca",
+      "stablePackageId": "urn:example:ca:tools"
+    },
+    {
+      "authorizedOwners": [
+        "example-host-owner"
+      ],
+      "dependencyId": "ca-context",
+      "stablePackageId": "urn:example:ca:host-context"
+    }
+  ],
+  "deployment": {
+    "authorizationRef": "urn:example:authorization:example-deployment",
+    "capabilityDirectory": "capability",
+    "deploymentId": "urn:example:deployment:smf",
+    "publisherId": "urn:example:publisher:deployment"
+  }
+}

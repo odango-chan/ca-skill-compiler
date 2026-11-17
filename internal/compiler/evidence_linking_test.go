@@ -25,3 +25,31 @@ func TestWP7EvidenceRequirementUndeclaredParameter(t *testing.T) {
 		t.Fatalf("Evidence requirement binding to undeclared parameter accepted: %+v", diagnostics)
 	}
 }
+
+// WP7 slice 2: guarantee references must satisfy the frozen qualified-reference
+// syntax (Alias::GuaranteeId). Descriptor content stays fail-closed.
+func TestWP7GuaranteeReferenceSyntax(t *testing.T) {
+	valid := `predicates:
+  test.ready:
+    parameters: [{ue: string}]
+    evidence:
+      requires:
+        ue: [ca::ue.registration-state]
+    evaluator: {type: cel, expression: 'ue != ""'}
+  test.complete:
+    parameters: [{result: ca::urn:example:result:v1}]
+    evaluator: {type: cel, expression: "result.ready == true"}
+`
+	request := v4TestRequest(v4TestContract, v4TestProcedure, valid, v4TestSchema)
+	for _, diagnostic := range Check(request) {
+		if diagnostic.Code == "QUALIFIED_REFERENCE_INVALID" {
+			t.Fatalf("valid guarantee reference rejected: %+v", diagnostic)
+		}
+	}
+
+	invalid := replaceAll(valid, "ca::ue.registration-state", "ue.registration-state")
+	request = v4TestRequest(v4TestContract, v4TestProcedure, invalid, v4TestSchema)
+	if !v4HasCode(Check(request), "QUALIFIED_REFERENCE_INVALID") {
+		t.Fatalf("unqualified guarantee reference accepted")
+	}
+}

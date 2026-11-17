@@ -1,0 +1,8 @@
+goal: parity.session_verified
+precondition: check.precondition
+requestSchema: schemas/request.schema.yaml
+contextSchema: ca-context::urn:example:host:v1
+dependencies:
+  ca-context: urn:example:host
+  ca: urn:example:tools
+capabilities: [parity-session-read]

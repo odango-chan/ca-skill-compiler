@@ -35,6 +35,7 @@ func validateV1Alpha4EvidenceRequirements(predicatesPath string, source *V1Alpha
 		}
 		requires := unalias(child(predicate.Evidence, "requires"))
 		if requires != nil && requires.Kind == yaml.MappingNode {
+			validateEvidenceGuaranteeReferences(requires, predicatesPath, add)
 			for i := 0; i+1 < len(requires.Content); i += 2 {
 				name := scalar(unalias(requires.Content[i]))
 				if name == "" {
@@ -48,6 +49,10 @@ func validateV1Alpha4EvidenceRequirements(predicatesPath string, source *V1Alpha
 		}
 		for _, group := range sequence(child(predicate.Evidence, "independence")) {
 			for _, member := range sequence(child(group, "members")) {
+				if guarantee := unalias(child(member, "guarantee")); guarantee != nil && !validEvidenceGuaranteeReference(guarantee) {
+					add(predicatesPath, guarantee, "QUALIFIED_REFERENCE_INVALID",
+						"Evidence independence guarantee must be an exact Alias::GuaranteeId reference")
+				}
 				name := scalar(child(member, "parameter"))
 				if name != "" && !declared[name] {
 					add(predicatesPath, unalias(child(member, "parameter")), "PREDICATE_EVIDENCE_REQUIRED",
@@ -56,4 +61,27 @@ func validateV1Alpha4EvidenceRequirements(predicatesPath string, source *V1Alpha
 			}
 		}
 	}
+}
+
+// validateEvidenceGuaranteeReferences checks only the frozen qualified-reference
+// syntax of each declared guarantee id (CA-SL G.1 / Appendix H). Descriptor
+// content and trusted relations remain WP7 fail-closed work.
+func validateEvidenceGuaranteeReferences(requires *yaml.Node, predicatesPath string, add func(string, *yaml.Node, string, string)) {
+	for i := 0; i+1 < len(requires.Content); i += 2 {
+		for _, guarantee := range sequence(requires.Content[i+1]) {
+			node := unalias(guarantee)
+			if node == nil {
+				continue
+			}
+			if !validEvidenceGuaranteeReference(node) {
+				add(predicatesPath, node, "QUALIFIED_REFERENCE_INVALID",
+					"Evidence guarantee must be an exact Alias::GuaranteeId reference")
+			}
+		}
+	}
+}
+
+func validEvidenceGuaranteeReference(node *yaml.Node) bool {
+	alias, exportID, ok := splitQualifiedReference(node)
+	return ok && validDependencyID(alias) && validExportID(exportID)
 }

@@ -52,7 +52,7 @@ func wp3dCheckBuildDiagnostics(t *testing.T, req BuildRequest) []Diagnostic {
 func wp3dDiagnostics(diagnostics []Diagnostic) []Diagnostic {
 	filtered := make([]Diagnostic, 0)
 	for _, diagnostic := range diagnostics {
-		if diagnostic.Message == v1alpha4ResidualFailClosedMessage {
+		if diagnostic.Message == v1alpha4ResidualFailClosedMessage || strings.HasPrefix(diagnostic.Message, "fail-closed:") {
 			continue
 		}
 		if wp3dDiagnosticCodes[diagnostic.Code] {

@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/odango-chan/ca-skill-compiler/internal/artifact"
 )
 
 const (
@@ -257,6 +259,21 @@ func failedBuildResult(diagnostics []Diagnostic) BuildResult {
 	}
 }
 
+// VerifyBuildResult checks the structural integrity of a successful BuildResult
+// artifact tree (unique paths, canonical manifest per Skill, complete file
+// listing, generated Script Output Schema identity). It never writes to disk and
+// returns nil for an empty or failed result.
+func VerifyBuildResult(result BuildResult) error {
+	if !result.Success {
+		return nil
+	}
+	files := make([]artifact.File, 0, len(result.OutputFiles))
+	for _, file := range result.OutputFiles {
+		files = append(files, artifact.File{Path: file.Path, Bytes: file.Bytes})
+	}
+	return artifact.Verify(files)
+}
+
 func validateBuildRequest(req BuildRequest) []Diagnostic {
 	var diagnostics []Diagnostic
 	add := func(code, filename, message string) {
@@ -300,6 +317,7 @@ func validateBuildRequest(req BuildRequest) []Diagnostic {
 			valid = false
 		}
 		seen := make(map[string]bool, len(files))
+		seenFolded := make(map[string]bool, len(files))
 		for _, file := range files {
 			total.files++
 			if file.Bytes == nil {
@@ -313,8 +331,12 @@ func validateBuildRequest(req BuildRequest) []Diagnostic {
 			if seen[file.Path] {
 				add("PACKAGE_PATH_INVALID", file.Path, "Duplicate file path within "+scope)
 				valid = false
+			} else if seenFolded[strings.ToLower(file.Path)] {
+				add("PACKAGE_PATH_INVALID", file.Path, "Case-folded file path collision within "+scope)
+				valid = false
 			}
 			seen[file.Path] = true
+			seenFolded[strings.ToLower(file.Path)] = true
 			if len(file.Bytes) > maxFileSize {
 				add("INPUT_LIMIT", file.Path, "File exceeds the 2 MiB raw byte limit")
 				valid = false

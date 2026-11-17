@@ -53,8 +53,8 @@ nodes:
       tool: ca::example.session.read
       arguments: {}
       routes:
-        SUCCEEDED: read
-        FAILED: FAILED
+        SUCCEEDED: gate
+        FAILED: read
   gate:
     precondition:
       predicates:
