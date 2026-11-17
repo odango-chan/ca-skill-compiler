@@ -223,6 +223,12 @@ func rejectJSONNullProperties(object map[string]json.RawMessage, names ...string
 }
 
 func Check(req BuildRequest) []Diagnostic {
+	// Exact target dispatch before the v1alpha4 envelope validation, which
+	// deliberately treats every other target (including v1alpha5) as
+	// unsupported. There is no fallback or version sniffing.
+	if req.LanguageTarget == V1Alpha5Target {
+		return CheckV1Alpha5(req)
+	}
 	if diagnostics := validateBuildRequest(req); len(diagnostics) > 0 {
 		return diagnostics
 	}
@@ -230,6 +236,9 @@ func Check(req BuildRequest) []Diagnostic {
 }
 
 func Build(req BuildRequest) BuildResult {
+	if req.LanguageTarget == V1Alpha5Target {
+		return validateV1Alpha5(req)
+	}
 	if diagnostics := validateBuildRequest(req); len(diagnostics) > 0 {
 		return failedBuildResult(diagnostics)
 	}

@@ -1,4 +1,4 @@
-name: CA-SL v1alpha5 Wait AST (isolated candidate)
+name: CA-SL v1alpha5 Wait AST + Procedure admission (candidate)
 
 on:
   pull_request:
@@ -26,8 +26,8 @@ jobs:
         with:
           go-version: "1.27.4"
           cache: true
-      - name: Isolated v1alpha5 Wait AST tests
-        run: GOWORK=off go test ./internal/compiler -run 'Test(ParseV1Alpha5Wait|ValidV1Alpha5|InvalidV1Alpha5|V1Alpha5)' -count=1
+      - name: Focused v1alpha5 Wait/Procedure tests
+        run: GOWORK=off go test ./internal/compiler -run 'V1Alpha5' -count=1 -v
       - name: Full Go test suite
         run: GOWORK=off go test ./... -count=1
       - name: Go vet
