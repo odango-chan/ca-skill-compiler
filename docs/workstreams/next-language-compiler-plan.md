@@ -24,13 +24,13 @@ The target capabilities are:
 | Node-entry Wait semantic baseline | ca-skills #60 | Merged | Semantic basis |
 | EVENT_ACCEPTED tombstone / stale-message isolation | ca-skills #64 | Merged | Runtime invariant; Compiler links the declared correlation policy |
 | v1alpha5 single-file language candidate | ca-skills #61, head `9fadd3f4` | Draft; target assigned; semantic baseline marked frozen; full text and conformance material under independent review | 5,474-line single-file candidate exists; Appendix L defines Wait grammar/semantics; Appendix H adds 9 C_STATIC WAIT diagnostics; EW-001–EW-036 remain specification-only |
-| Integration Ingress Operation | ca-skills #62, head `1c55ab8` | Draft; current schema/vector workflows PASS; contract not frozen | IngressCatalog, exact linker semantics and diagnostic ownership still require finalization; raw-byte and nested-resource resolver vector gaps have been addressed in current head |
+| Integration Ingress Operation | ca-skills #62, head `3660e93f` | Draft; Source Hygiene and IngressCatalog Schema workflows pass on the current head | IngressCatalog, exact linker semantics and diagnostic ownership remain under review; the resolver covers raw-artifact digest recomputation and nested-resource fragment-to-artifact-pointer translation, but this is not Owner/Integration qualification |
 | Generic Host / Runtime continuation | ca-agent-demo #210 | Draft, design-only | Compiler consumes language/export contracts; it does not implement Host/Runtime |
 | 5GC SBI continuation profile | ca-agent-demo #213 (supersedes closed #209) | Draft, design-only | Example profile, not 5GC-specific Compiler semantics |
 
 The next target identity is `connectionagent.io/v1alpha5`, assigned by ca-skills #61. The complete single-file candidate exists and its semantic baseline is marked frozen, but the normative text and conformance materials remain under independent review; it is NOT RELEASED / NOT QUALIFIED. The 36 EW obligations are `SPECIFICATION_ONLY`, not executed tests. The old v1alpha4 implementation may remain in historical tags or be removed/replaced on the active development line; the next Compiler is not required to keep rejecting or accepting any old syntax for compatibility.
 
-The Ingress Operation is a separate package-scoped export, not a ToolCatalog callable, Observation or Capability. The current #62 head now verifies exact raw source bytes against each `artifactDigest`, proves nested-`$id` fragment translation to a non-root artifact pointer, and passes its two current workflows. The PR remains Draft because the export contract and the cross-contract `INGRESS_*` / existing-diagnostic ownership map are not frozen.
+The Ingress Operation is a separate package-scoped export, not a ToolCatalog callable, Observation or Capability. On current #62 head `3660e93f`, Source Hygiene (`44055966980`) and IngressCatalog Schema (`44055966999`) both pass. The resolver recomputes `artifactDigest` from raw artifact bytes and tests nested-`$id` fragment translation to a non-root artifact pointer, including negative vectors. The PR remains Draft: the export contract and cross-contract `INGRESS_*` / existing-diagnostic ownership map are not frozen, and no real Owner/Integration qualification is claimed.
 
 **Implementation decision:** proceed with WP1 Schema Closure and WP2 Wait AST in parallel against the exact current #61/#62 candidates, behind explicit internal boundaries where contract review is still open. Do not claim a released or qualified public target while #61/#62 remain Draft. Do not add a v1alpha4 compatibility path merely to preserve the old implementation; refactor or replace old code whenever that produces a simpler, more correct next-target architecture.
 
@@ -230,7 +230,7 @@ The automated source-lock fixture in ca-skills #62 remains on TS 29.502/29.571 V
 
 **Can start now (isolated candidate work):**
 - WP2: implement and test the v1alpha5 Wait grammar/AST against the exact #61 single-file candidate; keep it outside the v1alpha4 dispatch.
-- WP1: implement the Schema Closure resolver behind an internal interface using immutable synthetic snapshots; current #62 vector now covers raw-byte binding and nested-resource pointer translation.
+- WP1: implement the Schema Closure resolver against the current #62 resolver contract using immutable synthetic snapshots; the upstream vector covers raw-byte binding and nested-resource pointer translation.
 - Build the new-target EW/IN static conformance harness; retain selected v1alpha4 fixtures only when they are useful as historical references, not as compatibility gates.
 - Design API-version dispatch before language-target dispatch.
 
