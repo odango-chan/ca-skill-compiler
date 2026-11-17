@@ -25,7 +25,7 @@
 | Node-entry Wait 语义 | ca-skills #60 | 已合并 | 语义基线 |
 | EVENT_ACCEPTED tombstone / stale-message 隔离 | ca-skills #64 | 已合并 | 运行时语义约束；Compiler 必须链接 correlation policy |
 | v1alpha5 单文件语言候选 | ca-skills #61，head `9fadd3f4` | Draft；Target 已分配；语义基线标记为冻结；全文与符合性材料仍在独立评审 | 已有约 5,474 行单文件候选；附录 L 定义 Wait 语法/语义；附录 H 增加 9 个 C_STATIC WAIT 诊断；EW-001–EW-036 仍为仅规范义务 |
-| Integration Ingress Operation | ca-skills #62，head `1c55ab8` | Draft；当前 Schema / Vector 两个工作流 PASS；契约未冻结 | IngressCatalog、精确链接语义及诊断归属仍需收敛；原始字节与嵌套资源 Resolver 向量缺口已在当前 Head 修复 |
+| Integration Ingress Operation | ca-skills #62，head `3660e93f` | Draft；当前 Head 的 Source Hygiene 与 IngressCatalog Schema 工作流均 PASS | IngressCatalog、精确链接语义及诊断归属仍需收敛；Resolver 已覆盖原始 Artifact 字节复算和嵌套资源 Fragment → Artifact Pointer 转换，但这不等于 Owner / Integration 资格通过 |
 | Generic Host / Runtime continuation | ca-agent-demo #210 | Draft，设计文档 | Compiler 只消费语言和 Ingress 契约，不实现 Host/Runtime |
 | 5GC SBI continuation profile | ca-agent-demo #213（替代已关闭的 #209） | Draft，设计文档 | 3GPP 示例，不是 Compiler 的 5GC 专用语义 |
 
@@ -34,7 +34,7 @@
 - 下一目标标识为 `connectionagent.io/v1alpha5`，由 ca-skills #61 指定。完整单文件候选已存在，语义基线标记为 FROZEN；但规范全文及符合性材料仍在独立评审，当前为 NOT RELEASED / NOT QUALIFIED。36 个 EW obligation 明确标记为 `SPECIFICATION_ONLY`，尚非已执行测试。旧 v1alpha4 实现可以留在历史 Tag，也可以在当前开发线上被替换或删除；下一版 Compiler 无须为兼容而继续支持旧语法。
 - v1alpha5 的 Target 身份已经明确，不再是未分配：当前 #61 候选指定 `connectionagent.io/v1alpha5`，并已提供完整单文件评审稿。文件头将语义基线标记为冻结，但完整规范文本与符合性材料仍待独立评审；当前仍为 NOT RELEASED / NOT QUALIFIED。36 项 EW 义务全部明确标记为 `SPECIFICATION_ONLY`，不是已执行测试。
 - 不要求当前开发线继续提供 v1alpha4 Decoder、诊断或 Build 行为；如需保留历史发布物，只保留历史 Tag / Release，不把历史兼容性转化为新架构负担。
-- 当前 #62 已增加对每个 Artifact 原始字节的 `artifactDigest` 复算，并验证嵌套 `$id` Fragment 能映射到非根 Artifact Pointer；两个工作流通过。但 PR 仍为 Draft，Ingress 导出契约以及 `INGRESS_*` 与既有诊断的归属/优先级尚未冻结。
+- 当前 #62 Head `3660e93f` 的 Source Hygiene（Run `44055966980`）和 IngressCatalog Schema（Run `44055966999`）均 PASS。Resolver 实现已从原始 Artifact 字节复算 `artifactDigest`，并覆盖嵌套 `$id` Fragment 到非根 Artifact Pointer 的转换及负向向量。PR 仍为 Draft；Ingress 导出契约以及 `INGRESS_*` 与既有诊断的归属 / 优先级尚未冻结，也没有真实 Owner / Integration 资格证明。
 
 **实施决定：** WP1 Schema Closure 与 WP2 Wait AST 可以基于当前 #61 / #62 精确候选并行开发；契约仍在评审的部分通过明确的内部边界隔离。#61 / #62 仍为 Draft 时，不得宣称正式发布或产品符合性。不要为了保留 v1alpha4 兼容路径而增加双 Parser / 双 Linker；如果重构或替换旧代码能让新架构更简单、正确，就直接处理。
 
@@ -228,7 +228,7 @@ ca-skills #62 的自动化 source-lock fixture 仍固定在 TS 29.502/29.571 V19
 
 **现在可以启动（隔离的候选实现）：**
 - WP2：针对 #61 精确的 v1alpha5 单文件候选实现并测试 Wait Grammar / AST；不接入 v1alpha4 Dispatch。
-- WP1：通过内部接口实现 Schema Closure Resolver，使用不可变合成 Snapshot；当前 #62 Vector 已覆盖原始字节绑定和嵌套资源 Pointer 转换。
+- WP1：按 #62 当前 Resolver 契约实现 Schema Closure Resolver，使用不可变合成 Snapshot；当前上游向量覆盖原始字节绑定和嵌套资源 Pointer 转换。
 - 建立新目标 EW / IN 静态符合性 Harness；只有在历史 v1alpha4 Fixture 对理解共享语义有帮助时才保留，不把它们作为兼容性门禁。
 - 设计先 API-version、后 language-target 的双层 Dispatch。
 
