@@ -6,7 +6,7 @@
 
 ## 使用说明
 
-- [CLI 使用说明](cli-v1alpha4.md) — 命令、输入格式、参数、输出和退出码。
+- [CLI 使用说明](cli-v1alpha4.zh-CN.md) — 命令、输入格式、参数、输出和退出码。
 - [已知限制](known-limitations-v1alpha4.md) — 当前明确不支持或仍受限制的功能。
 - [v1.0.0 发布说明](release-notes-v1.0.0.md) — 本版本的功能和验收记录。
 - [示例与测试样例](../examples/README.zh-CN.md) — 当前示例和历史参考项目。
