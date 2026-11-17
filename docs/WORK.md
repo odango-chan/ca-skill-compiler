@@ -18,7 +18,7 @@ The release tag and its published assets are retained as the v1.0.0 baseline.
 
 ## Workstream status
 
-The v1alpha4 implementation work packages were merged through PRs [#11–#24](https://github.com/odango-chan/ca-skill-compiler/pulls?q=is%3Apr+is%3Amerged+11..24), and v1.0.0 was published through [PR #25](https://github.com/odango-chan/ca-skill-compiler/pull/25). There is no active Compiler implementation work package in the repository. Remaining items are external-contract or normative-mapping blockers, not permission to invent inputs or weaken fail-closed behaviour. See the [workstream index](workstreams/README.md), [remaining-work inventory](workstreams/REMAINING-WORK-v1alpha4.json) and [final acceptance record](COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md).
+The v1alpha4 implementation work packages were merged through PRs #11–#24 (see the [final acceptance record](COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)), and v1.0.0 was published through [PR #25](https://github.com/odango-chan/ca-skill-compiler/pull/25). There is no active Compiler implementation work package in the repository. Remaining items are external-contract or normative-mapping blockers, not permission to invent inputs or weaken fail-closed behaviour. See the [workstream index](workstreams/README.md), [remaining-work inventory](workstreams/REMAINING-WORK-v1alpha4.json) and [final acceptance record](COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md).
 
 ## Current language boundary
 
