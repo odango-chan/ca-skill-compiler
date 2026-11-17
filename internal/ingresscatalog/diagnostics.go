@@ -22,6 +22,18 @@ const (
 	// correlation/arming declaration failures; Skill-side failures keep the
 	// CA-SL WAIT_CORRELATION_BINDING_INVALID identity.
 	CodeIngressCorrelationInvalid = "INGRESS_CORRELATION_INVALID"
+	// CodeIngressResponseContractInvalid is the Ingress-owned identity for an
+	// invalid paired-response contract: response mode, deadline/disposition set,
+	// early-failure response policy or durable delivery-recovery declaration.
+	CodeIngressResponseContractInvalid = "INGRESS_RESPONSE_CONTRACT_INVALID"
+	// CodeIngressResponseMappingInvalid is the Ingress-owned identity for an
+	// invalid protocol response representation, multipart part or typed
+	// result-to-response mapping. A Skill Producer-to-response mapping failure
+	// stays WAIT_RESPONSE_MAPPING_INVALID.
+	CodeIngressResponseMappingInvalid = "INGRESS_RESPONSE_MAPPING_INVALID"
+	// CodeIngressBinaryContentLifecycleInvalid is the Ingress-owned identity for
+	// an invalid immutable binary-content reference or lifecycle contract.
+	CodeIngressBinaryContentLifecycleInvalid = "INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID"
 
 	// Reused globally-unique diagnostic identities that this slice needs. They
 	// are not Ingress-owned, so they carry no Ingress messageKey/registryId.
@@ -34,19 +46,25 @@ const (
 // ingressMessageKeys and ingressMessageTemplates are normative strings from the
 // machine-readable Ingress diagnostic registry.
 var ingressMessageKeys = map[string]string{
-	CodeIngressCatalogInvalid:          "ingress.catalog.invalid",
-	CodeIngressExportIDDuplicate:       "ingress.export.id.duplicate",
-	CodeIngressEventSelectorDuplicate:  "ingress.event.selector.duplicate",
-	CodeIngressProtocolArtifactInvalid: "ingress.protocol.artifact.invalid",
-	CodeIngressCorrelationInvalid:      "ingress.correlation.invalid",
+	CodeIngressCatalogInvalid:                "ingress.catalog.invalid",
+	CodeIngressExportIDDuplicate:             "ingress.export.id.duplicate",
+	CodeIngressEventSelectorDuplicate:        "ingress.event.selector.duplicate",
+	CodeIngressProtocolArtifactInvalid:       "ingress.protocol.artifact.invalid",
+	CodeIngressCorrelationInvalid:            "ingress.correlation.invalid",
+	CodeIngressResponseContractInvalid:       "ingress.response.contract.invalid",
+	CodeIngressResponseMappingInvalid:        "ingress.response.mapping.invalid",
+	CodeIngressBinaryContentLifecycleInvalid: "ingress.binary.content.lifecycle.invalid",
 }
 
 var ingressMessageTemplates = map[string]string{
-	CodeIngressCatalogInvalid:          "IngressCatalog at '{catalogPath}' is structurally invalid or declares an unsupported apiVersion.",
-	CodeIngressExportIDDuplicate:       "Ingress Operation export id '{exportId}' is duplicated in this trusted Catalog.",
-	CodeIngressEventSelectorDuplicate:  "Ingress event selector '{source}/{service}/{operation}' is declared by more than one export.",
-	CodeIngressProtocolArtifactInvalid: "Ingress export '{exportId}' does not match the pinned protocol artifact metadata at '{fieldPath}'.",
-	CodeIngressCorrelationInvalid:      "Ingress export '{exportId}' has an invalid correlation or stale-delivery declaration at '{fieldPath}'.",
+	CodeIngressCatalogInvalid:                "IngressCatalog at '{catalogPath}' is structurally invalid or declares an unsupported apiVersion.",
+	CodeIngressExportIDDuplicate:             "Ingress Operation export id '{exportId}' is duplicated in this trusted Catalog.",
+	CodeIngressEventSelectorDuplicate:        "Ingress event selector '{source}/{service}/{operation}' is declared by more than one export.",
+	CodeIngressProtocolArtifactInvalid:       "Ingress export '{exportId}' does not match the pinned protocol artifact metadata at '{fieldPath}'.",
+	CodeIngressCorrelationInvalid:            "Ingress export '{exportId}' has an invalid correlation or stale-delivery declaration at '{fieldPath}'.",
+	CodeIngressResponseContractInvalid:       "Ingress export '{exportId}' has an invalid paired-response contract at '{fieldPath}'.",
+	CodeIngressResponseMappingInvalid:        "Ingress export '{exportId}' has an invalid protocol response representation or mapping at '{fieldPath}'.",
+	CodeIngressBinaryContentLifecycleInvalid: "Ingress export '{exportId}' has an invalid immutable binary-content reference or lifecycle contract at '{fieldPath}'.",
 }
 
 // IngressMessageKeyForCode returns the stable message key of one Ingress-owned
@@ -70,14 +88,18 @@ func RenderIngressMessage(code string, pairs ...string) (string, bool) {
 // diagnosticPrecedence follows #62 §13: parse/prerequisite failures come first,
 // then catalog structure, export identity, protocol artifact and Schema closure.
 var diagnosticPrecedence = map[string]int{
-	CodeYAMLParseError:                 0,
-	CodeDependencyIdentityUnverified:   5,
-	CodeIngressCatalogInvalid:          10,
-	CodeIngressExportIDDuplicate:       20,
-	CodeIngressEventSelectorDuplicate:  21,
-	CodeIngressProtocolArtifactInvalid: 30,
-	CodeSchemaMissing:                  60,
-	CodeSchemaInvalid:                  61,
+	CodeYAMLParseError:                       0,
+	CodeDependencyIdentityUnverified:         5,
+	CodeIngressCatalogInvalid:                10,
+	CodeIngressExportIDDuplicate:             20,
+	CodeIngressEventSelectorDuplicate:        21,
+	CodeIngressProtocolArtifactInvalid:       30,
+	CodeSchemaMissing:                        60,
+	CodeSchemaInvalid:                        61,
+	CodeIngressCorrelationInvalid:            60,
+	CodeIngressBinaryContentLifecycleInvalid: 55,
+	CodeIngressResponseContractInvalid:       70,
+	CodeIngressResponseMappingInvalid:        80,
 }
 
 // SourceLocation is the logical diagnostic source location required by the

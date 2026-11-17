@@ -142,6 +142,7 @@ func validateV1Alpha5WaitBindings(req BuildRequest, skill *V1Alpha5SkillAST, pro
 
 	graph := buildV1Alpha5ProcedureGraph(skill.Procedure)
 	cache := newV1Alpha5ContractCache()
+	responseCache := newV1Alpha5ResponseCache()
 	triggerIndexes := make(map[string]*v1alpha5SnapshotTriggerIndex)
 	reachable := graph.ReachableVertices()
 	contracts := make(map[string]*v1alpha5ExportContract, len(waitNodeIDs))
@@ -165,6 +166,11 @@ func validateV1Alpha5WaitBindings(req BuildRequest, skill *V1Alpha5SkillAST, pro
 		}
 		contracts[nodeID] = contract
 		diagnostics = append(diagnostics, v1alpha5ValidateWaitEntryPaths(procedurePath, nodeID, wait, graph, reachable, skill, contract, scopeByAlias)...)
+		// WP6: after the WP3 export link/correlation contract is proven, validate
+		// the paired-response boundary, post-dominance and typed response
+		// Producer/mapping contract for this Wait-bearing Node.
+		diagnostics = append(diagnostics, v1alpha5ValidateWaitResponse(procedurePath, nodeID, wait, graph, skill,
+			contract, link, scope, triggerIndexes, responseCache)...)
 	}
 	return diagnostics, &v1alpha5WaitBindingSource{
 		link:         link,
