@@ -31,7 +31,7 @@ Skill 引用的 Python 文件只会被静态解析以提取接口声明，不会
 | macOS Apple Silicon | [skillc-v1.0.0-darwin-arm64](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/skillc-v1.0.0-darwin-arm64) |
 | macOS Intel | [skillc-v1.0.0-darwin-amd64](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/skillc-v1.0.0-darwin-amd64) |
 
-下载后，将对应平台的 CLI 放入 `PATH`。macOS 和 Linux 用户还需要为二进制文件添加可执行权限。
+下载后，将二进制文件重命名为 `skillc`（Windows 下为 `skillc.exe`），并放入 `PATH`。macOS 和 Linux 用户还需要为文件添加可执行权限。
 
 发布页还提供 [Go/WASM 模块](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/skillc-v1.0.0.wasm) 和 [SHA-256 校验文件](https://github.com/odango-chan/ca-skill-compiler/releases/download/v1.0.0/SHA256SUMS)。
 
