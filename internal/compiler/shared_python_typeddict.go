@@ -1,7 +1,7 @@
 package compiler
 
 // Shared Python TypedDict-to-Schema derivation used by the active v1alpha4 Script
-// ABI. The regex-era legacy Script parser is build-tagged out.
+// ABI.
 
 import (
 	"encoding/json"
