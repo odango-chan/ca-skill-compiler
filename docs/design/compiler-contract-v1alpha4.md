@@ -1,6 +1,6 @@
 # Compiler Contract v1alpha4
 
-**Status:** FROZEN Compiler implementation contract for the frozen CA-SL v1alpha4 target. **Conformance:** NOT_QUALIFIED until the gates in the conformance plan have actual CI evidence.
+**Status:** FROZEN Compiler implementation contract for the frozen CA-SL v1alpha4 target. **v1.0.0 implementation:** locally verified. **Product qualification:** NOT_QUALIFIED pending real Owner/Deployment and 5GC evidence. GitHub Actions availability is not used to rewrite local acceptance evidence.
 
 This document defines Compiler behavior. It does not amend or duplicate language semantics.
 
@@ -195,4 +195,4 @@ For 5GC, see [the SMF Procedure Profile](../profiles/5gc-smf-procedure-profile.m
 
 A successful Build proves only that supplied source and trusted contract bytes satisfy the static v1alpha4 compilation contract. It does not prove Owner publication is operational, deployment authorization is safe at runtime, Python executes successfully, Tools are reachable, 5GC E2E is correct, MAS is runnable, or Runtime Trace / Qualification / Release is ready.
 
-The current PR #11 is a source/graph admission slice, not full v1alpha4 conformance.
+The v1.0.0 release implements the frozen, implementable v1alpha4 Compiler paths and records local acceptance evidence. External publication-dependent paths and real product qualification remain explicitly NOT_QUALIFIED; see [Known Limitations](../known-limitations-v1alpha4.md).

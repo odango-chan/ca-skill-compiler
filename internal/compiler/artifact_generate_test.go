@@ -1,7 +1,7 @@
 package compiler
 
-// WP10 assembly conformance: the deterministic Artifact tree from validated
-// v1alpha4 compiler state (assembly only; Build itself remains fail-closed).
+// WP10 assembly conformance: deterministic Artifact generation from validated
+// v1alpha4 compiler state, including the successful public Build path.
 
 import (
 	"bytes"

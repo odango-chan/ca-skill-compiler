@@ -1,6 +1,6 @@
 # Open-source Dependency Selection — Compiler v1alpha4
 
-**Status:** ACCEPTED FOR IMPLEMENTATION WITH CONFORMANCE GATES  
+**Status:** ADOPTED IN CA SKILL COMPILER v1.0.0; LOCAL ACCEPTANCE PASS. Product qualification remains separate.  
 **Decision date:** 2026-11-16  
 **Language authority:** CA-SL v1alpha4 at [ca-skills@7f84393](https://github.com/odango-chan/ca-skills/tree/7f84393ee8c395e4d8c39a74cb5000a1f896588d).
 
@@ -17,7 +17,7 @@ This ADR selects the third-party engines used by the v1alpha4 Compiler. It does 
 | RFC 8785 JSON canonicalization | [gowebpki/jcs](https://github.com/gowebpki/jcs/tree/v1.0.2) | `v1.0.2` | Apache-2.0 | 1.21 |
 | JSON, hashing, paths, sorting, UTF-8 and regular expressions | Go standard library | Go toolchain pin below | Go license | Go toolchain pin below |
 
-**Toolchain:** Go 1.25 is the minimum required by the selected dependency set. CI and reproducible implementation runs MUST pin Go **1.27.4** (the current patch release on this ADR date). Compiler builds MUST remain CGo-free and pass both Native and `GOOS=js GOARCH=wasm` builds.
+**Toolchain:** Go 1.25 is the minimum required by the selected dependency set and is declared in `go.mod`. The v1.0.0 release acceptance was executed with Go 1.26.6 on Windows/amd64; that is the actual recorded release toolchain. Future runs MUST record the exact toolchain used. Compiler builds MUST remain CGo-free and pass both Native and `GOOS=js GOARCH=wasm` builds.
 
 The selected set is intentionally small. Do not add a second YAML parser, a second JSON Schema validator, a second CEL implementation, a Python interpreter, a general-purpose regex engine, or another canonical JSON implementation.
 
@@ -154,8 +154,12 @@ The selected direct dependency licenses are MIT, Apache-2.0 and BSD-3-Clause. No
 
 ## 10. Adoption status
 
-This ADR selects the implementation dependencies. It does **not** claim that all selected adapters are already integrated or qualified.
+All selected dependencies are integrated in the v1.0.0 Compiler release:
 
-WP2 adds only `github.com/goccy/go-yaml v1.19.2` to `go.mod` and removes `gopkg.in/yaml.v3`. The normalized AST adapter, typed v1alpha4 Skill AST and parser fixtures pass the Go test, vet, Native and Go/WASM build gates. This is WP2 code/build evidence, not full YAML-language qualification or Compiler qualification. San, CEL, Python CST and JCS adapters remain NOT_QUALIFIED until their own work packages pass their exact conformance gates.
+- goccy/go-yaml v1.19.2 is the single YAML parser/AST source;
+- San v6.0.3 is integrated behind the restricted G.4 Schema profile;
+- cel-go v0.33.2 provides the parser/type-checker behind the frozen CEL subset;
+- gositter v0.2.0 provides the Python CST parser; user Python is never executed;
+- gowebpki/jcs v1.0.2 provides RFC 8785 canonicalization.
 
-The only executable domain acceptance baseline remains the conventional 5GC `establish-pdu-session` flow once real v1alpha4 Owner / Deployment contracts are available. MAS remains NOT_READY and is not a dependency-selection or end-to-end acceptance requirement.
+The release commit passed the recorded local Go test, vet, CGo-free Native build, Go/WASM build, CLI E2E and real Chromium Worker parity gates. These are implementation/local verification results, not real Owner or product qualification. External publication-dependent paths and WP13 real 5GC/MAS qualification remain NOT_QUALIFIED; see [Known Limitations](../known-limitations-v1alpha4.md).

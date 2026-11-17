@@ -1,19 +1,46 @@
 {
   "schemaVersion": "connectionagent.io/compiler-remaining-work/v1alpha4",
   "status": "IMPLEMENTATION_COMPLETE_LOCALLY_VERIFIED_NOT_QUALIFIED",
-  "lastVerifiedCommit": "v1.0.0",
+  "lastVerifiedCommit": "252fd6c6dab15fb92806426aeb19d49a36b08d5e",
   "implementableInRepo": [],
   "recordedRefinements": [
-    { "wp": "WP8", "item": "Runtime merge-time recoverable-output value verification against the original operation output", "reason": "Compiler statically verifies the recoverable Schema/path pair, resolvability, same-owner READ and COMMITTED-only availability; the actual recovered value is produced and merged by the Host/Runtime, so its merge-time assignability is not a Compiler static obligation." }
+    {
+      "wp": "WP8",
+      "item": "Runtime merge-time recoverable-output value verification against the original operation output",
+      "reason": "Compiler statically verifies the recoverable Schema/path pair, resolvability, same-owner READ and COMMITTED-only availability; the actual recovered value is produced and merged by the Host/Runtime, so its merge-time assignability is not a Compiler static obligation."
+    }
   ],
   "blockedOnExternalInputOrDecision": [
-    { "wp": "WP7", "item": "Evidence Descriptor physical format and trusted relations bundle", "reason": "no versioned Owner descriptor format frozen; must not invent" },
-    { "wp": "WP6", "item": "identity-input provenance trusted publication", "reason": "no frozen physical publication format" },
-    { "wp": "WP8", "item": "cross-snapshot Reconcile association", "reason": "requires separately versioned trusted association contract" },
-    { "wp": "WP7", "item": "E73 Evidence Descriptor decoder invariance (BLOCKED_EXTERNAL_CONTRACT)", "reason": "depends on the unfrozen Evidence Descriptor publication" },
-    { "wp": "conformance", "item": "E71/E74 PREDICATE_EVIDENCE_REQUIRED mapping (BLOCKED_NORMATIVE_MAPPING)", "reason": "frozen text does not unambiguously distinguish the trigger; ca-skills #59" },
-    { "wp": "WP13", "item": "real 5GC qualification", "reason": "no qualified real v1alpha4 Owner/Deployment publications; MAS not runnable; NOT_QUALIFIED" },
-    { "wp": "infra", "item": "GitHub Actions acceptance", "reason": "CI unavailable (billing); local commands are the acceptance evidence and CI is never reported as PASS" }
+    {
+      "wp": "WP7",
+      "item": "Evidence Descriptor physical format and trusted relations bundle",
+      "reason": "no versioned Owner descriptor format frozen; must not invent"
+    },
+    {
+      "wp": "WP6",
+      "item": "identity-input provenance trusted publication",
+      "reason": "no frozen physical publication format"
+    },
+    {
+      "wp": "WP8",
+      "item": "cross-snapshot Reconcile association",
+      "reason": "requires separately versioned trusted association contract"
+    },
+    {
+      "wp": "WP7",
+      "item": "E73 Evidence Descriptor decoder invariance (BLOCKED_EXTERNAL_CONTRACT)",
+      "reason": "depends on the unfrozen Evidence Descriptor publication"
+    },
+    {
+      "wp": "conformance",
+      "item": "E71/E74 PREDICATE_EVIDENCE_REQUIRED mapping (BLOCKED_NORMATIVE_MAPPING)",
+      "reason": "frozen text does not unambiguously distinguish the trigger; ca-skills #59"
+    },
+    {
+      "wp": "WP13",
+      "item": "real 5GC qualification",
+      "reason": "no qualified real v1alpha4 Owner/Deployment publications; MAS not runnable; NOT_QUALIFIED"
+    }
   ],
   "completedSinceLastInventory": {
     "WP5": "Edge-exact global-Precondition PASS dominance (gate FAIL/UNKNOWN routes do not count as PASS, gate-Node arrival is not proof) and reachability-exact final-Postcondition classification; E52 unreachable-reference priority and E64 reachable local-PASS graph shape covered.",

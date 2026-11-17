@@ -67,8 +67,9 @@ dependency is reported, never inferred. Full reference: [CLI v1alpha4](docs/cli-
 | `cmd/skillc` | reference Native CLI (check / build / inspect / version) |
 | `cmd/skillc-wasm` | Go/WASM entry points for the same Core |
 | `cmd/parity-replay` | Native reference projection for the Chromium parity harness |
-| `web/` | Worker/Studio pages and parity fixtures |
+| `web/` | Worker/Studio pages; `web/parity-success` is the current positive Build fixture |
 | `contracts/v1alpha4` | frozen machine schemas and golden vectors |
+| `examples/` | labelled historical/migration fixtures; see [Examples Guide](examples/README.md) before use |
 | `tests/conformance/v1alpha4` | case index, diagnostic index, fixtures and E-coverage |
 | `docs/` | frozen contracts, workstreams, CLI/verification/limitations and acceptance status |
 
@@ -94,6 +95,7 @@ dependency is reported, never inferred. Full reference: [CLI v1alpha4](docs/cli-
 | [Conformance plan](docs/workstreams/conformance-v1alpha4.md) | E01–E120, H diagnostics, Native/WASM and 5GC gates |
 | [Studio integration](docs/studio-integration-v1alpha4.md) | Go/WASM Worker and read-only Studio boundary |
 | [Machine contracts](contracts/v1alpha4/README.md) | JSON Schemas and golden vectors |
+| [Examples Guide](examples/README.md) | distinguishes the current positive Build fixture from historical migration inputs |
 
 ## Version identifiers
 
