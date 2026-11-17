@@ -1,8 +1,8 @@
 # Open-source Dependency Selection — Compiler v1alpha4
 
-**Status:** ADOPTED IN CA SKILL COMPILER v1.0.0; LOCAL ACCEPTANCE PASS. Product qualification remains separate.  
-**Decision date:** 2026-11-16  
-**Language authority:** CA-SL v1alpha4 at [ca-skills@7f84393](https://github.com/odango-chan/ca-skills/tree/7f84393ee8c395e4d8c39a74cb5000a1f896588d).
+- **Status:** ADOPTED IN CA SKILL COMPILER v1.0.0; LOCAL ACCEPTANCE PASS. Product qualification remains separate.
+- **Decision date:** 2026-11-16
+- **Language authority:** CA-SL v1alpha4 at [ca-skills@7f84393](https://github.com/odango-chan/ca-skills/tree/7f84393ee8c395e4d8c39a74cb5000a1f896588d).
 
 This ADR selects the third-party engines used by the v1alpha4 Compiler. It does not change CA-SL semantics, claim implementation conformance, or qualify a real Tool Owner publication. Exact dependency versions are pinned; floating `latest` references are prohibited.
 
