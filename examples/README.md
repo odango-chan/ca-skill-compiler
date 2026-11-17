@@ -1,3 +1,5 @@
+[简体中文](README.zh-CN.md)
+
 # Examples
 
 The current v1alpha4 sample used by the CLI and browser parity tests is [`web/parity-success`](../web/parity-success). Run it from the repository root:
