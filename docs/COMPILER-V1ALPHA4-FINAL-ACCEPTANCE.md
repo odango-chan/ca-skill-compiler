@@ -127,7 +127,7 @@ Recorded environment: `go1.26.6 windows/amd64`, `node v24.18.0`, system Google C
 | `CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -o dist/skillc.wasm ./cmd/skillc-wasm` | **PASS** (exit 0) |
 | `git diff --check` | **PASS** (exit 0) |
 | `go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | **PASS** (8 CLI end-to-end tests) |
-| `CHROMIUM_PARITY=1 go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | **PASS** (real headless Chromium, 46.4 s) |
+| `CHROMIUM_PARITY=1 go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | **PASS** (real headless Chromium, 32.3 s) |
 
 Chromium parity evidence includes: identical check diagnostics, build
 success/diagnostics/dependencyClosure/output paths, inspect projection, in-Worker artifact
