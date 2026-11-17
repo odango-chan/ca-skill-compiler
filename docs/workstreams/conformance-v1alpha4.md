@@ -1,6 +1,9 @@
 # Compiler v1alpha4 Conformance and Acceptance Plan
 
-**Status:** FROZEN implementation acceptance plan; this document does not claim full v1alpha4 conformance.
+**Status:** FROZEN CONFORMANCE PLAN — NOT A LIVE PROGRESS TRACKER. Current executed evidence and case dispositions are in the final acceptance record and `tests/conformance/v1alpha4/e-coverage.json`.
+
+> **已归档 / ARCHIVED — COMPLETED RELEASE WORK.** 本文是 v1alpha4 实施期间形成的计划或决策记录。PR #11–#24 已合并，v1.0.0 已通过 PR #25 发布；原分支、Draft 状态、执行顺序和任务授权仅保留历史意义，不构成当前待办或新任务授权。当前实现状态以[最终验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)、[已知限制](../known-limitations-v1alpha4.md)和[工作流索引](README.md)为准。
+
 
 Normative source: [CA-SL v1alpha4 exact frozen commit](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md).
 
