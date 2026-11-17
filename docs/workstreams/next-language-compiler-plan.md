@@ -1,12 +1,12 @@
 # Next CA Skill Compiler Development Plan
 
 **Status:** DRAFT — isolated v1alpha5 candidate implementation may start; public target enablement and release remain gated.  
-**Baseline:** CA Skill Compiler v1.0.0; released v1alpha4 remains immutable.  
+**Historical reference:** CA Skill Compiler v1.0.0 / CA-SL v1alpha4 remain available as historical release records; they are not compatibility constraints for the next implementation.  
 **Next language target:** `connectionagent.io/v1alpha5` is assigned in the CA-SL review candidate; it is NOT RELEASED / NOT QUALIFIED.
 
 ## 1. Objective
 
-Extend the existing Go Core incrementally for the next CA-SL revision, covering Node-entry Event Wait and package-scoped Integration Ingress Operation linking. This is not a rewrite. The published v1.0.0 release and all v1alpha4 semantics remain immutable.
+Implement the next CA-SL Compiler target around Node-entry Event Wait and package-scoped Integration Ingress Operation linking. This may be an incremental extension, a substantial refactor, or a clean replacement of existing Compiler internals. There is no requirement to preserve v1alpha4 implementation behavior, internal APIs, ASTs, diagnostics, Build APIs, or old project compatibility. Published historical tags/releases remain historical records and must not be rewritten.
 
 The target capabilities are:
 - Node-entry Wait syntax and AST;
@@ -28,19 +28,19 @@ The target capabilities are:
 | Generic Host / Runtime continuation | ca-agent-demo #210 | Draft, design-only | Compiler consumes language/export contracts; it does not implement Host/Runtime |
 | 5GC SBI continuation profile | ca-agent-demo #213 (supersedes closed #209) | Draft, design-only | Example profile, not 5GC-specific Compiler semantics |
 
-v1alpha4 must continue rejecting author-level `wait`, `wait.output` and `ingressOperation`. The existing frozen diagnostics remain unchanged. The v1alpha5 target identity is no longer unassigned: the current #61 candidate names `connectionagent.io/v1alpha5` and provides a complete single-file review artifact. Its header marks the semantic baseline frozen, but the full normative text and conformance material remain under independent review; it is NOT RELEASED / NOT QUALIFIED. The 36 EW obligations are explicitly `SPECIFICATION_ONLY`, not executed tests. v1alpha4 must continue rejecting author-level `wait`, `wait.output` and `ingressOperation`; its decoder, diagnostics and released bytes remain unchanged.
+The next target identity is `connectionagent.io/v1alpha5`, assigned by ca-skills #61. The complete single-file candidate exists and its semantic baseline is marked frozen, but the normative text and conformance materials remain under independent review; it is NOT RELEASED / NOT QUALIFIED. The 36 EW obligations are `SPECIFICATION_ONLY`, not executed tests. The old v1alpha4 implementation may remain in historical tags or be removed/replaced on the active development line; the next Compiler is not required to keep rejecting or accepting any old syntax for compatibility.
 
 The Ingress Operation is a separate package-scoped export, not a ToolCatalog callable, Observation or Capability. The current #62 head now verifies exact raw source bytes against each `artifactDigest`, proves nested-`$id` fragment translation to a non-root artifact pointer, and passes its two current workflows. The PR remains Draft because the export contract and the cross-contract `INGRESS_*` / existing-diagnostic ownership map are not frozen.
 
-**Implementation decision:** start isolated WP2 Wait grammar/AST work against the exact v1alpha5 candidate and continue WP1 Schema Closure work behind internal interfaces. Do not expose a public v1alpha5 Build target, alter v1alpha4, or claim Compiler conformance until #61/#62 and the versioned API contracts are frozen.
+**Implementation decision:** proceed with WP1 Schema Closure and WP2 Wait AST in parallel against the exact current #61/#62 candidates, behind explicit internal boundaries where contract review is still open. Do not claim a released or qualified public target while #61/#62 remain Draft. Do not add a v1alpha4 compatibility path merely to preserve the old implementation; refactor or replace old code whenever that produces a simpler, more correct next-target architecture.
 
-The first isolated WP2 implementation is [ca-skill-compiler PR #30](https://github.com/odango-chan/ca-skill-compiler/pull/30): a private-package Wait AST/parser slice with fixed-duration, selector, response-boundary and TIMEOUT-route checks. It intentionally does not add BuildRequest dispatch or link IngressCatalog. Its GitHub Actions job currently has no assigned runner (`runner_id=0`, no executed steps); this is an infrastructure/CI availability gap, not a test failure result. Only the fixed-duration grammar has received a separate local Go check so far; full Go tests/vet/Native/WASM acceptance remains NOT_RUN.
+The first WP2 implementation is [ca-skill-compiler PR #30](https://github.com/odango-chan/ca-skill-compiler/pull/30): a candidate-only Wait AST/parser slice with fixed-duration, selector, response-boundary and TIMEOUT-route checks. It does not yet integrate the AST into the full Procedure parser, BuildRequest API, graph or Ingress linker. Latest workflow run `44054077055` concluded `failure`, but the job has zero executed steps and no retrievable logs; no Go test/build step ran, so this is not evidence of a source-code test failure. Only the duration regex has a separate local Go check; full Go tests/vet/Native/WASM acceptance remains NOT_RUN.
 
 Real Owner/Deployment publications and live 5GC qualification do not block independent static Compiler implementation. Synthetic trusted fixtures are sufficient for static development; they must never be reported as real interoperability evidence.
 
 ## 3. Versioned API impact
 
-The current v1alpha4 machine contracts use closed fields/enums and cannot be silently extended.
+The historical v1alpha4 machine contracts use closed fields/enums and must not be silently extended in place. They are useful evidence of the old wire shape, not constraints on the next API. The new Compiler may introduce clean replacement contracts and remove old Go types or adapters; no v1alpha4 wire compatibility or migration is required.
 
 | Existing contract | Closed point | Required next decision |
 |---|---|---|
@@ -65,7 +65,7 @@ The IngressCatalog v1alpha1 diagnostic registry now requires the logical Compile
 
 Therefore this is no longer a conditional BuildResult decision: **BuildResult and DependencyInspection both require a new versioned diagnostic envelope**. The new contract must support both Skill-source locations and dependency-snapshot locations without flattening the latter into an ambiguous string `path`. For Ingress records, `registryId` is provenance; diagnostic identity remains the globally unique `(Code, Phase)`. The exact tagged source-location shape and conditional requirements (e.g. Ingress records require `registryId/messageKey/sourceLocation`) are WP0 API design outputs.
 
-The v1alpha4 Go types, JSON Schemas, diagnostic wire shape and released bytes remain unchanged. The new API version identifiers are independent of `connectionagent.io/v1alpha5`; do not assign matching suffixes merely for naming symmetry.
+Do not preserve the old v1alpha4 Go types, JSON Schemas, diagnostic wire shape or API adapters solely for compatibility. Historical release tags and published artifacts are not rewritten. Define each new API version independently of `connectionagent.io/v1alpha5`; do not assign matching suffixes merely for naming symmetry.
 
 ### 3.1 API dispatch and v1alpha4 isolation
 
@@ -75,7 +75,7 @@ The current public entry path is version-specific, not a generic target router:
 - `Check`, `Build` and `InspectDependencies` dispatch directly to v1alpha4 behavior;
 - the v1alpha4 DependencyInspection and Artifact Manifest have closed field sets and export-kind enums.
 
-The next implementation MUST introduce an explicit **API-version dispatch before target dispatch**:
+The next implementation MUST expose a strict, coherent API for the new Compiler target. Read and validate its `apiVersion` before interpreting `languageTarget`; unknown values fail closed. If the product supports only the new API, a single strict entrypoint is sufficient—do not build a multi-version compatibility router just to retain v1alpha4:
 
 1. Read only the top-level `apiVersion` discriminator using a bounded envelope decoder.
 2. Dispatch to exactly one strict, version-specific BuildRequest decoder. Unknown or unsupported API versions fail closed; no fallback decoder is attempted.
@@ -83,7 +83,7 @@ The next implementation MUST introduce an explicit **API-version dispatch before
 4. Dispatch the exact `languageTarget` to its version-specific parser/linker. An unsupported language target fails closed; it MUST NOT be interpreted as v1alpha4.
 5. Route Check / Build / InspectDependencies and result verification through the same selected API/target profile.
 
-Do not decode a future request into the v1alpha4 struct and then tolerate extra fields. Do not widen the v1alpha4 JSON Schemas, Go structs, diagnostic index, artifact manifest, CLI behavior or released v1.0.0 bytes.
+Do not decode the new request into an old v1alpha4 struct. Do not add compatibility shims that widen old schemas or preserve old CLI behavior. The active codebase may replace/remove old types, schemas, diagnostics, manifests and adapters; do not rewrite published historical release artifacts or tags.
 
 The API-version decisions must cover these separate surfaces:
 
@@ -108,14 +108,9 @@ The v1.0.0 release is immutable and locally accepted for its declared scope, but
 
 The current artifact pipeline deliberately refuses to emit a successful artifact when a selected Skill uses Predicate Evidence, a MUTATION Operation, or `retryOf` while those complete positive-path obligations are unavailable. Static diagnostics and sub-checks still run; this is not the same as those features being fully compiled.
 
-This limitation does **not** prevent independent Node-entry Wait / Ingress Compiler work. It does affect the acceptance claim for a real PDU/MAS Skill that uses those features. Therefore:
-- carry the v1alpha4 regression suite forward unchanged;
-- keep the existing WP6/WP7/WP8 blocked cases explicit;
-- implement every Compiler-owned static rule that has a frozen contract using synthetic trusted fixtures;
-- do not fabricate real Owner/Deployment publications to make a positive Build pass;
-- do not mark a full PDU/MAS artifact build PASS until its required static positive paths are implemented and its external trust inputs are supplied.
+These historical limitations do not define the next target's feature ceiling. Re-evaluate each required capability against the new language and Ingress contracts: implement the positive static path where the Compiler owns it, or record a precise unresolved contract/implementation gate. Reuse old code only when it is simpler and correct; replace or delete fail-closed legacy paths when they obstruct the new design. Use synthetic trusted fixtures for static development, but never fabricate real Owner/Deployment publications or report them as interoperability evidence. A full PDU/MAS artifact build is PASS only when all required Compiler-owned static paths and external trust inputs are genuinely present.
 
-The next target is an extension of the existing Go Core, not permission to silently treat the partial v1alpha4 gates as complete.
+The next target may extend, refactor or replace the existing Go Core. No legacy regression suite or old implementation boundary is a mandatory compatibility gate.
 
 ## 4. Target architecture
 
@@ -123,11 +118,11 @@ Retain the current pipeline:
 
 `BuildRequest → Source Admission → Parse/AST → Dependency Linking → Schema/CEL → Procedure Graph → Script ABI → Artifact`
 
-Add a target-specific branch rather than inserting new grammar into v1alpha4:
+Implement a clean next-target pipeline. Share low-level components with the old implementation only when they are semantically correct and reduce complexity; do not retain parallel parser/linker paths solely for v1alpha4 compatibility:
 
 1. **Language target selection:** choose exactly one target before parsing; unknown targets fail closed; no fallback to v1alpha4.
 2. **IngressCatalog index:** parse the package-scoped export from the trusted dependency snapshot and verify exact apiVersion, exportKind, Package ID, Owner and artifact/Schema identity.
-3. **Wait AST:** recognize Node-entry `wait` only for the new language target; retain v1alpha4 rejection.
+3. **Wait AST:** recognize Node-entry `wait` according to the v1alpha5 candidate. Old-target acceptance/rejection behavior is not a compatibility requirement.
 4. **Ingress linker:** resolve exact source/service/operation; no fuzzy name matching.
 5. **Trigger binding linker:** bind each incoming Wait path to an exact ToolCatalog Operation and resolve the typed `armInputSchema` from Operation arguments or admitted Invocation Context.
 6. **Wait output resolver:** bind `NodeId.wait.output` to the normalized request Schema; validate JSON Pointer, assignability and path availability.
@@ -174,7 +169,7 @@ The current #62 proposal is more specific than a generic recursive `$ref` walk. 
 
 The Compiler conformance vector must prove both **source-byte binding** and **resolution**: a byte-only artifact change with an unchanged parsed Schema value still changes `artifactDigest` and the closure digest; a nested-`$id` fragment must resolve to a non-root artifact-relative pointer. A vector that supplies only pre-resolved edges or hard-coded digests is not sufficient to qualify the resolver.
 
-Keep this implementation isolated from the frozen v1alpha4 Schema Registry. v1alpha4's exact Schema identity and local-reference behavior must not be silently rewritten to adopt the new Ingress-specific URI-reference algorithm.
+Implement the Schema Closure resolver to the new contract as the source of truth. The old Schema Registry may be refactored or replaced; do not maintain duplicate resolvers or preserve old local-reference behavior solely for compatibility. Keep any genuinely shared semantics explicit and covered by tests.
 
 ### 4.2 Diagnostic ownership and precedence
 
@@ -228,7 +223,7 @@ The automated source-lock fixture in ca-skills #62 remains on TS 29.502/29.571 V
 - No 5GC, SMF, AMF, UPF, OpenAMSM or MAS-specific logic in Compiler.
 - No package manager, Registry, database, release signing, Qualification service or Runtime dispatcher.
 - No v0/v0.1/v0.2 compatibility or automatic migration.
-- No change to CA-SL v1alpha4 semantics, diagnostics or released artifacts.
+- No requirement to support v1alpha4 projects, APIs, diagnostics or artifact generation on the active development line; no automatic migration is required. Historical published tags/releases remain untouched.
 - Missing real Owner/Deployment artifacts do not block static Compiler implementation, but real product qualification remains NOT_QUALIFIED.
 
 ## 9. Implementation gate
@@ -236,7 +231,7 @@ The automated source-lock fixture in ca-skills #62 remains on TS 29.502/29.571 V
 **Can start now (isolated candidate work):**
 - WP2: implement and test the v1alpha5 Wait grammar/AST against the exact #61 single-file candidate; keep it outside the v1alpha4 dispatch.
 - WP1: implement the Schema Closure resolver behind an internal interface using immutable synthetic snapshots; current #62 vector now covers raw-byte binding and nested-resource pointer translation.
-- Build the v1alpha4 compatibility harness and EW/IN static fixture inventory.
+- Build the new-target EW/IN static conformance harness; retain selected v1alpha4 fixtures only when they are useful as historical references, not as compatibility gates.
 - Design API-version dispatch before language-target dispatch.
 
 **Still gated before public v1alpha5 target integration / release:**
@@ -245,14 +240,14 @@ The automated source-lock fixture in ca-skills #62 remains on TS 29.502/29.571 V
 2. #62 freezes the IngressCatalog schema, Schema Closure Digest, correlation/stale-delivery, trigger binding and response mapping contract.
 3. #62 and #61 publish one collision-free diagnostic ownership/precedence contract: reuse existing frozen dependency/export/schema/source-path diagnostics where applicable; reserve WAIT diagnostics for Skill Wait selection/binding/boundary errors; define any remaining INGRESS diagnostics with exact `(Code, Phase)`, severity, precedence and source-location rules.
 4. New BuildRequest, DependencyInspection and Artifact Manifest API versions are decided independently; BuildResult is explicitly retained or versioned based on its actual shape.
-5. Target dispatch preserves v1alpha4 behavior and the published v1.0.0 Artifact unchanged.
-6. The inherited v1alpha4 WP6/WP7/WP8 limitations have explicit carry-forward dispositions so the next target does not claim positive Build support for features that still fail closed.
+5. The new API/target path is internally coherent and strict; no v1alpha4 dispatch, migration or backward-compatibility path is required.
+6. Reassess every inherited v1alpha4 WP6/WP7/WP8 gap against the new contract; implement the required positive path or record a precise non-qualification reason rather than inheriting old fail-closed behavior by default.
 
 Real 5GC Owner publication or E2E qualification is not a prerequisite for isolated static Compiler development; it remains a separate product-qualification gate.
 
 ## 10. Acceptance
 
-- v1alpha4 regression: no change to existing positive/negative fixtures, diagnostic identities, Artifact bytes or Native/WASM parity.
+- New-target conformance is the acceptance baseline. v1alpha4 regression/parity is not a release gate unless the user later explicitly requests legacy support. Historical published tags/releases remain unchanged.
 - New target: fail closed on wrong apiVersion, missing export, wrong Owner, Schema digest mismatch, invalid trigger binding, unavailable wait.output, invalid Wait graph, wrong response boundary or incomplete multipart mapping.
 - Native, WASM and Chromium Worker produce identical Diagnostic[], DependencyInspection and Artifact bytes for the same BuildRequest.
 - Local acceptance and GitHub Actions status are reported separately. If CI is unavailable, report LOCAL_ACCEPTANCE_PASS, never CI PASS.
