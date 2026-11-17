@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "connectionagent.io/compiler-conformance-fixture-plan/v1alpha4",
+  "taskId": "WP4D-CEL-001",
+  "status": "PASS",
+  "note": "Agent-proposed bounded WP4D envelope (slice 4 of WP4); see docs/workstreams/wp4d-cel-v1alpha4.md.",
+  "normativeAuthority": {
+    "repository": "odango-chan/ca-skills",
+    "commit": "7f84393ee8c395e4d8c39a74cb5000a1f896588d",
+    "file": "docs/skill-language-spec.v1alpha4.zh-CN.md",
+    "blob": "b70064c5737b8ee2b3d1435fe496357f44b42773"
+  },
+  "rules": {
+    "expectedDiagnosticIdentity": "exact (Code, Phase)",
+    "compilerErrorPhase": "C_STATIC",
+    "libraryCompileIsNotSubsetProof": true,
+    "neverEvaluateAtCompileTime": true,
+    "noNewDiagnosticCodes": true
+  },
+  "fixtures": [
+    {
+      "id": "WP4D-001",
+      "title": "Valid CEL subset expressions are accepted",
+      "appendixE": "E01 baseline",
+      "category": "positive",
+      "input": "Boolean operators, equality, ordering, has, size over declared parameters.",
+      "expectedDiagnostics": [],
+      "assertions": ["Whitelisted operators/functions compile to bool.", "Declared parameters only; no ambient context."],
+      "executionStatus": "PASS",
+      "testName": "TestWP4DCELSubset",
+      "actualFixturePath": "internal/compiler/cel_check_test.go"
+    },
+    {
+      "id": "WP4D-002",
+      "title": "Out-of-subset CEL constructs are rejected",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Macros/comprehensions, array index, list/map construction, unknown functions, method calls.",
+      "expectedDiagnostics": [{ "code": "CEL_INVALID", "phase": "C_STATIC" }],
+      "assertions": ["Successful library compile does not make a construct legal.", "Every out-of-subset construct returns CEL_INVALID."],
+      "executionStatus": "PASS",
+      "testName": "TestWP4DCELSubset",
+      "actualFixturePath": "internal/compiler/cel_check_test.go"
+    },
+    {
+      "id": "WP4D-003",
+      "title": "Static boolean result and type checking",
+      "appendixE": "E110/E111 scope",
+      "category": "negative",
+      "input": "Non-boolean expression result, string/number comparison, arity error.",
+      "expectedDiagnostics": [{ "code": "CEL_INVALID", "phase": "C_STATIC" }],
+      "assertions": ["The expression result type must be bool.", "Type errors are CEL_INVALID.", "No int/double implicit mixing."],
+      "executionStatus": "PASS",
+      "testName": "TestWP4DCELSubset",
+      "actualFixturePath": "internal/compiler/cel_check_test.go"
+    },
+    {
+      "id": "WP4D-004",
+      "title": "CEL_INVALID retains predicates source location",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Invalid evaluator expression inside the author PredicateSet.",
+      "expectedDiagnostics": [{ "code": "CEL_INVALID", "phase": "C_STATIC" }],
+      "assertions": ["Diagnostic path/line/column point to predicates.yaml.", "Check and Build agree."],
+      "executionStatus": "PASS",
+      "testName": "TestWP4DCELIntegratedIntoBuild",
+      "actualFixturePath": "internal/compiler/cel_check_test.go"
+    },
+    {
+      "id": "WP4D-005",
+      "title": "Invalid Predicate parameter signature",
+      "appendixE": null,
+      "category": "negative",
+      "input": "Parameter type expressed as a mapping instead of PrimitiveType/QualifiedSchemaId.",
+      "expectedDiagnostics": [{ "code": "PREDICATE_GROUP_INVALID", "phase": "C_STATIC" }],
+      "assertions": ["Malformed parameter declaration is PREDICATE_GROUP_INVALID.", "Parameter names must be unique and one-key declarations."],
+      "executionStatus": "PASS",
+      "testName": "TestWP4DInvalidParameterSignature",
+      "actualFixturePath": "internal/compiler/cel_check_test.go"
+    }
+  ]
+}
