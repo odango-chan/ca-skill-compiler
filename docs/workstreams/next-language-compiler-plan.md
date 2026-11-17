@@ -45,12 +45,27 @@ The current v1alpha4 machine contracts use closed fields/enums and cannot be sil
 | Existing contract | Closed point | Required next decision |
 |---|---|---|
 | BuildRequest v1alpha4 | `TrustedDependencyBinding.exportOwners[].exportKind` allows only operation / observation / schema / evidenceGuarantee; languageTarget is fixed to v1alpha4 | New BuildRequest contract must admit the distinct `ingressOperation` export kind and bind one exact new language target |
-| DependencyInspection v1alpha4 | `callables[]` contains only operation / observation plus schemas[]; no package-level Ingress inventory | Add typed `ingressOperations[]` or a generic typed export inventory; never disguise Ingress as a callable |
+| DependencyInspection v1alpha4 | `callables[]` contains only operation / observation plus schemas[]; no package-level Ingress inventory; diagnostics use the closed v1alpha4 envelope | New contract must add typed `ingressOperations[]` and the v1alpha5 diagnostic envelope; never disguise Ingress as a callable |
 | Artifact Manifest v1alpha4 | languageTarget and dependencyClosure exportKind are closed | New manifest contract must record the new language target and `ingressOperation` dependency export |
-| BuildResult v1alpha4 | Output envelope is separate from Artifact manifest | Compare shapes first; version it only if the envelope changes |
-| Diagnostics / conformance | Code, Phase and E01–E120 / Appendix H identities are frozen | New diagnostics must be published by the language owner; Compiler must not invent semantic identities |
+| BuildResult v1alpha4 | Output envelope and each Diagnostic item use `additionalProperties: false` | **A new BuildResult API version is required** because the Ingress diagnostic contract requires `registryId`, `messageKey`, typed `sourceLocation` and optional `relatedLocations`; these cannot be represented by the v1alpha4 Diagnostic schema |
+| Diagnostics / conformance | v1alpha5 Appendix H composes 9 WAIT diagnostics and the separate 9-code IngressCatalog v1alpha1 registry; identity remains `(Code, Phase)` | Freeze the exact combined index and preserve the Ingress `registryId` as provenance, not as a second identity key |
 
 BuildRequest, DependencyInspection, Artifact Manifest, CA-SL language and Compiler product versions are independent identities. Do not assume they share a version number.
+
+### 3.2 Diagnostic envelope forces BuildResult and DependencyInspection versioning
+
+The current `Diagnostic` Go type carries only `severity`, `phase`, `code`, `path`, optional `line/column` and rendered `message`. The v1alpha4 BuildResult JSON Schema sets `additionalProperties: false` on each Diagnostic item.
+
+The IngressCatalog v1alpha1 diagnostic registry now requires the logical Compiler Diagnostic record to preserve:
+- `code`, `phase=C_STATIC`, `severity=ERROR`;
+- `registryId=connectionagent.io/ingress-diagnostics/v1alpha1`;
+- stable `messageKey`;
+- `sourceLocation` with `dependencyAlias`, `snapshotPath` and RFC 6901 `jsonPointer`;
+- optional `relatedLocations` for duplicate and cross-artifact explanations.
+
+Therefore this is no longer a conditional BuildResult decision: **BuildResult and DependencyInspection both require a new versioned diagnostic envelope**. The new contract must support both Skill-source locations and dependency-snapshot locations without flattening the latter into an ambiguous string `path`. For Ingress records, `registryId` is provenance; diagnostic identity remains the globally unique `(Code, Phase)`. The exact tagged source-location shape and conditional requirements (e.g. Ingress records require `registryId/messageKey/sourceLocation`) are WP0 API design outputs.
+
+The v1alpha4 Go types, JSON Schemas, diagnostic wire shape and released bytes remain unchanged. The new API version identifiers are independent of `connectionagent.io/v1alpha5`; do not assign matching suffixes merely for naming symmetry.
 
 ### 3.1 API dispatch and v1alpha4 isolation
 
@@ -77,7 +92,7 @@ The API-version decisions must cover these separate surfaces:
 | BuildRequest | New strict API schema/Go type for the exact language target and the distinct `ingressOperation` trusted export kind |
 | DependencyInspection | New strict output contract with a typed `ingressOperations[]` projection; keep Ingress separate from `callables[]` |
 | Artifact Manifest | New manifest contract that records the exact language target and `ingressOperation` in dependency closure; do not embed the entire external IngressCatalog |
-| BuildResult | Keep the existing envelope only if its shape and failure semantics remain unchanged; version separately if they change |
+| BuildResult | A new version is required: the Ingress diagnostic registry adds `registryId`, `messageKey`, dependency-aware `sourceLocation` and optional `relatedLocations`; v1alpha4's closed Diagnostic item cannot represent them |
 | CLI project input | Extend the local `trusted.json` adapter deliberately to represent the new export kind; this local input description is not the BuildRequest wire contract |
 | WASM / Studio adapters | Consume the same versioned BuildRequest / DependencyInspection contracts and the same Core dispatch; no second parser or linker |
 
