@@ -1,7 +1,10 @@
 # WP3B — ToolCatalog Export Identity and Trusted Owner Attribution
 
 **Task ID:** `WP3B-OWNER-EXPORT-001`
-**Status:** AGENT-PROPOSED BOUNDED ENVELOPE — implemented on `feat/compiler-v1alpha4-wp3b-owner-export-20261116` for Draft PR review. The frozen [Harness profile](deepseek-harness-v1alpha4.md) assigns WP3B to the human maintainer's queue; this document records the exact envelope used so the maintainer can ratify, amend or reject it before merge. It does not amend the frozen Harness profile, the Compiler contracts or CA-SL.
+
+> **已完成 / COMPLETED — MERGED INTO v1.0.0.** 本文记录 WP 实施时的任务边界、测试和决策。对应实现已通过 [PR #16](https://github.com/odango-chan/ca-skill-compiler/pull/16) 合并并纳入 v1.0.0。原分支名、Draft 审查状态和停止条件是历史信息；本文保留为实现证据，不是待执行任务。当前状态见[最终验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)和[已知限制](../known-limitations-v1alpha4.md)。
+
+**Status:** COMPLETED — merged via PR #16 and included in CA Skill Compiler v1.0.0; retained as a historical implementation record.
 **Depends on:** WP3A (`50acc70`, PR #15 Draft)
 **Task branch:** `feat/compiler-v1alpha4-wp3b-owner-export-20261116`
 
