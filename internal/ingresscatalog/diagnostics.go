@@ -17,6 +17,11 @@ const (
 	CodeIngressExportIDDuplicate       = "INGRESS_EXPORT_ID_DUPLICATE"
 	CodeIngressEventSelectorDuplicate  = "INGRESS_EVENT_SELECTOR_DUPLICATE"
 	CodeIngressProtocolArtifactInvalid = "INGRESS_PROTOCOL_ARTIFACT_INVALID"
+	// CodeIngressCorrelationInvalid is the Ingress-owned identity for an invalid
+	// correlation or stale-delivery declaration. WP3 uses it for export-side
+	// correlation/arming declaration failures; Skill-side failures keep the
+	// CA-SL WAIT_CORRELATION_BINDING_INVALID identity.
+	CodeIngressCorrelationInvalid = "INGRESS_CORRELATION_INVALID"
 
 	// Reused globally-unique diagnostic identities that this slice needs. They
 	// are not Ingress-owned, so they carry no Ingress messageKey/registryId.
@@ -33,6 +38,7 @@ var ingressMessageKeys = map[string]string{
 	CodeIngressExportIDDuplicate:       "ingress.export.id.duplicate",
 	CodeIngressEventSelectorDuplicate:  "ingress.event.selector.duplicate",
 	CodeIngressProtocolArtifactInvalid: "ingress.protocol.artifact.invalid",
+	CodeIngressCorrelationInvalid:      "ingress.correlation.invalid",
 }
 
 var ingressMessageTemplates = map[string]string{
@@ -40,6 +46,25 @@ var ingressMessageTemplates = map[string]string{
 	CodeIngressExportIDDuplicate:       "Ingress Operation export id '{exportId}' is duplicated in this trusted Catalog.",
 	CodeIngressEventSelectorDuplicate:  "Ingress event selector '{source}/{service}/{operation}' is declared by more than one export.",
 	CodeIngressProtocolArtifactInvalid: "Ingress export '{exportId}' does not match the pinned protocol artifact metadata at '{fieldPath}'.",
+	CodeIngressCorrelationInvalid:      "Ingress export '{exportId}' has an invalid correlation or stale-delivery declaration at '{fieldPath}'.",
+}
+
+// IngressMessageKeyForCode returns the stable message key of one Ingress-owned
+// diagnostic code.
+func IngressMessageKeyForCode(code string) (string, bool) {
+	key, ok := ingressMessageKeys[code]
+	return key, ok
+}
+
+// RenderIngressMessage renders the canonical message template of one
+// Ingress-owned diagnostic code with its exact "{name}" placeholders. The second
+// result is false for a code that this registry does not own.
+func RenderIngressMessage(code string, pairs ...string) (string, bool) {
+	template, ok := ingressMessageTemplates[code]
+	if !ok {
+		return "", false
+	}
+	return renderMessage(template, pairs...), true
 }
 
 // diagnosticPrecedence follows #62 §13: parse/prerequisite failures come first,

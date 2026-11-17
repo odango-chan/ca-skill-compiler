@@ -28,9 +28,10 @@ const (
 )
 
 // CheckV1Alpha5 is the strict v1alpha5 static Check entry. It returns only real
-// diagnostics from the currently implemented WP2 Wait/Procedure AST rules; it
-// never fabricates a fail-closed diagnostic. Build remains fail-closed for the
-// unimplemented WP3-WP8 semantics.
+// diagnostics from the implemented WP2 Wait/Procedure AST rules, the WP5
+// Procedure graph rules and the WP3 trigger/correlation binding rules; it never
+// fabricates a fail-closed diagnostic. Build remains fail-closed for the
+// unimplemented WP4/WP6-WP8 semantics.
 func CheckV1Alpha5(req BuildRequest) []Diagnostic {
 	if diagnostics := validateBuildRequestV1Alpha5(req); len(diagnostics) > 0 {
 		return diagnostics
@@ -112,6 +113,11 @@ func validateBuildRequestV1Alpha5(req BuildRequest) []Diagnostic {
 			add("SOURCE_ROOT_INVALID", "", "Selected Skill target does not exist in BuildRequest.files: "+target)
 		}
 	}
+
+	// WP3: validate the immutable dependency snapshot set and the trusted
+	// v1alpha5 build context (including the v1alpha5-only artifact/Schema
+	// bindings) before any linking pass runs.
+	diagnostics = append(diagnostics, validateV1Alpha5DependencyContext(req)...)
 
 	sortDiagnostics(diagnostics)
 	if diagnostics == nil {

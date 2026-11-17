@@ -81,14 +81,131 @@ type RequestProjection struct {
 	MaxBytes           int64           `json:"maxBytes"`
 }
 
+// CorrelationKeyProjection is one declared normalized-request correlation key
+// field (#62 §6.1). requestPath is an RFC 6901 JSON Pointer into the normalized
+// request Schema; comparison is only ever the exact comparison.
+type CorrelationKeyProjection struct {
+	RequestPath string `json:"requestPath"`
+	Dimension   string `json:"dimension"`
+	Comparison  string `json:"comparison"`
+}
+
+// DuplicateIdentityProjection is the declared protocol duplicate identity source
+// and its authoritative uniqueness scope (#62 §7.4).
+type DuplicateIdentityProjection struct {
+	IdentitySource string `json:"identitySource"`
+	Scope          string `json:"scope"`
+}
+
+// StaleDeliveryProjection is the declared generation/stale-delivery strategy
+// projection (#62 §7.2/§7.3). Only the fields needed by static linking are
+// projected; the retention ordering rules remain a later validation slice.
+type StaleDeliveryProjection struct {
+	Strategy               string `json:"strategy"`
+	ResourceKey            string `json:"resourceKey"`
+	MaximumLateArrival     string `json:"maximumLateArrival"`
+	ClockSkewAllowance     string `json:"clockSkewAllowance"`
+	TombstoneRetention     string `json:"tombstoneRetention"`
+	DiscriminatorRetention string `json:"discriminatorRetention"`
+	BasisRef               string `json:"basisRef"`
+	DiscriminatorKind      string `json:"discriminatorKind"`
+	DiscriminatorPath      string `json:"discriminatorPath"`
+}
+
+// CorrelationProjection is the typed correlation declaration of one export.
+type CorrelationProjection struct {
+	ArmInputSchemaRef string                      `json:"armInputSchemaRef"`
+	KeyFields         []CorrelationKeyProjection  `json:"keyFields"`
+	Duplicate         DuplicateIdentityProjection `json:"duplicate"`
+	StaleDelivery     StaleDeliveryProjection     `json:"staleDelivery"`
+}
+
+// ArmingBindingProjection is one exact arming binding (#62 §6.2). sourceKind is
+// invocation-context for start arming and operation-argument for trigger arming;
+// bindingPath is a JSON Pointer into the armInputSchema.
+type ArmingBindingProjection struct {
+	RequestKey  string `json:"requestKey"`
+	BindingPath string `json:"bindingPath"`
+	SourceKind  string `json:"sourceKind"`
+	SourcePath  string `json:"sourcePath"`
+}
+
+// TriggerOperationProjection is the exact trusted ToolCatalog Operation identity
+// of one declared trigger (#62 §6.2/L.4.2).
+type TriggerOperationProjection struct {
+	PackageID string `json:"packageId"`
+	Owner     string `json:"owner"`
+	Kind      string `json:"kind"`
+	ID        string `json:"id"`
+}
+
+// TriggerProjection is one declared triggering Operation and its exact
+// correlation bindings.
+type TriggerProjection struct {
+	Operation TriggerOperationProjection `json:"operation"`
+	Bindings  []ArmingBindingProjection  `json:"bindings"`
+}
+
+// StartArmingProjection is the declared start-Node arming mode (#62 §6.2 A).
+type StartArmingProjection struct {
+	Allowed  bool                      `json:"allowed"`
+	Bindings []ArmingBindingProjection `json:"bindings"`
+}
+
+// ArmingProjection is the declared Wait arming contract of one export.
+type ArmingProjection struct {
+	Start    StartArmingProjection `json:"start"`
+	Triggers []TriggerProjection   `json:"triggers"`
+}
+
+// ResponseRepresentationProjection is one declared protocol response
+// representation. It is projected for the later WP6 response-boundary slice.
+type ResponseRepresentationProjection struct {
+	ID                   string `json:"id"`
+	MediaType            string `json:"mediaType"`
+	ResponseSchemaRef    string `json:"responseSchemaRef"`
+	ResponseSchemaDigest string `json:"responseSchemaDigest"`
+	MaxBytes             int64  `json:"maxBytes"`
+}
+
+// ResponseDispositionProjection is one declared protocol response disposition.
+type ResponseDispositionProjection struct {
+	ID              string                             `json:"id"`
+	Status          int64                              `json:"status"`
+	Body            string                             `json:"body"`
+	Representations []ResponseRepresentationProjection `json:"representations"`
+}
+
+// ResponseResultProjection is the declared paired-response result Producer.
+type ResponseResultProjection struct {
+	Producer                string `json:"producer"`
+	ResponseResultSchemaRef string `json:"responseResultSchemaRef"`
+	DispositionSelectorPath string `json:"dispositionSelectorSourcePath"`
+}
+
+// ResponseProjection is the declared protocol response contract projection.
+type ResponseProjection struct {
+	Mode                  string                          `json:"mode"`
+	DeadlinePolicyRef     string                          `json:"deadlinePolicyRef"`
+	Result                ResponseResultProjection        `json:"result"`
+	Dispositions          []ResponseDispositionProjection `json:"dispositions"`
+	EarlyFailureResponses map[string]string               `json:"earlyFailureResponses"`
+	DeliveryRecoveryMode  string                          `json:"deliveryRecoveryMode"`
+}
+
 // Operation is the deterministic projection of one IngressCatalog export for
-// later WP3 trigger/correlation linking.
+// later WP3 trigger/correlation linking. Correlation, Arming and Response were
+// added additively for WP3; they never change the WP1 projection semantics of the
+// id/adapter/event/protocol/request fields.
 type Operation struct {
-	ID       string            `json:"id"`
-	Adapter  string            `json:"adapter"`
-	Event    EventSelector     `json:"event"`
-	Protocol Protocol          `json:"protocol"`
-	Request  RequestProjection `json:"request"`
+	ID          string                `json:"id"`
+	Adapter     string                `json:"adapter"`
+	Event       EventSelector         `json:"event"`
+	Protocol    Protocol              `json:"protocol"`
+	Request     RequestProjection     `json:"request"`
+	Correlation CorrelationProjection `json:"correlation"`
+	Arming      ArmingProjection      `json:"arming"`
+	Response    ResponseProjection    `json:"response"`
 }
 
 // Catalog is the deterministic typed projection of one admitted IngressCatalog.
@@ -596,9 +713,150 @@ func projectCatalog(root map[string]any) *Catalog {
 				SchemaDigest: stringField(source, "schemaDigest"),
 			})
 		}
+		operation.Correlation = projectCorrelation(objectField(operationMap, "correlation"))
+		operation.Arming = projectArming(objectField(operationMap, "arming"))
+		operation.Response = projectResponse(objectField(operationMap, "response"))
 		catalog.Operations = append(catalog.Operations, operation)
 	}
 	return catalog
+}
+
+// projectCorrelation projects the additive correlation declaration. Absent or
+// malformed sub-objects project to their zero value; structural validity is
+// owned by catalog admission, not by this projection.
+func projectCorrelation(correlation map[string]any) CorrelationProjection {
+	projection := CorrelationProjection{}
+	if correlation == nil {
+		return projection
+	}
+	projection.ArmInputSchemaRef = stringField(correlation, "armInputSchemaRef")
+	for _, keyValue := range arrayField(correlation, "keyFields") {
+		key, ok := keyValue.(map[string]any)
+		if !ok {
+			continue
+		}
+		projection.KeyFields = append(projection.KeyFields, CorrelationKeyProjection{
+			RequestPath: stringField(key, "requestPath"),
+			Dimension:   stringField(key, "dimension"),
+			Comparison:  stringField(key, "comparison"),
+		})
+	}
+	duplicate := objectField(correlation, "duplicate")
+	projection.Duplicate = DuplicateIdentityProjection{
+		IdentitySource: stringField(duplicate, "identitySource"),
+		Scope:          stringField(duplicate, "scope"),
+	}
+	stale := objectField(correlation, "staleDelivery")
+	projection.StaleDelivery = StaleDeliveryProjection{
+		Strategy:               stringField(stale, "strategy"),
+		ResourceKey:            stringField(stale, "resourceKey"),
+		MaximumLateArrival:     stringField(stale, "maximumLateArrival"),
+		ClockSkewAllowance:     stringField(stale, "clockSkewAllowance"),
+		TombstoneRetention:     stringField(stale, "tombstoneRetention"),
+		DiscriminatorRetention: stringField(stale, "discriminatorRetention"),
+		BasisRef:               stringField(stale, "basisRef"),
+	}
+	discriminator := objectField(stale, "discriminator")
+	projection.StaleDelivery.DiscriminatorKind = stringField(discriminator, "kind")
+	projection.StaleDelivery.DiscriminatorPath = stringField(discriminator, "path")
+	return projection
+}
+
+// projectArming projects the additive arming declaration (start mode plus the
+// exact trigger set and their bindings).
+func projectArming(arming map[string]any) ArmingProjection {
+	projection := ArmingProjection{}
+	if arming == nil {
+		return projection
+	}
+	start := objectField(arming, "start")
+	projection.Start.Allowed = booleanField(start, "allowed")
+	projection.Start.Bindings = projectArmingBindings(arrayField(start, "bindings"))
+	for _, triggerValue := range arrayField(arming, "triggers") {
+		triggerMap, ok := triggerValue.(map[string]any)
+		if !ok {
+			continue
+		}
+		operation := objectField(triggerMap, "operation")
+		projection.Triggers = append(projection.Triggers, TriggerProjection{
+			Operation: TriggerOperationProjection{
+				PackageID: stringField(operation, "packageId"),
+				Owner:     stringField(operation, "owner"),
+				Kind:      stringField(operation, "kind"),
+				ID:        stringField(operation, "id"),
+			},
+			Bindings: projectArmingBindings(arrayField(triggerMap, "bindings")),
+		})
+	}
+	return projection
+}
+
+func projectArmingBindings(values []any) []ArmingBindingProjection {
+	bindings := make([]ArmingBindingProjection, 0, len(values))
+	for _, value := range values {
+		binding, ok := value.(map[string]any)
+		if !ok {
+			continue
+		}
+		bindings = append(bindings, ArmingBindingProjection{
+			RequestKey:  stringField(binding, "requestKey"),
+			BindingPath: stringField(binding, "bindingPath"),
+			SourceKind:  stringField(objectField(binding, "source"), "kind"),
+			SourcePath:  stringField(objectField(binding, "source"), "path"),
+		})
+	}
+	return bindings
+}
+
+// projectResponse projects the additive paired-response contract used by the
+// later WP6 response-boundary slice.
+func projectResponse(response map[string]any) ResponseProjection {
+	projection := ResponseProjection{}
+	if response == nil {
+		return projection
+	}
+	projection.Mode = stringField(response, "mode")
+	projection.DeadlinePolicyRef = stringField(response, "deadlinePolicyRef")
+	result := objectField(response, "result")
+	projection.Result = ResponseResultProjection{
+		Producer:                stringField(result, "producer"),
+		ResponseResultSchemaRef: stringField(result, "responseResultSchemaRef"),
+		DispositionSelectorPath: stringField(objectField(result, "dispositionSelector"), "sourcePath"),
+	}
+	for _, dispositionValue := range arrayField(response, "dispositions") {
+		dispositionMap, ok := dispositionValue.(map[string]any)
+		if !ok {
+			continue
+		}
+		disposition := ResponseDispositionProjection{
+			ID:     stringField(dispositionMap, "id"),
+			Status: integerField(dispositionMap, "status"),
+			Body:   stringField(dispositionMap, "body"),
+		}
+		for _, representationValue := range arrayField(dispositionMap, "representations") {
+			representation, ok := representationValue.(map[string]any)
+			if !ok {
+				continue
+			}
+			disposition.Representations = append(disposition.Representations, ResponseRepresentationProjection{
+				ID:                   stringField(representation, "id"),
+				MediaType:            stringField(representation, "mediaType"),
+				ResponseSchemaRef:    stringField(representation, "responseSchemaRef"),
+				ResponseSchemaDigest: stringField(representation, "responseSchemaDigest"),
+				MaxBytes:             integerField(representation, "maxBytes"),
+			})
+		}
+		projection.Dispositions = append(projection.Dispositions, disposition)
+	}
+	if earlyFailures := objectField(response, "earlyFailureResponses"); earlyFailures != nil {
+		projection.EarlyFailureResponses = make(map[string]string, len(earlyFailures))
+		for outcome, value := range earlyFailures {
+			entry, _ := value.(map[string]any)
+			projection.EarlyFailureResponses[outcome] = stringField(entry, "responseRef")
+		}
+	}
+	projection.DeliveryRecoveryMode = stringField(objectField(response, "deliveryRecovery"), "mode")
+	return projection
 }
 
 func objectField(object map[string]any, field string) map[string]any {
@@ -652,4 +910,12 @@ func integerField(object map[string]any, field string) int64 {
 		return int64(value)
 	}
 	return 0
+}
+
+func booleanField(object map[string]any, field string) bool {
+	if object == nil {
+		return false
+	}
+	value, _ := object[field].(bool)
+	return value
 }

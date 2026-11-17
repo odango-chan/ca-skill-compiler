@@ -77,11 +77,49 @@ type DeploymentAuthorization struct {
 	AuthorizationRef string `json:"authorizationRef"`
 }
 
+// TrustedArtifactBinding is one v1alpha5 trusted artifact binding: the exact
+// dependency snapshot file that holds an immutable protocol or Schema artifact,
+// its content dialect and its caller-declared artifact identity. It carries no
+// digest: WP1 always recomputes the artifact digest from the raw snapshot bytes.
+type TrustedArtifactBinding struct {
+	ArtifactRef  string `json:"artifactRef"`
+	DependencyID string `json:"dependencyId"`
+	SnapshotPath string `json:"snapshotPath"`
+	Dialect      string `json:"dialect"`
+}
+
+// TrustedSchemaBinding is one v1alpha5 trusted Schema export binding: the exact
+// artifactRef and canonical Schema root pointer (# or #/...) that define one
+// exported Schema identity.
+type TrustedSchemaBinding struct {
+	ExportID    string `json:"exportId"`
+	ArtifactRef string `json:"artifactRef"`
+	Pointer     string `json:"pointer"`
+}
+
 type TrustedBuildContext struct {
 	DependencyBindings       []TrustedDependencyBinding   `json:"dependencyBindings,omitempty"`
 	CapabilityContracts      *CapabilityContractsBundle   `json:"capabilityContracts,omitempty"`
 	DeploymentAuthorizations *[]DeploymentAuthorization   `json:"deploymentAuthorizations,omitempty"`
 	EvidenceTrustBindings    *EvidenceTrustBindingsBundle `json:"evidenceTrustBindings,omitempty"`
+
+	// The following fields are v1alpha5-only trusted-context bindings. They are
+	// declared on the shared struct so the v1alpha5 target can express the
+	// trusted Ingress/Schema artifacts, but the frozen v1alpha4 envelope
+	// validation explicitly rejects any non-empty value so the v1alpha4 API stays
+	// closed.
+	SnapshotBaseURI  string                   `json:"snapshotBaseURI,omitempty"`
+	ArtifactBindings []TrustedArtifactBinding `json:"artifactBindings,omitempty"`
+	SchemaBindings   []TrustedSchemaBinding   `json:"schemaBindings,omitempty"`
+}
+
+// v1alpha5OnlyContextPresent reports whether a TrustedBuildContext carries any
+// field that belongs only to the v1alpha5 API.
+func (ctx *TrustedBuildContext) v1alpha5OnlyContextPresent() bool {
+	if ctx == nil {
+		return false
+	}
+	return ctx.SnapshotBaseURI != "" || len(ctx.ArtifactBindings) > 0 || len(ctx.SchemaBindings) > 0
 }
 
 type Diagnostic struct {
@@ -151,8 +189,18 @@ func DecodeBuildRequestJSON(data []byte) (BuildRequest, error) {
 		if contextObject == nil {
 			return BuildRequest{}, fmt.Errorf("trustedBuildContext must be an object")
 		}
-		if err := rejectJSONNullProperties(contextObject, "dependencyBindings", "capabilityContracts", "deploymentAuthorizations", "evidenceTrustBindings"); err != nil {
+		if err := rejectJSONNullProperties(contextObject, "dependencyBindings", "capabilityContracts", "deploymentAuthorizations", "evidenceTrustBindings", "snapshotBaseURI", "artifactBindings", "schemaBindings"); err != nil {
 			return BuildRequest{}, err
+		}
+		if bindingsJSON, ok := contextObject["artifactBindings"]; ok {
+			if err := rejectJSONNullArrayElements(bindingsJSON, "trustedBuildContext.artifactBindings"); err != nil {
+				return BuildRequest{}, err
+			}
+		}
+		if bindingsJSON, ok := contextObject["schemaBindings"]; ok {
+			if err := rejectJSONNullArrayElements(bindingsJSON, "trustedBuildContext.schemaBindings"); err != nil {
+				return BuildRequest{}, err
+			}
 		}
 		if bindingsJSON, ok := contextObject["dependencyBindings"]; ok {
 			var bindings []json.RawMessage
@@ -217,6 +265,22 @@ func rejectJSONNullProperties(object map[string]json.RawMessage, names ...string
 	for _, name := range names {
 		if raw, ok := object[name]; ok && bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
 			return fmt.Errorf("%s must not be null when present", name)
+		}
+	}
+	return nil
+}
+
+// rejectJSONNullArrayElements enforces that a JSON array property is an array of
+// objects; a null element would otherwise decode into a zero-value struct.
+func rejectJSONNullArrayElements(raw json.RawMessage, name string) error {
+	var elements []json.RawMessage
+	if err := json.Unmarshal(raw, &elements); err != nil {
+		return fmt.Errorf("%s must be an array: %w", name, err)
+	}
+	for index, element := range elements {
+		var object map[string]json.RawMessage
+		if err := json.Unmarshal(element, &object); err != nil || object == nil {
+			return fmt.Errorf("%s[%d] must be an object", name, index)
 		}
 	}
 	return nil
@@ -394,6 +458,9 @@ func validateBuildRequest(req BuildRequest) []Diagnostic {
 
 	if req.TrustedBuildContext != nil {
 		ctx := req.TrustedBuildContext
+		if ctx.v1alpha5OnlyContextPresent() {
+			add("REQUEST_INVALID", "", "TrustedBuildContext.snapshotBaseURI/artifactBindings/schemaBindings are v1alpha5-only bindings and are rejected for the v1alpha4 target")
+		}
 		authorizations := []DeploymentAuthorization(nil)
 		if ctx.DeploymentAuthorizations != nil {
 			authorizations = *ctx.DeploymentAuthorizations
