@@ -1,8 +1,8 @@
 # 下一代 CA Skill Compiler 开发计划
 
-**状态：** DRAFT — 架构与工作包准备已开始；正式语言实现尚未授权。  
-**基线：** CA Skill Compiler v1.0.0，当前唯一正式语言目标为冻结的 CA-SL v1alpha4。  
-**下一语言版本：** 未分配。本文不推断或创建版本号。
+**状态：** DRAFT — 可以开始隔离的 v1alpha5 候选实现；公开 Target 启用与发布仍受门槛约束。  
+**基线：** CA Skill Compiler v1.0.0；已发布的 v1alpha4 保持不可变。  
+**下一语言目标：** `connectionagent.io/v1alpha5` 已在 CA-SL 评审候选中分配，但仍为 NOT RELEASED / NOT QUALIFIED。
 
 ## 1. 目标
 
@@ -24,15 +24,19 @@
 |---|---|---|---|
 | Node-entry Wait 语义 | ca-skills #60 | 已合并 | 语义基线 |
 | EVENT_ACCEPTED tombstone / stale-message 隔离 | ca-skills #64 | 已合并 | 运行时语义约束；Compiler 必须链接 correlation policy |
-| Wait 规范性修订 | ca-skills #61 | Draft，版本身份未分配 | 语法、诊断、SourcePath、图语义尚未冻结 |
-| Integration Ingress Operation | ca-skills #62 | Draft | IngressCatalog、Schema Closure Digest、归一化与 response mapping 尚未冻结 |
+| v1alpha5 单文件语言候选 | ca-skills #61，head `e6569713` | Draft；Target 已分配；语义基线标记为冻结；全文与符合性材料仍在独立评审 | 已有约 5,474 行单文件候选；附录 L 定义 Wait 语法/语义；附录 H 增加 9 个 C_STATIC WAIT 诊断；EW-001–EW-036 仍为仅规范义务 |
+| Integration Ingress Operation | ca-skills #62，head `d0fe2be` | Draft；当前 Schema / Vector 两个工作流 PASS；契约未冻结 | IngressCatalog、精确链接语义及诊断归属仍需收敛；原始字节与嵌套资源 Resolver 向量缺口已在当前 Head 修复 |
 | Generic Host / Runtime continuation | ca-agent-demo #210 | Draft，设计文档 | Compiler 只消费语言和 Ingress 契约，不实现 Host/Runtime |
 | 5GC SBI continuation profile | ca-agent-demo #213（替代已关闭的 #209） | Draft，设计文档 | 3GPP 示例，不是 Compiler 的 5GC 专用语义 |
 
 **重要边界：**
 
 - v1alpha4 不接受作者级 `wait`、`wait.output` 或 `ingressOperation`。现有 `UNSUPPORTED_WAIT` 等冻结诊断必须继续保持。
-- #61 已明确禁止将 Draft 当成 v1alpha4，也禁止在没有语言 Owner 裁决时推断下一语言版本号。
+- v1alpha5 的 Target 身份已经明确，不再是未分配：当前 #61 候选指定 `connectionagent.io/v1alpha5`，并已提供完整单文件评审稿。文件头将语义基线标记为冻结，但完整规范文本与符合性材料仍待独立评审；当前仍为 NOT RELEASED / NOT QUALIFIED。36 项 EW 义务全部明确标记为 `SPECIFICATION_ONLY`，不是已执行测试。
+- v1alpha4 必须继续拒绝作者级 `wait`、`wait.output` 和 `ingressOperation`；其 Decoder、诊断和已发布字节不得改变。
+- 当前 #62 已增加对每个 Artifact 原始字节的 `artifactDigest` 复算，并验证嵌套 `$id` Fragment 能映射到非根 Artifact Pointer；两个工作流通过。但 PR 仍为 Draft，Ingress 导出契约以及 `INGRESS_*` 与既有诊断的归属/优先级尚未冻结。
+
+**实施决定：** 可以基于 #61 精确的 v1alpha5 候选启动隔离的 WP2 Wait Grammar / AST；WP1 Schema Closure 继续通过内部接口实现。不得启用公开 v1alpha5 Build Target，不得修改 v1alpha4，也不得提前宣称 Compiler 符合性。
 - #62 的 IngressCatalog 是独立 package-scoped export，不是 ToolCatalog Operation、Observation 或 Capability。
 - #62 的 Schema Closure Digest v1 目前仍是提案。其 golden vector / CI 通过只证明算法样例，不等于 Owner 已发布真实 Schema。
 - 真实 Owner / Deployment 发布与实时 5GC qualification 不阻止 Compiler 独立实现；实现阶段可使用明确标记的 synthetic trusted fixtures。不得将 synthetic fixtures 报告为真实互操作通过。
@@ -205,17 +209,22 @@ ca-skills #62 的自动化 source-lock fixture 仍固定在 TS 29.502/29.571 V19
 
 ## 9. 开发启动 Gate
 
-**现在可以做：**契约复审、API 版本 / Target Dispatch 设计、v1alpha4 兼容性 Harness、Compiler 静态 EW / IN Fixture 清单、内部接口下的 Schema Closure Digest 实现 Spike，以及合成 Snapshot / IngressCatalog Fixture 准备。这些工作不得暴露新公开 Target，也不得改变已发布 v1alpha4 路径。
+**现在可以启动（隔离的候选实现）：**
+- WP2：针对 #61 精确的 v1alpha5 单文件候选实现并测试 Wait Grammar / AST；不接入 v1alpha4 Dispatch。
+- WP1：通过内部接口实现 Schema Closure Resolver，使用不可变合成 Snapshot；当前 #62 Vector 已覆盖原始字节绑定和嵌套资源 Pointer 转换。
+- 建立 v1alpha4 兼容性 Harness 与 EW / IN 静态 Fixture 清单。
+- 设计先 API-version、后 language-target 的双层 Dispatch。
 
-**正式实施新 Target 前必须满足：**
+**公开 v1alpha5 Target 集成 / 发布前仍须满足：**
 
-1. CA-SL 语言 Owner 分配明确的下一语言版本身份，并发布完整单文件规范；不能仅凭 #61 Draft 推断版本。
-2. #61 的 grammar、Wait output、graph、response boundary 和诊断条款冻结。
-3. #62 的 IngressCatalog schema、Schema Closure Digest、correlation/stale-delivery、response mapping 契约冻结。
-4. BuildRequest、DependencyInspection、Artifact Manifest 的新 API 版本决策完成。
-5. 版本 dispatch 明确保证 v1alpha4 行为和既有 v1.0.0 Artifact 完全不变。
+1. #61 完成全文独立评审，冻结并发布 v1alpha5 规范单文件及精确诊断索引。
+2. #62 冻结 IngressCatalog Schema、Schema Closure Digest、Correlation / Stale Delivery、Trigger Binding 和 Response Mapping 契约。
+3. #61 / #62 发布无冲突的诊断归属与优先级契约：适用时复用现有依赖 / Export / Schema / SourcePath 诊断；WAIT 诊断只负责 Skill Wait 选择、绑定和响应边界问题；剩余 INGRESS 诊断必须有精确 `(Code, Phase)`、Severity、优先级和源码位置规则。
+4. 独立决定新的 BuildRequest、DependencyInspection、Artifact Manifest API 版本；按实际结构明确保留或升级 BuildResult。
+5. Target Dispatch 保持 v1alpha4 行为和 v1.0.0 发布 Artifact 完全不变。
+6. 对 v1alpha4 WP6 / WP7 / WP8 的既有实现限制作出明确承接决定，不能让新 Target 对仍会 fail-closed 的功能宣称正向 Build 支持。
 
-上述 Gate 完成后即可使用 synthetic trusted snapshots 开始 WP1–WP8；不需要等待真实 5GC Owner 发布或 E2E qualification。产品资格仍独立记录。
+真实 5GC Owner 发布物或 E2E 资格认证不阻塞隔离的静态 Compiler 开发；它们仍属于独立的产品资格认证门槛。
 
 ## 10. 验收定义
 
