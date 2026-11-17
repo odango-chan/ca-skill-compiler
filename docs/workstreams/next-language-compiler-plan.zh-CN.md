@@ -50,12 +50,27 @@ v1alpha4 的机器契约使用封闭字段/枚举，不能在原版本上静默�
 | 现有契约 | 已发现的封闭点 | 下一版需要的决策 |
 |---|---|---|
 | BuildRequest v1alpha4 | `TrustedDependencyBinding.exportOwners[].exportKind` 只允许 operation / observation / schema / evidenceGuarantee；languageTarget 固定 v1alpha4 | 新 API contract 增加独立 `ingressOperation` export kind，并绑定唯一新 languageTarget |
-| DependencyInspection v1alpha4 | `callables[]` 仅 operation / observation，另有 schemas[]；没有 package-level Ingress inventory | 决定新增 `ingressOperations[]`，或改为可扩展的 typed export inventory；不能把 Ingress 伪装成 callable |
+| DependencyInspection v1alpha4 | `callables[]` 仅 operation / observation，另有 schemas[]；没有 package-level Ingress inventory；诊断使用封闭的 v1alpha4 Envelope | 新契约增加类型化 `ingressOperations[]` 和 v1alpha5 Diagnostic Envelope；Ingress 不得伪装成 callable |
 | Artifact Manifest v1alpha4 | `languageTarget` 固定 v1alpha4；dependencyClosure.exports 的 exportKind 为封闭枚举 | 新 Artifact manifest contract 必须记录新 languageTarget 和 `ingressOperation` dependency export |
-| BuildResult v1alpha4 | 输出 envelope 与 Artifact manifest 分离 | 先比较结构；只有输出 envelope 变化时才升级 BuildResult API，不为版本整齐而无理由重复升级 |
-| Diagnostic / Conformance | Code、Phase、E01–E120 / Appendix H 有冻结身份 | 新语言的诊断必须由语言 Owner 发布；Compiler 不自行分配语义身份 |
+| BuildResult v1alpha4 | 输出 Envelope 及每个 Diagnostic 项均为 `additionalProperties: false` | **必须升级 BuildResult API**：Ingress 诊断要求 `registryId`、`messageKey`、类型化 `sourceLocation` 和可选 `relatedLocations`，v1alpha4 Diagnostic Schema 无法表达 |
+| Diagnostic / Conformance | v1alpha5 Appendix H 组合 9 个 WAIT 诊断和独立的 9-code IngressCatalog v1alpha1 注册表；身份仍为 `(Code, Phase)` | 冻结精确组合索引；Ingress `registryId` 是来源信息，不是第二套身份键 |
 
 BuildRequest、DependencyInspection、Artifact Manifest 的版本号彼此独立于 CA-SL 语言版本和 Compiler 产品版本。**不得假定它们必须同号，也不得在版本身份未裁决前写入猜测值。**
+
+### 3.2 Diagnostic Envelope 迫使 BuildResult 与 DependencyInspection 升级
+
+当前 `Diagnostic` Go 类型只包含 `severity`、`phase`、`code`、`path`、可选 `line/column` 和渲染后的 `message`。v1alpha4 BuildResult JSON Schema 对每个 Diagnostic 项设置了 `additionalProperties: false`。
+
+IngressCatalog v1alpha1 诊断注册表要求 Compiler 的逻辑 Diagnostic 记录保留：
+- `code`、`phase=C_STATIC`、`severity=ERROR`；
+- `registryId=connectionagent.io/ingress-diagnostics/v1alpha1`；
+- 稳定的 `messageKey`；
+- 包含 `dependencyAlias`、`snapshotPath` 和 RFC 6901 `jsonPointer` 的 `sourceLocation`；
+- 用于重复项及跨 Artifact 解释的可选 `relatedLocations`。
+
+因此 BuildResult 已不再是“结构变化时才升级”：**BuildResult 与 DependencyInspection 都必须使用新的版本化 Diagnostic Envelope**。新契约必须同时表达 Skill 源码位置和依赖快照位置，不能把后者压扁成含义不明确的字符串 `path`。对于 Ingress 诊断，`registryId` 是来源信息；诊断身份仍为全局唯一的 `(Code, Phase)`。精确的 tagged source-location 结构及条件约束（例如 Ingress 诊断必须有 `registryId/messageKey/sourceLocation`）属于 WP0 API 设计产物。
+
+v1alpha4 Go 类型、JSON Schema、诊断 Wire Shape 和发布字节保持不变。新 API 版本标识独立于 `connectionagent.io/v1alpha5`；不得仅为命名整齐而假定使用相同后缀。
 
 ### 3.1 API Dispatch 与 v1alpha4 隔离
 
@@ -80,7 +95,7 @@ BuildRequest、DependencyInspection、Artifact Manifest 的版本号彼此独立
 | BuildRequest | 新的严格 API Schema / Go 类型，绑定精确语言目标，并在受信导出 Owner 绑定中支持独立的 `ingressOperation` |
 | DependencyInspection | 新的严格输出契约，增加类型化 `ingressOperations[]`；Ingress 不得混入 `callables[]` |
 | Artifact Manifest | 新 Manifest 记录精确语言目标及 dependency closure 中的 `ingressOperation`；不嵌入完整外部 IngressCatalog |
-| BuildResult | 仅当输出 Envelope 形状和失败语义不变时保留；否则单独版本化 |
+| BuildResult | 必须使用新版本：Ingress 诊断注册表增加 `registryId`、`messageKey`、依赖感知 `sourceLocation` 和可选 `relatedLocations`；v1alpha4 封闭 Diagnostic 项无法表达 |
 | CLI 工程输入 | 明确扩展本地 `trusted.json` 表达新导出类型；它不是 BuildRequest Wire Contract |
 | WASM / Studio Adapter | 使用同一套版本化 API 和 Core Dispatch；不得另写 Parser / Linker |
 
