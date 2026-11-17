@@ -84,6 +84,14 @@ The same callable may be reused by multiple Skills and Nodes. Do not create a ne
 
 A local CLI or client implementation repository is not automatically a CA-SL Tool Owner. In particular, `ca-client-tools` may provide the fixed local CLI backend for an adapter, but it does not by itself publish the ToolCatalog, CapabilityContracts, Owner identity or Deployment grants. Those remain separate trusted publications.
 
+### 3.1 Binary SBI payloads
+
+The Nsmf and Namf OpenAPI contracts are not JSON-only. TS 29.502 V19.7.0 defines `multipart/related` request/response representations for N1 SM, N2 SM/NGAP and, where applicable, N4/PFCP binary payloads. The JSON part uses `application/json`; the binary part media types include `application/vnd.3gpp.5gnas`, `application/vnd.3gpp.ngap` and `application/vnd.3gpp.pfcp`. Some operations permit multiple binary parts, so the exact operation's OpenAPI schema is authoritative.
+
+TS 29.502 references `TS29571_CommonData.yaml#/components/schemas/RefToBinaryData`. TS 29.571 V19.7.0 §5.4.4.14 defines this as a required `contentId` value that matches the `Content-ID` header of the referenced binary body part. **The JSON `RefToBinaryData` object is a reference, not the bytes themselves.**
+
+The Tool Owner / HTTP adapter owns the MIME boundary, `multipart/related` framing, JSON root part, binary bytes, per-part media types and `Content-ID` binding. It must support the number of binary parts declared by the selected OpenAPI operation. Do not assume one binary part, JSON-only transport or base64-in-JSON. The Skill passes typed business payloads / references under the published Tool Schema; it does not construct raw HTTP multipart framing.
+
 ## 4. Capability mapping
 
 A Capability is a deployment authorization grant over exact callable identities and Effects. It is **not**:
