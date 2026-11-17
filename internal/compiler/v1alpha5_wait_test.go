@@ -7,7 +7,7 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func parseV1Alpha5WaitTestNode(t *testing.T, nodeYAML string) (*V1Alpha5WaitAST, []Diagnostic) {
+func parseV1Alpha5WaitTestNode(t *testing.T, nodeYAML string) (*v1alpha5WaitAST, []Diagnostic) {
 	t.Helper()
 	source := "start: wait-node\nnodes:\n  wait-node:\n" + indentV1Alpha5TestYAML(nodeYAML, 4)
 	root, err := yaml.Parse([]byte(source))
