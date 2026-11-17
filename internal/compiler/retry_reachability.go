@@ -15,9 +15,10 @@ import (
 )
 
 type routeEdge struct {
-	from string
-	key  string
-	to   string
+	from  string
+	stage string
+	key   string
+	to    string
 }
 
 func procedureRouteEdges(procedure *V1Alpha4ProcedureAST) []routeEdge {
@@ -30,21 +31,25 @@ func procedureRouteEdges(procedure *V1Alpha4ProcedureAST) []routeEdge {
 		if node == nil {
 			continue
 		}
-		stages := make([]*yaml.Node, 0, 4)
+		type stageRoutes struct {
+			name   string
+			routes *yaml.Node
+		}
+		stages := make([]stageRoutes, 0, 4)
 		if node.Precondition != nil {
-			stages = append(stages, node.Precondition.Routes)
+			stages = append(stages, stageRoutes{"precondition", node.Precondition.Routes})
 		}
 		if node.Operation != nil {
-			stages = append(stages, node.Operation.Routes)
+			stages = append(stages, stageRoutes{"operation", node.Operation.Routes})
 		}
 		if node.Observation != nil {
-			stages = append(stages, node.Observation.Routes)
+			stages = append(stages, stageRoutes{"observation", node.Observation.Routes})
 		}
 		if node.Postcondition != nil {
-			stages = append(stages, node.Postcondition.Routes)
+			stages = append(stages, stageRoutes{"postcondition", node.Postcondition.Routes})
 		}
-		for _, routes := range stages {
-			routes = unalias(routes)
+		for _, stage := range stages {
+			routes := unalias(stage.routes)
 			if routes == nil || routes.Kind != yaml.MappingNode {
 				continue
 			}
@@ -54,7 +59,7 @@ func procedureRouteEdges(procedure *V1Alpha4ProcedureAST) []routeEdge {
 				if key == "" || target == "" {
 					continue
 				}
-				edges = append(edges, routeEdge{from: nodeID, key: key, to: target})
+				edges = append(edges, routeEdge{from: nodeID, stage: stage.name, key: key, to: target})
 			}
 		}
 	}

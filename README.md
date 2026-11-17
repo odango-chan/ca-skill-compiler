@@ -65,7 +65,7 @@ dependency is reported, never inferred. Full reference: [CLI v1alpha4](docs/cli-
 | Document | Purpose |
 |---|---|
 | [Compiler Contract v1alpha4](docs/design/compiler-contract-v1alpha4.md) | Scope, semantics and acceptance boundary |
-| [Compiler Pipeline v1alpha4](docs/design/compiler-pipeline-v1alpha4.md) | Contract pipeline stage â†’ implementation file â†’ test map |
+| [Compiler Pipeline v1alpha4](docs/design/compiler-pipeline-v1alpha4.md) | Contract pipeline stage â†?implementation file â†?test map |
 | [BuildRequest v1alpha4](docs/design/build-request-v1alpha4.md) | Source, dependency snapshots and trusted build context |
 | [Compiler Output API v1alpha4](docs/design/compiler-output-contract-v1alpha4.md) | Check, BuildResult, DependencyInspection and deterministic ordering |
 | [Owner Contract Linking v1alpha4](docs/design/owner-contracts-v1alpha4.md) | ToolCatalog, CapabilityContracts, Evidence and trusted Owner attribution |
@@ -107,20 +107,20 @@ historical completion claims.
 
 | WP | Scope | Status |
 |---|---|---|
-| WP0 | OSS selection / frozen contracts | DONE â€” goccy/go-yaml v1.19.2, San v6.0.3, cel-go v0.33.2, gositter v0.2.0, gowebpki/jcs v1.0.2 integrated |
+| WP0 | OSS selection / frozen contracts | DONE â€?goccy/go-yaml v1.19.2, San v6.0.3, cel-go v0.33.2, gositter v0.2.0, gowebpki/jcs v1.0.2 integrated |
 | WP1 | BuildRequest, digest, limits, Native/WASM transport | PASS (local) |
 | WP2 | Single normalized YAML AST with source positions | PASS (local) |
 | WP3Aâ€“WP3D | Dependency identity, Owner/ToolCatalog, Capability, integrated linking/inspection | PASS (local, fixtures) |
 | WP4Aâ€“WP4D | G.4 Schema allowlist, registry/closure, F.5 assignability, CEL subset | PASS (local, fixtures) |
-| WP5 | Procedure graph, stages, routes, dominance, retry/reconcile | PARTIAL â€” implemented slices pass; exact auto-advance dominance and final-Postcondition precision remain |
-| WP6 | SourcePath grammar, typing, dominance/availability | PARTIAL â€” implemented slices pass; identity-input provenance is fail-closed (unfrozen publication) |
-| WP7 | Evidence binding, independence, static satisfiability | PARTIAL â€” static linking/checks pass; Descriptor content/Producer/Scope/Correlation/Freshness fail closed (unfrozen format) |
-| WP8 | Mutation/Reconcile/retry contracts | PARTIAL â€” same-snapshot semantics pass; cross-snapshot association and Runtime retry admission fail closed / outside Compiler |
-| WP9 | Python CST + Script ABI | PARTIAL (near complete) â€” CST, typed input/strict TypedDict output, call-site keys, F.5 typing, key access/guards, PredicateInput projection; Evidence projection blocked |
-| WP10 | Deterministic Artifact (JCS tree/manifest) | PASS (local) â€” successful builds emit byte-deterministic, integrity-verified artifacts |
-| WP11 | Native/WASM/Chromium parity | PASS (local, real headless Chromium) â€” check/build/inspect and artifact bytes identical |
-| WP12 | Skill Studio read-only integration | PASS (local, real Chromium) â€” unified Worker result, diagnostics with positions, read-only artifact view; Studio product editor is outside this repo |
-| WP13 | Real 5GC/MAS qualification | NOT_QUALIFIED (external) â€” no real v1alpha4 publications, MAS not runnable |
+| WP5 | Procedure graph, stages, routes, dominance, retry/reconcile | PARTIAL â€?implemented slices pass; exact auto-advance dominance and final-Postcondition precision remain |
+| WP6 | SourcePath grammar, typing, dominance/availability | PARTIAL â€?implemented slices pass; identity-input provenance is fail-closed (unfrozen publication) |
+| WP7 | Evidence binding, independence, static satisfiability | PARTIAL â€?static linking/checks pass; Descriptor content/Producer/Scope/Correlation/Freshness fail closed (unfrozen format) |
+| WP8 | Mutation/Reconcile/retry contracts | PARTIAL â€?same-snapshot semantics pass; cross-snapshot association and Runtime retry admission fail closed / outside Compiler |
+| WP9 | Python CST + Script ABI | PARTIAL (near complete) â€?CST, typed input/strict TypedDict output, call-site keys, F.5 typing, key access/guards, PredicateInput projection; Evidence projection blocked |
+| WP10 | Deterministic Artifact (JCS tree/manifest) | PASS (local) â€?successful builds emit byte-deterministic, integrity-verified artifacts |
+| WP11 | Native/WASM/Chromium parity | PASS (local, real headless Chromium) â€?check/build/inspect and artifact bytes identical |
+| WP12 | Skill Studio read-only integration | PASS (local, real Chromium) â€?unified Worker result, diagnostics with positions, read-only artifact view; Studio product editor is outside this repo |
+| WP13 | Real 5GC/MAS qualification | NOT_QUALIFIED (external) â€?no real v1alpha4 publications, MAS not runnable |
 
 **Compiler implementation:** complete for all frozen semantics that do not require an
 unfrozen external publication, and locally verified. **Not claimed:** product conformance
@@ -155,7 +155,7 @@ successful BuildResult is a static compilation result, not an authorization toke
 
 ## Development workflow
 
-The v1alpha4 implementation proceeds in stacked Draft PRs (#11â€“#24); no PR is merged and
+The v1alpha4 implementation proceeds in stacked Draft PRs (#11â€?24); no PR is merged and
 no branch is force-pushed. PR #24 is the current continuation branch based on the WP6
 branch. See [Acceptance Status Â§Git](docs/COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) for the
 current branch/PR state; do not treat historical status notes as present evidence.

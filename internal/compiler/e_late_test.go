@@ -72,6 +72,31 @@ func TestE52EntryPreconditionReferenceVariants(t *testing.T) {
 	}
 }
 
+// E52 sixth variant: the referenced Precondition stage is syntactically valid but
+// not reachable from start. ENTRY_PRECONDITION_REF_INVALID takes precedence over
+// ENTRY_PRECONDITION_BYPASSED (spec H.0 / 12.9).
+func TestE52UnreachableGlobalPreconditionReference(t *testing.T) {
+	fixture := wp3aBaseFixture(t)
+	fixture.replaceFile(wp3aContractPath, "goal: ue.registration_verified", "goal: ue.registration_verified\nprecondition: unused.precondition")
+	fixture.replaceFile(wp3aProcedurePath, "  inspect-registration:", `  unused:
+    precondition:
+      predicates:
+        - predicate: example.ue.registered
+          arguments: [context.ueRef]
+      routes:
+        PASS: SUCCEEDED
+        FAIL: FAILED
+        UNKNOWN: UNRESOLVED
+  inspect-registration:`)
+	got := Check(fixture.request(t))
+	if !v4HasCode(got, "ENTRY_PRECONDITION_REF_INVALID") {
+		t.Fatalf("unreachable global precondition not reported as an invalid reference: %+v", got)
+	}
+	if v4HasCode(got, "ENTRY_PRECONDITION_BYPASSED") {
+		t.Fatalf("unreachable global precondition also reported as a path bypass: %+v", got)
+	}
+}
+
 func TestE60ReconcileBindMustBeOriginalInvocation(t *testing.T) {
 	req, _, _, _ := reconcileFixture(t, replaceAll(reconcileCatalog, "          bind: originalInvocationId", "          bind: otherInvocationId"))
 	if got := Check(req); !v4HasCode(got, "RECONCILE_CONTRACT_INVALID") {

@@ -2,10 +2,9 @@
   "schemaVersion": "connectionagent.io/compiler-remaining-work/v1alpha4",
   "status": "IMPLEMENTATION_COMPLETE_LOCALLY_VERIFIED_NOT_QUALIFIED",
   "lastVerifiedCommit": "ca651c5",
-  "implementableInRepo": [
-    { "wp": "WP5", "item": "exact auto-advance stage dominance (replace visited-gate approximation)", "evidence": "unit fixtures", "classification": "implementation-depth, not external; current slices pass" },
-    { "wp": "WP5", "item": "final Postcondition precision across multi-node graphs", "evidence": "E41/E42 fixtures", "classification": "implementation-depth, not external" },
-    { "wp": "WP8", "item": "recoverable-output assignability to the original contract and deeper resource-responsibility paths", "evidence": "fixtures", "classification": "implementation-depth; cross-snapshot association remains external" }
+  "implementableInRepo": [],
+  "recordedRefinements": [
+    { "wp": "WP8", "item": "Runtime merge-time recoverable-output value verification against the original operation output", "reason": "Compiler statically verifies the recoverable Schema/path pair, resolvability, same-owner READ and COMMITTED-only availability; the actual recovered value is produced and merged by the Host/Runtime, so its merge-time assignability is not a Compiler static obligation." }
   ],
   "blockedOnExternalInputOrDecision": [
     { "wp": "WP7", "item": "Evidence Descriptor physical format and trusted relations bundle", "reason": "no versioned Owner descriptor format frozen; must not invent" },
@@ -17,6 +16,7 @@
     { "wp": "infra", "item": "GitHub Actions acceptance", "reason": "CI unavailable (billing); local commands are the acceptance evidence and CI is never reported as PASS" }
   ],
   "completedSinceLastInventory": {
+    "WP5": "Edge-exact global-Precondition PASS dominance (gate FAIL/UNKNOWN routes do not count as PASS, gate-Node arrival is not proof) and reachability-exact final-Postcondition classification; E52 unreachable-reference priority and E64 reachable local-PASS graph shape covered.",
     "WP9": "Python CST, Script ABI, typed input, strict TypedDict output, NotRequired guard proof, call-site keys, F.5 typing, restricted key access, PredicateInput projection (Evidence projection remains external).",
     "WP10": "Deterministic JCS artifact tree/manifest, generated Schema identities, integrity verification, successful Build path with byte-identical repeated builds.",
     "WP11": "Real headless Chromium Worker parity: check/build/inspect projections and artifact bytes identical.",

@@ -341,7 +341,6 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 		add(file, child(root, "start"), "PROCEDURE_START_MISSING", "start must resolve to a declared Node")
 	}
 	adjacency := map[string][]string{}
-	legalSuccess, anySuccess := false, false
 	for i := 0; i+1 < len(nodes.Content); i += 2 {
 		id, n := nodes.Content[i].Value, nodes.Content[i+1]
 		if !v4NodeID.MatchString(id) || v4Terminals[id] || id == "context" {
@@ -434,12 +433,6 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 				} else if ids[target] {
 					adjacency[id] = append(adjacency[id], target)
 				}
-				if target == "SUCCEEDED" {
-					anySuccess = true
-					if stage == "postcondition" && outcome == "PASS" {
-						legalSuccess = true
-					}
-				}
 				if outcome == "OUTCOME_UNKNOWN" && target != "UNRESOLVED" && target != "SAFE_STOPPED" {
 					add(file, child(routes, outcome), "ROUTE_OUTCOME_UNKNOWN", "OUTCOME_UNKNOWN may only safely stop")
 				}
@@ -448,10 +441,43 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 			// Tool/Schema publication. No guessed Owner result classification.
 		}
 	}
+	// Final-Postcondition precision: only a reachable final Postcondition PASS
+	// edge proves the Goal (E42/E117/E120). An unreachable legal-looking edge is
+	// reported as UNREACHABLE_NODE by the graph slice and must not mask a missing
+	// reachable goal proof or legitimize a bypass.
+	reachable := map[string]bool{}
+	if _, declared := ids[start]; declared {
+		queue := []string{start}
+		for len(queue) > 0 {
+			current := queue[0]
+			queue = queue[1:]
+			if reachable[current] {
+				continue
+			}
+			reachable[current] = true
+			queue = append(queue, adjacency[current]...)
+		}
+	}
+	anySuccess, legalSuccess := false, false
+	for id := range reachable {
+		n := child(nodes, id)
+		for _, stage := range []string{"precondition", "operation", "observation", "postcondition"} {
+			routes := child(child(n, stage), "routes")
+			for _, outcome := range mapKeys(routes) {
+				if scalar(child(routes, outcome)) != "SUCCEEDED" {
+					continue
+				}
+				anySuccess = true
+				if stage == "postcondition" && outcome == "PASS" {
+					legalSuccess = true
+				}
+			}
+		}
+	}
 	if anySuccess && !legalSuccess {
 		add(file, root, "FINAL_POSTCONDITION_MISSING", "Only a final Postcondition PASS may request SUCCEEDED")
 	} else if legalSuccess {
-		for _, id := range mapKeys(nodes) {
+		for id := range reachable {
 			n := child(nodes, id)
 			for _, stage := range []string{"precondition", "operation", "observation", "postcondition"} {
 				for _, outcome := range mapKeys(child(child(n, stage), "routes")) {
@@ -494,6 +520,11 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 			parts := strings.Split(gate, ".")
 			if len(parts) != 2 || !ids[parts[0]] || child(child(nodes, parts[0]), "precondition") == nil {
 				add(file, contract.Precondition, "ENTRY_PRECONDITION_REF_INVALID", "Contract precondition must resolve to a declared Precondition stage")
+			} else if ids[start] && !reachable[parts[0]] {
+				// E52 sixth variant: a syntactically valid Precondition stage that is
+				// not in the start-reachable DAG is an invalid global reference and
+				// takes precedence over the entry-bypass diagnosis.
+				add(file, contract.Precondition, "ENTRY_PRECONDITION_REF_INVALID", "Contract precondition must resolve to a start-reachable Precondition stage")
 			}
 		}
 	}

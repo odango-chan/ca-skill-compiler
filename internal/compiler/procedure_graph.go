@@ -115,8 +115,13 @@ func validateV1Alpha4ProcedureGraph(contract *V1Alpha4ContractAST, procedure *V1
 	if gate == "" || graph.nodeByID[gate] == nil || graph.nodeByID[gate].Precondition == nil {
 		return diagnostics
 	}
+	// An unreachable global Precondition reference is ENTRY_PRECONDITION_REF_INVALID
+	// (classic E52 sixth variant), not a per-path bypass.
+	if !reachable[gate] {
+		return diagnostics
+	}
 	mutations := mutationToolIdentities(ownerLinking)
-	if procedureHasBypass(graph, start, gate, reachable, mutations) {
+	if procedureHasBypass(graph, procedure, start, gate, mutations) {
 		node := contract.Precondition
 		line, column := 0, 0
 		if node != nil {
@@ -132,15 +137,23 @@ func validateV1Alpha4ProcedureGraph(contract *V1Alpha4ContractAST, procedure *V1
 	return diagnostics
 }
 
-// procedureHasBypass proves whether a path from start reaches a SUCCEEDED route
-// target or a trusted MUTATION callable without visiting the gate node.
-func procedureHasBypass(graph procedureGraph, start, gate string, reachable map[string]bool, mutations map[string]bool) bool {
+// procedureHasBypass proves whether a reachable path reaches a SUCCEEDED route
+// target or a trusted MUTATION callable without taking the global Precondition
+// gate's PASS edge. It is edge-exact: arriving at the gate Node is not proof;
+// only a PASS route from its Precondition stage (or a later stage reached by the
+// implied auto-advance, which can only execute after PASS) carries the proof.
+// A FAIL/UNKNOWN route out of the gate keeps the path unproven.
+func procedureHasBypass(graph procedureGraph, procedure *V1Alpha4ProcedureAST, start, gate string, mutations map[string]bool) bool {
+	edgesFrom := map[string][]routeEdge{}
+	for _, edge := range procedureRouteEdges(procedure) {
+		edgesFrom[edge.from] = append(edgesFrom[edge.from], edge)
+	}
 	type state struct {
 		node   string
 		passed bool
 	}
 	visited := map[state]bool{}
-	queue := []state{{node: start, passed: start == gate}}
+	queue := []state{{node: start}}
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
@@ -152,50 +165,50 @@ func procedureHasBypass(graph procedureGraph, start, gate string, reachable map[
 		if node == nil {
 			continue
 		}
-		if !current.passed {
+		edges := edgesFrom[current.node]
+		if current.node == gate {
+			// The Precondition stage executes on arrival. Only the PASS route (or
+			// a route out of a post-auto-advance stage) establishes the proof.
+			if !current.passed {
+				for _, edge := range edges {
+					if edge.to == "SUCCEEDED" && !edgePassesGate(edge) {
+						return true
+					}
+				}
+			}
+		} else if !current.passed {
 			if node.Operation != nil {
 				identity := scalar(node.Operation.Tool)
 				if mutations[identity] {
 					return true
 				}
 			}
-			if routesToSucceeded(node) {
-				return true
+			for _, edge := range edges {
+				if edge.to == "SUCCEEDED" {
+					return true
+				}
 			}
 		}
-		nextPassed := current.passed || current.node == gate
-		for _, next := range graph.edges[current.node] {
-			queue = append(queue, state{node: next, passed: nextPassed})
+		for _, edge := range edges {
+			if edge.to == "" || v4Terminals[edge.to] || graph.nodeByID[edge.to] == nil {
+				continue
+			}
+			nextPassed := current.passed
+			if !nextPassed && current.node == gate {
+				nextPassed = edgePassesGate(edge)
+			}
+			queue = append(queue, state{node: edge.to, passed: nextPassed})
 		}
 	}
 	return false
 }
 
-func routesToSucceeded(node *V1Alpha4ProcedureNodeAST) bool {
-	if node == nil {
-		return false
-	}
-	stages := []*yaml.Node{}
-	if node.Precondition != nil {
-		stages = append(stages, node.Precondition.Routes)
-	}
-	if node.Operation != nil {
-		stages = append(stages, node.Operation.Routes)
-	}
-	if node.Observation != nil {
-		stages = append(stages, node.Observation.Routes)
-	}
-	if node.Postcondition != nil {
-		stages = append(stages, node.Postcondition.Routes)
-	}
-	for _, routes := range stages {
-		for _, outcome := range mapKeys(routes) {
-			if scalar(child(routes, outcome)) == "SUCCEEDED" {
-				return true
-			}
-		}
-	}
-	return false
+// edgePassesGate reports whether taking this route Edge proves the global
+// Precondition aggregate PASS. Only the Precondition PASS route does; routes
+// from later stages of the same Node are reachable only after the implied PASS
+// auto-advance, so they also carry the proof.
+func edgePassesGate(edge routeEdge) bool {
+	return edge.stage != "precondition" || edge.key == "PASS"
 }
 
 func mutationToolIdentities(ownerLinking ownerLinkingResult) map[string]bool {

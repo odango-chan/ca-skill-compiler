@@ -116,7 +116,7 @@
     {
       "id": "E18",
       "status": "PARTIAL",
-      "evidence": "COMMITTED route to SUCCEEDED with a legal final Postcondition edge -> SUCCESS_BYPASSES_FINAL_POSTCONDITION (e_early_test)",
+      "evidence": "COMMITTED route to SUCCEEDED with a reachable legal final Postcondition edge -> SUCCESS_BYPASSES_FINAL_POSTCONDITION (e_early_test).",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
@@ -260,7 +260,7 @@
     {
       "id": "E42",
       "status": "PARTIAL",
-      "evidence": "Precondition PASS to SUCCEEDED without final Postcondition -> FINAL_POSTCONDITION_MISSING; final Postcondition PASS accepted (e_mid_test)",
+      "evidence": "Precondition PASS to SUCCEEDED without a reachable final Postcondition -> FINAL_POSTCONDITION_MISSING; the legal final Postcondition PASS variant is accepted (e_mid_test TestE42FinalSuccessMustComeFromLastPostcondition).",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
@@ -320,7 +320,7 @@
     {
       "id": "E52",
       "status": "PARTIAL",
-      "evidence": "entry Precondition reference variants (Postcondition ref, missing node, list, empty) -> ENTRY_PRECONDITION_REF_INVALID (e_late_test)",
+      "evidence": "entry Precondition reference variants (Postcondition ref, missing Node, list, empty) plus the sixth variant where a syntactically valid Precondition stage is not start-reachable -> ENTRY_PRECONDITION_REF_INVALID, with ENTRY_PRECONDITION_BYPASSED suppressed by priority (e_late_test TestE52EntryPreconditionReferenceVariants, TestE52UnreachableGlobalPreconditionReference).",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
@@ -392,7 +392,7 @@
     {
       "id": "E64",
       "status": "PARTIAL",
-      "evidence": "The same frozen rule as E18: when a legal final Postcondition success edge exists and another path requests success, SUCCESS_BYPASSES_FINAL_POSTCONDITION is reported (e_early_test.go TestE18CommittedRouteCannotPublishSucceeded). E64's separate local-Postcondition graph shape is checked by the shared graph rule but is not separately fixtured.",
+      "evidence": "Reachable legal final Postcondition PASS->SUCCEEDED edge plus another reachable branch whose local Postcondition PASS is followed by a Mutation requesting SUCCEEDED -> SUCCESS_BYPASSES_FINAL_POSTCONDITION (not FINAL_POSTCONDITION_MISSING) (e64_test.go TestE64LocalPostconditionPassThenMutationCannotSucceed).",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     },
     {
@@ -728,7 +728,7 @@
     {
       "id": "E120",
       "status": "PARTIAL",
-      "evidence": "static subset: ENTRY_PRECONDITION_BYPASSED when a SUCCEEDED path skips the singular global gate; gated all-paths variant produces no false bypass (e120_test); Runtime join-AND execution remains Host-side",
+      "evidence": "Edge-exact global Precondition dominance: a reachable path that skips the gate -> ENTRY_PRECONDITION_BYPASSED; the gate FAIL branch cannot prove the Goal or dispatch a business Mutation; the fully gated / all-paths variant produces no false bypass (e120_test TestE120GlobalPreconditionDominance, TestE120GateFailRouteDoesNotProveGoal, TestE120GateFailRouteCannotDispatchMutation); Runtime join-AND execution remains Host-side.",
       "disposition": "PARTIAL_STATIC_EVIDENCE"
     }
   ],
