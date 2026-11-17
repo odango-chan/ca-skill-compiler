@@ -1,3 +1,5 @@
+[简体中文](README.zh-CN.md)
+
 # Documentation
 
 This directory contains the technical reference and maintenance records for CA Skill Compiler.
