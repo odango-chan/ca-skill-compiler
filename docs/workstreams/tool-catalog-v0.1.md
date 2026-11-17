@@ -2,6 +2,9 @@
 
 Updated: 2026-11-12. This report covers the Compiler's imported ToolCatalog boundary. The Compiler receives catalog bytes in `BuildRequest`; it does not load this fixture by default, read registrations, invoke adapters, or execute Tools.
 
+> **已归档 / ARCHIVED — PRE-v1alpha4.** 本文记录早期 v0/v0.1 原型、迁移检查或设计阶段的验收结果。文中的语法、分支/PR 指令、样例诊断数量和验收结论均属于历史快照，不定义 CA-SL v1alpha4 或 Compiler v1.0.0 的当前要求。当前状态请以[工作流索引](README.md)和[最终验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)为准。
+
+
 ## Authoritative source and pinned fixture
 
 The formal Agent-facing contract source is `odango-chan/ca-agent-demo` at `main` commit `4395982fa6efb97714b97901603b2dfb7018c4d0`, file `tools/contracts/createdsession.tool.yaml`.
