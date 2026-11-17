@@ -27,7 +27,7 @@
 | Wait 规范性修订 | ca-skills #61 | Draft，版本身份未分配 | 语法、诊断、SourcePath、图语义尚未冻结 |
 | Integration Ingress Operation | ca-skills #62 | Draft | IngressCatalog、Schema Closure Digest、归一化与 response mapping 尚未冻结 |
 | Generic Host / Runtime continuation | ca-agent-demo #210 | Draft，设计文档 | Compiler 只消费语言和 Ingress 契约，不实现 Host/Runtime |
-| 5GC SBI continuation profile | ca-agent-demo #209 | Draft，设计文档 | 3GPP 示例，不是 Compiler 的 5GC 专用语义 |
+| 5GC SBI continuation profile | ca-agent-demo #213（替代已关闭的 #209） | Draft，设计文档 | 3GPP 示例，不是 Compiler 的 5GC 专用语义 |
 
 **重要边界：**
 
@@ -51,6 +51,47 @@ v1alpha4 的机器契约使用封闭字段/枚举，不能在原版本上静默�
 
 BuildRequest、DependencyInspection、Artifact Manifest 的版本号彼此独立于 CA-SL 语言版本和 Compiler 产品版本。**不得假定它们必须同号，也不得在版本身份未裁决前写入猜测值。**
 
+### 3.1 API Dispatch 与 v1alpha4 隔离
+
+当前入口是版本专用入口，不是通用 Target Router：
+- `DecodeBuildRequestJSON` 直接解码 v1alpha4 Go 类型；
+- `validateBuildRequest` 强制要求 v1alpha4 BuildRequest API 和 `connectionagent.io/v1alpha4`；
+- `Check`、`Build`、`InspectDependencies` 直接进入 v1alpha4 路径；
+- v1alpha4 DependencyInspection 和 Artifact Manifest 的字段集合、导出类型枚举均为封闭定义。
+
+下一版必须先做 **API 版本 Dispatch，再做语言 Target Dispatch**：
+
+1. 使用有界 Envelope Decoder，仅读取顶层 `apiVersion`。
+2. 按精确 API 版本分派到唯一的严格版本专用 BuildRequest Decoder。未知或不支持的 API 版本必须 fail-closed，不得 fallback。
+3. 校验该 API 版本自己的 Schema 和输入限制。
+4. 再按精确 `languageTarget` 分派到版本专用 Parser / Linker。未知语言目标必须 fail-closed，不得解释为 v1alpha4。
+5. Check / Build / InspectDependencies 和结果验证必须使用同一组选定的 API / Target Profile。
+
+不得先解码成 v1alpha4 结构体再容忍未来字段；不得扩大 v1alpha4 JSON Schema、Go 类型、诊断索引、Artifact Manifest、CLI 行为或 v1.0.0 发布字节。
+
+| 接口 | 下一版必须作出的决定 |
+|---|---|
+| BuildRequest | 新的严格 API Schema / Go 类型，绑定精确语言目标，并在受信导出 Owner 绑定中支持独立的 `ingressOperation` |
+| DependencyInspection | 新的严格输出契约，增加类型化 `ingressOperations[]`；Ingress 不得混入 `callables[]` |
+| Artifact Manifest | 新 Manifest 记录精确语言目标及 dependency closure 中的 `ingressOperation`；不嵌入完整外部 IngressCatalog |
+| BuildResult | 仅当输出 Envelope 形状和失败语义不变时保留；否则单独版本化 |
+| CLI 工程输入 | 明确扩展本地 `trusted.json` 表达新导出类型；它不是 BuildRequest Wire Contract |
+| WASM / Studio Adapter | 使用同一套版本化 API 和 Core Dispatch；不得另写 Parser / Linker |
+
+IngressCatalog 自身的 `apiVersion`、CA-SL `languageTarget`、BuildRequest、DependencyInspection、Artifact Manifest 和 Compiler 产品版本彼此独立。
+
+### 3.2 v1.0.0 继承的实现限制
+
+v1.0.0 发布物保持不可变；其最终验收记录明确标记了若干尚未完成的正向路径：
+- WP6：Identity-input provenance 需要后续受信发布契约；
+- WP7：当 Owner 尚未发布物理 Descriptor 格式时，Evidence Descriptor 内容、Producer、Scope、Correlation 和 Freshness Linking 仍 fail-closed；
+- WP8：跨快照 Reconcile 关联和完整 Retry Admission 仍 fail-closed / 属于 Compiler 之外的部分；
+- WP9：Script ABI 中的 Evidence Projection 仍受阻。
+
+当前 Artifact Pipeline 在选中的 Skill 使用 Predicate Evidence、MUTATION Operation 或 `retryOf`，而完整正向路径尚不可用时，会有意拒绝生成成功 Artifact。静态诊断和子检查仍会执行；这不等于这些功能已经完整编译。
+
+这些限制不阻止独立开发 Node-entry Wait / Ingress Compiler 能力，但会影响真实 PDU/MAS Skill 的 Artifact 验收。原样保留 v1alpha4 回归测试；对已有冻结契约的 Compiler 静态规则使用合成受信 Fixture；不得伪造真实 Owner / Deployment 发布物来让正向 Build 通过；所需静态正向路径完成、外部信任输入到位前，不得把完整 PDU/MAS Artifact Build 标记为 PASS。
+
 ## 4. 目标编译架构
 
 保留现有流水线：
@@ -69,12 +110,62 @@ BuildRequest、DependencyInspection、Artifact Manifest 的版本号彼此独立
 8. **Response Boundary Linker**：由 `wait.response.after` 和 Ingress 声明的 Producer stage type（operation / observation）推导唯一 Producer SourcePath；验证其输出 Schema、responseResultSchema 和 JSON/multipart mapping。
 9. **Artifact Assembly**：写入精确的新 languageTarget、dependency closure 和新 Artifact manifest；不把外部 IngressCatalog 内容伪装成 Skill 源文件。
 
+### 4.1 Compiler 静态范围与跨组件符合性
+
+EW / IN 矩阵是联合符合性清单。Compiler 只执行静态可判定义务，不模拟 Host、Runtime 或 Integration 行为。
+
+**#61 中归属 Compiler 的 Wait 案例：**
+- EW-012–EW-016：Wait Output 路径可用性、业务阶段非空、禁止 TIMEOUT 指向 SUCCEEDED、精确 Ingress Selector 解析、派发前 Correlation Binding。
+- EW-018–EW-019：所有入边必须解析到同一受信 Ingress 契约；Response Boundary 不得被绕过。
+- EW-021–EW-022：Body-bearing 响应的类型化 Producer 映射，以及允许不带 Producer 的固定 Bodyless 响应。
+- EW-027、EW-029–EW-030：精确 Duration 语法；禁止非法 Response Result Source；Response Boundary Node 的身份和可达性。
+- EW-031：静态保持全局 Precondition 支配关系；Wait 接收事件不产生 Goal 证明。
+- EW-033–EW-036：仅允许一个 TIMEOUT 路由；禁止作者声明 EVENT_RECEIVED 路由；Selector 字段形状；Timeout 标量类型。
+
+**#62 中归属 Compiler 的 Ingress 案例：**
+- IN-001–IN-007：包级依赖要求、精确导出解析 / 歧义、受信 Owner / Export 身份、重复 ID、固定 OpenAPI Artifact Digest，以及 Service-Operation 与 OpenAPI operationId 的区分。
+- IN-013–IN-015：Normalized Schema 支持、Normalization Digest 和必需 Wire 字段覆盖。
+- IN-018–IN-021：精确 ToolCatalog Operation Trigger 身份、派发前参数绑定、Start Context 绑定及所有入边覆盖。
+- IN-023：静态可判定的旧消息安全证明失败；依赖部署事实的 Admission 检查必须单独标记。
+- IN-028–IN-032：Response Disposition 数量规则、Body-bearing Producer 要求、精确 Response Boundary Stage、Schema 可赋值性和必需响应字段覆盖。
+- IN-039–IN-040：Accepted Media Type / Source Schema 一致性、重复 Disposition ID / Status。
+- IN-042、IN-044–IN-047：静态可判定的 Binary Content 保留期限约束、固定 Multipart Response 完整性、3GPP 拒绝响应映射完整性和 Discriminator Retention 时间计算。
+
+以下仍属于 Integration / Host / Runtime / Deployment 符合性义务，不是 Compiler 测试：EW-001–EW-011、EW-017、EW-020、EW-023–EW-026、EW-028、EW-032；以及 IN-008–IN-012、IN-016–IN-017、IN-022、IN-024–IN-027、IN-033–IN-038、IN-041、IN-043、IN-048–IN-051、IN-053–IN-054。IN-023、IN-039、IN-042、IN-044–IN-047 等共享案例可同时有 Compiler 静态 Fixture 和独立 Admission / Integration Fixture；不得把其中一个冒充另一个。
+
+### 4.2 诊断归属与优先级
+
+代码实施前，语言 Owner 与导出契约 Owner 必须发布无冲突的诊断映射：
+- `WAIT_*` 表示 Skill 作者声明的 Wait、Wait 图、路径可用性、Trigger-to-Wait 绑定或 Skill Response Boundary 问题。
+- `INGRESS_*` 表示 IngressCatalog 导出自身结构不合法、不受信，或其 Protocol、Normalization、Correlation、Trigger 声明、Response Mapping 不合法。
+- #61 明确要求复用现有诊断的场景，必须复用冻结的 `SOURCE_PATH_*`、`CONTROL_FLOW_*`、`INPUT_TYPE_MISMATCH` 和 `DEPENDENCY_*`。
+- Wait Selector 找不到 / 匹配多个 Ingress Export，分别使用 `WAIT_INGRESS_EXPORT_NOT_FOUND` / `WAIT_INGRESS_EXPORT_AMBIGUOUS`；Catalog 格式错误或 Export 重复属于 Ingress Export 错误。
+- 触发 Operation 不在受信快照中，属于 Ingress Trigger Export 错误；Skill 路径无法在所有入边上派生 Arm Input，属于 Wait Correlation Binding 错误。
+- Ingress 自身 Response Mapping 错误，与 Skill 缺失或无法到达 `wait.response.after` Producer 是不同问题。
+- 每个新 Compiler 诊断必须有唯一 `(Code, Phase)`、Severity、优先级和源码位置规则。#62 当前候选 `INGRESS_*` 列表尚未冻结全部属性；Compiler 不得自行发明或静默别名化诊断身份。
+
+### 4.3 WP1 Schema Closure Digest v1 实施边界
+
+当前 #62 提案已经超出普通递归 `$ref` 遍历。Compiler 必须整体实现：
+
+1. **受信 Artifact 绑定：** 将每个不透明 `artifactRef` 与规范化快照相对路径、Canonical Document URI、源 Dialect、解析后的 Document 及完整原始字节一一绑定；从不可变快照真实字节重新计算 `artifactDigest`，不得信任 IngressCatalog 声明值。
+2. **Canonical URI 规则：** 校验绝对、分层的 Snapshot Base URI；从百分号编码后的规范化路径推导 Document URI；规范化 Scheme / Host / 默认端口、Dot Segment 和 Percent Escape；拒绝 User-info、Query、Fragment、空白、反斜杠、非法 Escape 和歧义映射。URI 查询只能查内存快照，不得访问网络。
+3. **Dialect-aware Schema 发现：** OpenAPI 3.0 的根节点只能来自 OpenAPI Document 中的 Schema Object 位置，并遵循 OpenAPI 3.0 Schema 规则；JSON Schema Draft 2020-12 必须声明 Dialect 并使用其 Schema-valued Keywords。不得混用两种 Dialect。
+4. **嵌套资源身份：** OpenAPI 3.0 Schema Object 不得用 `$id` 建立 Base URI。JSON Schema 2020-12 必须按继承 Base 解析嵌套 `$id`，并将唯一资源 URI Alias 注册到精确的 Artifact-relative Schema Pointer。
+5. **引用解析：** 每个 `$ref` 按所在 Schema 的 Effective Base URI 解析；只允许同一受信快照中的 Canonical Document URI 或嵌套 `$id` Alias。Fragment 按严格 UTF-8 只解码一次，校验 RFC 6901，并将嵌套资源相对 Fragment 转换为精确 Artifact-relative Pointer。
+6. **精确闭包：** 仅遍历对应 Dialect 支持的 Schema-valued 子结构；闭包包含 Root 及其全部且仅有的传递引用 Schema 节点；节点身份为精确 `(artifactRef, pointer)`；循环按身份只访问一次；缺失 / 多余节点、Boolean Schema、非 Schema Pointer、不支持的 Anchor / Dynamic Reference、非法 ID 和快照越界均 fail-closed。
+7. **Digest：** Manifest 包含每个节点的完整源 Artifact Digest 和精确解析后的 Schema 值；按 UTF-8 `artifactRef`、Pointer 排序；使用 RFC 8785 JCS；对精确 v1 Domain Separator 与 JCS 字节求哈希。
+
+Compiler 向量还必须证明原始字节绑定：即使解析后的 Schema 值不变，只要 Artifact 字节变化，`artifactDigest` 和 Closure Digest 也必须变化；并测试嵌套 `$id` Fragment 解析到非 Root 的 Artifact-relative Pointer。只提供预解析引用边或硬编码 Digest 不足以证明 Resolver 符合性。
+
+该实现必须与冻结的 v1alpha4 Schema Registry 隔离，不得静默改写 v1alpha4 的 Schema 身份和本地引用语义。
+
 ## 5. Work Packages
 
 | WP | 工作 | 主要产物 | 开始条件 |
 |---|---|---|---|
 | WP0 | 语言与 API 冻结盘点 | 完整单文件规范、版本身份、BuildRequest / DependencyInspection / Artifact contract 决策、诊断清单 | #61 / #62 完成独立审查 |
-| WP1 | IngressCatalog admission / linking | export parser、trusted Owner binding、Schema Closure Digest v1、exact reference closure | WP0 |
+| WP1 | IngressCatalog admission / linking | export parser、trusted Owner binding、原始 Artifact Digest 校验、Dialect-aware Schema Closure Digest v1、exact transitive reference closure | WP0 |
 | WP2 | Wait syntax / AST | Node-entry Wait grammar、duration parser、strict unknown-field diagnostics | WP0 |
 | WP3 | Trigger binding | exact Operation identity、armInputSchema binding、start-context binding | WP1 + WP2 |
 | WP4 | wait.output dataflow | normalized Schema resolution、JSON Pointer、assignability、edge/path-sensitive availability | WP1 + WP2 |
@@ -114,9 +205,9 @@ ca-skills #62 的自动化 source-lock fixture 仍固定在 TS 29.502/29.571 V19
 
 ## 9. 开发启动 Gate
 
-**现在可以做：**契约审查、API 版本盘点、Schema Closure Digest 算法审查、诊断/测试矩阵设计、Compiler extension point 设计和 synthetic fixture 规划。
+**现在可以做：**契约复审、API 版本 / Target Dispatch 设计、v1alpha4 兼容性 Harness、Compiler 静态 EW / IN Fixture 清单、内部接口下的 Schema Closure Digest 实现 Spike，以及合成 Snapshot / IngressCatalog Fixture 准备。这些工作不得暴露新公开 Target，也不得改变已发布 v1alpha4 路径。
 
-**正式实现 Gate：**
+**正式实施新 Target 前必须满足：**
 
 1. CA-SL 语言 Owner 分配明确的下一语言版本身份，并发布完整单文件规范；不能仅凭 #61 Draft 推断版本。
 2. #61 的 grammar、Wait output、graph、response boundary 和诊断条款冻结。
