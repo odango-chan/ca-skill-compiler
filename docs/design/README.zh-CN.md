@@ -16,6 +16,10 @@
 
 实现状态和产品符合性以[最终验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)及[已知限制](../known-limitations-v1alpha4.md)为准。`LOCAL_ACCEPTANCE_PASS` 表示记录中的本地验证命令已执行通过，不代表所有 E-case 均达到完整案例 PASS，也不代表真实 Owner/Deployment 或 5GC 产品资格已经完成。产品资格仍为 **NOT_QUALIFIED**。
 
+## 领域与流程 Profile
+
+- [5GC SMF Procedure Profile](../profiles/5gc-smf-procedure-profile.md) — 从 SMF 视角约束 3GPP → Tool → Skill 映射、Node/Observation 边界、v1alpha4 异步语义和 PDU Session 参考流程。
+
 ## 当前 v1alpha4 契约
 
 - [Compiler Contract](compiler-contract-v1alpha4.md) — Compiler 职责、编译流水线、静态校验义务和信任边界。
