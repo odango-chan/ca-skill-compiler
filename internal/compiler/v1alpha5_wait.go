@@ -9,7 +9,18 @@ import (
 
 const V1Alpha5Target = "connectionagent.io/v1alpha5"
 
-var v1alpha5WaitDurationPattern = regexp.MustCompile(`^P(?:([1-9][0-9]*)D)?(?:T(?:([1-9][0-9]*)H)?(?:([1-9][0-9]*)M)?(?:([1-9][0-9]*)S)?)?$`)
+var v1alpha5WaitDurationPattern = regexp.MustCompile(`^P([1-9][0-9]*D)?(T([1-9][0-9]*H)?([1-9][0-9]*M)?([1-9][0-9]*S)?)?package compiler
+
+import (
+	"regexp"
+	"strings"
+
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
+)
+
+const V1Alpha5Target = "connectionagent.io/v1alpha5"
+
+var v1alpha5WaitDurationPattern = )
 
 type V1Alpha5WaitAST struct {
 	Raw      *yaml.Node
@@ -71,7 +82,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitA
 		"wait": true, "precondition": true, "operation": true,
 		"observation": true, "postcondition": true,
 	}
-	v1alpha5CheckUnknownFields(node, path, allowedNodeFields, add)
+	v1alpha5CheckUnknownFields(node, allowedNodeFields, add)
 
 	if child(node, "precondition") == nil &&
 		child(node, "operation") == nil &&
@@ -85,7 +96,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitA
 		add(waitNode, "WAIT_DECLARATION_INVALID", "Node "+nodeID+" wait must be a mapping")
 		return nil, diagnostics
 	}
-	v1alpha5CheckUnknownFields(waitNode, path, map[string]bool{
+	v1alpha5CheckUnknownFields(waitNode, map[string]bool{
 		"event": true, "timeout": true, "response": true, "routes": true,
 	}, add)
 
@@ -96,7 +107,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitA
 	if event == nil || event.Kind != yaml.MappingNode {
 		add(event, "WAIT_DECLARATION_INVALID", "Node "+nodeID+" wait.event must be a mapping")
 	} else {
-		v1alpha5CheckUnknownFields(event, path, map[string]bool{
+		v1alpha5CheckUnknownFields(event, map[string]bool{
 			"source": true, "service": true, "operation": true,
 		}, add)
 		result.Event = V1Alpha5IngressEventAST{Raw: event}
@@ -132,7 +143,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitA
 		if responseNode.Kind != yaml.MappingNode {
 			add(responseNode, "WAIT_RESPONSE_BOUNDARY_INVALID", "Node "+nodeID+" wait.response must be a mapping")
 		} else {
-			v1alpha5CheckUnknownFields(responseNode, path, map[string]bool{"after": true}, add)
+			v1alpha5CheckUnknownFields(responseNode, map[string]bool{"after": true}, add)
 			result.Response = &V1Alpha5WaitResponseAST{Raw: responseNode}
 			if afterNode := child(responseNode, "after"); afterNode != nil {
 				after, ok := v1alpha5String(afterNode)
@@ -169,7 +180,7 @@ func parseV1Alpha5WaitNode(path, nodeID string, node *yaml.Node) (*V1Alpha5WaitA
 	return result, diagnostics
 }
 
-func v1alpha5CheckUnknownFields(node *yaml.Node, path string, allowed map[string]bool, add func(*yaml.Node, string, string)) {
+func v1alpha5CheckUnknownFields(node *yaml.Node, allowed map[string]bool, add func(*yaml.Node, string, string)) {
 	node = unalias(node)
 	if node == nil || node.Kind != yaml.MappingNode {
 		return
@@ -201,8 +212,8 @@ func validV1Alpha5FixedDuration(value string) bool {
 		return false
 	}
 	hasDay := matches[1] != ""
-	hasTime := matches[2] != "" || matches[3] != "" || matches[4] != ""
-	hasT := strings.Contains(value, "T")
+	hasT := matches[2] != ""
+	hasTime := matches[3] != "" || matches[4] != "" || matches[5] != ""
 	if !hasDay && !hasT {
 		return false
 	}
