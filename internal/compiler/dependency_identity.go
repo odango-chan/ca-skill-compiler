@@ -35,9 +35,11 @@ type declaredDependency struct {
 }
 
 type dependencyReference struct {
-	alias string
-	path  string
-	node  *yaml.Node
+	alias      string
+	exportKind string
+	exportID   string
+	path       string
+	node       *yaml.Node
 }
 
 type dependencyIdentityResult struct {
@@ -153,8 +155,8 @@ func collectDependencyReferences(skill *V1Alpha4SkillAST) []dependencyReference 
 	references := make([]dependencyReference, 0)
 	contractPath := "skills/" + skill.Name + "/assurance/contract.yaml"
 	if skill.Contract != nil {
-		if alias, ok := dependencyAliasFromReference(skill.Contract.ContextSchema); ok {
-			references = append(references, dependencyReference{alias: alias, path: contractPath, node: unalias(skill.Contract.ContextSchema)})
+		if alias, exportID, ok := splitQualifiedReference(skill.Contract.ContextSchema); ok && validStablePackageID(exportID) {
+			references = append(references, dependencyReference{alias: alias, exportKind: "schema", exportID: exportID, path: contractPath, node: unalias(skill.Contract.ContextSchema)})
 		}
 	}
 	if skill.Procedure != nil {
@@ -165,13 +167,13 @@ func collectDependencyReferences(skill *V1Alpha4SkillAST) []dependencyReference 
 				continue
 			}
 			if node.Operation != nil {
-				if alias, ok := dependencyAliasFromReference(node.Operation.Tool); ok {
-					references = append(references, dependencyReference{alias: alias, path: procedurePath, node: unalias(node.Operation.Tool)})
+				if alias, exportID, ok := splitQualifiedReference(node.Operation.Tool); ok && validExportID(exportID) {
+					references = append(references, dependencyReference{alias: alias, exportKind: "operation", exportID: exportID, path: procedurePath, node: unalias(node.Operation.Tool)})
 				}
 			}
 			if node.Observation != nil {
-				if alias, ok := dependencyAliasFromReference(node.Observation.Tool); ok {
-					references = append(references, dependencyReference{alias: alias, path: procedurePath, node: unalias(node.Observation.Tool)})
+				if alias, exportID, ok := splitQualifiedReference(node.Observation.Tool); ok && validExportID(exportID) {
+					references = append(references, dependencyReference{alias: alias, exportKind: "observation", exportID: exportID, path: procedurePath, node: unalias(node.Observation.Tool)})
 				}
 			}
 		}
@@ -206,8 +208,8 @@ func collectPredicateParameterReferences(parameters *yaml.Node, predicatesPath s
 		}
 		for i := 0; i+1 < len(parameter.Content); i += 2 {
 			value := unalias(parameter.Content[i+1])
-			if alias, ok := dependencyAliasFromReference(value); ok {
-				references = append(references, dependencyReference{alias: alias, path: predicatesPath, node: value})
+			if alias, exportID, ok := splitQualifiedReference(value); ok && validStablePackageID(exportID) {
+				references = append(references, dependencyReference{alias: alias, exportKind: "schema", exportID: exportID, path: predicatesPath, node: value})
 			}
 		}
 	}
@@ -224,16 +226,16 @@ func collectEvidenceGuaranteeReferences(evidence *yaml.Node, predicatesPath stri
 	if requires != nil && requires.Kind == yaml.MappingNode {
 		for i := 0; i+1 < len(requires.Content); i += 2 {
 			for _, guarantee := range sequence(requires.Content[i+1]) {
-				if alias, ok := dependencyAliasFromReference(guarantee); ok {
-					references = append(references, dependencyReference{alias: alias, path: predicatesPath, node: unalias(guarantee)})
+				if alias, exportID, ok := splitQualifiedReference(guarantee); ok && validExportID(exportID) {
+					references = append(references, dependencyReference{alias: alias, exportKind: "evidenceGuarantee", exportID: exportID, path: predicatesPath, node: unalias(guarantee)})
 				}
 			}
 		}
 	}
 	for _, group := range sequence(child(evidence, "independence")) {
 		for _, member := range sequence(child(group, "members")) {
-			if alias, ok := dependencyAliasFromReference(child(member, "guarantee")); ok {
-				references = append(references, dependencyReference{alias: alias, path: predicatesPath, node: unalias(child(member, "guarantee"))})
+			if alias, exportID, ok := splitQualifiedReference(child(member, "guarantee")); ok && validExportID(exportID) {
+				references = append(references, dependencyReference{alias: alias, exportKind: "evidenceGuarantee", exportID: exportID, path: predicatesPath, node: unalias(child(member, "guarantee"))})
 			}
 		}
 	}
@@ -256,8 +258,8 @@ func collectSchemaRefReferences(root *yaml.Node, schemaPath string) []dependency
 				key := unalias(node.Content[i])
 				value := unalias(node.Content[i+1])
 				if key != nil && key.Value == "$ref" {
-					if alias, ok := dependencyAliasFromReference(value); ok {
-						references = append(references, dependencyReference{alias: alias, path: schemaPath, node: value})
+					if alias, exportID, ok := splitQualifiedReference(value); ok && validStablePackageID(exportID) {
+						references = append(references, dependencyReference{alias: alias, exportKind: "schema", exportID: exportID, path: schemaPath, node: value})
 					}
 				}
 				walk(value)
@@ -272,25 +274,25 @@ func collectSchemaRefReferences(root *yaml.Node, schemaPath string) []dependency
 	return references
 }
 
-// dependencyAliasFromReference extracts the Alias part of a QualifiedCallableId,
-// QualifiedGuaranteeId or QualifiedSchemaId. Splitting happens at the first "::"
-// exactly as the frozen grammar requires, so Schema URIs keep their own colons.
-func dependencyAliasFromReference(node *yaml.Node) (string, bool) {
+// splitQualifiedReference splits a qualified reference at the FIRST "::" exactly
+// as the frozen grammar requires, so Schema URIs keep their own colons. An
+// invalid Alias or empty export part is left to the later
+// QUALIFIED_REFERENCE_INVALID work package instead of being guessed here.
+func splitQualifiedReference(node *yaml.Node) (string, string, bool) {
 	node = unalias(node)
 	if node == nil || node.Kind != yaml.ScalarNode || node.Tag != "!!str" {
-		return "", false
+		return "", "", false
 	}
 	index := strings.Index(node.Value, "::")
 	if index <= 0 {
-		return "", false
+		return "", "", false
 	}
 	alias := node.Value[:index]
-	if !validDependencyID(alias) {
-		// The qualified reference itself is invalid; that is a
-		// QUALIFIED_REFERENCE_INVALID concern outside the WP3A slice.
-		return "", false
+	exportID := node.Value[index+2:]
+	if !validDependencyID(alias) || exportID == "" {
+		return "", "", false
 	}
-	return alias, true
+	return alias, exportID, true
 }
 
 // resolveUsedDependencyIdentity proves the full WP3A relation for one used Alias
