@@ -1,9 +1,9 @@
 # CA Skill Compiler — Current State
 
-**Product:** CA Skill Compiler v1.0.0 — RELEASED  
-**Language:** CA-SL v1alpha4 — FROZEN  
-**Release commit:** `252fd6c6dab15fb92806426aeb19d49a36b08d5e`  
-**Product qualification:** NOT_QUALIFIED (real Owner / deployment / 5GC evidence is external).
+- **Product:** CA Skill Compiler v1.0.0 — RELEASED
+- **Language:** CA-SL v1alpha4 — FROZEN
+- **Release commit:** `252fd6c6dab15fb92806426aeb19d49a36b08d5e`
+- **Product qualification:** NOT_QUALIFIED (real Owner / deployment / 5GC evidence is external).
 
 ## Release baseline
 
