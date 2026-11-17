@@ -1,3 +1,7 @@
+> **HISTORICAL — SUPERSEDED FOR NEW DEVELOPMENT.** This Script note targets the former Script Contract v0. The active contract is [Script Contract v1alpha4](script-contract-v1alpha4.md), subordinate to the frozen CA-SL v1alpha4 specification. Retained only as design history.
+
+---
+
 # Script Contract v0 · Compiler Implementation Contract
 
 **Status:** Implement the current ca-skills Script Contract v0. The normative source document is [ca-skills/docs/script-contract.md](https://github.com/odango-chan/ca-skills/blob/codex/semantic-token-contract-v01/docs/script-contract.md). This file records the corresponding Compiler obligations and is not a separate language authority.

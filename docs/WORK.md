@@ -1,3 +1,25 @@
+# Current v1alpha4 implementation freeze (2026-11-16)
+
+**Normative language:** CA-SL v1alpha4 is frozen at odango-chan/ca-skills@7f84393ee8c395e4d8c39a74cb5000a1f896588d (b70064c5737b8ee2b3d1435fe496357f44b42773).
+
+**Compiler-owned contracts:** BuildRequest, BuildResult, DependencyInspection, DependencySnapshot digest, ToolCatalog / CapabilityContracts machine mirrors, EvidenceTrustBindings transport, Procedure Linker, Script ABI, Artifact and Studio integration are FROZEN for implementation in PR #12. The frozen contracts do not establish implementation conformance.
+
+**OSS dependency selection:** [oss-dependency-selection-v1alpha4.md](design/oss-dependency-selection-v1alpha4.md) selects goccy/go-yaml v1.19.2, San v6.0.3, cel-go v0.33.2, gositter v0.2.0 (Python grammar only) and gowebpki/jcs v1.0.2. CI is pinned to Go 1.27.4; CGo is prohibited in production and WASM. This is a dependency decision, not evidence that the adapters are integrated. The documentation PR deliberately does not add unused packages to go.mod.
+
+**Development workflow:** DeepSeek Harness with the selected DeepSeek V4 Flash / Low reasoning profile is the designated bounded implementation workflow. The task envelope, work-package sequence, stop conditions and acceptance rules are in [deepseek-harness-v1alpha4.md](workstreams/deepseek-harness-v1alpha4.md). No pilot is required. The user has separately authorized continuing the v1alpha4 implementation plan; this documentation PR records the dependency decision only and does not mark WP1 or any later work package complete.
+
+**Conformance inventory:** [E01–E120 case index](../tests/conformance/v1alpha4/case-index.json) and [Appendix H diagnostic index](../tests/conformance/v1alpha4/diagnostic-index.json) are derived from the pinned specification. They are inventories, not passing tests or executable fixture coverage.
+
+**Current implementation status:** PR #11 remains a source/graph admission slice. The selected dependency adapters and Go 1.27.4 toolchain are not yet integrated/qualified. Full linker, trusted inputs, Script ABI, E01–E120 fixtures, exact H diagnostics, Native/WASM/Chromium parity and real 5GC qualification remain NOT_QUALIFIED.
+
+**Explicitly unqualified external contracts:** real Evidence Descriptor publications, physical identity-input provenance, cross-snapshot Reconcile association, actual 5GC Owner / Deployment publications and MAS execution remain outside this freeze. Compiler must fail closed rather than invent these inputs.
+
+---
+
+> **Current development target (2026-11-16): CA-SL v1alpha4.** The active Compiler contract set is indexed in the repository [README](../README.md). The implementation target is defined by docs/design/*-v1alpha4.md and contracts/v1alpha4/*.json. The historical v0 / v0.1 implementation notes below are retained for traceability; they are not current language or API authority and do not establish v1alpha4 conformance. Current status: PR #11 is a source/graph admission slice; full linker, trusted inputs, Script ABI, Artifact, E01–E120 and Native/WASM parity remain unqualified.
+
+---
+
 # Skill Compiler v0 implementation status
 
 Updated: 2026-11-12. The initial sections retain the v0 closeout record from implementation branch `feat/compiler-v0-complete` (code `431b67e4a44f4e7037aa5448cbb1595ff6212f22`, closeout docs `57a3fcc52e2b97ba2c336bbc21e49480020c193b`, based on `origin/feat/compiler-v0-bootstrap` at `5f2a36b`; [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3)). The v0.1 migration status and evidence follow below; neither section claims complete acceptance beyond its stated gates.

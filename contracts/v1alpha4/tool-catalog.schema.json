@@ -1,0 +1,707 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:connectionagent:ca-skill-compiler:owner-contract:tool-catalog:v1alpha4",
+  "title": "ToolCatalog v1alpha4",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "connectionagent.io/toolcatalog/v1alpha4"
+    },
+    "kind": {
+      "const": "ToolCatalog"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contracts"
+      ],
+      "properties": {
+        "contracts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 512,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/operation"
+              },
+              {
+                "$ref": "#/$defs/observation"
+              }
+            ]
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "effect",
+        "ownerOutcomes",
+        "inputSchema",
+        "outputSchema"
+      ],
+      "properties": {
+        "kind": {
+          "const": "operation"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]*(\\.[A-Za-z][A-Za-z0-9_-]*)*$"
+        },
+        "effect": {
+          "enum": [
+            "READ",
+            "MUTATION"
+          ]
+        },
+        "ownerOutcomes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "SUCCEEDED",
+              "FAILED",
+              "NOT_COMMITTED"
+            ]
+          },
+          "contains": {
+            "const": "SUCCEEDED"
+          }
+        },
+        "outputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "$ref"
+          ],
+          "properties": {
+            "$ref": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+            }
+          }
+        },
+        "receiptSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "$ref"
+          ],
+          "properties": {
+            "$ref": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+            }
+          }
+        },
+        "adapter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "guarantees": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "evidence": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "provides": {
+                  "type": "array",
+                  "maxItems": 256,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "guarantee",
+                      "path"
+                    ],
+                    "properties": {
+                      "guarantee": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 240,
+                        "pattern": "^[A-Za-z][A-Za-z0-9_-]*(\\.[A-Za-z][A-Za-z0-9_-]*)*$"
+                      },
+                      "path": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 240,
+                        "pattern": "^output\\.[A-Za-z][A-Za-z0-9_.-]*$"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "resourceOutputs": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "resourceKind",
+              "responsibilitySchema"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240,
+                "pattern": "^output\\.[A-Za-z][A-Za-z0-9_.-]*$"
+              },
+              "resourceKind": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "responsibilitySchema": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+              }
+            }
+          }
+        },
+        "inputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "$ref"
+          ],
+          "properties": {
+            "$ref": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+            }
+          }
+        },
+        "mutation": {
+          "$ref": "#/$defs/mutation"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "effect": {
+                "const": "MUTATION"
+              }
+            },
+            "required": [
+              "effect"
+            ]
+          },
+          "then": {
+            "required": [
+              "receiptSchema",
+              "mutation"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "mutation"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "effect": {
+                "const": "READ"
+              }
+            },
+            "required": [
+              "effect"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ownerOutcomes": {
+                "items": {
+                  "enum": [
+                    "SUCCEEDED",
+                    "FAILED"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "ownerOutcomes": {
+                "contains": {
+                  "const": "NOT_COMMITTED"
+                }
+              }
+            },
+            "required": [
+              "ownerOutcomes"
+            ]
+          },
+          "then": {
+            "required": [
+              "mutation"
+            ],
+            "properties": {
+              "mutation": {
+                "required": [
+                  "failureClasses"
+                ],
+                "properties": {
+                  "failureClasses": {
+                    "contains": {
+                      "properties": {
+                        "outcome": {
+                          "const": "NOT_COMMITTED"
+                        }
+                      },
+                      "required": [
+                        "outcome"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "effect",
+        "ownerOutcomes",
+        "queryContextSchema",
+        "outputSchema"
+      ],
+      "properties": {
+        "kind": {
+          "const": "observation"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]*(\\.[A-Za-z][A-Za-z0-9_-]*)*$"
+        },
+        "effect": {
+          "const": "READ"
+        },
+        "ownerOutcomes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "SUCCEEDED",
+              "FAILED"
+            ]
+          },
+          "contains": {
+            "const": "SUCCEEDED"
+          }
+        },
+        "outputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "$ref"
+          ],
+          "properties": {
+            "$ref": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+            }
+          }
+        },
+        "receiptSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "$ref"
+          ],
+          "properties": {
+            "$ref": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+            }
+          }
+        },
+        "adapter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "guarantees": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "evidence": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "provides": {
+                  "type": "array",
+                  "maxItems": 256,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "guarantee",
+                      "path"
+                    ],
+                    "properties": {
+                      "guarantee": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 240,
+                        "pattern": "^[A-Za-z][A-Za-z0-9_-]*(\\.[A-Za-z][A-Za-z0-9_-]*)*$"
+                      },
+                      "path": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 240,
+                        "pattern": "^output\\.[A-Za-z][A-Za-z0-9_.-]*$"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "resourceOutputs": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "resourceKind",
+              "responsibilitySchema"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240,
+                "pattern": "^output\\.[A-Za-z][A-Za-z0-9_.-]*$"
+              },
+              "resourceKind": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "responsibilitySchema": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+              }
+            }
+          }
+        },
+        "queryContextSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "$ref"
+          ],
+          "properties": {
+            "$ref": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+            }
+          }
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "inputSchema"
+            ]
+          },
+          {
+            "required": [
+              "mutation"
+            ]
+          },
+          {
+            "required": [
+              "receiptSchema"
+            ]
+          },
+          {
+            "required": [
+              "resourceOutputs"
+            ]
+          }
+        ]
+      }
+    },
+    "mutation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commitProof"
+      ],
+      "properties": {
+        "commitProof": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "path",
+            "bind"
+          ],
+          "properties": {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^receipt\\.[A-Za-z][A-Za-z0-9_.-]*$"
+            },
+            "bind": {
+              "const": "originalInvocationId"
+            }
+          }
+        },
+        "failureClassPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^receipt\\.[A-Za-z][A-Za-z0-9_.-]*$"
+        },
+        "failureClasses": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "outcome",
+              "proofSchema",
+              "proofPath",
+              "noSideEffect",
+              "retryable"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]*(\\.[A-Za-z][A-Za-z0-9_-]*)*$"
+              },
+              "outcome": {
+                "enum": [
+                  "FAILED",
+                  "NOT_COMMITTED"
+                ]
+              },
+              "proofSchema": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+              },
+              "proofPath": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240,
+                "pattern": "^receipt\\.[A-Za-z][A-Za-z0-9_.-]*$"
+              },
+              "noSideEffect": {
+                "type": "boolean"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "outcome": {
+                      "const": "FAILED"
+                    }
+                  },
+                  "required": [
+                    "outcome"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "retryable": {
+                      "const": false
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "outcome": {
+                      "const": "NOT_COMMITTED"
+                    },
+                    "retryable": {
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "outcome",
+                    "retryable"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "noSideEffect": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "reconcile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "callable",
+            "bind",
+            "proofSchema",
+            "proofPath"
+          ],
+          "properties": {
+            "callable": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*(\\.[A-Za-z][A-Za-z0-9_-]*)*$"
+            },
+            "bind": {
+              "const": "originalInvocationId"
+            },
+            "proofSchema": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+            },
+            "proofPath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^receipt\\.[A-Za-z][A-Za-z0-9_.-]*$"
+            },
+            "recoverableOutputSchema": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+            },
+            "recoverableOutputPath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^output\\.[A-Za-z][A-Za-z0-9_.-]*$"
+            }
+          },
+          "dependentRequired": {
+            "recoverableOutputSchema": [
+              "recoverableOutputPath"
+            ],
+            "recoverableOutputPath": [
+              "recoverableOutputSchema"
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "failureClasses"
+            ]
+          },
+          "then": {
+            "required": [
+              "failureClassPath"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "failureClassPath"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

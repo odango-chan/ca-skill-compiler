@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:connectionagent:ca-skill-compiler:compiler-api:dependency-inspection:v1alpha4",
+  "title": "Compiler DependencyInspection v1alpha4",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "diagnostics",
+    "callables",
+    "schemas"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "connectionagent.io/compiler-dependency-inspection/v1alpha4"
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "code",
+          "phase",
+          "path",
+          "message"
+        ],
+        "properties": {
+          "severity": {
+            "enum": [
+              "error",
+              "warning"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "phase": {
+            "enum": [
+              "C_STATIC",
+              "C_WARNING"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "column": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8192
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "phase": {
+                  "const": "C_STATIC"
+                }
+              },
+              "required": [
+                "phase"
+              ]
+            },
+            "then": {
+              "properties": {
+                "severity": {
+                  "const": "error"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "phase": {
+                  "const": "C_WARNING"
+                }
+              },
+              "required": [
+                "phase"
+              ]
+            },
+            "then": {
+              "properties": {
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "callables": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dependencyId",
+          "owner",
+          "kind",
+          "id",
+          "effect",
+          "sourcePath",
+          "outputSchemaId"
+        ],
+        "properties": {
+          "dependencyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "kind": {
+            "enum": [
+              "operation",
+              "observation"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "effect": {
+            "enum": [
+              "READ",
+              "MUTATION"
+            ]
+          },
+          "sourcePath": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "inputSchemaId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "queryContextSchemaId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "outputSchemaId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "receiptSchemaId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        }
+      }
+    },
+    "schemas": {
+      "type": "array",
+      "maxItems": 8192,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dependencyId",
+          "owner",
+          "id",
+          "sourcePath"
+        ],
+        "properties": {
+          "dependencyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "sourcePath": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          }
+        }
+      }
+    }
+  }
+}

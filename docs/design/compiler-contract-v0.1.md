@@ -1,3 +1,7 @@
+> **HISTORICAL — SUPERSEDED FOR NEW DEVELOPMENT.** This v0.1 design targets the former Skill Language v0.2 contract. Do not use it to implement CA-SL v1alpha4. The active contract is [Compiler Contract v1alpha4](compiler-contract-v1alpha4.md), with [BuildRequest v1alpha4](build-request-v1alpha4.md) and the [machine contracts](../../contracts/v1alpha4/README.md). This file is retained only as design history.
+
+---
+
 # Skill Compiler Language & Linking Contract v0.1
 
 **Status: DESIGN ONLY.** This is the Compiler-only implementation contract. It does not claim v0.1 is implemented. The language authority is the current **ca-skills Skill Language v0.2**; this document defines how Compiler consumes and compiles that language, not a competing DSL.

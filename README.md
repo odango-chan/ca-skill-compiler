@@ -1,46 +1,70 @@
-# Skill Compiler · skillc
+# CA Skill Compiler
 
-A stateless, breaking-only Skill Compiler. The v0 Core is retained on [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3); the active implementation branch is migrating it to the narrower Compiler v0.1 Build API and current Skill Language contract. There is no legacy compatibility layer, Package Manager, Runtime execution, live MCP call, database, Release or Qualification subsystem.
+**Current target: CA-SL v1alpha4.** This repository implements a deterministic, stateless compiler for the frozen ConnectionAgent Skill Language. The current language target is not the old v0.1 / v0.2 contract.
 
-~~~text
-project/
-  skills/            # editable multi-Skill authoring sources
-  lib/               # imported Tool/Host/Observation interface snapshots (read-only)
-  output/            # generated result (not compiler input)
-~~~
+## Normative authority
 
-## Local verification (Go 1.23+)
+- **CA-SL v1alpha4:** [ca-skills immutable commit 7f84393](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md)
+- **Frozen specification file blob:** b70064c5737b8ee2b3d1435fe496357f44b42773
+- Companion authoring and schema notes are informative only. The single-file specification is the only normative language authority.
 
-~~~bash
-GOWORK=off go mod tidy
-GOWORK=off go test ./... -count=1
-GOWORK=off go vet ./...
-GOWORK=off go run ./cmd/skillc check ./examples/minimal-project
-GOWORK=off go run ./cmd/skillc check ./examples/script-contract-project
-GOWORK=off go run ./cmd/skillc build ./examples/script-contract-project --out ./dist/script-contract
-~~~
+Do not use floating main, old v0.2 language docs, or old v0.1 Compiler contracts as the v1alpha4 implementation authority.
 
-In this environment, `GOWORK=off` avoids a parent `go.work` that refers to three absent sibling repositories. See [WORK status](docs/WORK.md) for the v0 closeout evidence and [v0.1 language alignment](docs/workstreams/language-alignment-v0.1.md) for current implementation status and open owner/spec issues. Passing synthetic examples do not imply complete Language conformance or real Skill acceptance.
+## Compiler contract set
 
-## Official Skill sources and preserved legacy reference
+| Document | Purpose |
+|---|---|
+| [Compiler Contract v1alpha4](docs/design/compiler-contract-v1alpha4.md) | Scope, pipeline, semantics and acceptance boundary |
+| [OSS Dependency Selection v1alpha4](docs/design/oss-dependency-selection-v1alpha4.md) | Pinned YAML, Schema, CEL, Python parser and JCS dependencies; licenses and Native/WASM gates |
+| [BuildRequest v1alpha4](docs/design/build-request-v1alpha4.md) | Source, dependency snapshots and trusted build context |
+| [Compiler Output API v1alpha4](docs/design/compiler-output-contract-v1alpha4.md) | Check, BuildResult, DependencyInspection, failure atomicity and deterministic ordering |
+| [Owner Contract Linking v1alpha4](docs/design/owner-contracts-v1alpha4.md) | ToolCatalog, CapabilityContracts, Evidence and trusted Owner attribution |
+| [Procedure Linker v1alpha4](docs/design/procedure-link-v1alpha4.md) | AST, graph, SourcePath, Schema and Capability linking |
+| [Script Contract v1alpha4](docs/design/script-contract-v1alpha4.md) | Procedure / Predicate Script ABI and derived Schemas |
+| [Compiler Artifact v1alpha4](docs/design/compiler-artifact-v1alpha4.md) | Deterministic output tree and generated Schema serialization |
+| [Dependency digest](docs/design/dependency-snapshot-digest-v1alpha4.md) | Cross-language immutable snapshot digest |
+| [Conformance plan](docs/workstreams/conformance-v1alpha4.md) | E01–E120, H diagnostics, Native/WASM and 5GC gates |
+| [DeepSeek Harness development profile](docs/workstreams/deepseek-harness-v1alpha4.md) | Frozen task envelope, work-package sequence, Low reasoning guardrails and acceptance workflow |
+| [5GC SMF Profile](docs/profiles/5gc-smf-procedure-profile.md) | 3GPP → Tool → Skill traceability; outside generic Compiler semantics |
+| [Studio integration](docs/studio-integration-v1alpha4.md) | Go/WASM and Studio boundary |
+| [Machine contracts](contracts/v1alpha4/README.md) | JSON Schemas and golden vectors |
 
-`examples/ca-skills-v0.2/` pins the ca-skills v0.2 design branch, its two Skills and the approved 12-Operation ToolCatalog. A read-only refresh on 2026-11-12 found the PDU/MAS source packages and ToolCatalog on default `ca-skills/main` byte-identical to that snapshot; see [the upstream alignment review](docs/workstreams/language-alignment-v0.1.md). `examples/ca-agent-demo-project/` is preserved as a pre-migration reference and is not a current Skill grammar source. Host/Observation Owner Schemas and nested UDM Output fields are missing from the v0.2 fixture; the MAS Operation catalog remains unavailable. The Compiler uses no `lib/manifest.yaml` or source lifecycle state.
+## Version identifiers
 
-A separate synthetic `examples/script-contract-project` is a **positive contract fixture**: Tool Output imported from lib → Procedure `with` → Script strict generated Output Schema.
+These identifiers are independent and must be checked explicitly:
 
-## Design and local implementation
+- BuildRequest API: connectionagent.io/compiler-build-request/v1alpha4
+- Language target: connectionagent.io/v1alpha4
+- BuildResult API: connectionagent.io/compiler-build-result/v1alpha4
+- DependencyInspection API: connectionagent.io/compiler-dependency-inspection/v1alpha4
+- ToolCatalog: connectionagent.io/toolcatalog/v1alpha4
+- CapabilityContracts: connectionagent.io/capability-contracts/v1alpha4
+- EvidenceTrustBindings: BuildRequest v1alpha4-owned embedded trust-relation format (not a separate Owner Evidence Descriptor API)
+- Compiler Artifact: connectionagent.io/compiler-artifact/v1alpha4
+- Dependency snapshot digest framing: CA-SKILL-DEPENDENCY-SNAPSHOT\0v1\0
 
-- [Compiler v0 project contract](docs/design/skill-compiler-v0.md)
-- [Compiler v0.1 Language & Linking Contract](docs/design/compiler-contract-v0.1.md)
-- [Script Contract v0 (no compatibility)](docs/design/script-contract-v0.md)
-- [Procedure Link v0](docs/design/procedure-link-v0.md)
-- [Acceptance matrix G0–G9](docs/workstreams/acceptance-matrix-v0.md)
-- [One-shot local Harness Goal WP0–WP7](docs/workstreams/local-implementation-goal.md)
-- [Copy/paste Harness prompt](docs/workstreams/local-harness-prompt.md)
-- [Skill Studio/WASM ABI](docs/studio-integration.md)
-- [v0.1 Language Alignment](docs/workstreams/language-alignment-v0.1.md)
-- [WORK status](docs/WORK.md)
+A BuildRequest API version is not a substitute for languageTarget; ToolCatalog and CapabilityContracts apiVersion values are not inferred from either one.
 
-The original bootstrap is [Draft PR #2](https://github.com/odango-chan/ca-skill-compiler/pull/2). v0 implementation and closeout are on [PR #3](https://github.com/odango-chan/ca-skill-compiler/pull/3), targeting `feat/compiler-v0-bootstrap`. The narrowed v0.1 contract is [Draft PR #4](https://github.com/odango-chan/ca-skill-compiler/pull/4); the breaking implementation is in dependent [Draft PR #5](https://github.com/odango-chan/ca-skill-compiler/pull/5), targeting PR #4's branch. No PR is merged into `main` as part of these tasks.
+## Current implementation status
 
-Historical [ca-skill-toolchain](https://github.com/odango-chan/ca-skill-toolchain) is background only, not a code dependency.
+- Compiler PR #5 is the Go v0.1 implementation base.
+- Compiler PR #11 adds a v1alpha4 source/graph admission slice and deliberately fails closed when trusted Owner / CapabilityContracts inputs are unavailable.
+- This document set defines the frozen Compiler v1alpha4 implementation target, the selected OSS dependency set and the DeepSeek Harness / Flash Low development workflow. The OSS choices are accepted for implementation but are not yet integrated or qualified. This document set does **not** claim Compiler v1alpha4 conformance, complete linking, Native/WASM parity, Owner qualification or live 5GC acceptance.
+- No model pilot is required or included. The user has authorized continuing the v1alpha4 implementation plan; WP1 and all later work packages remain NOT_QUALIFIED until their own implementation and acceptance evidence exists.
+
+## Status and review boundary
+
+| Item | Status |
+|---|---|
+| CA-SL language v1alpha4 | FROZEN upstream at the immutable commit above |
+| ToolCatalog / CapabilityContracts v1alpha4 abstract shape | Normative in CA-SL F.1 / F.2; machine schemas are frozen implementation mirrors |
+| BuildRequest / BuildResult / DependencyInspection physical APIs | FROZEN for implementation in this PR |
+| EvidenceTrustBindings physical transport | FROZEN BuildRequest-owned format; not a universal Evidence Descriptor API |
+| Dependency snapshot digest | FROZEN Compiler / Studio interoperability algorithm |
+| Compiler Artifact physical format | FROZEN for implementation in this PR |
+| Compiler development workflow | FROZEN DeepSeek Harness / Flash Low profile; no pilot |
+| OSS dependency selection | ACCEPTED FOR IMPLEMENTATION WITH CONFORMANCE GATES; integration NOT_QUALIFIED |
+| Compiler implementation | NOT_QUALIFIED; PR #11 is only the source/graph admission slice |
+| Real 5GC Owner / deployment publications | NOT_QUALIFIED until actual v1alpha4 releases and §45.2 evidence exist |
+
+The old v0.1 documents and schemas remain historical records. They are not fallback contracts and must not be silently reused for v1alpha4.
