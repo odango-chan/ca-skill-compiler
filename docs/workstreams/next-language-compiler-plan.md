@@ -23,8 +23,8 @@ The target capabilities are:
 |---|---|---|---|
 | Node-entry Wait semantic baseline | ca-skills #60 | Merged | Semantic basis |
 | EVENT_ACCEPTED tombstone / stale-message isolation | ca-skills #64 | Merged | Runtime invariant; Compiler links the declared correlation policy |
-| v1alpha5 single-file language candidate | ca-skills #61, head `e6569713` | Draft; target assigned; semantic baseline marked frozen; full text and conformance material under independent review | 5,474-line single-file candidate exists; Appendix L defines Wait grammar/semantics; Appendix H adds 9 C_STATIC WAIT diagnostics; EW-001–EW-036 remain specification-only |
-| Integration Ingress Operation | ca-skills #62, head `d0fe2be` | Draft; current schema/vector workflows PASS; contract not frozen | IngressCatalog, exact linker semantics and diagnostic ownership still require finalization; raw-byte and nested-resource resolver vector gaps have been addressed in current head |
+| v1alpha5 single-file language candidate | ca-skills #61, head `9fadd3f4` | Draft; target assigned; semantic baseline marked frozen; full text and conformance material under independent review | 5,474-line single-file candidate exists; Appendix L defines Wait grammar/semantics; Appendix H adds 9 C_STATIC WAIT diagnostics; EW-001–EW-036 remain specification-only |
+| Integration Ingress Operation | ca-skills #62, head `1c55ab8` | Draft; current schema/vector workflows PASS; contract not frozen | IngressCatalog, exact linker semantics and diagnostic ownership still require finalization; raw-byte and nested-resource resolver vector gaps have been addressed in current head |
 | Generic Host / Runtime continuation | ca-agent-demo #210 | Draft, design-only | Compiler consumes language/export contracts; it does not implement Host/Runtime |
 | 5GC SBI continuation profile | ca-agent-demo #213 (supersedes closed #209) | Draft, design-only | Example profile, not 5GC-specific Compiler semantics |
 
