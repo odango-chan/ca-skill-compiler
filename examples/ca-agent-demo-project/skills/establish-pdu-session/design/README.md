@@ -1,5 +1,7 @@
 # CreatedSession authoring principles
 
+> Historical design notes. The current language authority is CA-SL v1alpha4; this document records an earlier authoring experiment and is retained for migration reference.
+
 **Status: AUTHORING MODEL / NOT YET RUNTIME-COMPATIBLE**
 
 For deterministic execution, the author-facing machine source for `establish-pdu-session` is:
@@ -13,10 +15,8 @@ The Skill also has an **experimental LLM-driven execution view**. `../SKILL.md` 
 model-facing CreatedSession business guide for that experiment; it is not a second graph
 and does not copy deterministic next-edges.
 
-Repository-wide executor/context placement rules live in
-[`../../../docs/design/llm-skill-execution.md`](../../../docs/design/llm-skill-execution.md).
 The CreatedSession-specific experiment plan is recorded in
-[`llm-execution-experiment.md`](llm-execution-experiment.md).
+[`llm-execution-experiment.md`](llm-execution-experiment.md). This is historical migration material, not a current CA-SL v1alpha4 compiler or Runtime contract.
 
 Both execution styles are expected to share the same Harness safety boundary, admitted
 capabilities, Predicate truth, Observation authority and final Contract.
