@@ -1,0 +1,12 @@
+procedures:
+  run:
+    start: mutate
+    nodes:
+      mutate:
+        call: demo.mutate
+        with: {ref: {value: sample}}
+        'on': {COMMITTED: reconcile}
+      reconcile:
+        reconcile: mutate
+        'on': {COMMITTED: done}
+      done: {terminal: SUCCEEDED}

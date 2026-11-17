@@ -1,0 +1,1643 @@
+[
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 5,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 8,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 11,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 46,
+    "message": "Tool operation not imported: ca.pdu_session.subscription.validate"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 49,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 51,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 53,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 83,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.subscription.validate"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 89,
+    "message": "Tool operation not imported: ca.pdu_session.secondary_auth.disposition"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 92,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 94,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 96,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 114,
+    "message": "node action has no declared output Schema: validate-subscription"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 130,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.secondary_auth.disposition"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 136,
+    "message": "Tool operation not imported: ca.pdu_session.context.create"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 139,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 141,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 143,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 161,
+    "message": "node action has no declared output Schema: validate-subscription"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 163,
+    "message": "node action has no declared output Schema: secondary-auth"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 165,
+    "message": "node action has no declared output Schema: validate-subscription"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 179,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.context.create"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 185,
+    "message": "Tool operation not imported: ca.pdu_session.uecm.register"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 188,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 190,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 192,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 210,
+    "message": "node action has no declared output Schema: create-context"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 212,
+    "message": "node action has no declared output Schema: create-context"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 226,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.uecm.register"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 232,
+    "message": "Tool operation not imported: ca.pdu_session.policy.create"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 235,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 237,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 239,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 257,
+    "message": "node action has no declared output Schema: create-context"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 259,
+    "message": "node action has no declared output Schema: validate-subscription"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 261,
+    "message": "node action has no declared output Schema: create-context"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 275,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.policy.create"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 281,
+    "message": "Tool operation not imported: ca.pdu_session.anchor.select"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 284,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 286,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 288,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 306,
+    "message": "node action has no declared output Schema: create-policy"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 320,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.anchor.select"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 326,
+    "message": "Tool operation not imported: ca.pdu_session.address.allocate"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 329,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 331,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 333,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 351,
+    "message": "node action has no declared output Schema: select-anchor"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 355,
+    "message": "node action has no declared output Schema: select-anchor"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 369,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.address.allocate"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 375,
+    "message": "Tool operation not imported: ca.pdu_session.policy.update"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 378,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 380,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 382,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 400,
+    "message": "node action has no declared output Schema: create-context"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 402,
+    "message": "node action has no declared output Schema: create-policy"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 404,
+    "message": "node action has no declared output Schema: allocate-address"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 406,
+    "message": "node action has no declared output Schema: create-context"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 408,
+    "message": "node action has no declared output Schema: allocate-address"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 410,
+    "message": "node action has no declared output Schema: create-policy"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 424,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.policy.update"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 430,
+    "message": "Tool operation not imported: ca.pdu_session.charging.create"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 433,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 435,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 437,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 455,
+    "message": "node action has no declared output Schema: update-policy"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 471,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.charging.create"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 477,
+    "message": "Tool operation not imported: ca.pdu_session.user_plane.establish"
+  },
+  {
+    "severity": "error",
+    "code": "TOOL_NOT_DECLARED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 477,
+    "message": "Tool operation is not in allowedResources: ca.pdu_session.user_plane.establish"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 480,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 482,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 484,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 502,
+    "message": "node action has no declared output Schema: update-policy"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 504,
+    "message": "node action has no declared output Schema: select-anchor"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 506,
+    "message": "node action has no declared output Schema: allocate-address"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 508,
+    "message": "node action has no declared output Schema: update-policy"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 510,
+    "message": "node action has no declared output Schema: select-anchor"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 512,
+    "message": "node action has no declared output Schema: allocate-address"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 526,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.user_plane.establish"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 532,
+    "message": "Tool operation not imported: ca.pdu_session.address.confirm"
+  },
+  {
+    "severity": "error",
+    "code": "TOOL_NOT_DECLARED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 532,
+    "message": "Tool operation is not in allowedResources: ca.pdu_session.address.confirm"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 535,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 537,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 539,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 557,
+    "message": "node action has no declared output Schema: allocate-address"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 561,
+    "message": "node action has no declared output Schema: allocate-address"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 575,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.address.confirm"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 581,
+    "message": "Tool operation not imported: ca.pdu_session.access.signal"
+  },
+  {
+    "severity": "error",
+    "code": "TOOL_NOT_DECLARED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 581,
+    "message": "Tool operation is not in allowedResources: ca.pdu_session.access.signal"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 584,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 586,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 588,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 606,
+    "message": "node action has no declared output Schema: create-context"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 608,
+    "message": "node action has no declared output Schema: confirm-address"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 610,
+    "message": "node action has no declared output Schema: establish-user-plane"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 612,
+    "message": "node action has no declared output Schema: create-context"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 614,
+    "message": "node action has no declared output Schema: allocate-address"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 616,
+    "message": "node action has no declared output Schema: establish-user-plane"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 630,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.access.signal"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 636,
+    "message": "Tool operation not imported: ca.pdu_session.user_plane.activate"
+  },
+  {
+    "severity": "error",
+    "code": "TOOL_NOT_DECLARED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 636,
+    "message": "Tool operation is not in allowedResources: ca.pdu_session.user_plane.activate"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 639,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 641,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 643,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 661,
+    "message": "node action has no declared output Schema: establish-user-plane"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 663,
+    "message": "node action has no declared output Schema: signal-access"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 665,
+    "message": "node action has no declared output Schema: signal-access"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 667,
+    "message": "node action has no declared output Schema: signal-access"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 669,
+    "message": "node action has no declared output Schema: establish-user-plane"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 683,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.user_plane.activate"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 689,
+    "message": "Tool operation not imported: ca.pdu_session.events.emit"
+  },
+  {
+    "severity": "error",
+    "code": "TOOL_NOT_DECLARED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 689,
+    "message": "Tool operation is not in allowedResources: ca.pdu_session.events.emit"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 692,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 694,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 696,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 714,
+    "message": "node action has no declared output Schema: create-context"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 716,
+    "message": "node action has no declared output Schema: activate-forwarding"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 720,
+    "message": "node action has no declared output Schema: create-context"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 734,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.events.emit"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 740,
+    "message": "Tool operation not imported: ca.pdu_session.resources.finalize"
+  },
+  {
+    "severity": "error",
+    "code": "TOOL_NOT_DECLARED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 740,
+    "message": "Tool operation is not in allowedResources: ca.pdu_session.resources.finalize"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 743,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 745,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 747,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 765,
+    "message": "node action has no declared output Schema: emit-events"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNRESOLVED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 767,
+    "message": "node action has no declared output Schema: activate-forwarding"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 781,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.resources.finalize"
+  },
+  {
+    "severity": "error",
+    "code": "LIB_OPERATION_UNKNOWN",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 787,
+    "message": "Tool operation not imported: ca.pdu_session.resources.cleanup"
+  },
+  {
+    "severity": "error",
+    "code": "TOOL_NOT_DECLARED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 787,
+    "message": "Tool operation is not in allowedResources: ca.pdu_session.resources.cleanup"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 790,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 792,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 794,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "PROCEDURE_UNSUPPORTED",
+    "path": "skills/establish-pdu-session-mas/assurance/procedure.yaml",
+    "line": 824,
+    "message": "reconcile target Operation is not imported: ca.pdu_session.resources.cleanup"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/contract.yaml",
+    "message": "Predicate Evaluation Context Owner Schema is not imported: lib/host/evidence.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/contract.yaml",
+    "message": "Predicate Evaluation Context Owner Schema is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/contract.yaml",
+    "message": "Predicate Evaluation Context Owner Schema is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/contract.yaml",
+    "message": "Predicate Evaluation Context Owner Schema is not imported: lib/observations/context-observations.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 8,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 29,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 32,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 48,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNSUPPORTED",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 50,
+    "message": "Producer-to-consumer Schema implication requires unsupported string-pattern analysis: input.dnn"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 59,
+    "message": "Predicate consumer Owner Schema is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 104,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNSUPPORTED",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 106,
+    "message": "Producer-to-consumer Schema implication requires unsupported string-pattern analysis: input.dnn"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 110,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 112,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 116,
+    "message": "Predicate consumer Owner Schema is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 131,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "SOURCE_FIELD_UNKNOWN",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 135,
+    "message": "Producer schema has no field transactionRef in nudm-sdm-get.output.result.transactionRef"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 139,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 141,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 172,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 176,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 178,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 182,
+    "message": "Predicate consumer Owner Schema is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 193,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 201,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 203,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 211,
+    "message": "Predicate consumer Owner Schema is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 236,
+    "message": "Predicate consumer Owner Schema is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 248,
+    "message": "Predicate consumer Owner Schema is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 249,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 251,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 262,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_UNSUPPORTED",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 268,
+    "message": "Producer-to-consumer Schema implication requires unsupported string-pattern analysis: preconditions.build-pcf-policy-inputs.output"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 270,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 295,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 303,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 313,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 328,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 336,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 338,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 348,
+    "message": "Predicate consumer Owner Schema is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 361,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 367,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 400,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 404,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 406,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 410,
+    "message": "Predicate consumer Owner Schema is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 428,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 432,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "BINDING_TYPE_MISMATCH",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 438,
+    "message": "Producer schema preconditions.build-n1n2-delivery.output is not compatible with input delivery"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 449,
+    "message": "Predicate consumer Owner Schema is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 465,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 473,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 479,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 489,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 497,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 503,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 518,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 526,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 528,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 541,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 549,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 551,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 564,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 572,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 574,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 616,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 628,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 633,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 636,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 644,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 652,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 654,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 656,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 667,
+    "message": "Predicate consumer Owner Schema is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 668,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 687,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 699,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 702,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 705,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 708,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 716,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 718,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 720,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 726,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 734,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 756,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 768,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 771,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 774,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 777,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 785,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 787,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 789,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 794,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 802,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 825,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 837,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 840,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 843,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 851,
+    "message": "schema file is not imported: lib/host/facts.schema.yaml"
+  },
+  {
+    "severity": "error",
+    "code": "EXTERNAL_SCHEMA_MISSING",
+    "path": "skills/establish-pdu-session/assurance/procedure.yaml",
+    "line": 853,
+    "message": "schema file is not imported: lib/host/subject.schema.yaml"
+  }
+]

@@ -1,0 +1,5 @@
+/output/
+/dist/
+/.agent-tmp/
+*.wasm
+*.zip

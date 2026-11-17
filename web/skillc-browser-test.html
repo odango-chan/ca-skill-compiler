@@ -1,0 +1,236 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>skillc WASM smoke test</title>
+<pre id="result">RUNNING</pre>
+<script>
+const output = document.querySelector('#result');
+const worker = new Worker('./skillc-worker.js');
+worker.onerror = event => { output.textContent = `WORKER ERROR: ${event.message}`; document.documentElement.dataset.test = 'fail'; };
+worker.onmessageerror = () => { output.textContent = 'WORKER MESSAGE ERROR'; document.documentElement.dataset.test = 'fail'; };
+const paths = [
+  'skills/normalize/SKILL.md', 'skills/normalize/assurance/contract.yaml', 'skills/normalize/assurance/procedure.yaml',
+  'skills/normalize/schemas/normalize-request.schema.yaml', 'skills/normalize/scripts/normalize.py',
+  'lib/tools/demo.tool.yaml'
+];
+async function loadFiles() { return Promise.all(paths.map(async path => {
+  const response = await fetch(`./project/${path}`);
+  if (!response.ok) throw new Error(`Unable to fetch ${path}`);
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+  return {path, bytes:btoa(binary)};
+})); }
+async function loadFlowFiles() {
+  const flowPaths = [
+    'skills/flow/SKILL.md', 'skills/flow/assurance/contract.yaml',
+    'skills/flow/assurance/procedure.yaml', 'lib/tools/mutation.yaml'
+  ];
+  return Promise.all(flowPaths.map(async path => {
+    const response = await fetch(`./flow-project/${path}`);
+    if (!response.ok) throw new Error(`Unable to fetch flow fixture ${path}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+    return {path, bytes:btoa(binary)};
+  }));
+}
+async function loadFunctionalFiles() {
+  const functionalPaths = [
+    'skills/functional/SKILL.md', 'skills/functional/assurance/contract.yaml',
+    'skills/functional/assurance/procedure.yaml', 'skills/functional/scripts/out.py'
+  ];
+  return Promise.all(functionalPaths.map(async path => {
+    const response = await fetch(`./functional-project/${path}`);
+    if (!response.ok) throw new Error(`Unable to fetch functional fixture ${path}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+    return {path, bytes:btoa(binary)};
+  }));
+}
+async function loadDiagnosticGolden() {
+  const response = await fetch('./diagnostics-golden.json');
+  if (!response.ok) throw new Error('Unable to fetch Native diagnostic golden vectors');
+  return response.json();
+}
+async function loadOfficialFiles() {
+  const response = await fetch('./official-project-files.json');
+  if (!response.ok) throw new Error('Unable to fetch the pinned official project file manifest');
+  const paths = await response.json();
+  const checksumResponse = await fetch('./official-project-sha256.json');
+  if (!checksumResponse.ok) throw new Error('Unable to fetch pinned official source checksums');
+  const checksums = await checksumResponse.json();
+  if (Object.keys(checksums).length !== paths.length) throw new Error('Official project manifest and checksum counts differ');
+  return Promise.all(paths.map(async path => {
+    const file = await fetch(`./official-project/${path}`);
+    if (!file.ok) throw new Error(`Unable to fetch official Skill input ${path}`);
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
+    if (digest !== checksums[path]) throw new Error(`Official Skill input differs from its pinned checksum: ${path}`);
+    let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+    return {path, bytes:btoa(binary)};
+  }));
+}
+function encodeUTF8(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+function mutateFile(files, path, before, after) {
+  const mutated = files.map(file => ({...file}));
+  const file = mutated.find(item => item.path === path);
+  if (!file) throw new Error(`Missing mutation target ${path}`);
+  const bytes = Uint8Array.from(atob(file.bytes), ch => ch.charCodeAt(0));
+  const source = new TextDecoder().decode(bytes);
+  const changed = source.replace(before, after);
+  if (changed === source) throw new Error(`Mutation did not apply to ${path}`);
+  file.bytes = encodeUTF8(changed);
+  return mutated;
+}
+let nextId = 0;
+function send(command, request) {
+  const id = `r${++nextId}`;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${command} timed out`)), 45000);
+    const listener = event => {
+      if (event.data?.id !== id) return;
+      clearTimeout(timer); worker.removeEventListener('message', listener);
+      if (event.data.error) reject(new Error(event.data.error)); else resolve(event.data.result);
+    };
+    worker.addEventListener('message', listener);
+    worker.postMessage({id, command, request});
+  });
+}
+(async () => {
+  const files = await loadFiles();
+  const diagnosticGolden = await loadDiagnosticGolden();
+  const officialDiagnosticGolden = await (await fetch('./official-diagnostics-golden.json')).json();
+  const request = {files};
+  const check = await send('check', request);
+  const build = await send('build', request);
+  const inspect = await send('inspect', request);
+  const functionalFiles = await loadFunctionalFiles();
+  const functionalCheck = await send('check', {files:functionalFiles});
+  const functionalBuild = await send('build', {files:functionalFiles});
+  const duplicateCatalog = 'apiVersion: ca-agent-demo.tool/v1\nkind: ToolCatalog\nmetadata: {name: duplicate, owner: tests}\nx-common:\n  ref: &ref {type: string, minLength: 1}\nspec:\n  contracts:\n  - operation: demo.read\n    effect: READ\n    inputSchema: {type: object, required: [ref], properties: {ref: *ref}}\n    outputSchema: {type: object}\n';
+  const duplicateLibrary = await send('inspect', {files:files.concat([{path:'lib/tools/duplicate.tool.yaml', bytes:encodeUTF8(duplicateCatalog)}])});
+  const untypedConstBinding = await send('check', {files:mutateFile(mutateFile(files, 'lib/tools/demo.tool.yaml', 'key: *text', 'key: {const: sample}'), 'skills/normalize/assurance/procedure.yaml', 'key: {from: context.request.dnn}', 'key: {value: sample}')});
+  const booleanTrueSchemaBinding = await send('check', {files:mutateFile(files, 'lib/tools/demo.tool.yaml', 'key: *text', 'key: true')});
+  const omittedItemsBinding = await send('check', {files:mutateFile(mutateFile(files, 'lib/tools/demo.tool.yaml', 'key: *text', 'key: {type: array}'), 'skills/normalize/schemas/normalize-request.schema.yaml', 'dnn: {type: string, minLength: 1}', 'dnn: {type: array, items: {type: integer}}')});
+  const requiredObjectCountBinding = await send('check', {files:mutateFile(mutateFile(files, 'lib/tools/demo.tool.yaml', 'key: *text', 'key: {type: object, minProperties: 2}'), 'skills/normalize/schemas/normalize-request.schema.yaml', 'dnn: {type: string, minLength: 1}', 'dnn: {type: object, required: [one, two], properties: {one: {type: string}, two: {type: string}}}')});
+  const patternPropertiesUnsupported = await send('check', {files:mutateFile(files, 'lib/tools/demo.tool.yaml', 'key: *text', 'key: {type: object, patternProperties: {"^x-": {type: string}}}')});
+  const containsUnsupported = await send('check', {files:mutateFile(files, 'lib/tools/demo.tool.yaml', 'key: *text', 'key: {type: array, items: {type: string}, contains: {type: string}}')});
+  const typingImportAliasUnsupported = await send('check', {files:mutateFile(files, 'skills/normalize/scripts/normalize.py', 'from typing import Annotated, Literal, TypedDict', 'from typing import Annotated, Literal, TypedDict as TD')});
+  const officialFiles = await loadOfficialFiles();
+  const officialDiagnostics = await send('check', {files:officialFiles});
+  const invalid = await send('check', {files, targets:['missing']});
+  const invalidBinding = await send('check', {files:mutateFile(files, 'skills/normalize/assurance/procedure.yaml', '          key: {from: context.request.dnn}', '          unexpected: {value: sample}')});
+  const bindingTypeMismatch = await send('check', {files:mutateFile(files, 'skills/normalize/schemas/normalize-request.schema.yaml', 'dnn: {type: string, minLength: 1}', 'dnn: {type: integer}')});
+  const unknownOperation = await send('check', {files:mutateFile(files, 'skills/normalize/assurance/procedure.yaml', 'call: demo.read', 'call: demo.missing')});
+  const procedureOutputSource = `procedures:
+  normalize:
+    start: invoke
+    nodes:
+      invoke:
+        procedure: helper
+        'on':
+          SUCCEEDED: normalize-step
+          FAILED: failed
+      normalize-step:
+        preconditions:
+          steps:
+            - name: normalize-value
+              script: scripts/normalize.py
+
+
+
+
+              with:
+                value: {from: invoke.output.value}
+          'on':
+            FAILED: failed
+            UNRESOLVED: failed
+        terminal: SUCCEEDED
+      failed: {terminal: FAILED}
+  helper:
+    start: done
+    nodes:
+      done: {terminal: SUCCEEDED}
+`;
+  const procedureOutputMissingSchema = await send('check', {files:mutateFile(files, 'skills/normalize/assurance/procedure.yaml', new TextDecoder().decode(Uint8Array.from(atob(files.find(f=>f.path==='skills/normalize/assurance/procedure.yaml').bytes), ch=>ch.charCodeAt(0))), procedureOutputSource)});
+  const invalidScriptOutput = await send('check', {files:mutateFile(files, 'skills/normalize/scripts/normalize.py', 'normalized: Annotated[str, {"minLength": 1, "pattern": r"^[a-z0-9.-]+$"}]', 'normalized: Any')});
+  const procedureOutcomeInvalid = await send('check', {files:mutateFile(files, 'skills/normalize/assurance/procedure.yaml', '          SUCCEEDED: normalize-step', '          PASS: normalize-step')});
+  const procedureNodeUnreachable = await send('check', {files:mutateFile(files, 'skills/normalize/assurance/procedure.yaml', '      failed:\n', '      orphan: {terminal: FAILED}\n      failed:\n')});
+  const procedureTerminalInvalid = await send('check', {files:mutateFile(files, 'skills/normalize/assurance/procedure.yaml', 'terminal: FAILED', 'terminal: DONE')});
+  const procedurePhaseRouteMissing = await send('check', {files:mutateFile(files, 'skills/normalize/assurance/procedure.yaml', '            UNRESOLVED: failed\n', '')});
+  const reconcileCausalityInvalid = await send('check', {files:await loadFlowFiles()});
+  const invalidPath = await send('check', {files:files.concat([{path:'skills/../escape.yaml', bytes:encodeUTF8('bad')}])});
+  const duplicateProjectPath = await send('check', {files:files.concat([{...files[0]}])});
+  const malformedProcedureYAML = await send('check', {files:mutateFile(files, 'skills/normalize/assurance/procedure.yaml', 'procedures:\n', 'procedures: [\n')});
+  const oversizedRequest = {ignored: 'x'.repeat(25 * 1024 * 1024 + 1)};
+  const oversizedCheck = await send('check', oversizedRequest);
+  const oversizedBuild = await send('build', oversizedRequest);
+  const oversizedInspect = await send('inspect', oversizedRequest);
+  if (check.length !== 0 || !build.success || build.outputFiles.length !== 7) throw new Error('valid build/check failed');
+  if (functionalCheck.length !== 0 || !functionalBuild.success || functionalBuild.outputFiles.length !== 5) throw new Error('functional TypedDict build/check failed');
+  for (const file of functionalBuild.outputFiles) {
+    const response = await fetch(`./functional-native-output/${file.path}`);
+    if (!response.ok) throw new Error(`Native functional output is missing: ${file.path}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+    if (btoa(binary) !== file.bytes) throw new Error(`WASM functional output differs from Native: ${file.path}`);
+  }
+  const functionalSchemaFile = functionalBuild.outputFiles.find(file => file.path.endsWith('/out.output.schema.json'));
+  if (!functionalSchemaFile) throw new Error('functional TypedDict generated Schema is missing');
+  const functionalSchemaBytes = Uint8Array.from(atob(functionalSchemaFile.bytes), ch => ch.charCodeAt(0));
+  const functionalSchema = JSON.parse(new TextDecoder().decode(functionalSchemaBytes));
+  if (JSON.stringify(functionalSchema.required) !== JSON.stringify(['5qi']) || !functionalSchema.properties['optional label'] || functionalSchema.additionalProperties !== false) throw new Error('functional TypedDict wire keys/requiredness changed');
+  const expectedPaths = [
+    'lib/tools/demo.tool.yaml',
+    'skills/normalize/SKILL.md',
+    'skills/normalize/assurance/contract.yaml',
+    'skills/normalize/assurance/procedure.yaml',
+    'skills/normalize/schemas/generated/normalize.output.schema.json',
+    'skills/normalize/schemas/normalize-request.schema.yaml',
+    'skills/normalize/scripts/normalize.py'
+  ];
+  if (JSON.stringify(build.outputFiles.map(f=>f.path)) !== JSON.stringify(expectedPaths)) throw new Error('output paths/order differ from native fixture expectation');
+  for (const file of build.outputFiles) {
+    const response = await fetch(`./native-output/${file.path}`);
+    if (!response.ok) throw new Error(`Native golden output is missing: ${file.path}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+    if (btoa(binary) !== file.bytes) throw new Error(`WASM output bytes differ from Native: ${file.path}`);
+  }
+  if (check.length !== 0) throw new Error('valid project returned diagnostics');
+  if (!Array.isArray(inspect.tools) || inspect.tools.length !== 1 || inspect.tools[0].operationId !== 'demo.read') throw new Error('inspectLibraries response malformed');
+  if (JSON.stringify(duplicateLibrary.diagnostics) !== JSON.stringify(diagnosticGolden.duplicateLibrary) || duplicateLibrary.tools.length !== 0) throw new Error(`WASM inspectLibraries diagnostics differ from Native duplicate-operation golden: ${JSON.stringify(duplicateLibrary)}`);
+  if (JSON.stringify(untypedConstBinding) !== JSON.stringify(diagnosticGolden.untypedConstBinding)) throw new Error(`WASM type-less const diagnostics differ from Native golden: ${JSON.stringify(untypedConstBinding)}`);
+  if (JSON.stringify(booleanTrueSchemaBinding) !== JSON.stringify(diagnosticGolden.booleanTrueSchemaBinding)) throw new Error(`WASM boolean Schema diagnostics differ from Native golden: ${JSON.stringify(booleanTrueSchemaBinding)}`);
+  if (JSON.stringify(omittedItemsBinding) !== JSON.stringify(diagnosticGolden.omittedItemsBinding)) throw new Error(`WASM omitted-items diagnostics differ from Native golden: ${JSON.stringify(omittedItemsBinding)}`);
+  if (JSON.stringify(requiredObjectCountBinding) !== JSON.stringify(diagnosticGolden.requiredObjectCountBinding)) throw new Error(`WASM required-object-count diagnostics differ from Native golden: ${JSON.stringify(requiredObjectCountBinding)}`);
+  if (JSON.stringify(patternPropertiesUnsupported) !== JSON.stringify(diagnosticGolden.patternPropertiesUnsupported)) throw new Error(`WASM patternProperties diagnostics differ from Native golden: ${JSON.stringify(patternPropertiesUnsupported)}`);
+  if (JSON.stringify(containsUnsupported) !== JSON.stringify(diagnosticGolden.containsUnsupported)) throw new Error(`WASM contains diagnostics differ from Native golden: ${JSON.stringify(containsUnsupported)}`);
+  if (JSON.stringify(typingImportAliasUnsupported) !== JSON.stringify(diagnosticGolden.typingImportAliasUnsupported)) throw new Error(`WASM Script typing-alias diagnostics differ from Native golden: ${JSON.stringify(typingImportAliasUnsupported)}`);
+  if (JSON.stringify(officialDiagnostics) !== JSON.stringify(officialDiagnosticGolden)) throw new Error(`WASM diagnostics differ from pinned official Native golden (${officialDiagnostics.length} vs ${officialDiagnosticGolden.length})`);
+  if (JSON.stringify(invalid) !== JSON.stringify(diagnosticGolden.targetNotFound)) throw new Error(`WASM diagnostics differ from Native TARGET_NOT_FOUND golden: ${JSON.stringify(invalid)}`);
+  if (JSON.stringify(invalidBinding) !== JSON.stringify(diagnosticGolden.invalidBinding)) throw new Error(`WASM diagnostics differ from Native binding golden: ${JSON.stringify(invalidBinding)}`);
+  if (JSON.stringify(bindingTypeMismatch) !== JSON.stringify(diagnosticGolden.bindingTypeMismatch)) throw new Error(`WASM diagnostics differ from Native type mismatch golden: ${JSON.stringify(bindingTypeMismatch)}`);
+  if (JSON.stringify(unknownOperation) !== JSON.stringify(diagnosticGolden.unknownOperation)) throw new Error(`WASM diagnostics differ from Native unknown-operation golden: ${JSON.stringify(unknownOperation)}`);
+  if (JSON.stringify(procedureOutputMissingSchema) !== JSON.stringify(diagnosticGolden.procedureOutputMissingSchema)) throw new Error(`WASM diagnostics differ from Native missing-Procedure-output golden: ${JSON.stringify(procedureOutputMissingSchema)}`);
+  if (JSON.stringify(invalidScriptOutput) !== JSON.stringify(diagnosticGolden.invalidScriptOutput)) throw new Error(`WASM diagnostics differ from Native Script-output golden: ${JSON.stringify(invalidScriptOutput)}`);
+  if (JSON.stringify(procedureOutcomeInvalid) !== JSON.stringify(diagnosticGolden.procedureOutcomeInvalid)) throw new Error(`WASM diagnostics differ from Native outcome golden: ${JSON.stringify(procedureOutcomeInvalid)}`);
+  if (JSON.stringify(procedureNodeUnreachable) !== JSON.stringify(diagnosticGolden.procedureNodeUnreachable)) throw new Error(`WASM diagnostics differ from Native unreachable-node golden: ${JSON.stringify(procedureNodeUnreachable)}`);
+  if (JSON.stringify(procedureTerminalInvalid) !== JSON.stringify(diagnosticGolden.procedureTerminalInvalid)) throw new Error(`WASM diagnostics differ from Native terminal golden: ${JSON.stringify(procedureTerminalInvalid)}`);
+  if (JSON.stringify(procedurePhaseRouteMissing) !== JSON.stringify(diagnosticGolden.procedurePhaseRouteMissing)) throw new Error(`WASM diagnostics differ from Native phase-route golden: ${JSON.stringify(procedurePhaseRouteMissing)}`);
+  if (JSON.stringify(reconcileCausalityInvalid) !== JSON.stringify(diagnosticGolden.reconcileCausalityInvalid)) throw new Error(`WASM diagnostics differ from Native reconcile-causality golden: ${JSON.stringify(reconcileCausalityInvalid)}`);
+  if (JSON.stringify(invalidPath) !== JSON.stringify(diagnosticGolden.invalidPath)) throw new Error(`WASM diagnostics differ from Native path-validation golden: ${JSON.stringify(invalidPath)}`);
+  if (JSON.stringify(duplicateProjectPath) !== JSON.stringify(diagnosticGolden.duplicateProjectPath)) throw new Error(`WASM diagnostics differ from Native duplicate-file golden: ${JSON.stringify(duplicateProjectPath)}`);
+  if (JSON.stringify(malformedProcedureYAML) !== JSON.stringify(diagnosticGolden.malformedProcedureYAML)) throw new Error(`WASM diagnostics differ from Native YAML-parse golden: ${JSON.stringify(malformedProcedureYAML)}`);
+  if (!Array.isArray(oversizedCheck) || oversizedCheck.length !== 1 || oversizedCheck[0].code !== 'INPUT_LIMIT') throw new Error('oversized check request did not return a Diagnostic[] input limit');
+  if (oversizedBuild.success || oversizedBuild.outputFiles.length !== 0 || oversizedBuild.diagnostics[0]?.code !== 'INPUT_LIMIT') throw new Error('oversized build request did not return an empty failed BuildResult');
+  if (oversizedInspect.tools.length !== 0 || oversizedInspect.diagnostics[0]?.code !== 'INPUT_LIMIT') throw new Error('oversized inspect request did not return a LibraryResult');
+  output.textContent = JSON.stringify({status:'PASS', check, build:build.outputFiles.map(f=>f.path), functionalBuild:functionalBuild.outputFiles.map(f=>f.path), inspect, officialInput:{files:officialFiles.length,diagnostics:officialDiagnostics.length}, duplicateLibrary:duplicateLibrary.diagnostics, untypedConstBinding, booleanTrueSchemaBinding, omittedItemsBinding, requiredObjectCountBinding, patternPropertiesUnsupported, containsUnsupported, typingImportAliasUnsupported, invalid:invalid, invalidBinding:invalidBinding, bindingTypeMismatch:bindingTypeMismatch, unknownOperation:unknownOperation, invalidScriptOutput:invalidScriptOutput.diagnostics, procedureOutcomeInvalid, procedureNodeUnreachable, procedureTerminalInvalid, procedurePhaseRouteMissing, reconcileCausalityInvalid, invalidPath, duplicateProjectPath, malformedProcedureYAML, oversizedRequest:{check:oversizedCheck,build:oversizedBuild.diagnostics,inspect:oversizedInspect.diagnostics}}, null, 2);
+  document.documentElement.dataset.test = 'pass';
+})().catch(error => {
+  output.textContent = `FAIL: ${error.stack || error}`;
+  document.documentElement.dataset.test = 'fail';
+});
+</script>

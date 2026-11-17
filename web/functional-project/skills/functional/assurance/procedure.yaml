@@ -1,0 +1,17 @@
+procedures:
+  run:
+    start: build
+    inputs:
+      base: {from: build.output}
+      value: {from: input.base.5qi}
+    nodes:
+      build:
+        script: scripts/out.py
+        with: {}
+        'on': {SUCCEEDED: consume}
+      consume:
+        script: scripts/out.py
+        with:
+          value: {from: input.value}
+        'on': {SUCCEEDED: done}
+      done: {terminal: SUCCEEDED}

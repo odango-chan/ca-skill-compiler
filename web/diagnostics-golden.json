@@ -1,0 +1,190 @@
+{
+  "targetNotFound": [
+    {
+      "severity": "error",
+      "code": "TARGET_NOT_FOUND",
+      "path": "skills/missing",
+      "message": "Skill is missing: missing"
+    }
+  ],
+  "invalidBinding": [
+    {
+      "severity": "error",
+      "code": "BINDING_UNRESOLVED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 8,
+      "message": "required consumer input is not bound: key"
+    },
+    {
+      "severity": "error",
+      "code": "SOURCE_FIELD_UNKNOWN",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 8,
+      "message": "consumer input field is not declared: unexpected"
+    }
+  ],
+  "bindingTypeMismatch": [
+    {
+      "severity": "error",
+      "code": "BINDING_TYPE_MISMATCH",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 8,
+      "message": "Producer schema context.request.dnn is not compatible with input key"
+    }
+  ],
+  "unknownOperation": [
+    {
+      "severity": "error",
+      "code": "LIB_OPERATION_UNKNOWN",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 6,
+      "message": "Tool operation not imported: demo.missing"
+    },
+    {
+      "severity": "error",
+      "code": "TOOL_NOT_DECLARED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 6,
+      "message": "Tool operation is not in allowedResources: demo.missing"
+    },
+    {
+      "severity": "error",
+      "code": "BINDING_UNRESOLVED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 18,
+      "message": "node action has no declared output Schema: read"
+    }
+  ],
+  "procedureOutputMissingSchema": [
+    {
+      "severity": "error",
+      "code": "BINDING_UNRESOLVED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 20,
+      "message": "Procedure node has no declared output Schema: invoke"
+    }
+  ],
+  "invalidScriptOutput": [
+    {
+      "severity": "error",
+      "code": "SCRIPT_TYPE_UNSUPPORTED",
+      "path": "skills/normalize/scripts/normalize.py",
+      "line": 16,
+      "message": "field normalized: broad output type Any is forbidden"
+    }
+  ],
+  "duplicateLibrary": [
+    {
+      "severity": "error",
+      "code": "LIB_OPERATION_DUPLICATE",
+      "path": "lib/tools/duplicate.tool.yaml",
+      "line": 8,
+      "message": "operation demo.read already declared in lib/tools/demo.tool.yaml"
+    }
+  ],
+  "procedureOutcomeInvalid": [
+    {
+      "severity": "error",
+      "code": "PROCEDURE_OUTCOME_INVALID",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 10,
+      "column": 17,
+      "message": "outcome \"PASS\" is not valid for call action"
+    }
+  ],
+  "procedureNodeUnreachable": [
+    {
+      "severity": "error",
+      "code": "PROCEDURE_NODE_UNREACHABLE",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 23,
+      "column": 15,
+      "message": "node is unreachable from procedure start: orphan"
+    }
+  ],
+  "procedureTerminalInvalid": [
+    {
+      "severity": "error",
+      "code": "PROCEDURE_OUTCOME_INVALID",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 24,
+      "column": 19,
+      "message": "terminal result must be SUCCEEDED, FAILED, UNRESOLVED, or SAFE_STOPPED"
+    }
+  ],
+  "procedurePhaseRouteMissing": [
+    {
+      "severity": "error",
+      "code": "PROCEDURE_OUTCOME_MISSING",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 20,
+      "column": 13,
+      "message": "preconditions route must declare UNRESOLVED"
+    }
+  ],
+  "reconcileCausalityInvalid": [
+    {
+      "severity": "error",
+      "code": "PROCEDURE_RECONCILE_TARGET_INVALID",
+      "path": "skills/flow/assurance/procedure.yaml",
+      "line": 10,
+      "message": "reconcile node must be the exact mutation's OUTCOME_UNKNOWN successor: mutate"
+    }
+  ],
+  "invalidPath": [
+    {
+      "severity": "error",
+      "code": "PROJECT_PATH_INVALID",
+      "path": "skills/../escape.yaml",
+      "message": "file path must be normalized and inside skills/ or lib/"
+    }
+  ],
+  "duplicateProjectPath": [
+    {
+      "severity": "error",
+      "code": "PROJECT_DUPLICATE_FILE",
+      "path": "skills/normalize/SKILL.md",
+      "message": "duplicate project file"
+    }
+  ],
+  "malformedProcedureYAML": [
+    {
+      "severity": "error",
+      "code": "YAML_PARSE",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 1,
+      "message": "yaml: line 2: did not find expected ',' or ']'"
+    }
+  ],
+  "untypedConstBinding": [],
+  "booleanTrueSchemaBinding": [],
+  "patternPropertiesUnsupported": [
+    {
+      "severity": "error",
+      "code": "BINDING_UNSUPPORTED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 8,
+      "message": "Producer or consumer Schema uses constraints unsupported by static binding validation: context.request.dnn"
+    }
+  ],
+  "containsUnsupported": [
+    {
+      "severity": "error",
+      "code": "BINDING_UNSUPPORTED",
+      "path": "skills/normalize/assurance/procedure.yaml",
+      "line": 8,
+      "message": "Producer or consumer Schema uses constraints unsupported by static binding validation: context.request.dnn"
+    }
+  ],
+  "typingImportAliasUnsupported": [
+    {
+      "severity": "error",
+      "code": "SCRIPT_TYPE_UNSUPPORTED",
+      "path": "skills/normalize/scripts/normalize.py",
+      "line": 16,
+      "message": "typing import aliases are unsupported in Script Output declarations: TypedDict as TD"
+    }
+  ],
+  "omittedItemsBinding": [],
+  "requiredObjectCountBinding": []
+}

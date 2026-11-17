@@ -1,0 +1,22 @@
+apiVersion: ca-agent-demo.tool/v1
+kind: ToolCatalog
+metadata:
+  name: minimal-demo
+  owner: ca-skill-compiler
+x-common:
+  text: &text
+    type: string
+    minLength: 1
+spec:
+  contracts:
+    - operation: demo.read
+      effect: READ
+      inputSchema:
+        type: object
+        required: [key]
+        properties:
+          key: *text
+      outputSchema:
+        type: object
+        properties:
+          value: *text

@@ -1,0 +1,24 @@
+procedures:
+  normalize:
+    start: read
+    nodes:
+      read:
+        call: demo.read
+        with:
+          key: {from: context.request.dnn}
+        'on':
+          SUCCEEDED: normalize-step
+          FAILED: failed
+      normalize-step:
+        preconditions:
+          steps:
+            - name: normalize-value
+              script: scripts/normalize.py
+              with:
+                value: {from: read.output.value}
+          'on':
+            FAILED: failed
+            UNRESOLVED: failed
+        terminal: SUCCEEDED
+      failed:
+        terminal: FAILED
