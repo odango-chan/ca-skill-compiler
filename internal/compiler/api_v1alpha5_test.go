@@ -131,8 +131,11 @@ func TestBuildV1Alpha5FailsClosedAfterASTValidation(t *testing.T) {
 	if !strings.HasPrefix(diagnostic.Message, "fail-closed: ") {
 		t.Fatalf("residual gate must be clearly marked fail-closed: %#v", diagnostic)
 	}
-	if !strings.Contains(diagnostic.Message, "WP3-WP8") {
+	if !strings.Contains(diagnostic.Message, "WP7 conformance mapping") || !strings.Contains(diagnostic.Message, "WP8 artifact assembly") {
 		t.Fatalf("residual gate must name the unimplemented work packages: %#v", diagnostic)
+	}
+	if strings.Contains(diagnostic.Message, "WP3-WP8") {
+		t.Fatalf("residual gate must not blanket-name already implemented work packages: %#v", diagnostic)
 	}
 
 	// A Wait whose trusted Ingress export cannot exist is a real source

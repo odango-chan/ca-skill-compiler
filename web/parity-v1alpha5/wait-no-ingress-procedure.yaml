@@ -1,0 +1,35 @@
+start: transfer-n1n2-message
+nodes:
+  transfer-n1n2-message:
+    operation:
+      tool: ca::amf.communication.n1n2_message_transfer
+      arguments:
+        smContextRef: create-sm-context.operation.output.smContextRef
+      routes:
+        SUCCEEDED: update-sm-context
+        FAILED: SAFE_STOPPED
+        OUTCOME_UNKNOWN: SAFE_STOPPED
+  update-sm-context:
+    wait:
+      event:
+        source: AMF
+        service: Nsmf_PDUSession
+        operation: UpdateSMContext
+      timeout: PT30S
+      routes:
+        TIMEOUT: handle-update-timeout
+    operation:
+      tool: ca::smf.session.update_from_amf
+      arguments: {}
+      routes:
+        SUCCEEDED: SAFE_STOPPED
+        FAILED: SAFE_STOPPED
+        OUTCOME_UNKNOWN: SAFE_STOPPED
+  handle-update-timeout:
+    operation:
+      tool: ca::smf.update_timeout.handle
+      arguments: {}
+      routes:
+        SUCCEEDED: SAFE_STOPPED
+        FAILED: UNRESOLVED
+        OUTCOME_UNKNOWN: SAFE_STOPPED

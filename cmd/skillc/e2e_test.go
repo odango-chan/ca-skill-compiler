@@ -433,8 +433,10 @@ func TestCLIEndToEndV1Alpha5VersionAndHelp(t *testing.T) {
 const v1alpha5LanguageTargetForCLITest = "connectionagent.io/v1alpha5"
 
 // TestCLIEndToEndV1Alpha5CheckRequest proves `check --request` dispatches to the
-// v1alpha5 static Check: a valid Wait Procedure returns zero diagnostics and an
-// invalid one returns deterministic positioned WAIT_* diagnostics.
+// v1alpha5 static Check: a valid Procedure returns zero diagnostics, an invalid
+// one returns deterministic positioned WAIT_* diagnostics, and a syntactically
+// valid Wait whose trusted Ingress export cannot be resolved reports
+// WAIT_INGRESS_EXPORT_NOT_FOUND (L.3.1) rather than being silently accepted.
 func TestCLIEndToEndV1Alpha5CheckRequest(t *testing.T) {
 	validPath := v1alpha5CLIRequestPath(t, "valid")
 	validJSON := runCLI(t, "check", "--request", validPath, "--json")
@@ -446,11 +448,31 @@ func TestCLIEndToEndV1Alpha5CheckRequest(t *testing.T) {
 		t.Fatalf("valid v1alpha5 check --json output: %v\n%s", err, validJSON.stdout)
 	}
 	if len(validDiagnostics) != 0 {
-		t.Fatalf("valid v1alpha5 Wait procedure diagnostics = %+v, want []", validDiagnostics)
+		t.Fatalf("valid v1alpha5 procedure diagnostics = %+v, want []", validDiagnostics)
 	}
 	validHuman := runCLI(t, "check", "--request", validPath)
 	if validHuman.code != 0 || !strings.Contains(validHuman.stdout, "static check OK") {
 		t.Fatalf("valid v1alpha5 human check exit = %d stdout = %q stderr = %q", validHuman.code, validHuman.stdout, validHuman.stderr)
+	}
+
+	// A dependency-free Wait has no trusted Ingress Operation export, so the
+	// exact selector cannot resolve; L.3.1 requires WAIT_INGRESS_EXPORT_NOT_FOUND
+	// instead of a silent pass.
+	unresolvedPath := v1alpha5CLIRequestPath(t, "wait-no-ingress")
+	unresolved := runCLI(t, "check", "--request", unresolvedPath, "--json")
+	if unresolved.code != 1 {
+		t.Fatalf("unresolved v1alpha5 check --json exit = %d, want 1; stderr = %s", unresolved.code, unresolved.stderr)
+	}
+	var unresolvedDiagnostics []compiler.Diagnostic
+	if err := json.Unmarshal([]byte(unresolved.stdout), &unresolvedDiagnostics); err != nil {
+		t.Fatalf("unresolved v1alpha5 check --json output: %v\n%s", err, unresolved.stdout)
+	}
+	if len(unresolvedDiagnostics) != 1 {
+		t.Fatalf("unresolved v1alpha5 Wait diagnostics = %+v, want one", unresolvedDiagnostics)
+	}
+	if got := unresolvedDiagnostics[0]; got.Code != "WAIT_INGRESS_EXPORT_NOT_FOUND" || got.Phase != "C_STATIC" ||
+		got.Severity != "error" || got.Path != "skills/example/assurance/procedure.yaml" || got.Line == 0 || got.Column == 0 {
+		t.Fatalf("unresolved v1alpha5 Wait diagnostic = %+v", got)
 	}
 
 	invalidPath := v1alpha5CLIRequestPath(t, "invalid")
@@ -497,8 +519,8 @@ func TestCLIEndToEndV1Alpha5CheckRequest(t *testing.T) {
 }
 
 // TestCLIEndToEndV1Alpha5BuildFailClosed proves Build is fail-closed for the
-// candidate target in both directions: a valid Wait Procedure fails closed on
-// the documented residual gate, while an invalid one preserves its WAIT_*
+// candidate target in both directions: a valid Procedure fails closed on the
+// documented residual gate, while an invalid one preserves its WAIT_*
 // diagnostics. Every v1alpha5 BuildResult is stamped with the v1alpha5 API
 // version, and no artifact files are emitted.
 func TestCLIEndToEndV1Alpha5BuildFailClosed(t *testing.T) {
