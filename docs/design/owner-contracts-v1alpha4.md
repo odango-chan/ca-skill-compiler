@@ -150,4 +150,4 @@ Compiler recomputes the raw file digest and checks publisher/deployment authoriz
 
 A schema-valid example is not a real Owner publication. A successful static link is not proof of deployment authorization or live service availability.
 
-The current 5GC source inventory explicitly records that its imported ToolCatalog is legacy and that trusted Host / Observation / Evidence contracts and v1alpha4 CapabilityContracts are not yet qualified. Do not change version strings or fabricate Owner schemas to make the first real build pass.
+The v1.0.0 release acceptance did not have a qualified real v1alpha4 Owner/Deployment publication set, and the MAS baseline was not runnable. A synthetic fixture or legacy ToolCatalog is not a substitute for a trusted v1alpha4 publication. Do not change version strings or fabricate Owner schemas to make a real build pass. Reassess this boundary only against actual versioned Owner/Deployment publications and real qualification evidence.
