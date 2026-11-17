@@ -7,7 +7,7 @@
 
 ## 1. 目标
 
-在现有 Go Core 上增量实现下一版 CA-SL 的静态编译能力，重点支持：
+实现下一版 CA-SL 的静态编译能力；可以复用现有 Go Core，也可以按新架构需要重构或替换，重点支持：
 
 - Node-entry Event Wait；
 - package-scoped Integration Ingress Operation / IngressCatalog；
@@ -33,7 +33,6 @@
 **重要边界：**
 
 - 下一目标标识为 `connectionagent.io/v1alpha5`，由 ca-skills #61 指定。完整单文件候选已存在，语义基线标记为 FROZEN；但规范全文及符合性材料仍在独立评审，当前为 NOT RELEASED / NOT QUALIFIED。36 个 EW obligation 明确标记为 `SPECIFICATION_ONLY`，尚非已执行测试。旧 v1alpha4 实现可以留在历史 Tag，也可以在当前开发线上被替换或删除；下一版 Compiler 无须为兼容而继续支持旧语法。
-- v1alpha5 的 Target 身份已经明确，不再是未分配：当前 #61 候选指定 `connectionagent.io/v1alpha5`，并已提供完整单文件评审稿。文件头将语义基线标记为冻结，但完整规范文本与符合性材料仍待独立评审；当前仍为 NOT RELEASED / NOT QUALIFIED。36 项 EW 义务全部明确标记为 `SPECIFICATION_ONLY`，不是已执行测试。
 - 不要求当前开发线继续提供 v1alpha4 Decoder、诊断或 Build 行为；如需保留历史发布物，只保留历史 Tag / Release，不把历史兼容性转化为新架构负担。
 - 当前 #62 Head `3660e93f` 的 Source Hygiene（Run `44055966980`）和 IngressCatalog Schema（Run `44055966999`）均 PASS。Resolver 实现已从原始 Artifact 字节复算 `artifactDigest`，并覆盖嵌套 `$id` Fragment 到非根 Artifact Pointer 的转换及负向向量。PR 仍为 Draft；Ingress 导出契约以及 `INGRESS_*` 与既有诊断的归属 / 优先级尚未冻结，也没有真实 Owner / Integration 资格证明。
 
