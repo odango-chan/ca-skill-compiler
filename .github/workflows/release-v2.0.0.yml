@@ -27,7 +27,7 @@ jobs:
       TAG: v2.0.0
       GOWORK: "off"
       CGO_ENABLED: "0"
-      GH_TOKEN: __GITHUB_TOKEN__
+      GH_TOKEN: ${{ github.token }}
 
     steps:
       - name: Checkout exact approved Compiler source
@@ -75,7 +75,7 @@ jobs:
       - name: Real Chromium Worker parity
         env:
           CHROMIUM_PARITY: "1"
-          CHROME_PATH: __CHROME_PATH__
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v
 
       - name: Diff whitespace check
