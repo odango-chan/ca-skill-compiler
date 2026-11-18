@@ -33,6 +33,17 @@ target remains the frozen `connectionagent.io/v1alpha4`.
 v0.1 and v0.2 are historical records only. They are not fallback contracts, this
 repository does not translate or infer them, and no compatibility mode exists.
 
+## Next target: CA-SL v1alpha5
+
+The released v1alpha5 language and IngressCatalog contracts are the normative target for the next Compiler implementation. The current implementation is a **partial candidate**, not a full-language release: Wait / Ingress compilation is present, while inherited package admission, ordinary non-Wait ToolCatalog linking, Capability, Schema/CEL, Predicate/Script, Evidence, Mutation, Reconcile and retry semantics are still being completed.
+
+- Integration PR: [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38) — OPEN / DRAFT.
+- Current acceptance: [v1alpha5 integration acceptance](docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+- Remaining implementation Goal: [v1alpha5 full-language completion](docs/workstreams/v1alpha5-full-language-completion-goal.zh-CN.md).
+- Current known limitations: [v1alpha5 known limitations](docs/known-limitations-v1alpha5.md).
+
+The active development line targets v1alpha5. Backward compatibility with the v1alpha4 Compiler API or old projects is not required; published v1.0.0 artifacts and tags remain historical release records and are not rewritten. The current v1alpha5 artifact must continue to declare partial validation until every Compiler-owned static obligation is implemented and tested.
+
 ## Quick start
 
 Build the reference CLI and run the checked-in trusted fixture:
@@ -97,6 +108,8 @@ dependency is reported, never inferred. Full reference: [CLI v1alpha4](docs/cli-
 | [Known Limitations v1alpha4](docs/known-limitations-v1alpha4.md) | External contracts, fail-closed branches, WP13 boundary |
 | [Release Notes v1.0.0](docs/release-notes-v1.0.0.md) | Formal release features, verification, artifacts and known limitations |
 | [Acceptance Status](docs/COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) | Live implementation/E-coverage status and evidence |
+| [v1alpha5 Integration Acceptance](docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md) | Current v1alpha5 implementation scope, blockers and CI evidence |
+| [v1alpha5 Full Language Goal](docs/workstreams/v1alpha5-full-language-completion-goal.zh-CN.md) | WP9–WP14 plan for complete v1alpha5 static compilation |
 | [Conformance plan](docs/workstreams/conformance-v1alpha4.md) | E01–E120, H diagnostics, Native/WASM and 5GC gates |
 | [Studio integration](docs/studio-integration-v1alpha4.md) | Go/WASM Worker and read-only Studio boundary |
 | [Machine contracts](contracts/v1alpha4/README.md) | JSON Schemas and golden vectors |
