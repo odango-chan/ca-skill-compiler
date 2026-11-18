@@ -135,3 +135,17 @@ func failedV1Alpha5BuildResult(diagnostics []Diagnostic) BuildResult {
 	result.APIVersion = BuildResultAPIVersionV1Alpha5
 	return result
 }
+
+// BuildV1Alpha5 is the explicit v1alpha5 Build entry. It is the active
+// Compiler Build target: Check and Build share the one unified static pipeline,
+// and a successful Build assembles the deterministic v1alpha5 artifact tree.
+func BuildV1Alpha5(req BuildRequest) BuildResult {
+	return validateV1Alpha5(req)
+}
+
+// InspectV1Alpha5Dependencies is the explicit v1alpha5 read-only dependency
+// inventory projection. It is snapshot-scoped and never resolves Skill author
+// references or authorizes invocation.
+func InspectV1Alpha5Dependencies(req BuildRequest) DependencyInspection {
+	return inspectV1Alpha5Dependencies(req)
+}

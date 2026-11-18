@@ -69,20 +69,11 @@ Current recorded register counts: 55 implemented+tested, 0 Compiler-static defer
 
 Every released Compiler-owned EW/IN case is implemented and covered by at least one executed negative or positive test. The register classification is 55 implemented+tested, 0 deferred, 46 external and 1 specification-only.
 
-## 6. API and architecture limitations
+## 6. API and architecture: separated
 
-The current code places the shared `BuildRequest` and `TrustedBuildContext` declarations in `api_v1alpha4.go`, while the shared context struct also carries v1alpha5-only artifact and Schema fields. The v1alpha4 validation rejects those fields.
+The shared public wire DTOs (`BuildRequest`, `BuildResult`, `Diagnostic`, `DependencyInspection`, inspection rows) and the strict JSON transport decoder now live in the target-neutral `internal/compiler/api.go`; the v1alpha5 public entries (`CheckV1Alpha5`, `BuildV1Alpha5`, `InspectV1Alpha5Dependencies`) live in `api_v1alpha5.go`; and `api_v1alpha4_target.go` contains only the frozen historical v1alpha4 envelope admission. The internal semantic model is shared and version-neutral: one parser, one pipeline, one artifact path, no compatibility adapter and no second v1alpha5 implementation.
 
-This is an unnecessary coupling. There is no requirement to preserve v1alpha4 public API or old project compatibility on the active development line. Refactor toward:
-
-- a clean v1alpha5 public BuildRequest / BuildResult / DependencyInspection contract;
-- a target-neutral internal canonical input model;
-- one normalized YAML AST and reusable semantic services;
-- one coherent v1alpha5 pipeline, including inherited language semantics and Wait / Ingress additions;
-- no dual Parser, Linker or compatibility adapters retained solely for v1alpha4.
-
-The published v1.0.0 tag/release remains a historical artifact and is not rewritten. The active development branch may remove or replace v1alpha4 code when doing so improves the architecture.
-
+`connectionagent.io/v1alpha5` is the active language target. `connectionagent.io/v1alpha4` remains a frozen historical dispatch target for release traceability; it receives no new semantics. The published v1.0.0 tag/release remains immutable. See [Compiler core and public API](../design/compiler-core-v1alpha5.md).
 ## 7. Other boundaries
 
 - **Studio:** v1alpha5 successful-Build rendering is not included in the current Compiler integration candidate. Studio/LSP integration requires a separate acceptance.

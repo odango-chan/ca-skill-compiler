@@ -38,7 +38,7 @@ repository does not translate or infer them, and no compatibility mode exists.
 The released v1alpha5 language and IngressCatalog contracts are the normative active target. The v1alpha5 Compiler implements the complete released Compiler-owned static validation scope: package/dependency/Owner/Tool/Capability linking, Schema/CEL/Predicate/Script, the full Procedure graph, Evidence Descriptor linking, Mutation/Reconcile/retry assurance, Wait/Ingress and the deterministic artifact pipeline. All feature-scoped fail-closed gates are removed. Product/Owner/Host/Runtime qualification remains NOT_QUALIFIED.
 
 - Integration PR: [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38) — OPEN / DRAFT.
-- Current acceptance: [v1alpha5 integration acceptance](docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+- Compiler core architecture: [v1alpha5 Compiler core and public API](docs/design/compiler-core-v1alpha5.md).\n- Current acceptance: [v1alpha5 integration acceptance](docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
 - Remaining implementation Goal: [v1alpha5 full-language completion](docs/workstreams/v1alpha5-full-language-completion-goal.zh-CN.md).
 - Current known limitations: [v1alpha5 known limitations](docs/known-limitations-v1alpha5.md).
 

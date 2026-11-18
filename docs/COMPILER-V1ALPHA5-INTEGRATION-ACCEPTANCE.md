@@ -80,12 +80,9 @@ The register now reports all 102 cases: 36 EW + 66 IN. The released Ingress cont
 
 Current register classification: 55 implemented+tested, 0 Compiler-static deferred, 46 Host/Runtime/Integration-owned, 1 specification-only. No Compiler-owned EW/IN case remains deferred; every Compiler-owned static obligation is implemented and tested. IN-058 is Host/Admission-owned for exact profile-resource resolution because released #62 publishes no profile resource representation. IN-030 now aligns the missing export-declared Producer stage at the response boundary with WAIT_RESPONSE_BOUNDARY_INVALID, and IN-044 cross-checks the pinned OpenAPI response shape (multipart/related) against the declared response representations. The unified pipeline also covers the inherited EW-031 global-Precondition dominance proof, the inherited IN-019 self-output SOURCE_NOT_AVAILABLE rule, exact Ingress dependency Owner binding (IN-004), duplicate response disposition id/status (IN-040) and the authenticated-header-parameter wire-discriminator identity consistency (IN-046/IN-060). The request-normalization, immutable binary-content lifecycle and peer profile reference form rules are implemented with negative tests; only expected-profile-resource resolution remains deferred for IN-058 because the released contract does not publish a profile resource representation.
 
-### 3.3 Versioned API types are not yet cleanly separated
+### 3.3 Public API separation: completed
 
-The current `BuildRequest`, `TrustedBuildContext` and shared result types are declared in `api_v1alpha4.go`; v1alpha5-only trusted artifact / Schema fields live on the shared context type and are rejected by the v1alpha4 validation path.
-
-This is an implementation coupling, not a required compatibility design. The remaining WP9 step is a clean v1alpha5 public request/result/inspection model and a target-neutral internal build model. No separate Parser/Linker is kept, and there is no compatibility adapter.
-
+The shared public wire DTOs and strict JSON decoder now live in the target-neutral `internal/compiler/api.go`; the v1alpha5 public entries (`CheckV1Alpha5`, `BuildV1Alpha5`, `InspectV1Alpha5Dependencies`) live in `api_v1alpha5.go`; and `api_v1alpha4_target.go` holds only the frozen historical v1alpha4 envelope admission. The internal semantic model remains shared and version-neutral with one parser, one pipeline and one artifact path. See [Compiler core and public API](../design/compiler-core-v1alpha5.md).
 ## 4. Local acceptance evidence recorded by Harness
 
 The unified-pipeline integration run records the following commands as executed locally on Windows / Go 1.26.6 / Node 24.18.0 / Chrome 158:
