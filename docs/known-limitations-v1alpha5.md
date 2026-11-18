@@ -12,56 +12,58 @@ Normative authorities:
 
 ## 1. What the current candidate Build actually validates
 
-The current v1alpha5 path validates and assembles:
+The v1alpha5 path is one pipeline. It validates and assembles:
 
 - strict v1alpha5 request and trusted dependency context admission;
 - YAML parsing and duplicate-key handling for supplied author YAML files;
+- **the complete inherited v1alpha4 static semantic pipeline** (`validateInheritedSkillPackage`), shared with the historical v1alpha4 entry point rather than reimplemented:
+  - SKILL.md / Contract / PredicateSet / package Schema source admission;
+  - Dependency Alias → immutable snapshot digest → trusted binding → Stable Package ID identity;
+  - exact ToolCatalog / Owner / callable / CapabilityContracts linking for every Operation and Observation, Wait or not;
+  - Schema Registry, `$ref` closure, root shape, assignability, context/request collision rules;
+  - CEL subset checks, Predicate declarations, parameters, evidence requirements, independence and Script ABI;
+  - Procedure graph reachability, dominance, stage aggregation, route-key eligibility, final-Postcondition Goal proof;
+  - Evidence / Mutation / Reconcile / retry-family static contract checks;
 - the v1alpha5 Procedure / Node-entry Wait AST slice;
-- Wait-specific Procedure graph control flow;
+- Wait-specific Procedure graph control flow (EVENT_RECEIVED / TIMEOUT edges composed with the inherited graph);
 - trusted Ingress Operation selection and Wait trigger / correlation binding;
 - `wait.output` SourcePath and event-accepted-path availability;
 - paired-response boundary and typed response mapping;
-- candidate deterministic artifact assembly and self-verification.
+- deterministic artifact assembly, whose dependency closure now includes the full inherited closure (ordinary callables, Capability members, Schema exports), and self-verification.
 
-The manifest marks this honestly as `validationScope.status = CANDIDATE_PARTIAL`. A consumer requiring full static validation MUST reject a partial artifact.
+The artifact dependency closure and `BuildResult.dependencyClosure` are therefore the same inherited closure for Wait-free and Wait-bearing Skills.
 
-## 2. Critical inherited-language gap
+The manifest still marks the artifact honestly as `validationScope.status = CANDIDATE_PARTIAL` because the remaining items in sections 3-5 are not yet gated. A consumer requiring full static validation MUST still reject a partial artifact.
+
+## 2. Inherited-language gap: resolved architecture, remaining scope
 
 CA-SL v1alpha5 is not a new language that discards v1alpha4. Its released single-file specification explicitly inherits the v1alpha4 normative semantics except where v1alpha5 Appendix L adds or replaces rules.
 
-The current v1alpha5 pipeline does not execute the full inherited static semantic pipeline. It must not be described as a complete v1alpha5 Compiler.
+The previous candidate ran a detached Wait-only pipeline. That is fixed: one target-neutral inherited semantic pipeline now runs for every selected Skill package, and the v1alpha5 Wait passes compose with it on the same normalized parse result and the same Diagnostic stream. `v1alpha5_artifact.go` re-runs the same passes during assembly and refuses to emit an artifact if any of them would fail.
 
-Missing or not yet demonstrated in the v1alpha5 path:
+What remains is not a second pipeline but specific, enumerated static obligations that the inherited pipeline itself did not implement in the v1alpha4 release:
 
-- complete Skill package admission: `SKILL.md`, `contract.yaml`, `predicates.yaml`, package Schemas and Script source/ABI;
-- non-Wait Operation and Observation ToolCatalog export linking, exact Owner attribution, dependency closure and callable input/output Schema binding;
-- Capability linking and normal Procedure argument typing;
-- inherited Schema allowlist, Schema registry/closure, assignability and CEL checks;
-- Predicate declarations, parameter signatures, evaluator and Script ABI checks;
-- complete global Precondition, stage, route, terminal and final Postcondition rules;
-- Evidence trust binding, Producer / scope / independence / correlation / freshness checks;
-- Mutation, Reconcile and retry-family static semantics;
-- complete inherited C_STATIC diagnostic coverage and conformance traceability.
+- Evidence Descriptor positive-path validation;
+- complete Mutation / Reconcile positive-path semantics;
+- full retry contract compatibility/path coverage;
+- the deferred Ingress normalization / binary-content lifecycle / response-contract cases in section 5;
+- the final v1alpha5 Public API separation in section 6.
 
-The v1alpha4 implementation may provide reusable algorithms and tests, but v1alpha5 must implement the released v1alpha5 contract through a coherent pipeline. Calling the old public v1alpha4 Build entry point is not a substitute for a reviewed v1alpha5 pipeline.
+## 3. Non-Wait Tool linking: implemented
 
-## 3. Non-Wait Tool linking is a release blocker
+Ordinary `operation` and `observation` references are now resolved to exact trusted ToolCatalog exports, Owner identities and callable Schemas by the same inherited pipeline that the v1alpha4 release used for its fully validated cases. A Wait-free Skill that references an unpublishable, ambiguous or untrusted callable fails closed with the inherited `EXPORT_ID_*`, `DEPENDENCY_*` or capability identities.
 
-Only Wait-linked Ingress exports and their trigger Operations are currently linked in the v1alpha5 candidate. Ordinary `operation` and `observation` references outside Wait triggers may be preserved in the compiled Procedure document without being resolved to trusted ToolCatalog exports, Owner identity or Schema bindings.
+The remaining limitation is that some callable members are exercised only by synthetic fixtures, not by real Owner publications.
 
-This means a Wait-free candidate Skill can Build while ordinary callable references remain unchecked. Full v1alpha5 Build must fail closed on unresolved or untrusted non-Wait callable references.
+## 4. Ingress / Wait conformance register: complete case inventory, deferred static cases remain
 
-## 4. Ingress / Wait conformance register is incomplete
+`wp7-conformance-v1alpha5.json` now covers all 36 EW and all 66 IN cases. IN-064, IN-065 and IN-066 are present and classified as Skill/Runtime/Integration obligations because their normative conditions are execution-layer behaviors of the released Ingress contract, not Compiler-static checks:
 
-The current `wp7-conformance-v1alpha5.json` lists 36 EW and only 63 IN cases. The released Ingress contract defines IN-001..IN-066. The register must add and classify:
+- **IN-064:** Step 15/18 N4 and PDU resource cleanup ordering;
+- **IN-065:** no UDM unsubscribe while another matching PDU Session remains;
+- **IN-066:** unsubscribe when no matching PDU Session remains.
 
-- **IN-064:** Step 15 failure variants and Step 18 N4 / PDU resource cleanup without duplicate release or delayed response;
-- **IN-065:** do not unsubscribe the shared SUPI / DNN / HPLMN S-NSSAI subscription while another matching PDU Session remains;
-- **IN-066:** unsubscribe when no other matching PDU Session remains, separately from Step 18 cleanup.
-
-Do not assume these three obligations are all Compiler-owned. Assign Compiler / Host / Runtime / Integration ownership from the normative conditions and add executable tests only for the Compiler-owned static portions.
-
-Current recorded register counts (37 implemented+tested, 19 Compiler-static deferred, 42 external, 1 spec-only) are provisional because the three missing IN cases have not been classified.
+Current recorded register counts: 37 implemented+tested, 19 Compiler-static deferred, 45 external, 1 spec-only. The 19 deferred cases in section 5 remain release blockers for a full `FULL_LANGUAGE_VALIDATION` claim.
 
 ## 5. Deferred Compiler-static EW / IN obligations
 
