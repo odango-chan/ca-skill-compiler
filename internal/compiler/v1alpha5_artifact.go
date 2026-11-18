@@ -82,6 +82,7 @@ var v1alpha5ManifestValidatedPasses = []string{
 	"inherited.schema-cel-predicate-script",
 	"inherited.procedure-and-assurance",
 	"inherited.evidence-mutation-reconcile-retry-static",
+	"inherited.evidence-descriptor-linking",
 	"artifact.self-verification",
 }
 
@@ -89,7 +90,7 @@ var v1alpha5ManifestValidatedPasses = []string{
 // NOT gate. It keeps a successful artifact from being read as full validation;
 // the same list is documented in docs/known-limitations-v1alpha5.md.
 var v1alpha5ManifestNotValidated = []string{
-	"evidence-descriptor-positive-path-validation",
+	"evidence-descriptor-host-recovery-dual-producer-validation",
 	"ingress-response-contract-and-mapping-completeness",
 	"host-runtime-integration-semantics",
 	"real-owner-artifact-qualification",

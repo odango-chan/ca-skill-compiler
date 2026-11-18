@@ -2,12 +2,12 @@ package compiler
 
 // WP10 Build wiring: successful Build assembles the deterministic Artifact tree.
 //
-// The released Mutation/Reconcile/retry positive-path obligations are enforced
-// by the inherited static pipeline, so those feature gates are removed. The
-// Evidence Descriptor positive-path linking gate remains: the released language
-// delegates its physical publication format to an independent trusted contract,
-// so a Skill declaring Predicate evidence guarantees still fails closed instead
-// of receiving a partial artifact until that trusted input is implemented.
+// The released Mutation/Reconcile/retry positive-path obligations and the
+// Evidence Descriptor linking obligations are enforced by the inherited static
+// pipeline: the earlier feature-scoped fail-closed gates are removed. Remaining
+// limitations (the §17.1 Host-recovery dual-Producer static slice and the
+// deferred Ingress response-contract cases) are recorded in
+// docs/known-limitations-v1alpha5.md.
 
 import (
 	"sort"
@@ -23,8 +23,8 @@ type artifactInput struct {
 }
 
 // unsupportedSemanticsReason returns the first deterministic reason why a selected
-// Skill crosses a feature-scoped Build gate. Static sub-checks are not a substitute
-// for the complete positive-path obligations.
+// Skill cannot be assembled (currently only a missing validated Contract state).
+// Semantic obligations are enforced by the static pipeline before assembly.
 func unsupportedSemanticsReason(inputs map[string]artifactInput) string {
 	names := make([]string, 0, len(inputs))
 	for name := range inputs {
@@ -36,14 +36,7 @@ func unsupportedSemanticsReason(inputs map[string]artifactInput) string {
 		if input.skill == nil || input.skill.Contract == nil {
 			return "Skill " + name + " has no validated Contract"
 		}
-		if input.skill.Predicates != nil {
-			for _, predicateID := range sortedStringMapKeys(input.skill.Predicates.Definitions) {
-				predicate := input.skill.Predicates.Definitions[predicateID]
-				if predicate != nil && predicate.Evidence != nil {
-					return "Evidence guarantee linking (WP7) is not implemented; compilation fails closed"
-				}
-			}
-		}
+
 	}
 	return ""
 }

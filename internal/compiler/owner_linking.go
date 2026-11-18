@@ -58,6 +58,7 @@ type ownerLinkingResult struct {
 type snapshotExportIndex struct {
 	callables map[string][]linkedExport
 	schemas   map[string][]linkedExport
+	evidence  map[string][]evidenceDescriptor
 }
 
 type catalogDocument struct {
@@ -192,9 +193,13 @@ func validateV1Alpha4OwnerLinking(req BuildRequest, skill *V1Alpha4SkillAST, ide
 			}
 			matched = records[0]
 		case "evidenceGuarantee":
-			// The Evidence Descriptor physical format is not frozen (WP7). WP3B can
-			// only attribute the trusted Owner of the referenced Guarantee identity.
+			// The Evidence Descriptor authority is the trusted Owner of the
+			// guarantee; missing/ambiguous descriptors are diagnosed by the
+			// positive-path Evidence Descriptor linking slice.
 			matched = linkedExport{ExportKind: "evidenceGuarantee", ExportID: reference.exportID}
+			if descriptors := index.evidence[reference.exportID]; len(descriptors) == 1 {
+				matched.SelfDeclaredOwner = descriptors[0].Owner
+			}
 		default:
 			continue
 		}
@@ -284,7 +289,7 @@ func attributeExportOwner(export linkedExport, binding TrustedDependencyBinding,
 // not indexed; a referenced identity then fails with EXPORT_ID_MISSING or
 // SCHEMA_MISSING. Full Owner-contract validation remains a later work package.
 func buildSnapshotExportIndex(snapshot ResolvedDependency) (snapshotExportIndex, []catalogDocument, []Diagnostic) {
-	index := snapshotExportIndex{callables: map[string][]linkedExport{}, schemas: map[string][]linkedExport{}}
+	index := snapshotExportIndex{callables: map[string][]linkedExport{}, schemas: map[string][]linkedExport{}, evidence: map[string][]evidenceDescriptor{}}
 	diagnostics := make([]Diagnostic, 0)
 	catalogs := make([]catalogDocument, 0)
 	files := make([]File, len(snapshot.Files))
@@ -307,6 +312,15 @@ func buildSnapshotExportIndex(snapshot ResolvedDependency) (snapshotExportIndex,
 		}
 		if export, ok := parseSchemaExport(root, file.Path); ok {
 			index.schemas[export.ExportID] = append(index.schemas[export.ExportID], export)
+			continue
+		}
+		if descriptors, ok := parseEvidenceDescriptors(root); ok {
+			for exportID, list := range descriptors {
+				for position := range list {
+					list[position].SnapshotPath = file.Path
+				}
+				index.evidence[exportID] = append(index.evidence[exportID], list...)
+			}
 		}
 	}
 	callableIDs := sortedStringMapKeys(index.callables)

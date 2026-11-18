@@ -132,9 +132,11 @@ func TestWP3C001PositiveCapabilityLink(t *testing.T) {
 		t.Fatalf("positive capability link emitted diagnostics through Check/Build: %+v", diagnostics)
 	}
 	result := Build(req)
-	assertFailureAtomic(t, result)
-	if !hasCode(result.Diagnostics, "CAPABILITY_INPUT_UNTRUSTED") {
-		t.Fatalf("later unimplemented stages must still fail closed: %+v", result.Diagnostics)
+	if !result.Success {
+		t.Fatalf("fully grounded positive capability link must Build after gate removal: %+v", result.Diagnostics)
+	}
+	if len(result.OutputFiles) == 0 {
+		t.Fatal("successful Build emitted no artifact files")
 	}
 
 	// Bundle file order must not change the result.

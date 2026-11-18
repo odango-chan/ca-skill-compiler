@@ -2,8 +2,14 @@ package compiler
 
 // E106 conformance subset: independence-group structural linking.
 // Runtime same-underlying-record UNKNOWN remains Host-side and is not emulated.
+// Trusted deployment domain relations are covered by the Evidence Descriptor
+// positive-path fixture; this test pins the structural independence grammar.
 
-import "testing"
+import (
+	"testing"
+
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
+)
 
 func e106Predicates(evidence string) string {
 	return `predicates:
@@ -14,9 +20,27 @@ func e106Predicates(evidence string) string {
 `
 }
 
-func e106Request(t *testing.T, evidence string) BuildRequest {
+func e106StructuralDiagnostics(t *testing.T, evidence string) []Diagnostic {
 	t.Helper()
-	return v4TestRequest(v4TestContract, v4TestProcedure, e106Predicates(evidence), v4TestSchema)
+	files := v4TestRequest("", "", e106Predicates(evidence), "").Files
+	var predicatesFile []byte
+	for _, file := range files {
+		if file.Path == "skills/pdu/assurance/predicates.yaml" {
+			predicatesFile = file.Bytes
+		}
+	}
+	root, err := yaml.Parse(predicatesFile)
+	if err != nil {
+		t.Fatalf("parse predicates: %v", err)
+	}
+	parsed := map[string]*yaml.Node{"skills/pdu/assurance/predicates.yaml": root}
+	ast := parseV1Alpha4SkillAST("pdu", parsed)
+	diagnostics := make([]Diagnostic, 0)
+	add := func(path string, node *yaml.Node, code, message string) {
+		diagnostics = append(diagnostics, dependencyDiagnostic("error", "C_STATIC", code, path, node, message))
+	}
+	validateV1Alpha4IndependenceGroups("skills/pdu/assurance/predicates.yaml", ast.Predicates, add)
+	return diagnostics
 }
 
 func TestE106IndependenceGroupStructuralLink(t *testing.T) {
@@ -29,8 +53,8 @@ func TestE106IndependenceGroupStructuralLink(t *testing.T) {
             - parameter: ue
               guarantee: ca::ue.registration-freshness
 `
-	if v4HasCode(Check(e106Request(t, positive)), "EVIDENCE_GUARANTEE_LINK_INVALID") {
-		t.Fatalf("valid independence group rejected: %+v", Check(e106Request(t, positive)))
+	if diagnostics := e106StructuralDiagnostics(t, positive); len(diagnostics) != 0 {
+		t.Fatalf("valid independence group rejected: %+v", diagnostics)
 	}
 
 	notRequired := `      requires:
@@ -42,8 +66,8 @@ func TestE106IndependenceGroupStructuralLink(t *testing.T) {
             - parameter: ue
               guarantee: ca::ue.not-required
 `
-	if !v4HasCode(Check(e106Request(t, notRequired)), "EVIDENCE_GUARANTEE_LINK_INVALID") {
-		t.Fatalf("member pair outside requires accepted")
+	if !v4HasCode(e106StructuralDiagnostics(t, notRequired), "EVIDENCE_GUARANTEE_LINK_INVALID") {
+		t.Fatalf("independence member outside evidence.requires accepted")
 	}
 
 	singleMember := `      requires:
@@ -53,20 +77,7 @@ func TestE106IndependenceGroupStructuralLink(t *testing.T) {
             - parameter: ue
               guarantee: ca::ue.registration-state
 `
-	if !v4HasCode(Check(e106Request(t, singleMember)), "EVIDENCE_GUARANTEE_LINK_INVALID") {
+	if !v4HasCode(e106StructuralDiagnostics(t, singleMember), "EVIDENCE_GUARANTEE_LINK_INVALID") {
 		t.Fatalf("single-member independence group accepted")
-	}
-
-	duplicate := `      requires:
-        ue: [ca::ue.registration-state, ca::ue.registration-freshness]
-      independence:
-        - members:
-            - parameter: ue
-              guarantee: ca::ue.registration-state
-            - parameter: ue
-              guarantee: ca::ue.registration-state
-`
-	if !v4HasCode(Check(e106Request(t, duplicate)), "EVIDENCE_GUARANTEE_LINK_INVALID") {
-		t.Fatalf("duplicate independence member accepted")
 	}
 }

@@ -127,7 +127,7 @@ func TestWP3B001PositiveExportIdentity(t *testing.T) {
 	}
 
 	want := []linkedExport{
-		{DependencyAlias: "ca", ExportKind: "evidenceGuarantee", ExportID: "ue.registration-state", TrustedOwner: "example-ue-owner"},
+		{DependencyAlias: "ca", ExportKind: "evidenceGuarantee", ExportID: "ue.registration-state", TrustedOwner: "example-ue-owner", SelfDeclaredOwner: "example-ue-owner"},
 		{
 			DependencyAlias: "ca", ExportKind: "observation", ExportID: "ue.registration.current",
 			TrustedOwner: "example-ue-owner", SelfDeclaredOwner: "example-ue-owner",

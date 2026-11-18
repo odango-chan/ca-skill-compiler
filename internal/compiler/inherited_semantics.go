@@ -161,6 +161,7 @@ func validateInheritedSkillPackage(
 		validateV1Alpha4ReconcileContracts(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
 		validateV1Alpha4RetryMutationFamilies(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
 		validateV1Alpha4RouteKeyEligibility(sourceAST, ownerLinking, procedurePath, errorAt)
+		validateV1Alpha4EvidenceDescriptors(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
 		validateV1Alpha4PredicateEvidence(req, sourceAST, ownerLinking, procedurePath, errorAt)
 		validateV1Alpha4MutationPositiveContracts(req, sourceAST, identity, ownerLinking, capabilityLinking, procedurePath, errorAt)
 		input.ownerLinking = ownerLinking
