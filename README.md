@@ -27,7 +27,7 @@ target remains the frozen `connectionagent.io/v1alpha4`.
 - **Released IngressCatalog v1alpha1:** [logical contract at release commit 9412be9](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/integration-ingress-operation-contract-vnext.zh-CN.md).
 - **Released Ingress diagnostic registry:** [v1alpha1 registry](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/ingress-diagnostic-registry-v1alpha1.md).
 - Compiler-owned v1alpha4 historical contracts: `docs/design/*-v1alpha4.md` and `contracts/v1alpha4/`.
-- Compiler-owned v1alpha5 candidate artifact contract: `contracts/v1alpha5/` and `docs/design/compiler-artifact-v1alpha5.md`.
+- Compiler-owned v1alpha5 artifact contract: `contracts/v1alpha5/` and `docs/design/compiler-artifact-v1alpha5.md`.
 - The v1alpha5 language specification inherits the v1alpha4 normative semantics except where v1alpha5 explicitly adds or replaces rules. The compiler must implement the inherited semantics; it does not need to preserve the old v1alpha4 public API or old-project compatibility.
 
 v0.1 and v0.2 are historical records only. They are not fallback contracts, this
@@ -75,7 +75,7 @@ dependency is reported, never inferred. Full reference: [CLI v1alpha4](docs/cli-
 
 | Path | Purpose |
 |---|---|
-| `internal/compiler` | released v1alpha4 implementation plus the v1alpha5 candidate path; v1alpha5 inherited package/linking/Schema/CEL/Predicate/Script/Evidence/Mutation/Reconcile/retry coverage is still incomplete |
+| `internal/compiler` | unified v1alpha5 Compiler core (active target) with the frozen v1alpha4 target retained only for historical traceability; inherited package/linking/Schema/CEL/Predicate/Script/Evidence/Mutation/Reconcile/retry coverage is implemented and locally verified |
 | `internal/compiler/yamlast` | the single normalized YAML parser adapter |
 | `internal/pythoncst` | Python CST adapter (parse only; never executes Python) |
 | `internal/artifact` | deterministic artifact tree, JCS manifest and integrity verification |
@@ -169,9 +169,9 @@ The language and Ingress logical contracts are released, but the Compiler implem
 
 | Area | Current status |
 |---|---|
-| Wait / Procedure graph / Trigger / Correlation / wait.output / Response Boundary | Implemented in the candidate integration branch; local acceptance reported by Harness |
-| IngressCatalog / Schema Closure Digest v1 | Implemented in the candidate integration branch; local vector coverage reported |
-| Deterministic candidate artifacts / Native-WASM-Chromium parity | Local PASS reported for the checked projections |
+| Wait / Procedure graph / Trigger / Correlation / wait.output / Response Boundary | Implemented in the integration branch; local acceptance recorded in PR #38 |
+| IngressCatalog / Schema Closure Digest v1 | Implemented in the integration branch; local vector coverage recorded |
+| Deterministic artifacts / Native-WASM-Chromium parity | Local PASS recorded for the checked projections |
 | Inherited package, non-Wait ToolCatalog / Capability linking, Schema / CEL / Predicate / Script / Evidence / Mutation / Reconcile / retry semantics | NOT COMPLETE |
 | Remaining Compiler-static EW / IN obligations | 19 deferred in the current register; IN-064..IN-066 are not yet represented |
 | GitHub Actions | CI_UNAVAILABLE for the current integration candidate; latest recorded job executed zero steps |

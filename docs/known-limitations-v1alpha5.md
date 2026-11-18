@@ -42,12 +42,7 @@ CA-SL v1alpha5 is not a new language that discards v1alpha4. Its released single
 
 The previous candidate ran a detached Wait-only pipeline. That is fixed: one target-neutral inherited semantic pipeline now runs for every selected Skill package, and the v1alpha5 Wait passes compose with it on the same normalized parse result and the same Diagnostic stream. `v1alpha5_artifact.go` re-runs the same passes during assembly and refuses to emit an artifact if any of them would fail.
 
-What remains is not a second pipeline but specific, enumerated static obligations:
-
-- the remaining deferred Ingress response-contract cases in section 5;
-- the final v1alpha5 Public API separation in section 6.
-
-The inherited Mutation/Reconcile/retry positive-path obligations and Evidence Descriptor linking are now implemented and gated by the same pipeline: commit-proof/failure-class/reconcile receipt anchors, minimal commit-proof Schema, failure-class Outcome/no-side-effect/retry rules, same-Owner dedicated READ and Capability coverage, recoverable-output assignability, retry business-identity and NOT_COMMITTED-edge proofs, guarantee descriptor resolution/uniqueness, Producer/`provides.path` matching, reference-root and selection/freshness rules, trusted IndependentDomains/CommonFact binding, the PREDICATE_EVIDENCE_REQUIRED source-exemption rule, and the §17.1 Host-recovery dual-Producer check for consumed recoverable Mutation outputs. All feature-scoped fail-closed Build gates are removed.
+No Compiler-owned static obligation remains deferred: the Ingress response-contract cases are closed by the released structural admission plus the response-contract checks, and the public API separation is complete (section 6). The inherited Mutation/Reconcile/retry positive-path obligations and Evidence Descriptor linking are implemented and gated by the same pipeline: commit-proof/failure-class/reconcile receipt anchors, minimal commit-proof Schema, failure-class Outcome/no-side-effect/retry rules, same-Owner dedicated READ and Capability coverage, recoverable-output assignability, retry business-identity and NOT_COMMITTED-edge proofs, guarantee descriptor resolution/uniqueness, Producer/`provides.path` matching, reference-root and selection/freshness rules, trusted IndependentDomains/CommonFact binding, the PREDICATE_EVIDENCE_REQUIRED source-exemption rule, and the §17.1 Host-recovery dual-Producer check for consumed recoverable Mutation outputs. All feature-scoped fail-closed Build gates are removed. The 2026-11-18 review hardening additionally rejects malformed trusted Evidence Descriptor containers/bindings (including Producer, selection, freshness, sourceIdentity and factIdentity shapes) and malformed Mutation failure-class/responsibility-record declarations through the public Check/Build entries.
 
 ## 3. Non-Wait Tool linking: implemented
 
@@ -55,7 +50,7 @@ Ordinary `operation` and `observation` references are now resolved to exact trus
 
 The remaining limitation is that some callable members are exercised only by synthetic fixtures, not by real Owner publications.
 
-## 4. Ingress / Wait conformance register: complete case inventory, deferred static cases remain
+## 4. Ingress / Wait conformance register: complete case inventory, no Compiler-static deferred
 
 `wp7-conformance-v1alpha5.json` now covers all 36 EW and all 66 IN cases. IN-064, IN-065 and IN-066 are present and classified as Skill/Runtime/Integration obligations because their normative conditions are execution-layer behaviors of the released Ingress contract, not Compiler-static checks:
 

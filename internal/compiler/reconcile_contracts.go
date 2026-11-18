@@ -12,6 +12,8 @@ package compiler
 // separately versioned trusted association contract exists.
 
 import (
+	"strings"
+
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
@@ -24,12 +26,19 @@ type mutationFailureClass struct {
 	Retryable     bool
 }
 
+type mutationResourceOutput struct {
+	Path                   string
+	ResourceKind           string
+	ResponsibilitySchemaID string
+}
+
 type mutationContractFields struct {
 	ReceiptSchemaID        string
 	CommitProofSchemaID    string
 	CommitProofPath        string
 	FailureClassPath       string
 	FailureClasses         []mutationFailureClass
+	ResourceOutputs        []mutationResourceOutput
 	ReconcileCallable      string
 	ReconcileProofSchemaID string
 	ReconcileProofPath     string
@@ -69,6 +78,20 @@ func parseMutationContractFields(node *yaml.Node) mutationContractFields {
 			class.ProofSchemaID = id
 		}
 		fields.FailureClasses = append(fields.FailureClasses, class)
+	}
+	for _, outputNode := range sequence(child(mutation, "resourceOutputs")) {
+		outputNode = unalias(outputNode)
+		if outputNode == nil || outputNode.Kind != yaml.MappingNode {
+			continue
+		}
+		output := mutationResourceOutput{
+			Path:         scalar(child(outputNode, "path")),
+			ResourceKind: scalar(child(outputNode, "resourceKind")),
+		}
+		if id, ok := schemaRefID(unwrapNode(child(outputNode, "responsibilitySchema"))); ok {
+			output.ResponsibilitySchemaID = id
+		}
+		fields.ResourceOutputs = append(fields.ResourceOutputs, output)
 	}
 	if reconcile := unalias(child(mutation, "reconcile")); reconcile != nil {
 		fields.ReconcileCallable = scalar(child(reconcile, "callable"))
@@ -119,6 +142,23 @@ func validateV1Alpha4ReconcileContracts(req BuildRequest, skill *V1Alpha4SkillAS
 				if callable.MutationFields.CommitProofSchemaID != "" {
 					if _, problem := registry.resolveReference(alias + "::" + callable.MutationFields.CommitProofSchemaID); problem != "" {
 						report("Mutation commitProof Schema is not resolvable in the trusted snapshot: " + callable.MutationFields.CommitProofSchemaID)
+					}
+				}
+				for _, output := range callable.MutationFields.ResourceOutputs {
+					if output.ResponsibilitySchemaID == "" {
+						continue // identity-level shape check already rejected this declaration
+					}
+					if _, problem := registry.resolveReference(alias + "::" + output.ResponsibilitySchemaID); problem != "" {
+						report("Mutation resourceOutputs responsibility Schema is not resolvable: " + output.ResponsibilitySchemaID)
+						continue
+					}
+					outputSchema, problem := registry.resolveReference(alias + "::" + callable.OutputSchemaID)
+					if problem != "" {
+						report("Mutation resourceOutputs path requires a resolvable Mutation output Schema: " + callable.OutputSchemaID)
+						continue
+					}
+					if !schemaPathExists(unalias(outputSchema.node), strings.TrimPrefix(output.Path, "output.")) {
+						report("Mutation resourceOutputs path is not declared by the Mutation output Schema: " + output.Path)
 					}
 				}
 				if callable.MutationFields.ReconcileCallable == "" {

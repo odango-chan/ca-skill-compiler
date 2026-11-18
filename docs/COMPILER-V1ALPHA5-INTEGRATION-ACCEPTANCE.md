@@ -85,7 +85,7 @@ Run the local gates in [AGENTS.md](../AGENTS.md) against the final PR HEAD and r
 
 GitHub Actions is excluded from this PR's review-readiness decision. The checks on the previously reviewed commit `25ef0f5` stopped before any steps ran because GitHub reported a billing or spending-limit restriction. Local results are recorded separately in the PR.
 
-The CLI still labels v1alpha5 as candidate and exposes the frozen v1alpha4 target. v1alpha5 is the active language target for ongoing development.
+v1alpha5 is the active language target; the CLI labels it as the active target and keeps the frozen v1alpha4 target selectable only for historical traceability. On 2026-11-18 a reviewed fail-open Evidence Descriptor path was fixed: malformed scope/correlation bindings and malformed adjacent descriptor fields are now rejected instead of being silently dropped, with public Check/Build regression coverage (including a valid positive control); the same review hardened malformed Mutation failure-class/responsibility-record declarations.
 
 ## 5. Qualification and release boundary
 

@@ -15,7 +15,7 @@ import (
 	"github.com/odango-chan/ca-skill-compiler/internal/projectinput"
 )
 
-const usageText = `skillc - CA-SL reference compiler CLI (frozen v1alpha4, candidate v1alpha5)
+const usageText = `skillc - CA-SL reference compiler CLI (active v1alpha5, frozen v1alpha4 historical target)
 
 Usage:
   skillc check   <PROJECT>                       static check a Skill source project
@@ -30,7 +30,7 @@ Usage:
 Options:
   --request FILE   read a complete BuildRequest JSON document instead of a project
                    directory (strict decoding; the document's languageTarget
-                   selects the frozen v1alpha4 or candidate v1alpha5 compiler
+                   selects the active v1alpha5 or frozen historical v1alpha4 compiler
                    target; dependencies and trusted build context come from that
                    document)
   --out DIR        artifact output directory; must be absent or empty. Defaults
@@ -41,15 +41,15 @@ Options:
 
 Language targets:
   connectionagent.io/v1alpha4   frozen released target
-  connectionagent.io/v1alpha5   candidate target: static Check for the Wait /
+  connectionagent.io/v1alpha5   active target: full static Check for the Wait /
                                 Procedure AST is implemented, while Build keeps
                                 failing closed until WP3-WP6 complete
 
 API versions (request and result are versioned independently):
   build request   connectionagent.io/compiler-build-request/v1alpha4 (frozen)
-                  connectionagent.io/compiler-build-request/v1alpha5 (candidate)
+                  connectionagent.io/compiler-build-request/v1alpha5 (active)
   build result    connectionagent.io/compiler-build-result/v1alpha4 (frozen)
-                  connectionagent.io/compiler-build-result/v1alpha5 (candidate)
+                  connectionagent.io/compiler-build-result/v1alpha5 (active)
 
 Project layout:
   skills/...                       author Skill source (or files/skills/...)
@@ -92,13 +92,13 @@ func run(args []string, stdout, stderr io.Writer) int {
 		}
 		fmt.Fprintf(stdout, "skillc %s\n", compiler.CompilerVersion)
 		fmt.Fprintf(stdout, "language target: %s (frozen)\n", compiler.V1Alpha4Target)
-		fmt.Fprintf(stdout, "language target: %s (candidate)\n", compiler.V1Alpha5Target)
+		fmt.Fprintf(stdout, "language target: %s (active)\n", compiler.V1Alpha5Target)
 		fmt.Fprintf(stdout, "build request apiVersion: %s (frozen)\n", compiler.BuildRequestAPIVersion)
-		fmt.Fprintf(stdout, "build request apiVersion: %s (candidate)\n", compiler.BuildRequestAPIVersionV1Alpha5)
+		fmt.Fprintf(stdout, "build request apiVersion: %s (active)\n", compiler.BuildRequestAPIVersionV1Alpha5)
 		fmt.Fprintf(stdout, "build result apiVersion: %s (frozen)\n", compiler.BuildResultAPIVersion)
-		fmt.Fprintf(stdout, "build result apiVersion: %s (candidate)\n", compiler.BuildResultAPIVersionV1Alpha5)
+		fmt.Fprintf(stdout, "build result apiVersion: %s (active)\n", compiler.BuildResultAPIVersionV1Alpha5)
 		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s (frozen)\n", compiler.DependencyInspectionAPIVersion)
-		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s (candidate)\n", compiler.DependencyInspectionAPIVersionV1Alpha5)
+		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s (active)\n", compiler.DependencyInspectionAPIVersionV1Alpha5)
 		return 0
 	}
 	if command != "check" && command != "build" && command != "inspect" {
@@ -450,7 +450,7 @@ func rejectSymlinkAncestors(abs string) error {
 }
 
 func validOutputPath(value string) bool {
-	// The candidate v1alpha5 artifact has exactly one top-level manifest; the
+	// The v1alpha5 artifact has exactly one top-level manifest; the
 	// frozen v1alpha4 tree never emits it, so its behavior is unchanged.
 	if value == compiler.V1Alpha5ArtifactManifestPath {
 		return true

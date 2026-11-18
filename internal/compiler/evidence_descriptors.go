@@ -33,6 +33,7 @@ type evidenceProducer struct {
 }
 
 type evidenceBinding struct {
+	Name   string
 	Record string
 	Equals string
 }
@@ -58,11 +59,17 @@ type evidenceFactIdentity struct {
 	Fact       string
 	ValuePath  string
 	ScopePaths []evidenceBinding
-	Owners     []string
+	// Owners is populated only for trusted CommonFact deployment bindings; a
+	// published descriptor never declares its own Owner authorization.
+	Owners []string
 }
 
 type evidenceDescriptor struct {
-	ExportID       string
+	ExportID string
+	// ShapeProblem is the first structural problem found in the trusted
+	// descriptor document. A malformed container or binding must never be
+	// silently dropped: the linked guarantee is rejected instead.
+	ShapeProblem   string
 	Owner          string
 	Authority      string
 	Fact           string
@@ -78,9 +85,10 @@ type evidenceDescriptor struct {
 }
 
 // parseEvidenceDescriptors detects and parses one evidence-guarantees document.
-// A descriptor document is a top-level mapping whose values all carry the F.3
-// required logical fields. ToolCatalog / Schema / other documents are not
-// misdetected because they always carry apiVersion/kind or Schema keywords.
+// A descriptor document is a top-level mapping (without apiVersion/kind) whose
+// entries carry the F.3 logical fields. Recognition is deliberately tolerant so
+// that a malformed entry is still indexed and rejected with an explicit
+// diagnostic instead of disappearing from the trusted export set.
 func parseEvidenceDescriptors(root *yaml.Node) (map[string][]evidenceDescriptor, bool) {
 	root = unalias(root)
 	if root == nil || root.Kind != yaml.MappingNode {
@@ -89,108 +97,316 @@ func parseEvidenceDescriptors(root *yaml.Node) (map[string][]evidenceDescriptor,
 	if child(root, "apiVersion") != nil || child(root, "kind") != nil {
 		return nil, false
 	}
+	detected := false
+	for i := 0; i+1 < len(root.Content); i += 2 {
+		value := unalias(root.Content[i+1])
+		if value == nil || value.Kind != yaml.MappingNode {
+			continue
+		}
+		if child(value, "authority") != nil || child(value, "producers") != nil {
+			detected = true
+			break
+		}
+	}
+	if !detected {
+		return nil, false
+	}
 	descriptors := map[string][]evidenceDescriptor{}
-	count := 0
 	for i := 0; i+1 < len(root.Content); i += 2 {
 		key := unalias(root.Content[i])
 		value := unalias(root.Content[i+1])
-		if key == nil || value == nil || value.Kind != yaml.MappingNode {
+		if key == nil || key.Kind != yaml.ScalarNode || key.Tag != "!!str" {
+			// An unaddressable descriptor entry makes the trusted export set
+			// ambiguous; dropping it would fail open for every later reference.
 			return nil, false
 		}
-		if child(value, "authority") == nil || child(value, "producers") == nil {
-			return nil, false
-		}
-		exportID := scalar(key)
+		exportID := key.Value
 		if exportID == "" {
 			return nil, false
 		}
+		if value == nil || value.Kind != yaml.MappingNode {
+			descriptors[exportID] = append(descriptors[exportID], evidenceDescriptor{
+				ExportID:     exportID,
+				ShapeProblem: "Evidence Descriptor entry must be a mapping",
+			})
+			continue
+		}
 		descriptors[exportID] = append(descriptors[exportID], parseEvidenceDescriptor(exportID, value))
-		count++
-	}
-	if count == 0 {
-		return nil, false
 	}
 	return descriptors, true
 }
 
 func parseEvidenceDescriptor(exportID string, node *yaml.Node) evidenceDescriptor {
-	descriptor := evidenceDescriptor{
-		ExportID:  exportID,
-		Owner:     scalar(child(node, "authority")),
-		Authority: scalar(child(node, "authority")),
-		Fact:      scalar(child(node, "fact")),
-		FactValue: scalar(child(node, "factValue")),
-	}
-	for _, producerNode := range sequence(child(node, "producers")) {
-		producerNode = unalias(producerNode)
-		if producerNode == nil || producerNode.Kind != yaml.MappingNode {
-			continue
-		}
-		descriptor.Producers = append(descriptor.Producers, evidenceProducer{
-			Owner:   scalar(child(producerNode, "owner")),
-			Kind:    scalar(child(producerNode, "kind")),
-			ID:      scalar(child(producerNode, "id")),
-			Outcome: scalar(child(producerNode, "outcome")),
-			Path:    scalar(child(producerNode, "path")),
-		})
-	}
-	descriptor.Scope = parseEvidenceBindings(child(node, "scope"))
-	descriptor.Correlation = parseEvidenceBindings(child(node, "correlation"))
-	if selection := unalias(child(node, "selection")); selection != nil && selection.Kind == yaml.MappingNode {
-		descriptor.Selection = evidenceSelection{
-			Mode:    scalar(child(selection, "mode")),
-			OrderBy: scalar(child(selection, "orderBy")),
+	descriptor := evidenceDescriptor{ExportID: exportID}
+	problem := func(message string) {
+		if descriptor.ShapeProblem == "" {
+			descriptor.ShapeProblem = message
 		}
 	}
-	if freshness := unalias(child(node, "freshness")); freshness != nil && freshness.Kind == yaml.MappingNode {
-		descriptor.Freshness.Timestamp = scalar(child(freshness, "timestamp"))
-		if value, ok := intValue(child(freshness, "maxAgeMs")); ok {
-			descriptor.Freshness.MaxAgeMs = int64(value)
-			descriptor.Freshness.HasMaxAge = true
+	setString := func(field string, required bool) string {
+		raw := unalias(child(node, field))
+		if raw == nil {
+			if required {
+				problem(field + " is required")
+			}
+			return ""
+		}
+		if raw.Kind != yaml.ScalarNode || raw.Tag != "!!str" {
+			problem(field + " must be a string")
+			return ""
+		}
+		if required && raw.Value == "" {
+			problem(field + " must be a non-empty string")
+		}
+		return raw.Value
+	}
+
+	descriptor.Authority = setString("authority", true)
+	descriptor.Owner = descriptor.Authority
+	descriptor.Fact = setString("fact", true)
+	if descriptor.Fact != "" && !validExportID(descriptor.Fact) {
+		problem("fact must be a DottedId")
+	}
+
+	producersNode := unalias(child(node, "producers"))
+	if producersNode == nil {
+		problem("producers is required")
+	} else if producersNode.Kind != yaml.SequenceNode {
+		problem("producers must be an ordered list")
+	} else if len(producersNode.Content) == 0 {
+		problem("producers must contain at least one Producer")
+	} else {
+		for index, producerNode := range producersNode.Content {
+			producerNode = unalias(producerNode)
+			if producerNode == nil || producerNode.Kind != yaml.MappingNode {
+				problem("producers[" + itoa(index) + "] must be a mapping with owner/kind/id/outcome/path")
+				continue
+			}
+			producer := evidenceProducer{
+				Owner:   evidenceStringField(producerNode, "owner", "producers["+itoa(index)+"].owner", problem),
+				Kind:    evidenceStringField(producerNode, "kind", "producers["+itoa(index)+"].kind", problem),
+				ID:      evidenceStringField(producerNode, "id", "producers["+itoa(index)+"].id", problem),
+				Outcome: evidenceStringField(producerNode, "outcome", "producers["+itoa(index)+"].outcome", problem),
+				Path:    evidenceStringField(producerNode, "path", "producers["+itoa(index)+"].path", problem),
+			}
+			if producer.Kind != "" && producer.Kind != "operation" && producer.Kind != "observation" {
+				problem("producers[" + itoa(index) + "].kind must be operation or observation")
+			}
+			if producer.Outcome != "" && producer.Outcome != "SUCCEEDED" {
+				problem("producers[" + itoa(index) + "].outcome must be SUCCEEDED")
+			}
+			if producer.Path != "" && !validDottedIdentifierPath(producer.Path) {
+				problem("producers[" + itoa(index) + "].path must be a static dotted field path")
+			}
+			descriptor.Producers = append(descriptor.Producers, producer)
 		}
 	}
-	if source := unalias(child(node, "sourceIdentity")); source != nil && source.Kind == yaml.MappingNode {
-		descriptor.SourceIdentity = &evidenceSourceIdentity{
-			Domain: scalar(child(source, "domain")),
-			Path:   scalar(child(source, "path")),
-		}
+
+	descriptor.Scope, descriptor.Correlation = nil, nil
+	if bindings, problemText := parseEvidenceBindings(node, "scope"); problemText != "" {
+		problem(problemText)
+	} else {
+		descriptor.Scope = bindings
 	}
-	if fact := unalias(child(node, "factIdentity")); fact != nil && fact.Kind == yaml.MappingNode {
-		identity := &evidenceFactIdentity{
-			Namespace: scalar(child(fact, "namespace")),
-			Fact:      scalar(child(fact, "fact")),
-			ValuePath: scalar(child(fact, "valuePath")),
-		}
-		if scopePaths := unalias(child(fact, "scopePaths")); scopePaths != nil && scopePaths.Kind == yaml.MappingNode {
-			for i := 0; i+1 < len(scopePaths.Content); i += 2 {
-				identity.ScopePaths = append(identity.ScopePaths, evidenceBinding{
-					Record: scalar(scopePaths.Content[i]), Equals: scalar(scopePaths.Content[i+1]),
-				})
+	if bindings, problemText := parseEvidenceBindings(node, "correlation"); problemText != "" {
+		problem(problemText)
+	} else {
+		descriptor.Correlation = bindings
+	}
+
+	descriptor.FactValue = setString("factValue", true)
+	if descriptor.FactValue != "" && !validRecordRelativePath(descriptor.FactValue) {
+		problem("factValue must be a static record-relative field path")
+	}
+
+	selectionNode := unalias(child(node, "selection"))
+	if selectionNode == nil {
+		problem("selection is required")
+	} else if selectionNode.Kind != yaml.MappingNode {
+		problem("selection must be a mapping with mode and optional orderBy")
+	} else {
+		descriptor.Selection.Mode = evidenceStringField(selectionNode, "mode", "selection.mode", problem)
+		descriptor.Selection.OrderBy = evidenceStringField(selectionNode, "orderBy", "selection.orderBy", problem)
+		switch descriptor.Selection.Mode {
+		case "exact":
+		case "latest":
+			if descriptor.Selection.OrderBy == "" {
+				problem("selection.mode latest requires orderBy")
+			}
+		default:
+			if descriptor.Selection.Mode != "" {
+				problem("selection.mode must be exact or latest")
 			}
 		}
-		descriptor.FactIdentity = identity
+	}
+
+	freshnessNode := unalias(child(node, "freshness"))
+	if freshnessNode == nil {
+		problem("freshness is required")
+	} else if freshnessNode.Kind != yaml.MappingNode {
+		problem("freshness must be a mapping with timestamp and maxAgeMs")
+	} else {
+		descriptor.Freshness.Timestamp = evidenceStringField(freshnessNode, "timestamp", "freshness.timestamp", problem)
+		if descriptor.Freshness.Timestamp != "" && !validRecordRelativePath(descriptor.Freshness.Timestamp) {
+			problem("freshness.timestamp must be a static record-relative field path")
+		}
+		maxAgeNode := unalias(child(freshnessNode, "maxAgeMs"))
+		if maxAgeNode == nil {
+			problem("freshness.maxAgeMs is required")
+		} else if value, ok := evidencePositiveInteger(maxAgeNode); ok {
+			descriptor.Freshness.MaxAgeMs = value
+			descriptor.Freshness.HasMaxAge = true
+		} else {
+			problem("freshness.maxAgeMs must be a positive integer")
+		}
+	}
+
+	if sourceNode := unalias(child(node, "sourceIdentity")); sourceNode != nil {
+		if sourceNode.Kind != yaml.MappingNode {
+			problem("sourceIdentity must be a mapping with domain and path")
+		} else {
+			identity := &evidenceSourceIdentity{
+				Domain: evidenceStringField(sourceNode, "domain", "sourceIdentity.domain", problem),
+				Path:   evidenceStringField(sourceNode, "path", "sourceIdentity.path", problem),
+			}
+			if identity.Domain != "" && !validAbsoluteURI(identity.Domain) {
+				problem("sourceIdentity.domain must be an absolute URI")
+			}
+			if identity.Path != "" && !strings.HasPrefix(identity.Path, "record.") {
+				problem("sourceIdentity.path must be a record.* static path")
+			}
+			descriptor.SourceIdentity = identity
+		}
+	}
+
+	if factIdentityNode := unalias(child(node, "factIdentity")); factIdentityNode != nil {
+		if factIdentityNode.Kind != yaml.MappingNode {
+			problem("factIdentity must be a mapping with namespace, fact, scopePaths and valuePath")
+		} else {
+			identity := &evidenceFactIdentity{
+				Namespace: evidenceStringField(factIdentityNode, "namespace", "factIdentity.namespace", problem),
+				Fact:      evidenceStringField(factIdentityNode, "fact", "factIdentity.fact", problem),
+				ValuePath: evidenceStringField(factIdentityNode, "valuePath", "factIdentity.valuePath", problem),
+			}
+			if identity.Namespace != "" && !validAbsoluteURI(identity.Namespace) {
+				problem("factIdentity.namespace must be an absolute URI")
+			}
+			if identity.Fact != "" && !validExportID(identity.Fact) {
+				problem("factIdentity.fact must be a DottedId")
+			}
+			if identity.ValuePath != "" && !strings.HasPrefix(identity.ValuePath, "record.") {
+				problem("factIdentity.valuePath must be a record.* static path")
+			}
+			scopePaths := unalias(child(factIdentityNode, "scopePaths"))
+			if scopePaths == nil {
+				problem("factIdentity.scopePaths is required")
+			} else if scopePaths.Kind != yaml.MappingNode {
+				problem("factIdentity.scopePaths must be a mapping of dimension to record.* path")
+			} else {
+				for i := 0; i+1 < len(scopePaths.Content); i += 2 {
+					name := scalar(unalias(scopePaths.Content[i]))
+					if name == "" || !validDependencyID(name) {
+						problem("factIdentity.scopePaths keys must be Identifiers")
+						continue
+					}
+					value := unalias(scopePaths.Content[i+1])
+					if value == nil || value.Kind != yaml.ScalarNode || value.Tag != "!!str" || !strings.HasPrefix(value.Value, "record.") {
+						problem("factIdentity.scopePaths." + name + " must be a record.* static path")
+						continue
+					}
+					identity.ScopePaths = append(identity.ScopePaths, evidenceBinding{Name: name, Record: value.Value})
+				}
+			}
+			descriptor.FactIdentity = identity
+		}
 	}
 	return descriptor
 }
 
-func parseEvidenceBindings(node *yaml.Node) []evidenceBinding {
-	node = unalias(node)
-	if node == nil || node.Kind != yaml.MappingNode {
-		return nil
+func evidenceStringField(node *yaml.Node, field, label string, problem func(string)) string {
+	raw := unalias(child(node, field))
+	if raw == nil {
+		problem(label + " is required")
+		return ""
 	}
-	bindings := make([]evidenceBinding, 0, len(node.Content)/2)
-	for i := 0; i+1 < len(node.Content); i += 2 {
-		name := scalar(unalias(node.Content[i]))
-		value := unalias(node.Content[i+1])
-		if value == nil || value.Kind != yaml.MappingNode {
-			continue
+	if raw.Kind != yaml.ScalarNode || raw.Tag != "!!str" {
+		problem(label + " must be a string")
+		return ""
+	}
+	if raw.Value == "" {
+		problem(label + " must be a non-empty string")
+	}
+	return raw.Value
+}
+
+func parseEvidenceBindings(node *yaml.Node, field string) ([]evidenceBinding, string) {
+	container := unalias(child(node, field))
+	if container == nil {
+		return nil, field + " is required"
+	}
+	if container.Kind != yaml.MappingNode {
+		return nil, field + " must be a mapping of named equality bindings"
+	}
+	if len(container.Content) == 0 {
+		return nil, field + " must declare at least one equality binding"
+	}
+	bindings := make([]evidenceBinding, 0, len(container.Content)/2)
+	for i := 0; i+1 < len(container.Content); i += 2 {
+		nameNode := unalias(container.Content[i])
+		name := scalar(nameNode)
+		if name == "" || !validDependencyID(name) {
+			return nil, field + " binding names must be Identifiers"
 		}
-		bindings = append(bindings, evidenceBinding{
-			Record: name + "." + scalar(child(value, "record")),
-			Equals: scalar(child(value, "equals")),
-		})
+		value := unalias(container.Content[i+1])
+		if value == nil || value.Kind != yaml.MappingNode {
+			return nil, field + "." + name + " must be a mapping with record and equals"
+		}
+		recordNode := unalias(child(value, "record"))
+		equalsNode := unalias(child(value, "equals"))
+		if recordNode == nil || recordNode.Kind != yaml.ScalarNode || recordNode.Tag != "!!str" {
+			return nil, field + "." + name + ".record must be a non-empty string"
+		}
+		if equalsNode == nil || equalsNode.Kind != yaml.ScalarNode || equalsNode.Tag != "!!str" {
+			return nil, field + "." + name + ".equals must be a non-empty string"
+		}
+		record := strings.TrimPrefix(recordNode.Value, "record.")
+		if record == "" || !validDottedIdentifierPath(record) {
+			return nil, field + "." + name + ".record must be a static record-relative field path"
+		}
+		if !validEvidenceReferencePath(equalsNode.Value) {
+			return nil, field + "." + name + ".equals must be an exact query/arguments/execution/record reference path"
+		}
+		bindings = append(bindings, evidenceBinding{Name: name, Record: record, Equals: equalsNode.Value})
 	}
-	return bindings
+	return bindings, ""
+}
+
+func validDottedIdentifierPath(value string) bool {
+	if value == "" {
+		return false
+	}
+	for _, segment := range strings.Split(value, ".") {
+		if !validDependencyID(segment) {
+			return false
+		}
+	}
+	return true
+}
+
+func validRecordRelativePath(value string) bool {
+	return validDottedIdentifierPath(strings.TrimPrefix(value, "record."))
+}
+
+func evidencePositiveInteger(node *yaml.Node) (int64, bool) {
+	node = unalias(node)
+	if node == nil || node.Kind != yaml.ScalarNode || node.Tag != "!!int" {
+		return 0, false
+	}
+	value, ok := parseInt(node.Value)
+	if !ok || value <= 0 {
+		return 0, false
+	}
+	return int64(value), true
 }
 
 // validateV1Alpha4EvidenceDescriptors is the positive-path Evidence Descriptor
@@ -216,6 +432,21 @@ func validateV1Alpha4EvidenceDescriptors(req BuildRequest, skill *V1Alpha4SkillA
 	if trustedProblem != "" {
 		add(procedurePath, nil, "EVIDENCE_GUARANTEE_LINK_INVALID", trustedProblem)
 		return
+	}
+	// A trusted Evidence Descriptor document is a structured trusted input: a
+	// malformed entry/container must fail the build explicitly instead of being
+	// silently dropped by the indexer, even before (or without) a Skill reference.
+	for _, alias := range sortedStringMapKeys(indexes) {
+		for _, exportID := range sortedStringMapKeys(indexes[alias].evidence) {
+			for _, descriptor := range indexes[alias].evidence[exportID] {
+				if descriptor.ShapeProblem == "" {
+					continue
+				}
+				add(procedurePath, nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
+					"Evidence Descriptor "+alias+"::"+exportID+": "+descriptor.ShapeProblem)
+				break
+			}
+		}
 	}
 	referenced := map[string]bool{}
 	for _, predicateID := range sortedStringMapKeys(skill.Predicates.Definitions) {
@@ -403,6 +634,10 @@ func validateEvidenceDescriptorReference(alias, exportID string, indexes map[str
 		return
 	}
 	descriptor := descriptors[0]
+	if descriptor.ShapeProblem != "" {
+		// Already reported as a malformed trusted descriptor document.
+		return
+	}
 	if problem := evidenceDescriptorProblem(descriptor); problem != "" {
 		add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID", "Evidence Descriptor "+alias+"::"+exportID+": "+problem)
 		return
@@ -462,6 +697,9 @@ func validateEvidenceDescriptorReference(alias, exportID string, indexes map[str
 }
 
 func evidenceDescriptorProblem(descriptor evidenceDescriptor) string {
+	if descriptor.ShapeProblem != "" {
+		return descriptor.ShapeProblem
+	}
 	if descriptor.Authority == "" {
 		return "authority is required"
 	}
