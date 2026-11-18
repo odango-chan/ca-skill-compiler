@@ -837,15 +837,23 @@ func TestV1Alpha5WP6ExportRequiresLaterBoundary(t *testing.T) {
 	}
 }
 
-// TestV1Alpha5WP6BoundaryNodeWithoutProducerStage covers L.8.2: a declared
-// boundary Node that does not declare the export's Producer stage is a mapping
-// failure.
+// TestV1Alpha5WP6BoundaryNodeWithoutProducerStage covers L.8.2 and IN-030: a
+// declared boundary Node that does not declare the export's Producer stage is
+// not a valid response boundary (WAIT_RESPONSE_BOUNDARY_INVALID) and also has no
+// valid typed Producer-to-response mapping (WAIT_RESPONSE_MAPPING_INVALID).
 func TestV1Alpha5WP6BoundaryNodeWithoutProducerStage(t *testing.T) {
 	diagnostics := wp6Check(t, wp6FixtureOptions{procedure: wp6BoundaryWithoutProducerProcedure})
-	wp6AssertCodes(t, diagnostics, "WAIT_RESPONSE_MAPPING_INVALID")
-	if !strings.Contains(diagnostics[0].Message,
-		"Node 'update-sm-context' response boundary has no valid typed Producer-to-response mapping.") {
-		t.Fatalf("mapping diagnostic must use the L.11.1 template: %q", diagnostics[0].Message)
+	wp6AssertCodes(t, diagnostics, "WAIT_RESPONSE_BOUNDARY_INVALID", "WAIT_RESPONSE_MAPPING_INVALID")
+	hasMappingMessage := false
+	for _, diagnostic := range diagnostics {
+		if diagnostic.Code == "WAIT_RESPONSE_MAPPING_INVALID" &&
+			strings.Contains(diagnostic.Message,
+				"Node 'update-sm-context' response boundary has no valid typed Producer-to-response mapping.") {
+			hasMappingMessage = true
+		}
+	}
+	if !hasMappingMessage {
+		t.Fatalf("mapping diagnostic must use the L.11.1 template: %#v", diagnostics)
 	}
 }
 

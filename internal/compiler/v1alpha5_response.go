@@ -197,7 +197,11 @@ func v1alpha5ValidateWaitResponse(procedurePath, nodeID string, wait *V1Alpha5Wa
 				// Wait-bearing Node, so omitting wait.response.after is invalid.
 				diagnostics = append(diagnostics, boundaryInvalid())
 			} else {
-				diagnostics = append(diagnostics, mappingInvalid())
+				// IN-030: the selected boundary Node does not declare the exact
+				// export-declared Producer stage, so it is not a valid response
+				// boundary. EW-021 additionally records that no typed
+				// Producer-to-response mapping can be satisfied at that Node.
+				diagnostics = append(diagnostics, boundaryInvalid(), mappingInvalid())
 			}
 			return diagnostics
 		}

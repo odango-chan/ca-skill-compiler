@@ -159,6 +159,7 @@ var wp7CrossPackageTestTable = map[string]string{
 	"TestBinaryContentReferenceSchemaUnresolved":       "internal/ingresscatalog",
 	"TestBinaryContentRetentionBelowRecoveryWindow":    "internal/ingresscatalog",
 	"TestPeerProfileReferenceInvalid":                  "internal/ingresscatalog",
+	"TestPinnedOpenAPIResponseMultipartRequiresMultipartMapping": "internal/ingresscatalog",
 }
 
 type wp7Diagnostic struct {
@@ -428,15 +429,16 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 		"EW-021", "EW-022", "EW-027", "EW-030", "EW-031", "EW-033", "EW-034", "EW-035", "EW-036",
 		"IN-001", "IN-002", "IN-003", "IN-004", "IN-005", "IN-006", "IN-007", "IN-013",
 		"IN-014", "IN-015", "IN-016", "IN-018", "IN-019", "IN-020", "IN-021", "IN-023",
-		"IN-028", "IN-029", "IN-031", "IN-032", "IN-033", "IN-039", "IN-040", "IN-042",
-		"IN-046", "IN-047", "IN-055", "IN-056", "IN-057", "IN-059", "IN-060", "IN-062", "IN-063",
+		"IN-028", "IN-029", "IN-030", "IN-031", "IN-032", "IN-033", "IN-039", "IN-040",
+		"IN-042", "IN-044", "IN-046", "IN-047", "IN-055", "IN-056", "IN-057", "IN-059",
+		"IN-060", "IN-062", "IN-063",
 	}
 	if strings.Join(implementedIDs, ",") != strings.Join(wantImplemented, ",") {
 		t.Fatalf("implemented+tested set = %v, want exactly %v", implementedIDs, wantImplemented)
 	}
 
-	if counts[wp7Implemented] != 49 ||
-		counts[wp7Deferred] != 7 ||
+	if counts[wp7Implemented] != 51 ||
+		counts[wp7Deferred] != 5 ||
 		counts[wp7External] != 45 ||
 		counts[wp7Specification] != 1 {
 		t.Fatalf("unexpected classification totals: %#v", counts)
@@ -452,7 +454,7 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 		register.Counts.EW[wp7External] != 18 || register.Counts.EW[wp7Specification] != 1 {
 		t.Fatalf("unexpected EW summary counts: %#v", register.Counts.EW)
 	}
-	if register.Counts.IN[wp7Implemented] != 33 || register.Counts.IN[wp7Deferred] != 6 ||
+	if register.Counts.IN[wp7Implemented] != 35 || register.Counts.IN[wp7Deferred] != 4 ||
 		register.Counts.IN[wp7External] != 27 || register.Counts.IN[wp7Specification] != 0 {
 		t.Fatalf("unexpected IN summary counts: %#v", register.Counts.IN)
 	}

@@ -8,7 +8,7 @@ This record classifies every Appendix L.12 `EW-001`-`EW-036` and released #62 se
 Hard limits stated up front:
 
 - **No row is CI PASS or qualification.** CI did not execute any step for this branch; only the local commands in section 7 were executed and their exact results are recorded there.
-- 49 rows are `COMPILER_STATIC_IMPLEMENTED_TESTED` and name an executable Go test. Rows not naming a test are **not** executed or claimed.
+- 51 rows are `COMPILER_STATIC_IMPLEMENTED_TESTED` and name an executable Go test. Rows not naming a test are **not** executed or claimed.
 - `HOST_RUNTIME_INTEGRATION_OWNED` rows are Host/Runtime/Integration obligations. They are **not Compiler obligations** and are not implemented, executed or claimed by this work package.
 - `COMPILER_STATIC_DEFERRED` rows name the remaining owning work package and, where a normative identity exists, the expected `(Code, Phase, Severity)`. Some deferred rows document an identity/coverage divergence rather than a missing code path.
 - Real Owner artifacts, real Integration wire conformance and 5GC/MAS qualification remain **NOT_QUALIFIED**.
@@ -27,10 +27,10 @@ Hard limits stated up front:
 | Set | Implemented + tested | Deferred | Host/Runtime/Integration | Spec-only | Total |
 |---|---|---|---|---|---|
 | EW-001..EW-036 | 16 | 1 | 18 | 1 | 36 |
-| IN-001..IN-066 | 33 | 6 | 27 | 0 | 66 |
-| **All** | **49** | **7** | **45** | **1** | **102** |
+| IN-001..IN-066 | 35 | 4 | 27 | 0 | 66 |
+| **All** | **51** | **5** | **45** | **1** | **102** |
 
-Deferred rows by remaining owner: WP1 = 1, WP3 = 0, WP5 = 0, WP6 = 6.
+Deferred rows by remaining owner: WP1 = 1, WP3 = 0, WP5 = 0, WP6 = 4.
 
 ## 3. EW-001..EW-036 matrix (Appendix L.12)
 
@@ -128,7 +128,7 @@ Deferred rows by remaining owner: WP1 = 1, WP3 = 0, WP5 = 0, WP6 = 6.
 | IN-027 | Compiler | `COMPILER_STATIC_DEFERRED` | A paired response missing required deadline/recovery/disposition declarations emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC; a complete declaration that the Adapter does not honor is an Integration conformance failure. | NOT_IMPLEMENTED (remaining WP6) |
 | IN-028 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A single fixed bodyless paired response disposition does not require a response-result Producer; multiple dispositions still require a typed result selector. | `TestV1Alpha5WP6PositiveSingleBodylessDisposition` |
 | IN-029 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A body-bearing paired response without a result Producer emits WAIT_RESPONSE_MAPPING_INVALID / C_STATIC. | `TestV1Alpha5WP6BoundaryNodeWithoutProducerStage` |
-| IN-030 | Compiler | `COMPILER_STATIC_DEFERRED` | A response.after Node without the export-required Producer stage emits WAIT_RESPONSE_BOUNDARY_INVALID / C_STATIC. | NOT_IMPLEMENTED (remaining WP6) |
+| IN-030 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A response.after Node without the export-required Producer stage emits WAIT_RESPONSE_BOUNDARY_INVALID / C_STATIC; the same Node also has no valid typed Producer-to-response mapping (EW-021). | `TestV1Alpha5WP6BoundaryNodeWithoutProducerStage` |
 | IN-031 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A boundary Producer Output not assignable to responseResultSchema emits INPUT_TYPE_MISMATCH / C_STATIC; an unavailable Producer SourcePath emits SOURCE_NOT_AVAILABLE; WAIT_RESPONSE_MAPPING_INVALID must not substitute for ordinary type diagnostics. | `TestV1Alpha5WP6ProducerOutputSchemaIncompatible`, `TestV1Alpha5WP6ProducerOutputSchemaUnavailable` |
 | IN-032 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | An Ingress-own response mapping that misses required protocol response fields emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; a missing Skill Producer mapping emits WAIT_RESPONSE_MAPPING_INVALID. | `TestV1Alpha5WP6MappingCoverageIncomplete` |
 | IN-033 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A Run ending in an allowed failure terminal before the response boundary while the export declares no valid early-failure response mapping emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC; with a complete declaration the execution half is an Integration conformance responsibility. | `TestV1Alpha5WP6EarlyFailureMappingMissing` |
@@ -142,7 +142,7 @@ Deferred rows by remaining owner: WP1 = 1, WP3 = 0, WP5 = 0, WP6 = 6.
 | IN-041 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | After EVENT_ACCEPTED, a duplicate old request before tombstone expiry or a premature next arming must be rejected/quarantined and never delivered to the next Wait. | NOT_COMPILER_OWNED (external obligation) |
 | IN-042 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Request binaryContent retention shorter than the last declared recovery window emits INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID / C_STATIC. | `TestBinaryContentRetentionBelowRecoveryWindow` |
 | IN-043 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Reject an over-limit multipart body/part before unbounded buffering; do not submit the normalized delivery. | NOT_COMPILER_OWNED (external obligation) |
-| IN-044 | Compiler | `COMPILER_STATIC_DEFERRED` | A pinned OpenAPI response requiring multipart/related binary parts while the export declares only JSON mapping emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; binary parts are never dropped or stringified. | NOT_IMPLEMENTED (remaining WP6) |
+| IN-044 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A pinned OpenAPI response requiring multipart/related content while the Ingress export declares no multipart representation emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; binary parts are never dropped or stringified. | `TestPinnedOpenAPIResponseMultipartRequiresMultipartMapping` |
 | IN-045 | Compiler | `COMPILER_STATIC_DEFERRED` | A Step 15 user-plane setup rejection requiring an N1 SM Reject binary container while the export declares only JSON or 204 emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; a missing N1 binary mapping stays NOT LINKABLE. | NOT_IMPLEMENTED (remaining WP6) |
 | IN-046 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A staleDelivery authenticated-header-parameter discriminator whose duplicate identity source/scope is not the same 3gpp-sbi-idempotency-key target-nf identity emits INGRESS_CORRELATION_INVALID / C_STATIC. | `TestV1Alpha5WP3WireDiscriminatorDuplicateIdentityInvalid` |
 | IN-047 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A discriminatorRetention less than or equal to maximumLateArrival + clockSkewAllowance emits INGRESS_CORRELATION_INVALID / C_STATIC. | `TestV1Alpha5WP3RetentionWindowInvalid` |

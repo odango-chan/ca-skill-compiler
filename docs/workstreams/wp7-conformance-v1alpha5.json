@@ -2,10 +2,10 @@
   "schemaVersion": "connectionagent.io/wp7-conformance-register/v1",
   "languageTarget": "connectionagent.io/v1alpha5",
   "status": "NORMATIVE_OBLIGATIONS_LOCALLY_TESTED_NOT_QUALIFIED",
-  "scope": "Post-integration static Compiler traceability against released CA-SL v1alpha5 and IngressCatalog v1alpha1. No row is CI PASS or product qualification. 49 rows are implemented+tested by executable Go tests in this repository; 7 remain Compiler-static deferred; 45 are Skill/Host/Runtime/Integration obligations, not Compiler-owned static obligations; 1 is specification-only. The register covers all 36 EW and 66 IN cases. IN-058 peer profile format validation is implemented while profile-resource resolution remains deferred because the released contract does not publish a profile resource representation. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED.",
+  "scope": "Post-integration static Compiler traceability against released CA-SL v1alpha5 and IngressCatalog v1alpha1. No row is CI PASS or product qualification. 51 rows are implemented+tested by executable Go tests in this repository; 5 remain Compiler-static deferred; 45 are Skill/Host/Runtime/Integration obligations, not Compiler-owned static obligations; 1 is specification-only. The register covers all 36 EW and 66 IN cases. IN-058 peer profile format validation is implemented while profile-resource resolution remains deferred because the released contract does not publish a profile resource representation. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED.",
   "counts": {
-    "COMPILER_STATIC_IMPLEMENTED_TESTED": 49,
-    "COMPILER_STATIC_DEFERRED": 7,
+    "COMPILER_STATIC_IMPLEMENTED_TESTED": 51,
+    "COMPILER_STATIC_DEFERRED": 5,
     "HOST_RUNTIME_INTEGRATION_OWNED": 45,
     "SPECIFICATION_ONLY_NOT_EXECUTED": 1,
     "ew": {
@@ -15,8 +15,8 @@
       "SPECIFICATION_ONLY_NOT_EXECUTED": 1
     },
     "in": {
-      "COMPILER_STATIC_DEFERRED": 6,
-      "COMPILER_STATIC_IMPLEMENTED_TESTED": 33,
+      "COMPILER_STATIC_DEFERRED": 4,
+      "COMPILER_STATIC_IMPLEMENTED_TESTED": 35,
       "HOST_RUNTIME_INTEGRATION_OWNED": 27,
       "SPECIFICATION_ONLY_NOT_EXECUTED": 0
     }
@@ -765,8 +765,8 @@
     {
       "id": "IN-030",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "A response.after Node without the export-required Producer stage emits WAIT_RESPONSE_BOUNDARY_INVALID / C_STATIC.",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "A response.after Node without the export-required Producer stage emits WAIT_RESPONSE_BOUNDARY_INVALID / C_STATIC; the same Node also has no valid typed Producer-to-response mapping (EW-021).",
       "diagnostic": {
         "code": "WAIT_RESPONSE_BOUNDARY_INVALID",
         "phase": "C_STATIC",
@@ -775,8 +775,12 @@
         "template": "Node '{nodeId}' wait.response.after does not identify one reachable response boundary on every accepted-event path.",
         "sourceLocation": "Line/column of the `wait.response.after` value node, else the `response`/`wait` node."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "The implemented pass reports WAIT_RESPONSE_MAPPING_INVALID when the export-required Producer stage is absent; the required WAIT_RESPONSE_BOUNDARY_INVALID identity for IN-030 is not aligned yet."
+      "relatedCodes": [
+        "WAIT_RESPONSE_MAPPING_INVALID"
+      ],
+      "tests": [
+        "TestV1Alpha5WP6BoundaryNodeWithoutProducerStage"
+      ]
     },
     {
       "id": "IN-031",
@@ -928,8 +932,8 @@
     {
       "id": "IN-044",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "A pinned OpenAPI response requiring multipart/related binary parts while the export declares only JSON mapping emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; binary parts are never dropped or stringified.",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "A pinned OpenAPI response requiring multipart/related content while the Ingress export declares no multipart representation emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; binary parts are never dropped or stringified.",
       "diagnostic": {
         "code": "INGRESS_RESPONSE_MAPPING_INVALID",
         "phase": "C_STATIC",
@@ -938,8 +942,9 @@
         "template": "Ingress export '{exportId}' has an invalid protocol response representation or mapping at '{fieldPath}'.",
         "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "Cross-checking pinned OpenAPI response shape against declared JSON-only mappings is not implemented."
+      "tests": [
+        "TestPinnedOpenAPIResponseMultipartRequiresMultipartMapping"
+      ]
     },
     {
       "id": "IN-045",
@@ -955,7 +960,7 @@
         "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "deferredTo": "WP6",
-      "deferredNote": "The N1 SM Reject binary-container mapping obligation against the pinned protocol response is not implemented."
+      "deferredNote": "The released example OpenAPI artifact does not carry the TS 29.502 V19.7.0 production-profile N1 SM Reject response shape, so the generic pinned-artifact cross-check (IN-044) cannot prove this specific binary-container obligation. It needs the production protocol profile artifact rather than a Compiler-invented shape."
     },
     {
       "id": "IN-046",
