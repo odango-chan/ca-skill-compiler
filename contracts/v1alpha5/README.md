@@ -22,8 +22,15 @@ Normative sources:
 | `build-request.schema.json` | the only accepted `BuildRequest` API: exact API/language identity, source files, immutable dependency snapshots, dependency/Owner bindings, deployment bundles and trusted Ingress/Schema artifact bindings |
 | `build-result.schema.json` | `BuildResult` envelope: diagnostics, dependency closure and output files; a failed result carries no output |
 | `dependency-inspection.schema.json` | read-only projection: inherited callables/Schemas plus the independent `ingressOperations` inventory |
-| `artifact-manifest.schema.json` | the deterministic Build artifact manifest emitted as canonical RFC 8785 JCS |
+| `artifact-manifest.schema.json` | the FROZEN deterministic Build artifact manifest emitted as canonical RFC 8785 JCS |
 | `dependency-snapshot-digest-vectors.json` | golden vectors for the inherited cross-language dependency snapshot digest |
+
+Trusted Ingress/Schema artifact bindings are accepted only inside
+`trustedBuildContext`: `trustedBuildContext.artifactBindings` and
+`trustedBuildContext.schemaBindings`. There is no top-level `artifactBinding`
+or `schemaBinding` property, and no alias for one; the strict JSON decoder
+(`DisallowUnknownFields`) and the schema both reject such a property together
+with any other unknown top-level property.
 
 The ToolCatalog and CapabilityContracts trusted-input documents retain their
 released v1alpha4 artifact contract identities. They are immutable external

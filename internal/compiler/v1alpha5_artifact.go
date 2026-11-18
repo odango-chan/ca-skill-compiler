@@ -2,7 +2,7 @@ package compiler
 
 // CA-SL v1alpha5 WP8: deterministic successful-Build artifact assembly.
 //
-// The candidate v1alpha5 target reuses the single Go Core pipeline: request
+// The frozen v1alpha5 target reuses the single Go Core pipeline: request
 // admission, Procedure/AST, WP5 graph, WP3 trigger/correlation linking, WP4
 // wait.output SourcePath binding and WP6 response-boundary/mapping validation.
 // Only after that pipeline returns zero error diagnostics does Build assemble a

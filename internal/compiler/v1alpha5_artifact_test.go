@@ -1,6 +1,6 @@
 package compiler
 
-// WP8: candidate v1alpha5 deterministic Build artifact assembly tests.
+// WP8: frozen v1alpha5 deterministic Build artifact assembly tests.
 //
 // These fixtures are SYNTHETIC trusted static-compiler fixtures built from the
 // WP3/WP6 test helpers; they are not real Owner artifacts, deployment profiles or
@@ -414,26 +414,42 @@ func TestV1Alpha5ArtifactVerificationDetectsTampering(t *testing.T) {
 	}
 }
 
-// TestV1Alpha5ArtifactManifestMatchesCandidateSchema keeps the emitted
-// candidate manifest and the shipped candidate contract from drifting. The
-// schema is loaded from the repository contract file with no network access.
-func TestV1Alpha5ArtifactManifestMatchesCandidateSchema(t *testing.T) {
+// TestV1Alpha5ArtifactManifestMatchesFrozenSchema keeps the emitted manifest and
+// the shipped frozen contract from drifting. The schema is loaded from the
+// repository contract file with no network access, and its metadata must declare
+// the frozen v2.0.0 contract status rather than a candidate/draft/partial state.
+func TestV1Alpha5ArtifactManifestMatchesFrozenSchema(t *testing.T) {
 	schemaBytes, err := os.ReadFile("../../contracts/v1alpha5/artifact-manifest.schema.json")
 	if err != nil {
-		t.Fatalf("read candidate v1alpha5 manifest schema: %v", err)
+		t.Fatalf("read frozen v1alpha5 manifest schema: %v", err)
 	}
 	var schemaDocument any
 	if err := json.Unmarshal(schemaBytes, &schemaDocument); err != nil {
-		t.Fatalf("decode candidate schema: %v", err)
+		t.Fatalf("decode frozen schema: %v", err)
+	}
+	schemaObject, ok := schemaDocument.(map[string]any)
+	if !ok {
+		t.Fatal("frozen artifact manifest schema must be a JSON object")
+	}
+	title, _ := schemaObject["title"].(string)
+	description, _ := schemaObject["description"].(string)
+	declaration := strings.ToLower(title + "\n" + description)
+	if !strings.Contains(declaration, "frozen") {
+		t.Fatalf("artifact manifest schema must declare its frozen status: title=%q description=%q", title, description)
+	}
+	for _, retired := range []string{"candidate", "draft", "partial"} {
+		if strings.Contains(declaration, retired) {
+			t.Fatalf("artifact manifest schema still describes the contract as %q: title=%q description=%q", retired, title, description)
+		}
 	}
 	compiler := jsonschema.NewCompiler()
 	compiler.DefaultDraft(jsonschema.Draft2020)
 	if err := compiler.AddResource("urn:connectionagent:compiler:artifact-manifest:v1alpha5", schemaDocument); err != nil {
-		t.Fatalf("register candidate schema: %v", err)
+		t.Fatalf("register frozen schema: %v", err)
 	}
 	compiled, err := compiler.Compile("urn:connectionagent:compiler:artifact-manifest:v1alpha5")
 	if err != nil {
-		t.Fatalf("compile candidate schema: %v", err)
+		t.Fatalf("compile frozen schema: %v", err)
 	}
 
 	result := Build(wp3BuildRequest(t, wp3FixtureOptions{}))
@@ -456,6 +472,6 @@ func TestV1Alpha5ArtifactManifestMatchesCandidateSchema(t *testing.T) {
 		t.Fatalf("decode emitted manifest: %v", err)
 	}
 	if err := compiled.Validate(manifestValue); err != nil {
-		t.Fatalf("emitted manifest does not satisfy the candidate schema: %v", err)
+		t.Fatalf("emitted manifest does not satisfy the frozen schema: %v", err)
 	}
 }

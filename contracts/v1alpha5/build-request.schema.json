@@ -42,27 +42,6 @@
         "maxLength": 80
       }
     },
-    "artifactBinding": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["artifactRef","dependencyId","snapshotPath","dialect"],
-      "properties": {
-        "artifactRef": { "type": "string", "minLength": 1, "maxLength": 2048 },
-        "dependencyId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z][A-Za-z0-9_-]*$" },
-        "snapshotPath": { "type": "string", "minLength": 1, "maxLength": 240 },
-        "dialect": { "enum": ["openapi-3.0","json-schema-2020-12"] }
-      }
-    },
-    "schemaBinding": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["exportId","artifactRef","pointer"],
-      "properties": {
-        "exportId": { "type": "string", "minLength": 1, "maxLength": 2048 },
-        "artifactRef": { "type": "string", "minLength": 1, "maxLength": 2048 },
-        "pointer": { "type": "string", "minLength": 1, "maxLength": 1024 }
-      }
-    },
     "trustedBuildContext": {
       "$ref": "#/$defs/trustedBuildContext"
     }

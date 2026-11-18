@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:connectionagent:compiler:artifact-manifest:v1alpha5",
-  "title": "CA Skill Compiler candidate v1alpha5 artifact manifest",
-  "description": "CANDIDATE / DRAFT compiler-owned schema for the connectionagent.io/compiler-artifact/v1alpha5 manifest emitted by a successful CA-SL v1alpha5 Build. It is independent of the frozen v1alpha4 artifact contract and is not an Owner publication, deployment authorization, Runtime admission or product/5GC qualification claim. The manifest is serialized as canonical RFC 8785 JCS. It lists every emitted artifact file except itself; each listed sha256 is the digest of the exact emitted bytes.",
+  "title": "CA Skill Compiler v2.0.0 frozen v1alpha5 artifact manifest",
+  "description": "FROZEN compiler-owned schema for the connectionagent.io/compiler-artifact/v1alpha5 manifest emitted by a successful CA-SL v1alpha5 Build. The artifact contract is frozen for the CA Skill Compiler v2.0.0 line; it is independent of the historical frozen v1alpha4 artifact contract and is not an Owner publication, deployment authorization, Runtime admission or product/5GC qualification claim. The manifest is serialized as canonical RFC 8785 JCS. It lists every emitted artifact file except itself; each listed sha256 is the digest of the exact emitted bytes.",
   "type": "object",
   "additionalProperties": false,
   "required": ["apiVersion", "languageTarget", "validationScope", "generator", "dependencyClosure", "skills", "outputFiles"],
