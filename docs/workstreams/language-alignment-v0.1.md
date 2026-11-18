@@ -1,3 +1,5 @@
+> **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+
 # Skill Language Alignment · Compiler v0.1
 
 Updated: 2026-11-12. This implementation report follows the narrowed Compiler contract in PR #4. ca-skills v0.2 is the only official Skill source and language authority. A synthetic PASS is not official-Skill acceptance or Runtime evidence.

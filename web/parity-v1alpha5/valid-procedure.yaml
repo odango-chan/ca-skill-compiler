@@ -1,0 +1,19 @@
+start: verify-registration
+nodes:
+  verify-registration:
+    operation:
+      tool: ca::demo.observe_registration
+      arguments: {}
+      routes:
+        SUCCEEDED: classify-registration
+        FAILED: SAFE_STOPPED
+        OUTCOME_UNKNOWN: UNRESOLVED
+  classify-registration:
+    postcondition:
+      predicates:
+        - predicate: demo.registration_satisfied
+          arguments: []
+      routes:
+        PASS: SUCCEEDED
+        FAIL: SAFE_STOPPED
+        UNKNOWN: UNRESOLVED

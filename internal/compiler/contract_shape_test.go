@@ -54,12 +54,16 @@ func validateContractShape(t *testing.T, schemaPath string, output any) {
 	}
 }
 
-func TestInspectionMatchesFrozenSchema(t *testing.T) {
-	inspection := InspectDependencies(wp3aBaseFixture(t).request(t))
-	validateContractShape(t, "../../contracts/v1alpha4/dependency-inspection.schema.json", inspection)
+func TestBuildRequestMatchesCurrentSchema(t *testing.T) {
+	validateContractShape(t, "../../contracts/v1alpha5/build-request.schema.json", wp3BuildRequest(t, wp3FixtureOptions{}))
 }
 
-func TestBuildResultMatchesFrozenSchema(t *testing.T) {
+func TestInspectionMatchesCurrentSchema(t *testing.T) {
+	inspection := InspectDependencies(wp3aBaseFixture(t).request(t))
+	validateContractShape(t, "../../contracts/v1alpha5/dependency-inspection.schema.json", inspection)
+}
+
+func TestBuildResultMatchesCurrentSchema(t *testing.T) {
 	result := Build(wp3aBaseFixture(t).request(t))
-	validateContractShape(t, "../../contracts/v1alpha4/build-result.schema.json", result)
+	validateContractShape(t, "../../contracts/v1alpha5/build-result.schema.json", result)
 }

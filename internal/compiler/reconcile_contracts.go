@@ -12,13 +12,33 @@ package compiler
 // separately versioned trusted association contract exists.
 
 import (
+	"strings"
+
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
+
+type mutationFailureClass struct {
+	ID            string
+	Outcome       string
+	ProofSchemaID string
+	ProofPath     string
+	NoSideEffect  bool
+	Retryable     bool
+}
+
+type mutationResourceOutput struct {
+	Path                   string
+	ResourceKind           string
+	ResponsibilitySchemaID string
+}
 
 type mutationContractFields struct {
 	ReceiptSchemaID        string
 	CommitProofSchemaID    string
 	CommitProofPath        string
+	FailureClassPath       string
+	FailureClasses         []mutationFailureClass
+	ResourceOutputs        []mutationResourceOutput
 	ReconcileCallable      string
 	ReconcileProofSchemaID string
 	ReconcileProofPath     string
@@ -41,6 +61,38 @@ func parseMutationContractFields(node *yaml.Node) mutationContractFields {
 		}
 		fields.CommitProofPath = scalar(child(commit, "path"))
 	}
+	fields.FailureClassPath = scalar(child(mutation, "failureClassPath"))
+	for _, classNode := range sequence(child(mutation, "failureClasses")) {
+		classNode = unalias(classNode)
+		if classNode == nil || classNode.Kind != yaml.MappingNode {
+			continue
+		}
+		class := mutationFailureClass{
+			ID:           scalar(child(classNode, "id")),
+			Outcome:      scalar(child(classNode, "outcome")),
+			ProofPath:    scalar(child(classNode, "proofPath")),
+			NoSideEffect: child(classNode, "noSideEffect") != nil && scalar(child(classNode, "noSideEffect")) == "true",
+			Retryable:    child(classNode, "retryable") != nil && scalar(child(classNode, "retryable")) == "true",
+		}
+		if id, ok := schemaRefID(unwrapNode(child(classNode, "proofSchema"))); ok {
+			class.ProofSchemaID = id
+		}
+		fields.FailureClasses = append(fields.FailureClasses, class)
+	}
+	for _, outputNode := range sequence(child(mutation, "resourceOutputs")) {
+		outputNode = unalias(outputNode)
+		if outputNode == nil || outputNode.Kind != yaml.MappingNode {
+			continue
+		}
+		output := mutationResourceOutput{
+			Path:         scalar(child(outputNode, "path")),
+			ResourceKind: scalar(child(outputNode, "resourceKind")),
+		}
+		if id, ok := schemaRefID(unwrapNode(child(outputNode, "responsibilitySchema"))); ok {
+			output.ResponsibilitySchemaID = id
+		}
+		fields.ResourceOutputs = append(fields.ResourceOutputs, output)
+	}
 	if reconcile := unalias(child(mutation, "reconcile")); reconcile != nil {
 		fields.ReconcileCallable = scalar(child(reconcile, "callable"))
 		if id, ok := schemaRefID(unwrapNode(child(reconcile, "proofSchema"))); ok {
@@ -55,7 +107,7 @@ func parseMutationContractFields(node *yaml.Node) mutationContractFields {
 	return fields
 }
 
-func validateV1Alpha4ReconcileContracts(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validateReconcileContracts(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Contract == nil {
 		return
 	}
@@ -67,7 +119,7 @@ func validateV1Alpha4ReconcileContracts(req BuildRequest, skill *V1Alpha4SkillAS
 			}
 		}
 	}
-	registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity)
 	trustedOwner := map[string]string{}
 	for _, export := range ownerLinking.Exports {
 		trustedOwner[export.DependencyAlias+"\x00"+export.ExportKind+"\x00"+export.ExportID] = export.TrustedOwner
@@ -88,11 +140,25 @@ func validateV1Alpha4ReconcileContracts(req BuildRequest, skill *V1Alpha4SkillAS
 					}
 				}
 				if callable.MutationFields.CommitProofSchemaID != "" {
-					proof, problem := registry.resolveReference(alias + "::" + callable.MutationFields.CommitProofSchemaID)
-					if problem != "" {
+					if _, problem := registry.resolveReference(alias + "::" + callable.MutationFields.CommitProofSchemaID); problem != "" {
 						report("Mutation commitProof Schema is not resolvable in the trusted snapshot: " + callable.MutationFields.CommitProofSchemaID)
-					} else if !schemaPathExists(unalias(proof.node), callable.MutationFields.CommitProofPath) {
-						report("Mutation commitProof path is not declared by its proof Schema: " + callable.MutationFields.CommitProofPath)
+					}
+				}
+				for _, output := range callable.MutationFields.ResourceOutputs {
+					if output.ResponsibilitySchemaID == "" {
+						continue // identity-level shape check already rejected this declaration
+					}
+					if _, problem := registry.resolveReference(alias + "::" + output.ResponsibilitySchemaID); problem != "" {
+						report("Mutation resourceOutputs responsibility Schema is not resolvable: " + output.ResponsibilitySchemaID)
+						continue
+					}
+					outputSchema, problem := registry.resolveReference(alias + "::" + callable.OutputSchemaID)
+					if problem != "" {
+						report("Mutation resourceOutputs path requires a resolvable Mutation output Schema: " + callable.OutputSchemaID)
+						continue
+					}
+					if !schemaPathExists(unalias(outputSchema.node), strings.TrimPrefix(output.Path, "output.")) {
+						report("Mutation resourceOutputs path is not declared by the Mutation output Schema: " + output.Path)
 					}
 				}
 				if callable.MutationFields.ReconcileCallable == "" {
@@ -119,19 +185,13 @@ func validateV1Alpha4ReconcileContracts(req BuildRequest, skill *V1Alpha4SkillAS
 					report("Mutation Reconcile READ must belong to the same Owner as the Mutation: " + callable.MutationFields.ReconcileCallable)
 				}
 				if callable.MutationFields.ReconcileProofSchemaID != "" {
-					proof, problem := registry.resolveReference(alias + "::" + callable.MutationFields.ReconcileProofSchemaID)
-					if problem != "" {
+					if _, problem := registry.resolveReference(alias + "::" + callable.MutationFields.ReconcileProofSchemaID); problem != "" {
 						report("Mutation Reconcile proof Schema is not resolvable: " + callable.MutationFields.ReconcileProofSchemaID)
-					} else if !schemaPathExists(unalias(proof.node), callable.MutationFields.ReconcileProofPath) {
-						report("Mutation Reconcile proofPath is not declared by its proof Schema: " + callable.MutationFields.ReconcileProofPath)
 					}
 				}
 				if callable.MutationFields.RecoverableSchemaID != "" {
-					recoverable, problem := registry.resolveReference(alias + "::" + callable.MutationFields.RecoverableSchemaID)
-					if problem != "" {
+					if _, problem := registry.resolveReference(alias + "::" + callable.MutationFields.RecoverableSchemaID); problem != "" {
 						report("Mutation recoverableOutputSchema is not resolvable: " + callable.MutationFields.RecoverableSchemaID)
-					} else if !schemaPathExists(unalias(recoverable.node), callable.MutationFields.RecoverablePath) {
-						report("Mutation recoverableOutputPath is not declared by its Schema: " + callable.MutationFields.RecoverablePath)
 					}
 				}
 			}

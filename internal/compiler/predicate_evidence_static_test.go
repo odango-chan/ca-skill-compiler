@@ -17,7 +17,7 @@ func TestPredicateEvidenceUnsatisfiedWithoutPublishedGuarantee(t *testing.T) {
 	fixture.replaceSnapshotFile("ca", "tool-catalog.yaml", "      guarantees:\n        evidence:\n          provides:\n            - guarantee: ue.registration-state\n              path: output\n", "")
 	fixture.refreshSnapshotDigests(t)
 	request := fixture.request(t)
-	if !v4HasCode(Check(request), "PREDICATE_EVIDENCE_UNSATISFIABLE") {
+	if !hasCode(Check(request), "PREDICATE_EVIDENCE_UNSATISFIABLE") {
 		t.Fatalf("producer without published guarantee accepted: %+v", Check(request))
 	}
 }
@@ -26,7 +26,7 @@ func TestPredicateEvidenceRequestDataUnsatisfiable(t *testing.T) {
 	fixture := wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "            - inspect-registration.observation.output", "            - context.ueRef")
 	request := fixture.request(t)
-	if !v4HasCode(Check(request), "PREDICATE_EVIDENCE_UNSATISFIABLE") {
+	if !hasCode(Check(request), "PREDICATE_EVIDENCE_UNSATISFIABLE") {
 		t.Fatalf("Request/Host data satisfying a declared guarantee accepted: %+v", Check(request))
 	}
 }

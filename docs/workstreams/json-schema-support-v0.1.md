@@ -1,3 +1,5 @@
+> **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+
 # JSON Schema v0.1 support boundary
 
 Updated: 2026-11-12. This matrix separates validation of a JSON Schema document from the Compiler's ability to prove a Producer satisfies a Consumer. The implementation targets selected Draft 2020-12 semantics and fails closed where it cannot prove compatibility; it is not a general-purpose JSON Schema evaluator.

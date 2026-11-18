@@ -5,6 +5,8 @@ package compiler
 // out of scope; violations use the frozen RECONCILE_CONTRACT_INVALID identity.
 
 import (
+	"strings"
+
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
@@ -29,6 +31,12 @@ func mutationContractProblem(node *yaml.Node) string {
 	}
 	if scalar(child(commitProof, "bind")) != "originalInvocationId" {
 		return "Mutation commitProof.bind must be originalInvocationId"
+	}
+	if problem := mutationFailureClassesShapeProblem(mutation); problem != "" {
+		return problem
+	}
+	if problem := mutationResourceOutputsShapeProblem(mutation); problem != "" {
+		return problem
 	}
 	reconcile := unalias(child(mutation, "reconcile"))
 	if reconcile == nil {
@@ -57,6 +65,85 @@ func mutationContractProblem(node *yaml.Node) string {
 	return ""
 }
 
+// mutationFailureClassesShapeProblem rejects malformed declared failure classes
+// instead of silently dropping them from the semantic index (fail-closed).
+func mutationFailureClassesShapeProblem(mutation *yaml.Node) string {
+	classes := unalias(child(mutation, "failureClasses"))
+	pathNode := unalias(child(mutation, "failureClassPath"))
+	if pathNode != nil {
+		if pathNode.Kind != yaml.ScalarNode || pathNode.Tag != "!!str" || pathNode.Value == "" {
+			return "Mutation failureClassPath must be a non-empty static path string"
+		}
+	}
+	if classes == nil {
+		return ""
+	}
+	if classes.Kind != yaml.SequenceNode || len(classes.Content) == 0 {
+		return "Mutation failureClasses must be a non-empty ordered list"
+	}
+	if pathNode == nil {
+		return "Mutation failureClasses require failureClassPath"
+	}
+	for index, classNode := range classes.Content {
+		label := "Mutation failureClasses[" + itoa(index) + "]"
+		classNode = unalias(classNode)
+		if classNode == nil || classNode.Kind != yaml.MappingNode {
+			return label + " must be a mapping with id/outcome/proofSchema/proofPath/noSideEffect/retryable"
+		}
+		for _, field := range []string{"id", "outcome", "proofPath"} {
+			value := unalias(child(classNode, field))
+			if value == nil || value.Kind != yaml.ScalarNode || value.Tag != "!!str" || value.Value == "" {
+				return label + "." + field + " must be a non-empty string"
+			}
+		}
+		if _, ok := schemaRefID(unwrapNode(child(classNode, "proofSchema"))); !ok {
+			return label + ".proofSchema must be an exact Schema $id"
+		}
+		for _, field := range []string{"noSideEffect", "retryable"} {
+			value := unalias(child(classNode, field))
+			if value == nil || value.Kind != yaml.ScalarNode || value.Tag != "!!bool" {
+				return label + "." + field + " must be a YAML boolean"
+			}
+		}
+		outcome := scalar(child(classNode, "outcome"))
+		if outcome != "FAILED" && outcome != "NOT_COMMITTED" {
+			return label + ".outcome must be FAILED or NOT_COMMITTED"
+		}
+	}
+	return ""
+}
+
+// mutationResourceOutputsShapeProblem rejects malformed responsibility-record
+// declarations instead of ignoring them entirely.
+func mutationResourceOutputsShapeProblem(mutation *yaml.Node) string {
+	outputs := unalias(child(mutation, "resourceOutputs"))
+	if outputs == nil {
+		return ""
+	}
+	if outputs.Kind != yaml.SequenceNode || len(outputs.Content) == 0 {
+		return "Mutation resourceOutputs must be a non-empty ordered list"
+	}
+	for index, item := range outputs.Content {
+		label := "Mutation resourceOutputs[" + itoa(index) + "]"
+		item = unalias(item)
+		if item == nil || item.Kind != yaml.MappingNode {
+			return label + " must be a mapping with path/resourceKind/responsibilitySchema"
+		}
+		path := unalias(child(item, "path"))
+		if path == nil || path.Kind != yaml.ScalarNode || path.Tag != "!!str" || path.Value == "" || !strings.HasPrefix(path.Value, "output.") || !validDottedIdentifierPath(strings.TrimPrefix(path.Value, "output.")) {
+			return label + ".path must be an exact static output.<Identifier> path"
+		}
+		kind := unalias(child(item, "resourceKind"))
+		if kind == nil || kind.Kind != yaml.ScalarNode || kind.Tag != "!!str" || kind.Value == "" {
+			return label + ".resourceKind must be a non-empty string"
+		}
+		if _, ok := schemaRefID(unwrapNode(child(item, "responsibilitySchema"))); !ok {
+			return label + ".responsibilitySchema must be an exact Schema $id"
+		}
+	}
+	return ""
+}
+
 // unwrapNode adapts a scalar string carrying a Schema $id to the mapping shape
 // accepted by schemaRefID.
 func unwrapNode(node *yaml.Node) *yaml.Node {
@@ -70,7 +157,7 @@ func unwrapNode(node *yaml.Node) *yaml.Node {
 	}}
 }
 
-func validateV1Alpha4MutationContracts(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult) []Diagnostic {
+func validateMutationContracts(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult) []Diagnostic {
 	diagnostics := make([]Diagnostic, 0)
 	if skill == nil {
 		return diagnostics

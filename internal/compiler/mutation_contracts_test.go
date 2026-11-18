@@ -25,7 +25,7 @@ spec:
 	fixture.refreshSnapshotDigests(t)
 	diagnostics := Check(fixture.request(t))
 	for _, diagnostic := range diagnostics {
-		if diagnostic.Code == "RECONCILE_CONTRACT_INVALID" && diagnostic.Message != v1alpha4ResidualFailClosedMessage {
+		if diagnostic.Code == "RECONCILE_CONTRACT_INVALID" {
 			t.Fatalf("valid Mutation contract rejected: %+v", diagnostic)
 		}
 	}

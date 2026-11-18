@@ -1,6 +1,6 @@
 package compiler
 
-// Shared normalized-YAML AST helpers used by the active v1alpha4 Core.
+// Shared normalized-YAML AST helpers used by the single v1alpha5 Compiler Core.
 
 import yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 

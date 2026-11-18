@@ -16,11 +16,11 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateV1Alpha4SourcePaths(procedurePath string, skill *V1Alpha4SkillAST, add func(string, *yaml.Node, string, string)) {
+func validateSourcePaths(procedurePath string, skill *SkillAST, add func(string, *yaml.Node, string, string)) {
 	if skill == nil {
 		return
 	}
-	nodeIDs := map[string]*V1Alpha4ProcedureNodeAST{}
+	nodeIDs := map[string]*ProcedureNodeAST{}
 	if skill.Procedure != nil {
 		for id, node := range skill.Procedure.ByID {
 			nodeIDs[id] = node
@@ -46,7 +46,7 @@ func validateV1Alpha4SourcePaths(procedurePath string, skill *V1Alpha4SkillAST, 
 		case "!!bool", "!!null", "!!int", "!!float":
 			return // frozen scalar literal, not a SourcePath
 		case "!!str":
-			if problem := checkV1Alpha4SourcePath(value.Value, nodeIDs); problem != "" {
+			if problem := checkSourcePathValue(value.Value, nodeIDs); problem != "" {
 				add(procedurePath, value, "SOURCE_PATH_INVALID", problem)
 			}
 		}
@@ -72,21 +72,21 @@ func validateV1Alpha4SourcePaths(procedurePath string, skill *V1Alpha4SkillAST, 
 	}
 }
 
-func operationArguments(node *V1Alpha4ProcedureNodeAST) *yaml.Node {
+func operationArguments(node *ProcedureNodeAST) *yaml.Node {
 	if node.Operation == nil {
 		return nil
 	}
 	return node.Operation.Arguments
 }
 
-func observationArguments(node *V1Alpha4ProcedureNodeAST) *yaml.Node {
+func observationArguments(node *ProcedureNodeAST) *yaml.Node {
 	if node.Observation == nil {
 		return nil
 	}
 	return node.Observation.Arguments
 }
 
-func checkPredicateCallArguments(stage *V1Alpha4PredicateStageAST, arity map[string]int, procedurePath string, checkArgument func(*yaml.Node), add func(string, *yaml.Node, string, string)) {
+func checkPredicateCallArguments(stage *PredicateStageAST, arity map[string]int, procedurePath string, checkArgument func(*yaml.Node), add func(string, *yaml.Node, string, string)) {
 	if stage == nil {
 		return
 	}
@@ -106,9 +106,9 @@ func checkPredicateCallArguments(stage *V1Alpha4PredicateStageAST, arity map[str
 	}
 }
 
-// checkV1Alpha4SourcePath validates the exact frozen static path grammar against
+// checkSourcePathValue validates the exact frozen static path grammar against
 // the Procedure's declared Nodes and stages.
-func checkV1Alpha4SourcePath(value string, nodes map[string]*V1Alpha4ProcedureNodeAST) string {
+func checkSourcePathValue(value string, nodes map[string]*ProcedureNodeAST) string {
 	segments := strings.Split(value, ".")
 	if len(segments) < 2 {
 		return "SourcePath must use context.<field> or <node>.<stage>.output[.<field>...]"
@@ -140,8 +140,21 @@ func checkV1Alpha4SourcePath(value string, nodes map[string]*V1Alpha4ProcedureNo
 		if node.Observation == nil {
 			return "SourcePath root " + segments[0] + " declares no observation stage"
 		}
+	case "wait":
+		// CA-SL v1alpha5 Appendix L.2: the accepted-event value of a Node-entry
+		// Wait is exposed as <nodeId>.wait.output in the Wait-bearing Node and, when
+		// dominated by its event-accepted edge, on later paths. Whether the Node is
+		// actually Wait-bearing is checked here; path availability and typed
+		// producer mapping are owned by the v1alpha5 Wait passes.
+		if child(node.Raw, "wait") == nil {
+			return "SourcePath root " + segments[0] + " declares no wait entry"
+		}
+		if len(segments) < 3 || segments[2] != "output" {
+			return "SourcePath root must be <node>.wait.output[.<field>...]"
+		}
+		return ""
 	default:
-		return "SourcePath root must be context or <node>.operation.output / <node>.observation.output"
+		return "SourcePath root must be context or <node>.operation.output / <node>.observation.output / <node>.wait.output"
 	}
 	if segments[2] != "output" {
 		return "SourcePath root must be <node>.<stage>.output"

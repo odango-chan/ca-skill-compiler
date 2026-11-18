@@ -9,7 +9,7 @@ import (
 
 func TestContextSchemaQualifiedReference(t *testing.T) {
 	valid := wp3aBaseFixture(t).request(t)
-	if v4HasCode(Check(valid), "QUALIFIED_REFERENCE_INVALID") {
+	if hasCode(Check(valid), "QUALIFIED_REFERENCE_INVALID") {
 		t.Fatalf("valid contextSchema rejected: %+v", Check(valid))
 	}
 	cases := map[string]string{

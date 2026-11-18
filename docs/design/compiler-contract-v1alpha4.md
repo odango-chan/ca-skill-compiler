@@ -1,3 +1,5 @@
+> **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+
 # Compiler Contract v1alpha4
 
 **Status:** FROZEN Compiler implementation contract for the frozen CA-SL v1alpha4 target. **v1.0.0 implementation:** locally verified. **Product qualification:** NOT_QUALIFIED pending real Owner/Deployment and 5GC evidence. GitHub Actions availability is not used to rewrite local acceptance evidence.

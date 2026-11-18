@@ -133,7 +133,7 @@ func (fixture wp3aFixture) request(t *testing.T) BuildRequest {
 	bindings := append([]TrustedDependencyBinding(nil), fixture.bindings...)
 	return BuildRequest{
 		APIVersion:           BuildRequestAPIVersion,
-		LanguageTarget:       V1Alpha4Target,
+		LanguageTarget:       V1Alpha5Target,
 		Files:                fixtureFiles(fixture.files),
 		ResolvedDependencies: dependencies,
 		TrustedBuildContext:  &TrustedBuildContext{DependencyBindings: bindings},
@@ -164,7 +164,7 @@ func (fixture *wp3aFixture) withoutDependency(dependencyID string) {
 	fixture.dependencies = kept
 }
 
-func wp3aParseSkillAST(t *testing.T, req BuildRequest, name string) *V1Alpha4SkillAST {
+func wp3aParseSkillAST(t *testing.T, req BuildRequest, name string) *SkillAST {
 	t.Helper()
 	base := "skills/" + name + "/"
 	parsed := map[string]*yaml.Node{}
@@ -181,12 +181,12 @@ func wp3aParseSkillAST(t *testing.T, req BuildRequest, name string) *V1Alpha4Ski
 		}
 		parsed[file.Path] = node
 	}
-	return parseV1Alpha4SkillAST(name, parsed)
+	return parseSkillAST(name, parsed)
 }
 
 func wp3aIdentity(t *testing.T, req BuildRequest) dependencyIdentityResult {
 	t.Helper()
-	return validateV1Alpha4DependencyIdentity(req, wp3aParseSkillAST(t, req, wp3aSkillName))
+	return validateDependencyIdentity(req, wp3aParseSkillAST(t, req, wp3aSkillName))
 }
 
 func wp3aDiagnostics(diagnostics []Diagnostic) []Diagnostic {

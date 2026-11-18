@@ -62,7 +62,7 @@ func (fixture *wp3aFixture) refreshSnapshotDigests(t *testing.T) {
 func wp3bOwnerLinking(t *testing.T, req BuildRequest) (dependencyIdentityResult, ownerLinkingResult) {
 	t.Helper()
 	identity := wp3aIdentity(t, req)
-	return identity, validateV1Alpha4OwnerLinking(req, wp3aParseSkillAST(t, req, wp3aSkillName), identity)
+	return identity, validateOwnerLinking(req, wp3aParseSkillAST(t, req, wp3aSkillName), identity)
 }
 
 func wp3bDiagnostics(diagnostics []Diagnostic) []Diagnostic {
@@ -127,7 +127,7 @@ func TestWP3B001PositiveExportIdentity(t *testing.T) {
 	}
 
 	want := []linkedExport{
-		{DependencyAlias: "ca", ExportKind: "evidenceGuarantee", ExportID: "ue.registration-state", TrustedOwner: "example-ue-owner"},
+		{DependencyAlias: "ca", ExportKind: "evidenceGuarantee", ExportID: "ue.registration-state", TrustedOwner: "example-ue-owner", SelfDeclaredOwner: "example-ue-owner"},
 		{
 			DependencyAlias: "ca", ExportKind: "observation", ExportID: "ue.registration.current",
 			TrustedOwner: "example-ue-owner", SelfDeclaredOwner: "example-ue-owner",

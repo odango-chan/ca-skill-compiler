@@ -2,7 +2,7 @@ package compiler
 
 // WP5: Procedure graph reachability, UNREACHABLE_NODE warning and global
 // Precondition dominance. The frozen Procedure grammar/cardinality/route checks
-// already live in v1alpha4.go; this slice adds the graph proofs that need the
+// are enforced by the inherited structural checks; this file adds the graph proofs that need the
 // reachable graph and the trusted callable Effects from WP3.
 
 import (
@@ -14,12 +14,12 @@ import (
 
 type procedureGraph struct {
 	edges    map[string][]string
-	nodeByID map[string]*V1Alpha4ProcedureNodeAST
+	nodeByID map[string]*ProcedureNodeAST
 	order    []string
 }
 
-func buildV1Alpha4ProcedureGraph(procedure *V1Alpha4ProcedureAST) procedureGraph {
-	graph := procedureGraph{edges: map[string][]string{}, nodeByID: map[string]*V1Alpha4ProcedureNodeAST{}}
+func buildProcedureGraph(procedure *ProcedureAST) procedureGraph {
+	graph := procedureGraph{edges: map[string][]string{}, nodeByID: map[string]*ProcedureNodeAST{}}
 	if procedure == nil {
 		return graph
 	}
@@ -32,7 +32,7 @@ func buildV1Alpha4ProcedureGraph(procedure *V1Alpha4ProcedureAST) procedureGraph
 	return graph
 }
 
-func routeTargets(node *V1Alpha4ProcedureNodeAST) []string {
+func routeTargets(node *ProcedureNodeAST) []string {
 	if node == nil {
 		return nil
 	}
@@ -53,9 +53,20 @@ func routeTargets(node *V1Alpha4ProcedureNodeAST) []string {
 	for _, routes := range stages {
 		for _, target := range mapKeys(routes) {
 			value := scalar(child(routes, target))
-			if value != "" && !v4Terminals[value] {
+			if value != "" && !reservedTerminals[value] {
 				targets = append(targets, value)
 			}
+		}
+	}
+	// CA-SL v1alpha5 Appendix L.1 makes the Wait TIMEOUT route a real control-flow
+	// edge of the expanded Procedure graph. A logical v1alpha4 source cannot carry
+	// a wait declaration (it is rejected with UNSUPPORTED_WAIT), so admitting the
+	// edge here is target-neutral.
+	waitRoutes := child(child(node.Raw, "wait"), "routes")
+	for _, target := range mapKeys(waitRoutes) {
+		value := scalar(child(waitRoutes, target))
+		if value != "" && !reservedTerminals[value] {
+			targets = append(targets, value)
 		}
 	}
 	sort.Strings(targets)
@@ -77,15 +88,15 @@ func reachableProcedureNodes(graph procedureGraph, start string) map[string]bool
 	return reachable
 }
 
-// validateV1Alpha4ProcedureGraph emits UNREACHABLE_NODE/C_WARNING and
+// validateProcedureGraph emits UNREACHABLE_NODE/C_WARNING and
 // ENTRY_PRECONDITION_BYPASSED/C_STATIC. Missing/unknown start is left to the
 // existing PROCEDURE_START_MISSING check.
-func validateV1Alpha4ProcedureGraph(contract *V1Alpha4ContractAST, procedure *V1Alpha4ProcedureAST, ownerLinking ownerLinkingResult, contractPath, procedurePath string) []Diagnostic {
+func validateProcedureGraph(contract *ContractAST, procedure *ProcedureAST, ownerLinking ownerLinkingResult, contractPath, procedurePath string) []Diagnostic {
 	diagnostics := make([]Diagnostic, 0)
 	if procedure == nil || procedure.Raw == nil {
 		return diagnostics
 	}
-	graph := buildV1Alpha4ProcedureGraph(procedure)
+	graph := buildProcedureGraph(procedure)
 	start := scalar(procedure.Start)
 	if graph.nodeByID[start] == nil {
 		return diagnostics
@@ -143,7 +154,7 @@ func validateV1Alpha4ProcedureGraph(contract *V1Alpha4ContractAST, procedure *V1
 // only a PASS route from its Precondition stage (or a later stage reached by the
 // implied auto-advance, which can only execute after PASS) carries the proof.
 // A FAIL/UNKNOWN route out of the gate keeps the path unproven.
-func procedureHasBypass(graph procedureGraph, procedure *V1Alpha4ProcedureAST, start, gate string, mutations map[string]bool) bool {
+func procedureHasBypass(graph procedureGraph, procedure *ProcedureAST, start, gate string, mutations map[string]bool) bool {
 	edgesFrom := map[string][]routeEdge{}
 	for _, edge := range procedureRouteEdges(procedure) {
 		edgesFrom[edge.from] = append(edgesFrom[edge.from], edge)
@@ -190,7 +201,7 @@ func procedureHasBypass(graph procedureGraph, procedure *V1Alpha4ProcedureAST, s
 			}
 		}
 		for _, edge := range edges {
-			if edge.to == "" || v4Terminals[edge.to] || graph.nodeByID[edge.to] == nil {
+			if edge.to == "" || reservedTerminals[edge.to] || graph.nodeByID[edge.to] == nil {
 				continue
 			}
 			nextPassed := current.passed

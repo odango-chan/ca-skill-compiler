@@ -17,7 +17,7 @@ func validQualifiedCallableReference(ref string) bool {
 	return validDependencyID(ref[:index]) && validExportID(ref[index+2:])
 }
 
-func validateV1Alpha4QualifiedCallableReferences(skill *V1Alpha4SkillAST, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validateQualifiedCallableReferences(skill *SkillAST, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Procedure == nil {
 		return
 	}

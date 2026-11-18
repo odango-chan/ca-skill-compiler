@@ -49,10 +49,20 @@ type dependencyIdentityResult struct {
 	Bindings    map[string]TrustedDependencyBinding
 }
 
-// validateV1Alpha4DependencyIdentity implements the WP3A slice for one selected
-// Skill. Check and Build both reach it through validateV1Alpha4, so the identity
+// validateDependencyIdentity implements the WP3A slice for one selected
+// Skill. Check and Build both reach it through validate, so the identity
 // check cannot diverge between the two public operations.
-func validateV1Alpha4DependencyIdentity(req BuildRequest, skill *V1Alpha4SkillAST) dependencyIdentityResult {
+func validateDependencyIdentity(req BuildRequest, skill *SkillAST) dependencyIdentityResult {
+	return validateDependencyIdentityWithUsed(req, skill, nil)
+}
+
+// validateDependencyIdentityWithUsed is the shared identity proof with an
+// additional "used" alias set. The v1alpha5 target uses it for Ingress
+// dependencies that are consumed by a Node-entry Wait selector rather than by an
+// inherited callable/Schema reference; the dependency is genuinely referenced by
+// the released Ingress contract even though its Alias never appears in a
+// qualified author reference.
+func validateDependencyIdentityWithUsed(req BuildRequest, skill *SkillAST, extraUsed map[string]bool) dependencyIdentityResult {
 	result := dependencyIdentityResult{
 		Diagnostics: []Diagnostic{},
 		Identities:  []dependencyIdentity{},
@@ -75,6 +85,11 @@ func validateV1Alpha4DependencyIdentity(req BuildRequest, skill *V1Alpha4SkillAS
 			continue
 		}
 		used[reference.alias] = true
+	}
+	for alias := range extraUsed {
+		if _, declaredAlias := declared[alias]; declaredAlias {
+			used[alias] = true
+		}
 	}
 
 	aliases := make([]string, 0, len(declared))
@@ -145,13 +160,13 @@ func collectContractDependencies(contractPath string, dependencies *yaml.Node, d
 	return declared
 }
 
-// collectDependencyReferences scans only the frozen v1alpha4 source positions
+// collectDependencyReferences scans only the inherited Contract source positions
 // that can carry an external reference. It never searches arbitrary YAML strings
 // for "::": callable references come from Operation/Observation tool values,
 // external Schema references come from Contract.contextSchema, Predicate
 // parameter types and Skill-owned Schema $ref values, and Evidence Guarantee
 // references come from PredicateSet evidence requires/independence.
-func collectDependencyReferences(skill *V1Alpha4SkillAST) []dependencyReference {
+func collectDependencyReferences(skill *SkillAST) []dependencyReference {
 	references := make([]dependencyReference, 0)
 	contractPath := "skills/" + skill.Name + "/assurance/contract.yaml"
 	if skill.Contract != nil {

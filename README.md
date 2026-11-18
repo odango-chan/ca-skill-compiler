@@ -1,177 +1,200 @@
 # CA Skill Compiler
 
-**Current target: CA-SL v1alpha4.** A deterministic, stateless Compiler for the frozen
-ConnectionAgent Skill Language. The Compiler consumes author Skill source, immutable
-dependency snapshots and a trusted build context, and produces frozen diagnostics plus a
-deterministic artifact file tree. One Go Core serves Native Go, Go/WASM and the reference
-CLI; it performs no network access, dependency acquisition, Python execution or Runtime
-dispatch.
+A deterministic, stateless reference compiler for the **ConnectionAgent Skill
+Language (CA-SL)**. It consumes author Skill source, immutable dependency
+snapshots and a trusted build context, and produces stable diagnostics plus a
+deterministic artifact tree.
 
-## Release
+The Compiler is a single Go core shared by the native CLI and the Go/WASM
+module. It performs no network access, dependency acquisition, Python execution
+or Runtime dispatch.
 
-**CA Skill Compiler v1.0.0** (CA-SL v1alpha4 language target) is the first formal
-Compiler CLI release. Product version and language version are independent; the release
-contains prebuilt Native CLI binaries, the Go/WASM module and SHA-256 checksums. See the
-[release notes](docs/release-notes-v1.0.0.md) and the GitHub Releases page.
+## Status
 
-The Compiler product version recorded in Artifact manifests is `v1.0.0`; the language
-target remains the frozen `connectionagent.io/v1alpha4`.
+| Item | Value |
+|---|---|
+| Compiler product version | **v2.0.0** |
+| Language target | **`connectionagent.io/v1alpha5`** — the only supported target |
+| BuildRequest API | `connectionagent.io/compiler-build-request/v1alpha5` |
+| BuildResult API | `connectionagent.io/compiler-build-result/v1alpha5` |
+| DependencyInspection API | `connectionagent.io/compiler-dependency-inspection/v1alpha5` |
+| Artifact API | `connectionagent.io/compiler-artifact/v1alpha5` |
+| Static validation scope | `FULL_LANGUAGE_VALIDATION` (Compiler-owned obligations only) |
+| Product qualification | **NOT_QUALIFIED** (real Owner, Deployment, Host, Runtime, 5GC and MAS evidence is external) |
+
+CA-SL v1alpha5 inherits the released v1alpha4 language semantics. Those
+inherited obligations are implemented by the single v1alpha5 pipeline; the
+Compiler no longer exposes a v1alpha4 build entry, CLI target or compatibility
+mode. A v1alpha4 `apiVersion` or `languageTarget` fails closed like any other
+unsupported version.
+
+The previously released **v1.0.0** product (v1alpha4 target) remains an
+immutable historical release. It is documented under
+[docs/release-notes-v1.0.0.md](docs/release-notes-v1.0.0.md).
 
 ## Normative authority
 
-- **CA-SL v1alpha4:** [ca-skills immutable commit 7f84393](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md)
-- **Frozen specification file blob:** `b70064c5737b8ee2b3d1435fe496357f44b42773`
-- Compiler-owned frozen contracts: `docs/design/*-v1alpha4.md` and `contracts/v1alpha4/`.
-- Companion authoring/schema notes are informative only. The single-file specification is
-  the only normative language authority.
+- **CA-SL v1alpha5:** [release commit `0abfd0e`](https://github.com/odango-chan/ca-skills/blob/0abfd0e1ab99f481a4ae01f3f47efc54783dd5e5/docs/skill-language-spec.v1alpha5.zh-CN.md). It inherits the released v1alpha4 semantics.
+- **IngressCatalog v1alpha1:** [release commit `9412be9`](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/integration-ingress-operation-contract-vnext.zh-CN.md).
+- **Ingress diagnostic registry v1alpha1:** released with the same commit.
+- Compiler-owned contracts: [contracts/v1alpha5](contracts/v1alpha5/README.md).
+- Compiler core design: [docs/design/compiler-core-v1alpha5.md](docs/design/compiler-core-v1alpha5.md).
 
-v0.1 and v0.2 are historical records only. They are not fallback contracts, this
-repository does not translate or infer them, and no compatibility mode exists.
+ToolCatalog and CapabilityContracts documents keep their released v1alpha4
+artifact contract versions; those are immutable trusted-input formats, not
+Compiler language targets.
 
-## Quick start
+## Capabilities
 
-Build the reference CLI and run the checked-in trusted fixture:
+The single pipeline enforces the complete released Compiler-owned static scope:
+
+- BuildRequest, dependency-snapshot and trusted-context admission, including
+  SHA-256 snapshot verification and exact API/language identities;
+- Skill package, Contract, PredicateSet, Schema and Python Script ABI
+  admission (Python is parsed, never executed);
+- dependency identity, trusted Owner attribution, ToolCatalog callable and
+  CapabilityContracts linking;
+- JSON Schema registry, `$ref` closure, assignability, CEL subset and Predicate
+  typing;
+- Procedure graph reachability, dominance, routes, terminals and final
+  Postcondition goal proof;
+- Evidence Descriptor linking, Mutation / Reconcile / retry static assurance;
+- CA-SL v1alpha5 node-entry Wait: trusted IngressCatalog selection,
+  trigger/correlation binding, `wait.output` SourcePath typing, event-accepted
+  path availability, paired response boundary, response mapping and Schema
+  closure;
+- deterministic artifact assembly, RFC 8785 JCS serialization and full
+  self-verification before any file is emitted.
+
+## Build and install
+
+Go 1.25 or newer is required. The Compiler is CGo-free.
 
 ```bash
 CGO_ENABLED=0 go build -o skillc ./cmd/skillc
+CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -o dist/skillc.wasm ./cmd/skillc-wasm
+```
 
-./skillc version
+## CLI
+
+```text
+skillc check   <PROJECT>                       static check a Skill source project
+skillc check   --request <REQUEST.json>        static check an explicit BuildRequest
+skillc build   <PROJECT> --out <DIR>           compile and write the artifact tree
+skillc build   --request <REQUEST.json> --out <DIR>
+skillc inspect <PROJECT>                       inspect dependency snapshots and bindings
+skillc inspect --request <REQUEST.json>
+skillc version
+```
+
+`--skill NAME` selects one Skill package (repeatable); `--json` emits the
+machine-readable BuildResult, Diagnostic array or DependencyInspection. Exit
+codes: `0` success, `1` compilation failure with diagnostics, `2` usage/input
+error.
+
+Project layout:
+
+```text
+skills/...                       author Skill source (or files/skills/...)
+snapshots/<dependencyId>/...     immutable dependency snapshot file sets
+trusted.json                     trusted dependency bindings, deployment bundles
+                                 and Ingress/Schema artifact bindings
+```
+
+`trusted.json` is a local convenience description for trusted callers, not a
+wire contract. Machine callers holding a complete BuildRequest should use
+`--request`.
+
+```bash
 ./skillc check   web/parity-success
-./skillc inspect web/parity-success
 ./skillc build   web/parity-success --out /tmp/skillc-out
 ```
 
-Machine-readable output:
+## BuildRequest
 
-```bash
-./skillc version
-./skillc check   web/parity-success --json   # Diagnostic[]
-./skillc inspect web/parity-success --json   # DependencyInspection
-./skillc build   web/parity-success --out /tmp/skillc-out-2 --json  # BuildResult
+`BuildRequest` is the only Compiler input API:
+
+```json
+{
+  "apiVersion": "connectionagent.io/compiler-build-request/v1alpha5",
+  "languageTarget": "connectionagent.io/v1alpha5",
+  "files": [{"path": "skills/demo/SKILL.md", "bytes": "<base64>"}],
+  "resolvedDependencies": [
+    {"dependencyId": "ca", "digest": "sha256:...", "files": [{"path": "catalog.yaml", "bytes": "<base64>"}]}
+  ],
+  "targets": ["demo"],
+  "trustedBuildContext": {
+    "dependencyBindings": [{"dependencyId": "ca", "digest": "sha256:...", "stablePackageId": "urn:...", "authorizedOwners": ["owner"]}],
+    "capabilityContracts": {"deploymentId": "urn:...", "publisherId": "urn:...", "digest": "sha256:...", "files": []},
+    "deploymentAuthorizations": [{"deploymentId": "urn:...", "publisherId": "urn:...", "authorizationRef": "urn:..."}],
+    "snapshotBaseURI": "https://...",
+    "artifactBindings": [{"artifactRef": "urn:...", "dependencyId": "ca", "snapshotPath": "presentation/openapi/x.json", "dialect": "openapi-3.0"}],
+    "schemaBindings": [{"exportId": "urn:...", "artifactRef": "urn:...", "pointer": "#"}]
+  }
+}
 ```
 
-`build` verifies the artifact tree before writing it and refuses a nonempty destination.
-Dependencies are supplied explicitly through a project layout (`snapshots/` +
-`trusted.json`) or an exact BuildRequest JSON document (`--request FILE`); a missing
-dependency is reported, never inferred. Full reference: [CLI v1alpha4](docs/cli-v1alpha4.md).
+All digests are recomputed from the supplied bytes; a caller-supplied digest is
+never trusted. The full machine contract is
+[contracts/v1alpha5/build-request.schema.json](contracts/v1alpha5/build-request.schema.json).
 
-## Repository layout
+## Artifact
 
-| Path | Purpose |
-|---|---|
-| `internal/compiler` | active v1alpha4 Core: BuildRequest envelope, YAML AST, dependency/Owner/Capability linking, Schema/CEL, Procedure graph, SourcePath, Script ABI |
-| `internal/compiler/yamlast` | the single normalized YAML parser adapter |
-| `internal/pythoncst` | Python CST adapter (parse only; never executes Python) |
-| `internal/artifact` | deterministic artifact tree, JCS manifest and integrity verification |
-| `internal/projectinput` | shared local project loader used by the CLI and parity tooling |
-| `cmd/skillc` | reference Native CLI (check / build / inspect / version) |
-| `cmd/skillc-wasm` | Go/WASM entry points for the same Core |
-| `cmd/parity-replay` | Native reference projection for the Chromium parity harness |
-| `web/` | Worker/Studio pages; `web/parity-success` is the current positive Build fixture |
-| `contracts/v1alpha4` | frozen machine schemas and golden vectors |
-| `examples/` | labelled historical/migration fixtures; see [Examples Guide](examples/README.md) before use |
-| `tests/conformance/v1alpha4` | case index, diagnostic index, fixtures and E-coverage |
-| `docs/` | frozen contracts, workstreams, CLI/verification/limitations and acceptance status |
+A successful Build emits one deterministic tree:
 
-## Documentation
+```text
+manifest.json
+skills/<skill>/compiled/procedure.json
+skills/<skill>/compiled/ingress-links.json
+```
 
-| Document | Purpose |
-|---|---|
-| [Compiler Contract v1alpha4](docs/design/compiler-contract-v1alpha4.md) | Scope, semantics and acceptance boundary |
-| [Compiler Pipeline v1alpha4](docs/design/compiler-pipeline-v1alpha4.md) | Contract pipeline stage → implementation file → test map |
-| [BuildRequest v1alpha4](docs/design/build-request-v1alpha4.md) | Source, dependency snapshots and trusted build context |
-| [Compiler Output API v1alpha4](docs/design/compiler-output-contract-v1alpha4.md) | Check, BuildResult, DependencyInspection and deterministic ordering |
-| [Owner Contract Linking v1alpha4](docs/design/owner-contracts-v1alpha4.md) | ToolCatalog, CapabilityContracts, Evidence and trusted Owner attribution |
-| [Procedure Linker v1alpha4](docs/design/procedure-link-v1alpha4.md) | AST, graph, SourcePath, Schema and Capability linking |
-| [Script Contract v1alpha4](docs/design/script-contract-v1alpha4.md) | Script ABI and derived Schemas |
-| [Compiler Artifact v1alpha4](docs/design/compiler-artifact-v1alpha4.md) | Deterministic output tree and generated Schema serialization |
-| [Dependency Snapshot Digest v1](docs/design/dependency-snapshot-digest-v1alpha4.md) | Cross-language immutable snapshot digest |
-| [OSS Dependency Selection v1alpha4](docs/design/oss-dependency-selection-v1alpha4.md) | Pinned YAML, Schema, CEL, Python parser and JCS dependencies |
-| [CLI v1alpha4](docs/cli-v1alpha4.md) | Commands, options, project layout, exit codes, JSON output |
-| [Local Verification v1alpha4](docs/local-verification-v1alpha4.md) | Reproducible acceptance commands and coverage map |
-| [Known Limitations v1alpha4](docs/known-limitations-v1alpha4.md) | External contracts, fail-closed branches, WP13 boundary |
-| [Release Notes v1.0.0](docs/release-notes-v1.0.0.md) | Formal release features, verification, artifacts and known limitations |
-| [Acceptance Status](docs/COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) | Live implementation/E-coverage status and evidence |
-| [Conformance plan](docs/workstreams/conformance-v1alpha4.md) | E01–E120, H diagnostics, Native/WASM and 5GC gates |
-| [Studio integration](docs/studio-integration-v1alpha4.md) | Go/WASM Worker and read-only Studio boundary |
-| [Machine contracts](contracts/v1alpha4/README.md) | JSON Schemas and golden vectors |
-| [Examples Guide](examples/README.md) | distinguishes the current positive Build fixture from historical migration inputs |
+`manifest.json` is canonical JCS and records the artifact API version, language
+target, generator identity, source digests, dependency closure, Wait/Ingress
+link metadata, output paths and SHA-256 digests. `skillc` verifies the tree with
+`VerifyBuildResult` before writing it and refuses partial or nonempty
+destinations. Contract: [contracts/v1alpha5/artifact-manifest.schema.json](contracts/v1alpha5/artifact-manifest.schema.json).
 
-## Version identifiers
+A successful Build is static-compilation evidence. It is not Runtime
+authorization, deployment qualification or product qualification.
 
-| Boundary | Identifier |
-|---|---|
-| BuildRequest | `connectionagent.io/compiler-build-request/v1alpha4` |
-| CA-SL language target | `connectionagent.io/v1alpha4` |
-| BuildResult | `connectionagent.io/compiler-build-result/v1alpha4` |
-| DependencyInspection | `connectionagent.io/compiler-dependency-inspection/v1alpha4` |
-| ToolCatalog | `connectionagent.io/toolcatalog/v1alpha4` |
-| CapabilityContracts | `connectionagent.io/capability-contracts/v1alpha4` |
-| Evidence trust relations | BuildRequest v1alpha4-owned embedded format |
-| Compiler Artifact | `connectionagent.io/compiler-artifact/v1alpha4` |
-| Dependency snapshot digest | `CA-SKILL-DEPENDENCY-SNAPSHOT\0v1\0` |
-
-All are independent exact-match authorities. A BuildRequest API version is never inferred
-from `languageTarget`, and no version sniffing, fallback or negotiation exists.
-
-## Implementation status
-
-Authoritative evidence: [Acceptance Status](docs/COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) and
-`tests/conformance/v1alpha4/e-coverage.json`. Status values are evidence-based, not
-historical completion claims.
-
-| WP | Scope | Status |
-|---|---|---|
-| WP0 | OSS selection / frozen contracts | DONE — goccy/go-yaml v1.19.2, San v6.0.3, cel-go v0.33.2, gositter v0.2.0, gowebpki/jcs v1.0.2 integrated |
-| WP1 | BuildRequest, digest, limits, Native/WASM transport | PASS (local) |
-| WP2 | Single normalized YAML AST with source positions | PASS (local) |
-| WP3A–WP3D | Dependency identity, Owner/ToolCatalog, Capability, integrated linking/inspection | PASS (local, fixtures) |
-| WP4A–WP4D | G.4 Schema allowlist, registry/closure, F.5 assignability, CEL subset | PASS (local, fixtures) |
-| WP5 | Procedure graph, stages, routes, dominance, retry/reconcile | PASS (local) — edge-exact global-Precondition dominance and reachability-exact final-Postcondition classification; Runtime join-AND remains Host-side |
-| WP6 | SourcePath grammar, typing, dominance/availability | PARTIAL (fail-closed) — implemented slices pass; identity-input provenance is fail-closed (unfrozen publication) |
-| WP7 | Evidence binding, independence, static satisfiability | PARTIAL — static linking/checks pass; Descriptor content/Producer/Scope/Correlation/Freshness fail closed (unfrozen format) |
-| WP8 | Mutation/Reconcile/retry contracts | PARTIAL — same-snapshot semantics pass; cross-snapshot association and Runtime retry admission fail closed / outside Compiler |
-| WP9 | Python CST + Script ABI | PARTIAL (near complete) — CST, typed input/strict TypedDict output, call-site keys, F.5 typing, key access/guards, PredicateInput projection; Evidence projection blocked |
-| WP10 | Deterministic Artifact (JCS tree/manifest) | PASS (local) — successful builds emit byte-deterministic, integrity-verified artifacts |
-| WP11 | Native/WASM/Chromium parity | PASS (local, real headless Chromium) — check/build/inspect and artifact bytes identical |
-| WP12 | Skill Studio read-only integration | PASS (local, real Chromium) — unified Worker result, diagnostics with positions, read-only artifact view; Studio product editor is outside this repo |
-| WP13 | Real 5GC/MAS qualification | NOT_QUALIFIED (external) — no real v1alpha4 publications, MAS not runnable |
-
-**Compiler implementation:** complete for all frozen semantics that do not require an
-unfrozen external publication, and locally verified. **Not claimed:** product conformance
-certification, external Owner integration readiness, or real 5GC qualification. See
-[Known Limitations](docs/known-limitations-v1alpha4.md).
-
-## Local verification
+## Testing
 
 ```bash
 GOWORK=off go test ./... -count=1
 GOWORK=off go vet ./...
 CGO_ENABLED=0 GOWORK=off go build ./...
 CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm
-git diff --check
-
-# CLI-level end-to-end (builds and executes the real binary)
 GOWORK=off go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v
-
-# Real headless-Chromium parity (requires node + Chrome)
 CHROMIUM_PARITY=1 GOWORK=off go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v
+git diff --check
 ```
 
-Details and the requirement coverage map: [Local Verification](docs/local-verification-v1alpha4.md).
+Acceptance commands and recorded results are in
+[docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md](docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
 
-## Scope boundary
+## Limits and boundaries
 
-The Compiler does **not** own Git/HTTP/MCP acquisition, dependency resolution or locking,
-package registries, credentials, deployment-authorization decisions, Runtime admission,
-Tool/Python execution, Qualification, Release or live 5GC acceptance. It consumes bytes and
-trusted metadata supplied by its caller and never opens a path from BuildRequest. A
-successful BuildResult is a static compilation result, not an authorization token.
+- The Compiler proves static language obligations only. It does not receive or
+  isolate live events, schedule timeouts, execute Operations or Python, acquire
+  dependencies, authorize deployment or qualify a product.
+- External responsibilities are recorded in
+  [docs/known-limitations-v1alpha5.md](docs/known-limitations-v1alpha5.md).
+- Real Owner, Deployment, Host, Runtime, 5GC and MAS evidence remains
+  **NOT_QUALIFIED**.
+- Historical v1alpha4 documentation and fixtures are retained for traceability
+  and are marked as historical; they are not current compiler targets.
 
-## Development workflow
+## Repository layout
 
-The v1alpha4 implementation was delivered through stacked PRs #11–#24, merged into `main`
-in dependency order for the v1.0.0 release; no force-push was used and #2–#8 (superseded
-v0/v0.1 work) were not merged. Release metadata and release notes were merged through the
-`release/v1.0.0` PR. See [Acceptance Status](docs/COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md)
-for the current state; historical status notes are not present evidence.
+| Path | Purpose |
+|---|---|
+| `internal/compiler` | the single v1alpha5 Compiler core and public API |
+| `internal/compiler/yamlast` | the one normalized YAML parser adapter |
+| `internal/ingresscatalog` | IngressCatalog v1alpha1 static resolution |
+| `internal/pythoncst` | Python CST adapter (parse only) |
+| `internal/projectinput` | project-directory to BuildRequest loader |
+| `internal/parity` | Native/WASM/Chromium parity harness |
+| `cmd/skillc` | native CLI |
+| `cmd/skillc-wasm` | Go/WASM module |
+| `contracts/v1alpha5` | Compiler-owned machine contracts |
+| `docs` | current design/acceptance records; historical records are labelled |

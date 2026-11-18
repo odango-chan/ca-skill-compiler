@@ -1,3 +1,5 @@
+> **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+
 # Compiler v1alpha4 Development Profile — DeepSeek Harness / Flash Low
 
 **Status:** FROZEN engineering workflow for individually reviewable WPs. **Maintainer's current Goal authorization covers WP0–WP12 in sequence**, without a separate reauthorization after each WP. See [current resume decision](v1alpha4-resume-decision-20261116.md). This does not claim Compiler conformance.

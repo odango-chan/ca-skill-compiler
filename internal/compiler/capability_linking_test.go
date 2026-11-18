@@ -69,14 +69,14 @@ func wp3cRequest(t *testing.T, fixture wp3aFixture, bundle map[string][]byte) Bu
 func wp3cLinking(t *testing.T, req BuildRequest) capabilityLinkingResult {
 	t.Helper()
 	identity := wp3aIdentity(t, req)
-	ownerLinking := validateV1Alpha4OwnerLinking(req, wp3aParseSkillAST(t, req, wp3aSkillName), identity)
-	return validateV1Alpha4CapabilityLinking(req, wp3aParseSkillAST(t, req, wp3aSkillName), ownerLinking)
+	ownerLinking := validateOwnerLinking(req, wp3aParseSkillAST(t, req, wp3aSkillName), identity)
+	return validateCapabilityLinking(req, wp3aParseSkillAST(t, req, wp3aSkillName), ownerLinking)
 }
 
 func wp3cDiagnostics(diagnostics []Diagnostic) []Diagnostic {
 	filtered := make([]Diagnostic, 0)
 	for _, diagnostic := range diagnostics {
-		if diagnostic.Message == v1alpha4ResidualFailClosedMessage || strings.HasPrefix(diagnostic.Message, "fail-closed:") {
+		if strings.HasPrefix(diagnostic.Message, "fail-closed:") {
 			continue
 		}
 		if wp3cDiagnosticCodes[diagnostic.Code] {
@@ -132,9 +132,11 @@ func TestWP3C001PositiveCapabilityLink(t *testing.T) {
 		t.Fatalf("positive capability link emitted diagnostics through Check/Build: %+v", diagnostics)
 	}
 	result := Build(req)
-	assertFailureAtomic(t, result)
-	if !hasCode(result.Diagnostics, "CAPABILITY_INPUT_UNTRUSTED") {
-		t.Fatalf("later unimplemented stages must still fail closed: %+v", result.Diagnostics)
+	if !result.Success {
+		t.Fatalf("fully grounded positive capability link must Build after gate removal: %+v", result.Diagnostics)
+	}
+	if len(result.OutputFiles) == 0 {
+		t.Fatal("successful Build emitted no artifact files")
 	}
 
 	// Bundle file order must not change the result.

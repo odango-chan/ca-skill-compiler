@@ -1,11 +1,11 @@
-// Package projectinput loads a local Compiler project directory into the frozen
-// BuildRequest v1alpha4 transport.
+// Package projectinput loads a local Compiler project directory into the
+// BuildRequest v1alpha5 transport.
 //
 // It is the single implementation of the on-disk project layout used by the
 // reference CLI (cmd/skillc) and the parity tooling (cmd/parity-replay). It does
 // not define a second Compiler input contract: every field it produces is a
-// BuildRequest v1alpha4 field, and dependency snapshot digests are computed with
-// the frozen compiler.ComputeDependencySnapshotDigest algorithm.
+// BuildRequest v1alpha5 field, and dependency snapshot digests are computed with
+// the Compiler's ComputeDependencySnapshotDigest algorithm.
 //
 // Supported layout (all paths relative to the project root):
 //
@@ -48,6 +48,14 @@ const (
 type TrustedConfig struct {
 	DependencyBindings []DependencyBinding `json:"dependencyBindings"`
 	Deployment         Deployment          `json:"deployment"`
+
+	// SnapshotBaseURI and ArtifactBindings/SchemaBindings describe the trusted
+	// Ingress/Schema artifacts a v1alpha5 Wait-bearing Skill links against. They
+	// are pass-through declarations: the Compiler recomputes every digest from
+	// the referenced immutable snapshot bytes.
+	SnapshotBaseURI  string            `json:"snapshotBaseURI"`
+	ArtifactBindings []ArtifactBinding `json:"artifactBindings"`
+	SchemaBindings   []SchemaBinding   `json:"schemaBindings"`
 }
 
 // DependencyBinding identifies one immutable dependency snapshot and the
@@ -64,6 +72,23 @@ type ExportOwner struct {
 	ExportKind string `json:"exportKind"`
 	ExportID   string `json:"exportId"`
 	Owner      string `json:"owner"`
+}
+
+// ArtifactBinding binds one declared artifact identity to an exact file inside a
+// dependency snapshot.
+type ArtifactBinding struct {
+	ArtifactRef  string `json:"artifactRef"`
+	DependencyID string `json:"dependencyId"`
+	SnapshotPath string `json:"snapshotPath"`
+	Dialect      string `json:"dialect"`
+}
+
+// SchemaBinding binds one exported Schema identity to a canonical root pointer
+// inside a declared trusted artifact.
+type SchemaBinding struct {
+	ExportID    string `json:"exportId"`
+	ArtifactRef string `json:"artifactRef"`
+	Pointer     string `json:"pointer"`
 }
 
 // Deployment locates the trusted deployment bundles and authorization record.
@@ -90,7 +115,7 @@ func Load(root string) (compiler.BuildRequest, error) {
 	loader := &fileLoader{}
 	request := compiler.BuildRequest{
 		APIVersion:           compiler.BuildRequestAPIVersion,
-		LanguageTarget:       compiler.V1Alpha4Target,
+		LanguageTarget:       compiler.V1Alpha5Target,
 		ResolvedDependencies: []compiler.ResolvedDependency{},
 	}
 	sourceRoot := absolute
@@ -206,6 +231,24 @@ func Load(root string) (compiler.BuildRequest, error) {
 		}}
 		context.DeploymentAuthorizations = &authorizations
 	}
+
+	context.SnapshotBaseURI = trusted.SnapshotBaseURI
+	for _, binding := range trusted.ArtifactBindings {
+		context.ArtifactBindings = append(context.ArtifactBindings, compiler.TrustedArtifactBinding{
+			ArtifactRef:  binding.ArtifactRef,
+			DependencyID: binding.DependencyID,
+			SnapshotPath: binding.SnapshotPath,
+			Dialect:      binding.Dialect,
+		})
+	}
+	for _, binding := range trusted.SchemaBindings {
+		context.SchemaBindings = append(context.SchemaBindings, compiler.TrustedSchemaBinding{
+			ExportID:    binding.ExportID,
+			ArtifactRef: binding.ArtifactRef,
+			Pointer:     binding.Pointer,
+		})
+	}
+
 	request.TrustedBuildContext = context
 	return request, nil
 }

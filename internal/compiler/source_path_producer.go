@@ -10,13 +10,13 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateV1Alpha4ProducerSourcePaths(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string) []Diagnostic {
+func validateProducerSourcePaths(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string) []Diagnostic {
 	diagnostics := make([]Diagnostic, 0)
 	if skill == nil || skill.Procedure == nil {
 		return diagnostics
 	}
-	registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
-	graph := buildV1Alpha4ProcedureGraph(skill.Procedure)
+	registry := buildSchemaRegistry(req, skill, identity)
+	graph := buildProcedureGraph(skill.Procedure)
 	start := scalar(skill.Procedure.Start)
 	dominators := procedureDominators(graph, start)
 	outputSchemas := producerOutputSchemas(skill, ownerLinking, registry)
@@ -106,7 +106,7 @@ type producerOutput struct {
 	recoverable bool
 }
 
-func producerOutputSchemas(skill *V1Alpha4SkillAST, ownerLinking ownerLinkingResult, registry schemaRegistry) map[string]producerOutput {
+func producerOutputSchemas(skill *SkillAST, ownerLinking ownerLinkingResult, registry schemaRegistry) map[string]producerOutput {
 	linked := map[string]producerOutput{}
 	for _, export := range ownerLinking.Exports {
 		if (export.ExportKind != "operation" && export.ExportKind != "observation") || export.OutputSchemaID == "" {

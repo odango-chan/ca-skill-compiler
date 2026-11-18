@@ -9,7 +9,7 @@ import "testing"
 func TestReachableStageWithoutIncomingEdgeInvariant(t *testing.T) {
 	graph := procedureGraph{
 		edges:    map[string][]string{"start": {"second"}, "second": {}},
-		nodeByID: map[string]*V1Alpha4ProcedureNodeAST{},
+		nodeByID: map[string]*ProcedureNodeAST{},
 		order:    []string{"start", "second", "orphan"},
 	}
 	reachable := map[string]bool{"start": true, "second": true, "orphan": true}

@@ -1,0 +1,77 @@
+name: CA-SL v1alpha5 Compiler integration acceptance
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "internal/compiler/**"
+      - "internal/ingresscatalog/**"
+      - "cmd/**"
+      - "scripts/**"
+      - "web/**"
+      - "contracts/**"
+      - ".github/workflows/ca-sl-v1alpha5-wait-ast.yml"
+  push:
+    branches:
+      - feat/compiler-v1alpha5-integration-20261117
+    paths:
+      - "internal/compiler/**"
+      - "internal/ingresscatalog/**"
+      - "cmd/**"
+      - "scripts/**"
+      - "web/**"
+      - "contracts/**"
+      - ".github/workflows/ca-sl-v1alpha5-wait-ast.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  v1alpha5-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.27.4"
+          cache: true
+
+      - name: Focused v1alpha5 compiler tests
+        run: GOWORK=off go test ./internal/compiler ./internal/ingresscatalog -run 'V1Alpha5|Ingress' -count=1 -v
+
+      - name: Full Go test suite
+        run: GOWORK=off go test ./... -count=1
+
+      - name: Go vet
+        run: GOWORK=off go vet ./...
+
+      - name: Native build without CGo
+        run: CGO_ENABLED=0 GOWORK=off go build ./...
+
+      - name: Go/WASM build without CGo
+        run: CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o /tmp/skillc-v1alpha5.wasm ./cmd/skillc-wasm
+
+      - name: CLI end-to-end
+        run: GOWORK=off go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install headless Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Real Chromium Worker parity
+        env:
+          CHROMIUM_PARITY: "1"
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+          GOTOOLCHAIN: go1.27.4
+          GOWORK: "off"
+          CGO_ENABLED: "0"
+        run: go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v
+
+      - name: Diff check
+        run: git diff --check

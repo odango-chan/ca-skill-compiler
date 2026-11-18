@@ -51,7 +51,7 @@ func TestE105IdentifierAndQualifiedReferenceVariants(t *testing.T) {
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
 			diagnostics := Check(e105Fixture(t, testCase.mutate))
-			if !v4HasCode(diagnostics, testCase.expected) {
+			if !hasCode(diagnostics, testCase.expected) {
 				t.Fatalf("expected %s for %s, got %+v", testCase.expected, testCase.name, diagnostics)
 			}
 		})

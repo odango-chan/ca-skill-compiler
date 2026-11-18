@@ -21,7 +21,7 @@ type routeEdge struct {
 	to    string
 }
 
-func procedureRouteEdges(procedure *V1Alpha4ProcedureAST) []routeEdge {
+func procedureRouteEdges(procedure *ProcedureAST) []routeEdge {
 	edges := make([]routeEdge, 0)
 	if procedure == nil {
 		return edges
@@ -66,7 +66,7 @@ func procedureRouteEdges(procedure *V1Alpha4ProcedureAST) []routeEdge {
 	return edges
 }
 
-func validateV1Alpha4RetryReachability(skill *V1Alpha4SkillAST, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validateRetryReachability(skill *SkillAST, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Procedure == nil {
 		return
 	}

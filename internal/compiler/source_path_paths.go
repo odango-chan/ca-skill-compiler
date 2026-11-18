@@ -18,12 +18,12 @@ import (
 
 // producerKeyReachability returns, per route key of the producer Node, the set of
 // Nodes reachable by following that key's target (BFS over the whole graph).
-func producerKeyReachability(skill *V1Alpha4SkillAST, producerID string) map[string]map[string]bool {
+func producerKeyReachability(skill *SkillAST, producerID string) map[string]map[string]bool {
 	result := map[string]map[string]bool{}
 	if skill == nil || skill.Procedure == nil {
 		return result
 	}
-	graph := buildV1Alpha4ProcedureGraph(skill.Procedure)
+	graph := buildProcedureGraph(skill.Procedure)
 	for _, edge := range procedureRouteEdges(skill.Procedure) {
 		if edge.from != producerID {
 			continue

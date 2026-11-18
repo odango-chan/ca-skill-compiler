@@ -23,7 +23,7 @@ func TestLoadTrustedProjectMatchesBuildRequestContract(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if request.APIVersion != compiler.BuildRequestAPIVersion || request.LanguageTarget != compiler.V1Alpha4Target {
+	if request.APIVersion != compiler.BuildRequestAPIVersion || request.LanguageTarget != compiler.V1Alpha5Target {
 		t.Fatalf("unexpected request identity: %+v", request)
 	}
 	if len(request.Files) == 0 {

@@ -42,6 +42,32 @@ func TestChromiumWorkerParity(t *testing.T) {
 		"ok: successful-Build artifact byte parity",
 		"ok: studio-success.artifactPaths projection identical",
 		"PASS: Native and real Chromium Worker projections are identical",
+		// v1alpha5 candidate-target WP8 slice: Check diagnostics, successful-Build
+		// artifact bytes and linked Ingress metadata must be compared in the real
+		// Chromium Worker, not merely in Native Go.
+		"ok: v1alpha5 valid Check returns zero diagnostics",
+		"ok: v1alpha5 valid Build succeeds with deterministic artifact",
+		"ok: v1alpha5 trusted Build succeeds with dependency closure",
+		"ok: v1alpha5 invalid WAIT_* diagnostics positioned and deterministic",
+		"ok: v1alpha5 Chromium Worker VerifyArtifact PASS",
+		"ok: v1alpha5 check projection identical",
+		"ok: v1alpha5 build.success projection identical",
+		"ok: v1alpha5 build.apiVersion projection identical",
+		"ok: v1alpha5 build.diagnostics projection identical",
+		"ok: v1alpha5 build.dependencyClosure projection identical",
+		"ok: v1alpha5 build.outputFiles.paths projection identical",
+		"ok: v1alpha5 successful-Build artifact byte parity",
+		"ok: v1alpha5 inspect projection identical",
+		"ok: v1alpha5 invalid-diagnostics projection identical",
+		"ok: v1alpha5 trusted check projection identical",
+		"ok: v1alpha5 trusted build.success projection identical",
+		"ok: v1alpha5 trusted build.apiVersion projection identical",
+		"ok: v1alpha5 trusted build.diagnostics projection identical",
+		"ok: v1alpha5 trusted dependencyClosure projection identical",
+		"ok: v1alpha5 trusted build.outputFiles.paths projection identical",
+		"ok: v1alpha5 trusted successful-Build artifact byte parity",
+		"ok: v1alpha5 trusted linked Ingress metadata identical",
+		"PASS: Native and real Chromium Worker v1alpha5 artifact parity",
 	} {
 		if !strings.Contains(text, required) {
 			t.Fatalf("Chromium parity output missing %q", required)

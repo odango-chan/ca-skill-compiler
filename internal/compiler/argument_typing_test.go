@@ -7,7 +7,7 @@ import "testing"
 func TestWP6ArgumentKeysPositive(t *testing.T) {
 	request := wp3aBaseFixture(t).request(t)
 	diagnostics := Check(request)
-	if v4HasCode(diagnostics, "INPUT_REQUIRED_MISSING") || v4HasCode(diagnostics, "INPUT_TYPE_MISMATCH") {
+	if hasCode(diagnostics, "INPUT_REQUIRED_MISSING") || hasCode(diagnostics, "INPUT_TYPE_MISMATCH") {
 		t.Fatalf("valid Tool arguments rejected: %+v", diagnostics)
 	}
 }
@@ -16,7 +16,7 @@ func TestWP6ArgumentRequiredMissing(t *testing.T) {
 	fixture := wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "      arguments:\n        ueRef: context.ueRef", "      arguments: {}")
 	diagnostics := Check(fixture.request(t))
-	if !v4HasCode(diagnostics, "INPUT_REQUIRED_MISSING") {
+	if !hasCode(diagnostics, "INPUT_REQUIRED_MISSING") {
 		t.Fatalf("missing required Tool argument accepted: %+v", diagnostics)
 	}
 }
@@ -25,7 +25,7 @@ func TestWP6ArgumentUnknownKey(t *testing.T) {
 	fixture := wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "        ueRef: context.ueRef", "        ueRef: context.ueRef\n        unexpected: 'x'")
 	diagnostics := Check(fixture.request(t))
-	if !v4HasCode(diagnostics, "INPUT_TYPE_MISMATCH") {
+	if !hasCode(diagnostics, "INPUT_TYPE_MISMATCH") {
 		t.Fatalf("unknown Tool argument accepted: %+v", diagnostics)
 	}
 }

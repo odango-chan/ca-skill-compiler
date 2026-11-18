@@ -1,0 +1,81 @@
+# SYNTHETIC TEST FIXTURE ONLY. This is not a real Owner artifact, not a
+# deployment profile and not a 5GC/3GPP publication. It exists solely to
+# exercise IngressCatalog v1alpha1 static admission.
+apiVersion: connectionagent.io/ingresscatalog/v1alpha1
+kind: IngressCatalog
+metadata:
+  owner: example.integration-owner
+spec:
+  operations:
+    - id: synthetic.update-sm-context
+      adapter: integration-adapter::synthetic
+      event:
+        source: AMF
+        service: Nsmf_PDUSession
+        operation: UpdateSMContext
+      protocol:
+        specification: 3GPP TS 29.502
+        release: "19.5.0"
+        apiUriVersion: v1
+        openapi:
+          artifactRef: {{OPENAPI_ARTIFACT_REF}}
+          artifactDigest: {{OPENAPI_DIGEST}}
+          operationId: SyntheticUpdateSmContext
+          method: POST
+          path: /synthetic/sm-contexts/{smContextRef}/modify
+      security:
+        authenticatedPeerType: AMF
+        authenticationProfileRef: deployment-auth::synthetic-amf-peer
+        authorizationPolicyRef: deployment-auth::synthetic-update-sm-context
+      request:
+        acceptedMediaTypes:
+          - application/json
+        sourceSchemas:
+          - mediaType: application/json
+            schemaRef: {{REQUEST_SCHEMA_REF}}
+            schemaDigest: {{REQUEST_SCHEMA_DIGEST}}
+        normalizedSchemaRef: {{NORMALIZED_SCHEMA_REF}}
+        normalizedSchemaDigest: {{NORMALIZED_SCHEMA_DIGEST}}
+        normalization:
+          representations:
+            - mediaType: application/json
+              mappings:
+                - source:
+                    kind: json-body
+                    pointer: ""
+                  target: /updateData
+                  transform: identity
+        maxBytes: 4194304
+      correlation:
+        armInputSchemaRef: urn:example:synthetic:schema:arm-input
+        keyFields:
+          - requestPath: /smContextRef
+            dimension: session
+            comparison: exact
+        duplicate:
+          identitySource: canonical-request-digest
+          scope: expected-ingress
+        staleDelivery:
+          strategy: single-flight-tombstone
+          resourceKey: /smContextRef
+          maximumLateArrival: PT30S
+          clockSkewAllowance: PT5S
+          tombstoneRetention: PT60S
+          basisRef: urn:example:synthetic:guarantee
+      arming:
+        start:
+          allowed: false
+        triggers:
+          - operation:
+              packageId: urn:example:synthetic:package
+              owner: example.tool-owner
+              kind: operation
+              id: ca::synthetic.amf.n1n2_message_transfer
+            bindings:
+              - requestKey: /smContextRef
+                bindingPath: /smContextRef
+                source:
+                  kind: operation-argument
+                  path: /smContextRef
+      response:
+        mode: none

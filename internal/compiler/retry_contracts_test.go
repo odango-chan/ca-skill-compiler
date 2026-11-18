@@ -28,8 +28,8 @@ nodes:
 `
 
 func TestRetryContractPositive(t *testing.T) {
-	request := v4TestRequest(v4TestContract, strings.Replace(retryProcedureTemplate, "%s", "mutate", 1), v4TestPredicates, v4TestSchema)
-	if v4HasCode(Check(request), "RETRY_CONTRACT_INVALID") {
+	request := testRequest(testContract, strings.Replace(retryProcedureTemplate, "%s", "mutate", 1), testPredicates, testSchema)
+	if hasCode(Check(request), "RETRY_CONTRACT_INVALID") {
 		t.Fatalf("valid retryOf rejected: %+v", Check(request))
 	}
 }
@@ -52,8 +52,8 @@ func TestRetryContractInvalid(t *testing.T) {
         FAIL: FAILED
         UNKNOWN: UNRESOLVED
 `
-		request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
-		if !v4HasCode(Check(request), "RETRY_CONTRACT_INVALID") {
+		request := testRequest(testContract, procedure, testPredicates, testSchema)
+		if !hasCode(Check(request), "RETRY_CONTRACT_INVALID") {
 			t.Fatalf("%s: expected RETRY_CONTRACT_INVALID: %+v", name, Check(request))
 		}
 	}
@@ -69,16 +69,16 @@ func TestRetryContractSecondGeneration(t *testing.T) {
         SUCCEEDED: SUCCEEDED
         FAILED: FAILED
 `
-	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
-	if !v4HasCode(Check(request), "RETRY_CONTRACT_INVALID") {
+	request := testRequest(testContract, procedure, testPredicates, testSchema)
+	if !hasCode(Check(request), "RETRY_CONTRACT_INVALID") {
 		t.Fatalf("second-generation retry chain accepted: %+v", Check(request))
 	}
 }
 
 func TestRetryReachabilityRequiresNotCommittedEdge(t *testing.T) {
 	procedure := strings.Replace(retryProcedureTemplate, "        NOT_COMMITTED: retry\n        SUCCEEDED: FAILED", "        SUCCEEDED: retry", 1)
-	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
-	if !v4HasCode(Check(request), "RETRY_CONTRACT_INVALID") {
+	request := testRequest(testContract, procedure, testPredicates, testSchema)
+	if !hasCode(Check(request), "RETRY_CONTRACT_INVALID") {
 		t.Fatalf("retry reached through SUCCEEDED edge accepted: %+v", Check(request))
 	}
 }

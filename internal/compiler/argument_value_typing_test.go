@@ -7,7 +7,7 @@ import "testing"
 func TestWP6ArgumentValueTypesPositive(t *testing.T) {
 	request := wp3aBaseFixture(t).request(t)
 	diagnostics := Check(request)
-	if v4HasCode(diagnostics, "INPUT_TYPE_MISMATCH") || v4HasCode(diagnostics, "INPUT_NULLABILITY_MISMATCH") {
+	if hasCode(diagnostics, "INPUT_TYPE_MISMATCH") || hasCode(diagnostics, "INPUT_NULLABILITY_MISMATCH") {
 		t.Fatalf("assignable argument value rejected: %+v", diagnostics)
 	}
 }
@@ -33,7 +33,7 @@ func TestWP6ArgumentValueNullabilityMismatch(t *testing.T) {
 	fixture.replaceSnapshotFile("ca-context", "invocation-context.schema.yaml", "  ueRef:\n    type: string\n    minLength: 1", "  ueRef:\n    type: [string, \"null\"]")
 	fixture.refreshSnapshotDigests(t)
 	diagnostics := Check(fixture.request(t))
-	if !v4HasCode(diagnostics, "INPUT_NULLABILITY_MISMATCH") {
+	if !hasCode(diagnostics, "INPUT_NULLABILITY_MISMATCH") {
 		t.Fatalf("nullable argument accepted by non-nullable target: %+v", diagnostics)
 	}
 }

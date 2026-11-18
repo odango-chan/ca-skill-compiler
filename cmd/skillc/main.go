@@ -15,7 +15,7 @@ import (
 	"github.com/odango-chan/ca-skill-compiler/internal/projectinput"
 )
 
-const usageText = `skillc - CA-SL v1alpha4 reference compiler CLI
+const usageText = `skillc - CA-SL reference compiler CLI (CA-SL v1alpha5)
 
 Usage:
   skillc check   <PROJECT>                       static check a Skill source project
@@ -28,20 +28,28 @@ Usage:
   skillc help                                    show this help
 
 Options:
-  --request FILE   read a complete BuildRequest v1alpha4 JSON document instead of
-                   a project directory (strict decoding; dependencies and trusted
-                   build context come from that document)
+  --request FILE   read a complete BuildRequest JSON document instead of a project
+                   directory (strict decoding; dependencies and trusted build
+                   context come from that document)
   --out DIR        artifact output directory; must be absent or empty. Defaults
                    to <PROJECT>/output in project mode and is required with
                    --request
   --skill NAME     select one Skill package; repeat for multiple targets
   --json           write machine-readable JSON to stdout instead of human text
 
+Language target:
+  connectionagent.io/v1alpha5   the only supported CA-SL language target
+
+API versions:
+  build request        connectionagent.io/compiler-build-request/v1alpha5
+  build result         connectionagent.io/compiler-build-result/v1alpha5
+  dependency inspection connectionagent.io/compiler-dependency-inspection/v1alpha5
+
 Project layout:
   skills/...                       author Skill source (or files/skills/...)
   snapshots/<dependencyId>/...     immutable dependency snapshot file sets
-  trusted.json                     trusted dependency bindings and deployment
-                                   bundle directories (see docs/cli-v1alpha4.md)
+  trusted.json                     trusted dependency bindings, deployment
+                                   bundles and Ingress/Schema artifact bindings
 
 Exit codes:
   0  success
@@ -49,7 +57,8 @@ Exit codes:
   2  usage, input, or I/O error before or after compilation
 
 The CLI never infers a missing dependency, digest or Owner attribution: an
-incomplete trusted project is reported and fails closed.
+incomplete trusted project is reported and fails closed. v1alpha4 requests are
+rejected like every other unsupported language target.
 `
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }
@@ -76,7 +85,11 @@ func run(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, "skillc: version takes no arguments")
 			return 2
 		}
-		fmt.Fprintf(stdout, "skillc %s\nlanguage target: %s\n", compiler.CompilerVersion, compiler.V1Alpha4Target)
+		fmt.Fprintf(stdout, "skillc %s\n", compiler.CompilerVersion)
+		fmt.Fprintf(stdout, "language target: %s\n", compiler.V1Alpha5Target)
+		fmt.Fprintf(stdout, "build request apiVersion: %s\n", compiler.BuildRequestAPIVersion)
+		fmt.Fprintf(stdout, "build result apiVersion: %s\n", compiler.BuildResultAPIVersion)
+		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s\n", compiler.DependencyInspectionAPIVersion)
 		return 0
 	}
 	if command != "check" && command != "build" && command != "inspect" {
@@ -300,12 +313,19 @@ func runInspect(req compiler.BuildRequest, opts options, stdout, stderr io.Write
 }
 
 func printInspection(w io.Writer, inspection compiler.DependencyInspection) {
-	fmt.Fprintf(w, "Dependency inspection OK: %d callable(s), %d schema(s)\n", len(inspection.Callables), len(inspection.Schemas))
+	fmt.Fprintf(w, "Dependency inspection OK: %d callable(s), %d schema(s), %d ingress operation(s)\n",
+		len(inspection.Callables), len(inspection.Schemas), len(inspection.IngressOperations))
 	for _, callable := range inspection.Callables {
 		fmt.Fprintf(w, "  %-12s %s/%s owner=%s effect=%s\n", callable.Kind, callable.DependencyID, callable.ID, callable.Owner, callable.Effect)
 	}
 	for _, schema := range inspection.Schemas {
 		fmt.Fprintf(w, "  %-12s %s/%s owner=%s\n", "schema", schema.DependencyID, schema.ID, schema.Owner)
+	}
+	for _, operation := range inspection.IngressOperations {
+		fmt.Fprintf(w, "  %-12s %s/%s owner=%s event=%s/%s/%s %s %s\n",
+			operation.Kind, operation.DependencyID, operation.ID, operation.Owner,
+			operation.EventSource, operation.EventService, operation.EventOperation,
+			operation.Method, operation.Path)
 	}
 }
 
@@ -421,6 +441,11 @@ func rejectSymlinkAncestors(abs string) error {
 }
 
 func validOutputPath(value string) bool {
+	// The v1alpha5 artifact has exactly one top-level manifest; compiled files
+	// live under skills/<skill>/compiled/.
+	if value == compiler.V1Alpha5ArtifactManifestPath {
+		return true
+	}
 	if value == "" || len(value) > 240 || !strings.HasPrefix(value, "skills/") ||
 		path.Clean(value) != value || strings.ContainsAny(value, "\\:\x00") {
 		return false

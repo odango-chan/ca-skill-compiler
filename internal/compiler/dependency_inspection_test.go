@@ -52,7 +52,7 @@ func wp3dCheckBuildDiagnostics(t *testing.T, req BuildRequest) []Diagnostic {
 func wp3dDiagnostics(diagnostics []Diagnostic) []Diagnostic {
 	filtered := make([]Diagnostic, 0)
 	for _, diagnostic := range diagnostics {
-		if diagnostic.Message == v1alpha4ResidualFailClosedMessage || strings.HasPrefix(diagnostic.Message, "fail-closed:") {
+		if strings.HasPrefix(diagnostic.Message, "fail-closed:") {
 			continue
 		}
 		if wp3dDiagnosticCodes[diagnostic.Code] {
@@ -289,5 +289,5 @@ nodes:
 
 func wp3aIdentityForSkill(t *testing.T, req BuildRequest, name string) dependencyIdentityResult {
 	t.Helper()
-	return validateV1Alpha4DependencyIdentity(req, wp3aParseSkillAST(t, req, name))
+	return validateDependencyIdentity(req, wp3aParseSkillAST(t, req, name))
 }

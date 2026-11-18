@@ -407,10 +407,10 @@ func g4LiteralAccepted(node *yaml.Node, declaredTypes map[string]bool, hasTypes 
 	return true
 }
 
-// validateV1Alpha4RequestSchemaRoot enforces the section 11.5 / G.6 root shape for a
+// validateRequestSchemaRoot enforces the section 11.5 / G.6 root shape for a
 // Skill-owned Request Schema. Root $ref closure resolution belongs to the WP4
 // registry slice and is intentionally not guessed here.
-func validateV1Alpha4RequestSchemaRoot(file string, root *yaml.Node, add func(string, *yaml.Node, string, string)) {
+func validateRequestSchemaRoot(file string, root *yaml.Node, add func(string, *yaml.Node, string, string)) {
 	root = unalias(root)
 	if root == nil || root.Kind != yaml.MappingNode {
 		add(file, root, "SCHEMA_INVALID", "Request Schema root must be a mapping")

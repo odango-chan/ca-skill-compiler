@@ -1,7 +1,7 @@
 package compiler
 
 // Shared limits, diagnostics-size guards and sorted-key helpers used by the
-// active v1alpha4 Core (historically defined in the legacy analysis pipeline).
+// single v1alpha5 Compiler Core (historically defined in the legacy analysis pipeline).
 
 import (
 	"sort"

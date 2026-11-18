@@ -1,0 +1,366 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:connectionagent:ca-skill-compiler:compiler-api:build-request:v1alpha5",
+  "title": "Compiler BuildRequest v1alpha5",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "languageTarget",
+    "files",
+    "resolvedDependencies"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "connectionagent.io/compiler-build-request/v1alpha5"
+    },
+    "languageTarget": {
+      "const": "connectionagent.io/v1alpha5"
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 512,
+      "items": {
+        "$ref": "#/$defs/sourceFile"
+      }
+    },
+    "resolvedDependencies": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "$ref": "#/$defs/resolvedDependency"
+      }
+    },
+    "targets": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      }
+    },
+    "trustedBuildContext": {
+      "$ref": "#/$defs/trustedBuildContext"
+    }
+  },
+  "$defs": {
+    "bytesFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "description": "Normalized POSIX path relative to this immutable snapshot; Compiler additionally rejects absolute paths, empty segments, dot segments, backslash, colon, NUL and duplicate paths.",
+          "pattern": "^[^/\\\\:]+(?:/[^/\\\\:]+)*$"
+        },
+        "bytes": {
+          "type": "string",
+          "contentEncoding": "base64",
+          "maxLength": 2796204
+        }
+      }
+    },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^skills/[^/\\\\:]+(?:/[^/\\\\:]+)+$"
+        },
+        "bytes": {
+          "type": "string",
+          "contentEncoding": "base64",
+          "maxLength": 2796204
+        }
+      }
+    },
+    "resolvedDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dependencyId",
+        "digest",
+        "files"
+      ],
+      "properties": {
+        "dependencyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/bytesFile"
+          }
+        }
+      }
+    },
+    "exportOwner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exportKind",
+        "exportId",
+        "owner"
+      ],
+      "properties": {
+        "exportKind": {
+          "enum": [
+            "operation",
+            "observation",
+            "schema",
+            "evidenceGuarantee",
+            "ingressOperation"
+          ]
+        },
+        "exportId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      }
+    },
+    "dependencyBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dependencyId",
+        "digest",
+        "stablePackageId",
+        "authorizedOwners"
+      ],
+      "properties": {
+        "dependencyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "stablePackageId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+        },
+        "authorizedOwners": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "exportOwners": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/exportOwner"
+          }
+        }
+      }
+    },
+    "capabilityBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deploymentId",
+        "publisherId",
+        "digest",
+        "files"
+      ],
+      "properties": {
+        "deploymentId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+        },
+        "publisherId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/bytesFile"
+          }
+        }
+      }
+    },
+    "deploymentAuthorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deploymentId",
+        "publisherId",
+        "authorizationRef"
+      ],
+      "properties": {
+        "deploymentId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+        },
+        "publisherId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+        },
+        "authorizationRef": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+        }
+      }
+    },
+    "evidenceBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deploymentId",
+        "publisherId",
+        "snapshotDigest",
+        "files"
+      ],
+      "properties": {
+        "deploymentId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+        },
+        "publisherId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+        },
+        "snapshotDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/bytesFile"
+          }
+        }
+      }
+    },
+    "artifactBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactRef","dependencyId","snapshotPath","dialect"],
+      "properties": {
+        "artifactRef": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "dependencyId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z][A-Za-z0-9_-]*$" },
+        "snapshotPath": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "dialect": { "enum": ["openapi-3.0","json-schema-2020-12"] }
+      }
+    },
+    "schemaBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exportId","artifactRef","pointer"],
+      "properties": {
+        "exportId": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "artifactRef": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "pointer": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      }
+    },
+    "trustedBuildContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dependencyBindings": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/dependencyBinding"
+          }
+        },
+        "capabilityContracts": {
+          "$ref": "#/$defs/capabilityBundle"
+        },
+        "deploymentAuthorizations": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/deploymentAuthorization"
+          }
+        },
+        "evidenceTrustBindings": {
+          "$ref": "#/$defs/evidenceBundle"
+        },
+        "snapshotBaseURI": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "artifactBindings": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/artifactBinding"
+          }
+        },
+        "schemaBindings": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/schemaBinding"
+          }
+        }
+      },
+      "dependentRequired": {
+        "capabilityContracts": [
+          "deploymentAuthorizations"
+        ],
+        "evidenceTrustBindings": [
+          "deploymentAuthorizations"
+        ]
+      }
+    }
+  }
+}

@@ -187,8 +187,8 @@ required: [dnn]
 properties:
   dnn: {type: string, minLength: 1}
 `
-	validReq := v4TestRequest(v4TestContract, v4TestProcedure, v4TestPredicates, validSchema)
-	if diagnostics := Check(validReq); v4HasCode(diagnostics, "SCHEMA_INVALID") {
+	validReq := testRequest(testContract, testProcedure, testPredicates, validSchema)
+	if diagnostics := Check(validReq); hasCode(diagnostics, "SCHEMA_INVALID") {
 		t.Fatalf("valid request Schema rejected in pipeline: %+v", diagnostics)
 	}
 
@@ -233,9 +233,9 @@ additionalProperties: false
 	}
 	for name, testCase := range cases {
 		t.Run(name, func(t *testing.T) {
-			req := v4TestRequest(v4TestContract, v4TestProcedure, v4TestPredicates, testCase.schema)
+			req := testRequest(testContract, testProcedure, testPredicates, testCase.schema)
 			diagnostics := Check(req)
-			if !v4HasCode(diagnostics, testCase.wantCode) {
+			if !hasCode(diagnostics, testCase.wantCode) {
 				t.Fatalf("missing %s: %+v", testCase.wantCode, diagnostics)
 			}
 			found := false
@@ -256,7 +256,7 @@ additionalProperties: false
 }
 
 func TestWP4AValidatesEverySkillOwnedSchema(t *testing.T) {
-	req := v4TestRequest(v4TestContract, v4TestProcedure, v4TestPredicates, `$schema: https://json-schema.org/draft/2020-12/schema
+	req := testRequest(testContract, testProcedure, testPredicates, `$schema: https://json-schema.org/draft/2020-12/schema
 type: object
 additionalProperties: false
 properties: {dnn: {type: string}}
@@ -269,7 +269,7 @@ allOf: [{type: object}]
 `),
 	})
 	diagnostics := Check(req)
-	if !v4HasCode(diagnostics, "SCHEMA_INVALID") {
+	if !hasCode(diagnostics, "SCHEMA_INVALID") {
 		t.Fatalf("invalid unused Skill-owned Schema escaped G.4 validation: %+v", diagnostics)
 	}
 	for _, diagnostic := range diagnostics {

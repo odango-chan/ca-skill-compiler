@@ -17,7 +17,7 @@ type scriptSchemaSet struct {
 	PredicateInputs map[string]map[string]any
 }
 
-func validateV1Alpha4ScriptABI(req BuildRequest, identity dependencyIdentityResult, skill *V1Alpha4SkillAST, files map[string][]byte, procedurePath, predicatesPath string, add func(string, *yaml.Node, string, string)) scriptSchemaSet {
+func validateScriptABI(req BuildRequest, identity dependencyIdentityResult, skill *SkillAST, files map[string][]byte, procedurePath, predicatesPath string, add func(string, *yaml.Node, string, string)) scriptSchemaSet {
 	schemas := scriptSchemaSet{Inputs: map[string]map[string]any{}, Outputs: map[string]map[string]any{}, PredicateInputs: map[string]map[string]any{}}
 	if skill == nil {
 		return schemas
@@ -63,7 +63,7 @@ func validateV1Alpha4ScriptABI(req BuildRequest, identity dependencyIdentityResu
 		}
 	}
 	if skill.Predicates != nil {
-		registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
+		registry := buildSchemaRegistry(req, skill, identity)
 		for _, predicateID := range sortedStringMapKeys(skill.Predicates.Definitions) {
 			predicate := skill.Predicates.Definitions[predicateID]
 			if predicate == nil || predicate.Evaluator == nil {

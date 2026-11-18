@@ -33,6 +33,7 @@ type linkedExport struct {
 	InputSchemaID        string
 	QueryContextSchemaID string
 	OutputSchemaID       string
+	ReceiptSchemaID      string
 	OwnerOutcomes        []string
 	Effect               string
 	// ReconcileTarget is the same-snapshot dedicated Reconcile READ ExportId
@@ -57,6 +58,7 @@ type ownerLinkingResult struct {
 type snapshotExportIndex struct {
 	callables map[string][]linkedExport
 	schemas   map[string][]linkedExport
+	evidence  map[string][]evidenceDescriptor
 }
 
 type catalogDocument struct {
@@ -65,7 +67,7 @@ type catalogDocument struct {
 	callables []linkedExport
 }
 
-func validateV1Alpha4OwnerLinking(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult) ownerLinkingResult {
+func validateOwnerLinking(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult) ownerLinkingResult {
 	result := ownerLinkingResult{Diagnostics: []Diagnostic{}, Exports: []linkedExport{}}
 	if skill == nil || skill.Contract == nil || skill.Contract.Raw == nil {
 		return result
@@ -191,9 +193,13 @@ func validateV1Alpha4OwnerLinking(req BuildRequest, skill *V1Alpha4SkillAST, ide
 			}
 			matched = records[0]
 		case "evidenceGuarantee":
-			// The Evidence Descriptor physical format is not frozen (WP7). WP3B can
-			// only attribute the trusted Owner of the referenced Guarantee identity.
+			// The Evidence Descriptor authority is the trusted Owner of the
+			// guarantee; missing/ambiguous descriptors are diagnosed by the
+			// positive-path Evidence Descriptor linking slice.
 			matched = linkedExport{ExportKind: "evidenceGuarantee", ExportID: reference.exportID}
+			if descriptors := index.evidence[reference.exportID]; len(descriptors) == 1 {
+				matched.SelfDeclaredOwner = descriptors[0].Owner
+			}
 		default:
 			continue
 		}
@@ -283,7 +289,7 @@ func attributeExportOwner(export linkedExport, binding TrustedDependencyBinding,
 // not indexed; a referenced identity then fails with EXPORT_ID_MISSING or
 // SCHEMA_MISSING. Full Owner-contract validation remains a later work package.
 func buildSnapshotExportIndex(snapshot ResolvedDependency) (snapshotExportIndex, []catalogDocument, []Diagnostic) {
-	index := snapshotExportIndex{callables: map[string][]linkedExport{}, schemas: map[string][]linkedExport{}}
+	index := snapshotExportIndex{callables: map[string][]linkedExport{}, schemas: map[string][]linkedExport{}, evidence: map[string][]evidenceDescriptor{}}
 	diagnostics := make([]Diagnostic, 0)
 	catalogs := make([]catalogDocument, 0)
 	files := make([]File, len(snapshot.Files))
@@ -306,6 +312,15 @@ func buildSnapshotExportIndex(snapshot ResolvedDependency) (snapshotExportIndex,
 		}
 		if export, ok := parseSchemaExport(root, file.Path); ok {
 			index.schemas[export.ExportID] = append(index.schemas[export.ExportID], export)
+			continue
+		}
+		if descriptors, ok := parseEvidenceDescriptors(root); ok {
+			for exportID, list := range descriptors {
+				for position := range list {
+					list[position].SnapshotPath = file.Path
+				}
+				index.evidence[exportID] = append(index.evidence[exportID], list...)
+			}
 		}
 	}
 	callableIDs := sortedStringMapKeys(index.callables)
@@ -403,6 +418,12 @@ func parseToolCatalogCallable(node *yaml.Node, owner, sourcePath string) (linked
 			return linkedExport{}, false
 		}
 		export.InputSchemaID = inputSchemaID
+		if receipt, ok := schemaRefID(child(node, "receiptSchema")); ok {
+			export.ReceiptSchemaID = receipt
+		}
+		// F.1: Tool Operation exports may publish Evidence guarantees through the
+		// same guarantees.evidence.provides logical field as Observations.
+		export.EvidenceProvides = parseEvidenceProvides(child(node, "guarantees"))
 		if effect == "MUTATION" {
 			// G.2.1: the same-snapshot dedicated Reconcile READ callable.
 			if reconcile := child(child(node, "mutation"), "reconcile"); reconcile != nil {

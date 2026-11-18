@@ -8,12 +8,12 @@ import (
 )
 
 func TestContractGoalIdentifier(t *testing.T) {
-	valid := strings.Replace(v4TestContract, "goal: pdu_session.initial_request_fulfilled", "goal: pdu.session_ok", 1)
-	if v4HasCode(Check(v4TestRequest(valid, v4TestProcedure, v4TestPredicates, v4TestSchema)), "IDENTIFIER_INVALID") {
+	valid := strings.Replace(testContract, "goal: pdu_session.initial_request_fulfilled", "goal: pdu.session_ok", 1)
+	if hasCode(Check(testRequest(valid, testProcedure, testPredicates, testSchema)), "IDENTIFIER_INVALID") {
 		t.Fatalf("valid GoalId rejected")
 	}
-	invalid := strings.Replace(v4TestContract, "goal: pdu_session.initial_request_fulfilled", "goal: \"bad goal\"", 1)
-	diagnostics := Check(v4TestRequest(invalid, v4TestProcedure, v4TestPredicates, v4TestSchema))
+	invalid := strings.Replace(testContract, "goal: pdu_session.initial_request_fulfilled", "goal: \"bad goal\"", 1)
+	diagnostics := Check(testRequest(invalid, testProcedure, testPredicates, testSchema))
 	found := false
 	for _, diagnostic := range diagnostics {
 		if diagnostic.Code == "IDENTIFIER_INVALID" && diagnostic.Path != "" && diagnostic.Line > 0 {

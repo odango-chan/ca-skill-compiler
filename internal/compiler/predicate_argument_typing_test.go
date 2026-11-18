@@ -7,7 +7,7 @@ import "testing"
 func TestWP6PredicateArgumentTypesPositive(t *testing.T) {
 	request := wp3aBaseFixture(t).request(t)
 	diagnostics := Check(request)
-	if v4HasCode(diagnostics, "PREDICATE_TYPE_MISMATCH") || v4HasCode(diagnostics, "INPUT_NULLABILITY_MISMATCH") {
+	if hasCode(diagnostics, "PREDICATE_TYPE_MISMATCH") || hasCode(diagnostics, "INPUT_NULLABILITY_MISMATCH") {
 		t.Fatalf("assignable Predicate argument rejected: %+v", diagnostics)
 	}
 }
@@ -31,7 +31,7 @@ func TestWP6PredicateArgumentPrimitiveMismatch(t *testing.T) {
 	fixture := wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "            - inspect-registration.observation.output", "            - context.ueRef")
 	diagnostics := Check(fixture.request(t))
-	if !v4HasCode(diagnostics, "PREDICATE_TYPE_MISMATCH") {
+	if !hasCode(diagnostics, "PREDICATE_TYPE_MISMATCH") {
 		t.Fatalf("string argument accepted for object parameter: %+v", diagnostics)
 	}
 }

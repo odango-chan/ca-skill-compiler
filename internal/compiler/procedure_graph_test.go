@@ -5,9 +5,9 @@ package compiler
 import "testing"
 
 func TestWP5ProcedureGraphPositive(t *testing.T) {
-	request := v4TestRequest(v4TestContract, v4TestProcedure, v4TestPredicates, v4TestSchema)
+	request := testRequest(testContract, testProcedure, testPredicates, testSchema)
 	diagnostics := Check(request)
-	if v4HasCode(diagnostics, "UNREACHABLE_NODE") || v4HasCode(diagnostics, "ENTRY_PRECONDITION_BYPASSED") {
+	if hasCode(diagnostics, "UNREACHABLE_NODE") || hasCode(diagnostics, "ENTRY_PRECONDITION_BYPASSED") {
 		t.Fatalf("positive Procedure graph rejected: %+v", diagnostics)
 	}
 	if Check(request)[0].Phase != Build(request).Diagnostics[0].Phase {
@@ -16,7 +16,7 @@ func TestWP5ProcedureGraphPositive(t *testing.T) {
 }
 
 func TestWP5UnreachableNodeWarning(t *testing.T) {
-	procedure := v4TestProcedure + `  orphan:
+	procedure := testProcedure + `  orphan:
     operation:
       tool: ca::example.session.read
       arguments: {}
@@ -24,7 +24,7 @@ func TestWP5UnreachableNodeWarning(t *testing.T) {
         SUCCEEDED: orphan
         FAILED: FAILED
 `
-	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
+	request := testRequest(testContract, procedure, testPredicates, testSchema)
 	diagnostics := Check(request)
 	found := false
 	for _, diagnostic := range diagnostics {
@@ -83,9 +83,9 @@ nodes:
         FAIL: FAILED
         UNKNOWN: UNRESOLVED
 `
-	request := v4TestRequest(contract, procedure, v4TestPredicates, v4TestSchema)
+	request := testRequest(contract, procedure, testPredicates, testSchema)
 	diagnostics := Check(request)
-	if !v4HasCode(diagnostics, "ENTRY_PRECONDITION_BYPASSED") {
+	if !hasCode(diagnostics, "ENTRY_PRECONDITION_BYPASSED") {
 		t.Fatalf("global Precondition bypass not detected: %+v", diagnostics)
 	}
 	for _, diagnostic := range diagnostics {

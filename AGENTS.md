@@ -1,17 +1,18 @@
 # CA Skill Compiler — Repository Instructions
 
-- **Current product release:** CA Skill Compiler v1.0.0
-- **Current language target:** frozen CA-SL v1alpha4 (`connectionagent.io/v1alpha4`)
-- **Release commit:** `252fd6c6dab15fb92806426aeb19d49a36b08d5e`
+- **Product version (this line):** CA Skill Compiler v2.0.0
+- **Only language target:** released CA-SL v1alpha5 (`connectionagent.io/v1alpha5`), which inherits the released v1alpha4 normative semantics
+- **Published v1.0.0 release commit (immutable):** `252fd6c6dab15fb92806426aeb19d49a36b08d5e`
 
 ## 1. Authority
 
 Follow these sources in order:
 
-1. The frozen CA-SL v1alpha4 single-file specification at [ca-skills@7f84393](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md), blob `b70064c5737b8ee2b3d1435fe496357f44b42773`.
-2. Compiler-owned v1alpha4 contracts in `docs/design/*-v1alpha4.md` and machine contracts in `contracts/v1alpha4/`.
-3. The conformance plan, case index, diagnostic index and E-coverage under `docs/workstreams/` and `tests/conformance/v1alpha4/`.
-4. Current implementation, tests and release/maintenance records.
+1. The released CA-SL v1alpha5 single-file specification at [ca-skills@0abfd0e](https://github.com/odango-chan/ca-skills/blob/0abfd0e1ab99f481a4ae01f3f47efc54783dd5e5/docs/skill-language-spec.v1alpha5.zh-CN.md). It inherits the released v1alpha4 semantics.
+2. The released IngressCatalog v1alpha1 logical contract and Ingress diagnostic registry at [ca-skills@9412be9](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/integration-ingress-operation-contract-vnext.zh-CN.md).
+3. Compiler-owned v1alpha5 contracts in `docs/design/` and machine contracts in `contracts/v1alpha5/`; v1alpha4 contracts remain historical traceability only.
+4. The conformance register, diagnostic index and acceptance records under `docs/workstreams/`, `tests/conformance/` and `docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md`.
+5. Current implementation, tests and release/maintenance records.
 
 Historical v0.1/v0.2 documents and fixtures are not current authority. Do not add compatibility, translation, version sniffing or fallback behavior.
 
@@ -19,9 +20,9 @@ Historical v0.1/v0.2 documents and fixtures are not current authority. Do not ad
 
 - v1.0.0 is published and its tag/release assets are immutable.
 - Product version and language version are independent.
-- Do not silently add new language semantics to v1alpha4.
-- In particular, **the latest author-level Wait semantics are not supported by Compiler v1.0.0**. Recognized legacy Wait/Await syntax is rejected with the frozen v1alpha4 diagnostic. Implement future Wait semantics only under a separately versioned language/compiler target after the language and Host/Ingress contracts are frozen.
-- Keep Compiler implementation status, local verification and real Owner/product qualification distinct. The release has local acceptance evidence; real 5GC/MAS qualification remains NOT_QUALIFIED.
+- CA-SL v1alpha5 is the only supported language target. There is no v1alpha4 build entry, CLI target, API identity or compatibility layer; a v1alpha4 `apiVersion` or `languageTarget` fails closed.
+- The v1alpha5 language inherits the released v1alpha4 semantics; those inherited obligations are implemented by the single v1alpha5 pipeline.
+- Keep Compiler implementation status, local verification and real Owner/product qualification distinct. Real 5GC/MAS qualification remains NOT_QUALIFIED.
 
 ## 3. Compiler ownership and trust boundaries
 
@@ -33,9 +34,7 @@ Host/Runtime remains responsible for Invocation, event ingress, Wait lifecycle, 
 
 ## 4. Build and fail-closed boundaries
 
-Check and Build share the same static validation pipeline. Build emits a complete deterministic artifact only when validation succeeds and no feature-scoped fail-closed gate applies.
-
-Current feature gates are documented in [Known Limitations](docs/known-limitations-v1alpha4.md): Evidence Descriptor positive-path validation, complete Mutation/Reconcile semantics, and full retry contract compatibility/path coverage. Do not remove these gates merely to make a fixture build. Implement the missing frozen static obligations or obtain the required versioned external publication first.
+Check and Build share the same static validation pipeline. Build emits a complete deterministic artifact only when validation succeeds. Evidence Descriptor linking, Mutation/Reconcile and retry assurance are implemented by the single v1alpha5 pipeline; the earlier v1alpha4 feature-scoped fail-closed gates no longer exist. See [v1alpha5 Known Limitations](docs/known-limitations-v1alpha5.md).
 
 A successful Build is not a Runtime authorization token or product qualification.
 
@@ -54,7 +53,7 @@ A successful Build is not a Runtime authorization token or product qualification
 - Open a PR to `main`; keep it Draft while local verification has not been executed or review blockers remain.
 - Never push directly to `main`, force-push, or merge without explicit approval.
 - Do not claim tests, CI or Chromium acceptance passed unless actually executed and their exact results are recorded.
-- GitHub Actions was unavailable for the v1.0.0 release run; local acceptance commands and results are recorded in [Local Verification](docs/local-verification-v1alpha4.md).
+- GitHub Actions was unavailable for the v1.0.0 release run; that historical evidence is recorded in [Local Verification v1alpha4](docs/local-verification-v1alpha4.md). Current local acceptance is recorded in [v1alpha5 integration acceptance](docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
 
 ## 7. Reproducible local gates
 

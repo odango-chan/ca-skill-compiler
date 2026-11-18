@@ -44,7 +44,7 @@ type capabilityLinkingResult struct {
 	Capabilities []capabilityDefinition
 }
 
-func validateV1Alpha4CapabilityLinking(req BuildRequest, skill *V1Alpha4SkillAST, ownerLinking ownerLinkingResult) capabilityLinkingResult {
+func validateCapabilityLinking(req BuildRequest, skill *SkillAST, ownerLinking ownerLinkingResult) capabilityLinkingResult {
 	result := capabilityLinkingResult{Diagnostics: []Diagnostic{}, Grants: []string{}, Capabilities: []capabilityDefinition{}}
 	if skill == nil || skill.Contract == nil || skill.Contract.Raw == nil {
 		return result

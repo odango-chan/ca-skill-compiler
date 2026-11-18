@@ -31,7 +31,7 @@ func predicateScriptRequest(t *testing.T, script string) BuildRequest {
     parameters: [{result: ca::urn:example:result:v1}]
     evaluator: {type: cel, expression: "result.ready == true"}
 `
-	request := v4TestRequest(v4TestContract, v4TestProcedure, predicates, v4TestSchema)
+	request := testRequest(testContract, testProcedure, predicates, testSchema)
 	request.Files = append(request.Files, File{Path: "skills/pdu/scripts/ready.py", Bytes: []byte(script)})
 	return request
 }
@@ -48,7 +48,7 @@ func TestPredicateScriptInputParametersAccepted(t *testing.T) {
 func TestPredicateScriptUnknownParameterRejected(t *testing.T) {
 	source := strings.Replace(predicateScriptWithParameterRead, `input["ue"]`, `input["unknown"]`, 1)
 	request := predicateScriptRequest(t, source)
-	if !v4HasCode(Check(request), "SCRIPT_CONTRACT_INVALID") {
+	if !hasCode(Check(request), "SCRIPT_CONTRACT_INVALID") {
 		t.Fatalf("undeclared PredicateInput key accepted: %+v", Check(request))
 	}
 }

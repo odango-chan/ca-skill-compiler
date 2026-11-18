@@ -43,7 +43,7 @@ func parseEvidenceProvides(guarantees *yaml.Node) []evidenceProvide {
 	return provides
 }
 
-func validateV1Alpha4PredicateEvidence(req BuildRequest, skill *V1Alpha4SkillAST, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validatePredicateEvidence(req BuildRequest, skill *SkillAST, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Procedure == nil || skill.Predicates == nil {
 		return
 	}
@@ -77,7 +77,7 @@ func validateV1Alpha4PredicateEvidence(req BuildRequest, skill *V1Alpha4SkillAST
 		if node == nil {
 			continue
 		}
-		for _, stage := range []*V1Alpha4PredicateStageAST{node.Precondition, node.Postcondition} {
+		for _, stage := range []*PredicateStageAST{node.Precondition, node.Postcondition} {
 			if stage == nil {
 				continue
 			}
@@ -96,6 +96,10 @@ func validateV1Alpha4PredicateEvidence(req BuildRequest, skill *V1Alpha4SkillAST
 				}
 				parameterIndex := predicateParameterIndex(predicate.Parameters)
 				arguments := sequence(call.Arguments)
+				declaredRequires := map[string]bool{}
+				for i := 0; i+1 < len(requires.Content); i += 2 {
+					declaredRequires[scalar(unalias(requires.Content[i]))] = true
+				}
 				for i := 0; i+1 < len(requires.Content); i += 2 {
 					parameter := scalar(unalias(requires.Content[i]))
 					index, ok := parameterIndex[parameter]
@@ -114,11 +118,57 @@ func validateV1Alpha4PredicateEvidence(req BuildRequest, skill *V1Alpha4SkillAST
 						}
 					}
 				}
+				// §17.1: a parameter without any declared guarantee may only be
+				// bound to exempt Request/Host/literal sources at every call point.
+				for parameter, index := range parameterIndex {
+					if declaredRequires[parameter] || index >= len(arguments) {
+						continue
+					}
+					argument := unalias(arguments[index])
+					if argumentNeedsEvidence(argument, skill) {
+						add(procedurePath, argument, "PREDICATE_EVIDENCE_REQUIRED",
+							"Predicate parameter "+parameter+" is bound to an external Producer output without a declared Evidence guarantee")
+					}
+				}
 			}
 		}
 	}
 }
 
+// argumentNeedsEvidence reports whether one Predicate argument directly reads a
+// non-exempt external Producer output (§17.1 source exemption table).
+func argumentNeedsEvidence(argument *yaml.Node, skill *SkillAST) bool {
+	argument = unalias(argument)
+	if argument == nil || argument.Kind != yaml.ScalarNode || argument.Tag != "!!str" {
+		return false
+	}
+	if argument.Style == yaml.SingleQuotedStyle || argument.Style == yaml.DoubleQuotedStyle {
+		return false
+	}
+	value := argument.Value
+	if value == "context.request" || strings.HasPrefix(value, "context.request.") ||
+		value == "context.ueRef" || value == "context.correlation" || strings.HasPrefix(value, "context.correlation.") {
+		return false
+	}
+	segments := strings.Split(value, ".")
+	if len(segments) < 3 {
+		return false
+	}
+	if skill == nil || skill.Procedure == nil {
+		return false
+	}
+	node := skill.Procedure.ByID[segments[0]]
+	if node == nil {
+		return false
+	}
+	switch segments[1] {
+	case "operation", "observation":
+		return node.Operation != nil || node.Observation != nil
+	case "script":
+		return false
+	}
+	return false
+}
 func predicateParameterIndex(parameters *yaml.Node) map[string]int {
 	index := map[string]int{}
 	position := 0

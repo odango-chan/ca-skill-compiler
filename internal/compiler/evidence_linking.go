@@ -12,7 +12,7 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateV1Alpha4EvidenceRequirements(predicatesPath string, source *V1Alpha4PredicateSetAST, add func(string, *yaml.Node, string, string)) {
+func validateEvidenceRequirements(predicatesPath string, source *PredicateSetAST, add func(string, *yaml.Node, string, string)) {
 	if source == nil {
 		return
 	}

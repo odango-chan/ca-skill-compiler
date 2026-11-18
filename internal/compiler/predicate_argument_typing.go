@@ -9,12 +9,12 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateV1Alpha4PredicateArgumentTypes(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string) []Diagnostic {
+func validatePredicateArgumentTypes(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string) []Diagnostic {
 	diagnostics := make([]Diagnostic, 0)
 	if skill == nil || skill.Procedure == nil || skill.Predicates == nil || skill.Contract == nil {
 		return diagnostics
 	}
-	registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity)
 	contextRoot, requestRoot := sourcePathRootSchemas(skill, registry)
 	producers := producerOutputSchemas(skill, ownerLinking, registry)
 	for _, nodeID := range sortedStringMapKeys(skill.Procedure.ByID) {
@@ -22,7 +22,7 @@ func validateV1Alpha4PredicateArgumentTypes(req BuildRequest, skill *V1Alpha4Ski
 		if node == nil {
 			continue
 		}
-		for _, stage := range []*V1Alpha4PredicateStageAST{node.Precondition, node.Postcondition} {
+		for _, stage := range []*PredicateStageAST{node.Precondition, node.Postcondition} {
 			if stage == nil {
 				continue
 			}
