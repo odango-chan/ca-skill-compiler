@@ -42,13 +42,13 @@ CA-SL v1alpha5 is not a new language that discards v1alpha4. Its released single
 
 The previous candidate ran a detached Wait-only pipeline. That is fixed: one target-neutral inherited semantic pipeline now runs for every selected Skill package, and the v1alpha5 Wait passes compose with it on the same normalized parse result and the same Diagnostic stream. `v1alpha5_artifact.go` re-runs the same passes during assembly and refuses to emit an artifact if any of them would fail.
 
-What remains is not a second pipeline but specific, enumerated static obligations that the inherited pipeline itself did not implement in the v1alpha4 release:
+What remains is not a second pipeline but specific, enumerated static obligations:
 
-- Evidence Descriptor positive-path validation;
-- complete Mutation / Reconcile positive-path semantics;
-- full retry contract compatibility/path coverage;
-- the deferred Ingress normalization / binary-content lifecycle / response-contract cases in section 5;
+- Evidence Descriptor positive-path validation (the released language delegates its physical publication format to an independent trusted contract);
+- the remaining deferred Ingress response-contract cases in section 5;
 - the final v1alpha5 Public API separation in section 6.
+
+The inherited Mutation/Reconcile/retry positive-path obligations are now implemented and gated by the same pipeline: commit-proof/failure-class/reconcile receipt anchors, minimal commit-proof Schema, failure-class Outcome/no-side-effect/retry rules, same-Owner dedicated READ and Capability coverage, recoverable-output assignability, retry business-identity and NOT_COMMITTED-edge proofs. Those feature gates are removed; only the Evidence Descriptor gate remains.
 
 ## 3. Non-Wait Tool linking: implemented
 

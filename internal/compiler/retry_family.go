@@ -49,7 +49,7 @@ func retryFamilyViolations(edges []retryEdge, effects map[string]string) []retry
 	return violations
 }
 
-func validateV1Alpha4RetryMutationFamilies(skill *V1Alpha4SkillAST, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validateV1Alpha4RetryMutationFamilies(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Procedure == nil {
 		return
 	}
@@ -57,6 +57,26 @@ func validateV1Alpha4RetryMutationFamilies(skill *V1Alpha4SkillAST, ownerLinking
 	for _, export := range ownerLinking.Exports {
 		if export.ExportKind == "operation" || export.ExportKind == "observation" {
 			linked[export.DependencyAlias+"::"+export.ExportID] = export
+		}
+	}
+	// Dedicated Reconcile READ exports are never ordinary business callables.
+	dedicatedReconcile := map[string]bool{}
+	snapshots := map[string]ResolvedDependency{}
+	for _, alias := range identity.Closure {
+		for _, dependency := range req.ResolvedDependencies {
+			if dependency.DependencyID == alias {
+				snapshots[alias] = dependency
+			}
+		}
+	}
+	for _, alias := range sortedStringMapKeys(snapshots) {
+		index, _, _ := buildSnapshotExportIndex(snapshots[alias])
+		for _, records := range index.callables {
+			for _, record := range records {
+				if record.Effect == "MUTATION" && record.MutationFields.ReconcileCallable != "" {
+					dedicatedReconcile[record.MutationFields.ReconcileCallable] = true
+				}
+			}
 		}
 	}
 	nodes := map[string]*V1Alpha4ProcedureNodeAST{}
@@ -75,7 +95,11 @@ func validateV1Alpha4RetryMutationFamilies(skill *V1Alpha4SkillAST, ownerLinking
 		if target == "" || target == nodeID {
 			continue // reference validity is diagnosed by the earlier slice
 		}
-		edges = append(edges, retryEdge{nodeID: nodeID, target: target})
+		edge := retryEdge{nodeID: nodeID, target: target}
+		if export, ok := linked[scalar(unalias(node.Operation.Tool))]; ok && dedicatedReconcile[export.ExportID] {
+			edge.reconcileTarget = export.ExportID
+		}
+		edges = append(edges, edge)
 	}
 	if len(edges) == 0 {
 		return
@@ -84,13 +108,6 @@ func validateV1Alpha4RetryMutationFamilies(skill *V1Alpha4SkillAST, ownerLinking
 	for nodeID, node := range nodes {
 		if export, ok := linked[scalar(node.Operation.Tool)]; ok {
 			effects[nodeID] = export.Effect
-			if export.ReconcileTarget != "" {
-				for index := range edges {
-					if edges[index].target == nodeID {
-						edges[index].reconcileTarget = export.ReconcileTarget
-					}
-				}
-			}
 		}
 	}
 	for _, violation := range retryFamilyViolations(edges, effects) {
@@ -101,5 +118,66 @@ func validateV1Alpha4RetryMutationFamilies(skill *V1Alpha4SkillAST, ownerLinking
 			anchor = unalias(child(node.Operation.Raw, "retryOf"))
 		}
 		add(procedurePath, anchor, "RETRY_CONTRACT_INVALID", violation.message)
+	}
+	// Positive retry assurance (§20.2 items 3-4): the retried operation must be
+	// the same Owner business identity, the original Mutation must publish a
+	// retryable, no-side-effect NOT_COMMITTED failure class, and the retry
+	// callable must accept the original business identity Schema.
+	registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
+	for _, edge := range edges {
+		retryNode := nodes[edge.nodeID]
+		targetNode := skill.Procedure.ByID[edge.target]
+		if retryNode == nil || retryNode.Operation == nil || targetNode == nil || targetNode.Operation == nil {
+			continue
+		}
+		anchor := unalias(child(retryNode.Operation.Raw, "retryOf"))
+		targetExport, targetLinked := linked[scalar(unalias(targetNode.Operation.Tool))]
+		retryExport, retryLinked := linked[scalar(unalias(retryNode.Operation.Tool))]
+		if !targetLinked || !retryLinked {
+			continue // unresolved links are diagnosed by the linking slices
+		}
+		if targetExport.Effect != "MUTATION" {
+			add(procedurePath, anchor, "RETRY_CONTRACT_INVALID",
+				"retryOf target "+edge.target+" is not a MUTATION callable; it has Effect "+targetExport.Effect)
+			continue
+		}
+		if retryExport.Effect != "MUTATION" {
+			add(procedurePath, anchor, "RETRY_CONTRACT_INVALID",
+				"retry Node "+edge.nodeID+" must call a MUTATION callable; it has Effect "+retryExport.Effect)
+			continue
+		}
+		if targetExport.DependencyAlias != retryExport.DependencyAlias {
+			add(procedurePath, anchor, "RETRY_CONTRACT_INVALID",
+				"retry dispatch must not cross dependency identity: "+targetExport.DependencyAlias+" != "+retryExport.DependencyAlias)
+			continue
+		}
+		if targetExport.TrustedOwner != retryExport.TrustedOwner || targetExport.TrustedOwner == "" {
+			add(procedurePath, anchor, "RETRY_CONTRACT_INVALID",
+				"retry dispatch must keep the exact trusted Owner of the original Mutation")
+			continue
+		}
+		eligible := false
+		for _, class := range targetExport.MutationFields.FailureClasses {
+			if class.Outcome == "NOT_COMMITTED" && class.Retryable && class.NoSideEffect {
+				eligible = true
+				break
+			}
+		}
+		if !eligible {
+			add(procedurePath, anchor, "RETRY_CONTRACT_INVALID",
+				"original Mutation publishes no retryable, no-side-effect NOT_COMMITTED failure class: "+targetExport.ExportID)
+			continue
+		}
+		originalInput, originalProblem := registry.resolveReference(targetExport.DependencyAlias + "::" + targetExport.InputSchemaID)
+		retryInput, retryProblem := registry.resolveReference(retryExport.DependencyAlias + "::" + retryExport.InputSchemaID)
+		if originalProblem != "" || retryProblem != "" {
+			add(procedurePath, anchor, "RETRY_CONTRACT_INVALID",
+				"retry business-identity Input Schema is not resolvable in the trusted snapshot")
+			continue
+		}
+		if _, ok := schemaAssignable(unalias(originalInput.node), unalias(retryInput.node)); !ok {
+			add(procedurePath, anchor, "RETRY_CONTRACT_INVALID",
+				"retry callable Input Schema cannot accept the original Mutation business identity")
+		}
 	}
 }

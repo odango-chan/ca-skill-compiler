@@ -72,7 +72,7 @@ The v1alpha5 entry path now runs **one** inherited static semantic pipeline (`va
 
 `v1alpha5_artifact.go` re-runs the same passes during assembly and refuses to emit an artifact if any would fail. The artifact dependency closure and `BuildResult.dependencyClosure` now include the full inherited closure, not just the Wait Ingress links.
 
-The remaining gaps are enumerated, specific inherited obligations that the v1alpha4 release itself did not implement (Evidence Descriptor positive path, complete Mutation/Reconcile positive path, full retry contract path coverage) plus the deferred Ingress static cases in section 3.2. They are not a detached-pipeline problem.
+The inherited Mutation/Reconcile/retry positive-path obligations are now implemented and gated by the same pipeline (commit-proof/failure-class/reconcile receipt anchors, minimal proof Schema, Owner/READ/Capability coverage, recoverable-output assignability, retry business-identity and NOT_COMMITTED-edge proofs), and their feature gates are removed. Remaining gaps are the Evidence Descriptor positive path (its physical publication format is delegated to an independent trusted contract) plus the deferred Ingress static cases in section 3.2. They are not a detached-pipeline problem.
 
 ### 3.2 Ingress / Wait conformance register is incomplete
 
@@ -115,7 +115,7 @@ The next phase is defined in [v1alpha5 Full Language Completion Goal](workstream
 It must:
 
 1. Finish the clean v1alpha5 public request/result/inspection model and separate public wire DTOs from target-neutral internal canonical build inputs (the semantic pipeline itself is already unified).
-2. Implement the inherited negative/positive-path gates that the v1alpha4 release left fail-closed: Evidence Descriptor positive path, complete Mutation/Reconcile positive path, and full retry contract compatibility/path coverage.
+2. Implement the remaining inherited positive-path gate: Evidence Descriptor linking over an explicitly versioned trusted publication input (the released language does not define its physical format).
 3. Resolve the 19 currently deferred Compiler-static EW/IN static cases.
 4. Reconcile the complete v1alpha5 diagnostic index and all Compiler-owned C_STATIC rules.
 5. Remove `CANDIDATE_PARTIAL` from any release-eligible artifact only after the artifact contract and full static validation scope are complete and reviewed.

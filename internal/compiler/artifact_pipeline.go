@@ -2,11 +2,12 @@ package compiler
 
 // WP10 Build wiring: successful Build assembles the deterministic Artifact tree.
 //
-// Build remains feature-scoped fail-closed. Evidence Descriptor positive-path
-// relations, complete Mutation/Reconcile semantics and full retry contract
-// compatibility/path coverage are not complete; a Skill using those features is
-// rejected rather than receiving a partial artifact. Static sub-checks still run
-// first, and other fully validated Skills produce a deterministic output tree.
+// The released Mutation/Reconcile/retry positive-path obligations are enforced
+// by the inherited static pipeline, so those feature gates are removed. The
+// Evidence Descriptor positive-path linking gate remains: the released language
+// delegates its physical publication format to an independent trusted contract,
+// so a Skill declaring Predicate evidence guarantees still fails closed instead
+// of receiving a partial artifact until that trusted input is implemented.
 
 import (
 	"sort"
@@ -40,22 +41,6 @@ func unsupportedSemanticsReason(inputs map[string]artifactInput) string {
 				predicate := input.skill.Predicates.Definitions[predicateID]
 				if predicate != nil && predicate.Evidence != nil {
 					return "Evidence guarantee linking (WP7) is not implemented; compilation fails closed"
-				}
-			}
-		}
-		for _, export := range input.ownerLinking.Exports {
-			if export.Effect == "MUTATION" {
-				return "deep Mutation/Reconcile semantics (WP8) are not implemented; compilation fails closed"
-			}
-		}
-		if input.skill.Procedure != nil {
-			for _, nodeID := range sortedStringMapKeys(input.skill.Procedure.ByID) {
-				node := input.skill.Procedure.ByID[nodeID]
-				if node == nil || node.Operation == nil {
-					continue
-				}
-				if child(node.Operation.Raw, "retryOf") != nil {
-					return "full retry contract semantics (WP8) are not implemented; compilation fails closed"
 				}
 			}
 		}

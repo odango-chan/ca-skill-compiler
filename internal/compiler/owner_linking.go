@@ -33,6 +33,7 @@ type linkedExport struct {
 	InputSchemaID        string
 	QueryContextSchemaID string
 	OutputSchemaID       string
+	ReceiptSchemaID      string
 	OwnerOutcomes        []string
 	Effect               string
 	// ReconcileTarget is the same-snapshot dedicated Reconcile READ ExportId
@@ -403,6 +404,9 @@ func parseToolCatalogCallable(node *yaml.Node, owner, sourcePath string) (linked
 			return linkedExport{}, false
 		}
 		export.InputSchemaID = inputSchemaID
+		if receipt, ok := schemaRefID(child(node, "receiptSchema")); ok {
+			export.ReceiptSchemaID = receipt
+		}
 		if effect == "MUTATION" {
 			// G.2.1: the same-snapshot dedicated Reconcile READ callable.
 			if reconcile := child(child(node, "mutation"), "reconcile"); reconcile != nil {

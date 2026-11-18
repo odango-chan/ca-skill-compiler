@@ -159,9 +159,10 @@ func validateInheritedSkillPackage(
 		mutationContractDiagnostics := validateV1Alpha4MutationContracts(req, sourceAST, identity)
 		diagnostics = append(diagnostics, mutationContractDiagnostics...)
 		validateV1Alpha4ReconcileContracts(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
-		validateV1Alpha4RetryMutationFamilies(sourceAST, ownerLinking, procedurePath, errorAt)
+		validateV1Alpha4RetryMutationFamilies(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
 		validateV1Alpha4RouteKeyEligibility(sourceAST, ownerLinking, procedurePath, errorAt)
 		validateV1Alpha4PredicateEvidence(req, sourceAST, ownerLinking, procedurePath, errorAt)
+		validateV1Alpha4MutationPositiveContracts(req, sourceAST, identity, ownerLinking, capabilityLinking, procedurePath, errorAt)
 		input.ownerLinking = ownerLinking
 	}
 	if sourceAST.Predicates != nil && sourceAST.Predicates.Raw != nil {

@@ -90,8 +90,6 @@ var v1alpha5ManifestValidatedPasses = []string{
 // the same list is documented in docs/known-limitations-v1alpha5.md.
 var v1alpha5ManifestNotValidated = []string{
 	"evidence-descriptor-positive-path-validation",
-	"full-mutation-reconcile-positive-path-coverage",
-	"full-retry-contract-compatibility-and-path-coverage",
 	"ingress-response-contract-and-mapping-completeness",
 	"host-runtime-integration-semantics",
 	"real-owner-artifact-qualification",

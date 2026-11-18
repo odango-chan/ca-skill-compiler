@@ -7,6 +7,7 @@ import "testing"
 func pathAvailabilityFixture(t *testing.T) BuildRequest {
 	t.Helper()
 	fixture := wp3aBaseFixture(t)
+	addSpecMutationProofSchemas(&fixture)
 	fixture.addSnapshotFile("ca", "mutation-catalog.yaml", []byte(`apiVersion: connectionagent.io/toolcatalog/v1alpha4
 kind: ToolCatalog
 metadata:
@@ -19,10 +20,7 @@ spec:
       ownerOutcomes: [SUCCEEDED, FAILED, NOT_COMMITTED]
       inputSchema: {$ref: urn:example:ca:registration-query:v1}
       outputSchema: {$ref: urn:example:ca:registration:v1}
-      receiptSchema: {$ref: urn:example:ca:registration:v1}
-      mutation:
-        commitProof: {schema: urn:example:ca:registration:v1, path: state, bind: originalInvocationId}
-`))
+` + specMutationContractBlock))
 	fixture.refreshSnapshotDigests(t)
 	fixture.files[wp3aProcedurePath] = []byte(`start: mutate
 nodes:

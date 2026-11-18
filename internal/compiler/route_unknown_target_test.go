@@ -7,6 +7,7 @@ import "testing"
 func mutationRouteFixture(t *testing.T, routes string) BuildRequest {
 	t.Helper()
 	fixture := wp3aBaseFixture(t)
+	addSpecMutationProofSchemas(&fixture)
 	fixture.addSnapshotFile("ca", "session-catalog.yaml", []byte(`apiVersion: connectionagent.io/toolcatalog/v1alpha4
 kind: ToolCatalog
 metadata:
@@ -19,10 +20,7 @@ spec:
       ownerOutcomes: [SUCCEEDED, NOT_COMMITTED]
       inputSchema: {$ref: urn:example:ca:registration-query:v1}
       outputSchema: {$ref: urn:example:ca:registration:v1}
-      receiptSchema: {$ref: urn:example:ca:registration:v1}
-      mutation:
-        commitProof: {schema: urn:example:ca:registration:v1, path: state, bind: originalInvocationId}
-`))
+` + specMutationContractBlock))
 	fixture.refreshSnapshotDigests(t)
 	procedure := "start: mutate\nnodes:\n  mutate:\n    operation:\n      tool: ca::example.session.create\n      arguments: {}\n      routes:\n" + routes + `  final:
     postcondition:
