@@ -27,7 +27,7 @@ nodes:
       routes:
         SUCCEEDED: wait-sm-context
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   wait-sm-context:
     wait:
       event:
@@ -43,7 +43,7 @@ nodes:
       routes:
         SUCCEEDED: wait-n4
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   wait-n4:
     wait:
       event:
@@ -59,7 +59,7 @@ nodes:
       routes:
         SUCCEEDED: final
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   final:
     postcondition:
       predicates:
@@ -76,7 +76,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
 `
 }
 
@@ -397,7 +397,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: UNRESOLVED
+        UNKNOWN: UNRESOLVED
 `
 	// Declaration-only check: a declared boundary Node is accepted here even
 	// though reachability/post-dominance (WP6) is not yet implemented.

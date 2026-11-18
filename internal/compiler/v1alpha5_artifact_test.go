@@ -27,7 +27,7 @@ nodes:
       routes:
         SUCCEEDED: classify-registration
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: UNRESOLVED
+        UNKNOWN: UNRESOLVED
   classify-registration:
     postcondition:
       predicates:
@@ -144,7 +144,7 @@ func TestV1Alpha5BuildAssemblesTrustedArtifact(t *testing.T) {
 	if skill.Name != "example" || !strings.HasPrefix(skill.SourceDigest, "sha256:") {
 		t.Fatalf("unexpected manifest Skill: %#v", skill)
 	}
-	if strings.Join(skill.SourceFiles, ",") != wp3ContractPath+","+wp3ProcedurePath {
+	if strings.Join(skill.SourceFiles, ",") != wp3SkillMarkdownPath+","+wp3ContractPath+","+wp3PredicatesPath+","+wp3ProcedurePath {
 		t.Fatalf("manifest sourceFiles = %v", skill.SourceFiles)
 	}
 	if strings.Join(skill.CompiledFiles, ",") != "skills/example/compiled/ingress-links.json,skills/example/compiled/procedure.json" {
@@ -239,11 +239,14 @@ func TestV1Alpha5BuildIsDeterministic(t *testing.T) {
 	}
 }
 
-// TestV1Alpha5BuildWaitFreeSucceeds proves a Wait-free candidate Skill (no
-// trusted dependency snapshot needed) also Builds successfully; the artifact has
-// an empty wait-link list and an empty dependency closure.
+// TestV1Alpha5BuildWaitFreeSucceeds proves a fully admitted Wait-free v1alpha5
+// Skill also Builds successfully; the artifact has an empty wait-link list and
+// only the dependencies the Skill actually uses.
 func TestV1Alpha5BuildWaitFreeSucceeds(t *testing.T) {
-	request := v1alpha5TestProcedureRequest(v1alpha5WaitFreeProcedure)
+	request := wp3BuildRequest(t, wp3FixtureOptions{
+		procedure: wp3WaitFreeProcedure,
+		contract:  wp3WaitFreeContract,
+	})
 	if diagnostics := Check(request); len(diagnostics) != 0 {
 		t.Fatalf("Wait-free procedure must pass Check, got %#v", diagnostics)
 	}
@@ -254,11 +257,11 @@ func TestV1Alpha5BuildWaitFreeSucceeds(t *testing.T) {
 	if err := VerifyBuildResult(result); err != nil {
 		t.Fatalf("VerifyBuildResult: %v", err)
 	}
-	if len(result.DependencyClosure) != 0 {
+	if strings.Join(result.DependencyClosure, ",") != "integration,"+wp3ToolsDependency {
 		t.Fatalf("Wait-free dependencyClosure = %v", result.DependencyClosure)
 	}
 	manifest := v1alpha5DecodeManifest(t, result)
-	if len(manifest.DependencyClosure) != 0 || len(manifest.Skills) != 1 {
+	if len(manifest.DependencyClosure) != 2 || len(manifest.Skills) != 1 {
 		t.Fatalf("unexpected Wait-free manifest: %#v", manifest)
 	}
 	if manifest.Skills[0].WaitLinks == nil || len(manifest.Skills[0].WaitLinks) != 0 {

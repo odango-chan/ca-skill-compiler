@@ -188,14 +188,7 @@ spec:
 }
 
 func wp6ToolsCatalog(outputSchemaRef string) string {
-	return `# SYNTHETIC TEST FIXTURE ONLY. Not a real Owner artifact.
-apiVersion: connectionagent.io/toolcatalog/v1alpha4
-kind: ToolCatalog
-metadata:
-  owner: example.amf-tool-owner
-spec:
-  contracts:
-    - kind: operation
+	return wp3ToolCatalog + `    - kind: operation
       id: ` + wp6ProducerOperationID + `
       effect: READ
       inputSchema:
@@ -431,7 +424,7 @@ nodes:
       routes:
         SUCCEEDED: final
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   final:
     postcondition:
       predicates:
@@ -448,7 +441,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
 `
 
 // wp6NamedBoundaryProcedure declares an explicit response boundary later than
@@ -472,7 +465,7 @@ nodes:
       routes:
         SUCCEEDED: prepare-response
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   prepare-response:
     operation:
       tool: ` + wp6ResponseProducerTool + `
@@ -480,7 +473,7 @@ nodes:
       routes:
         SUCCEEDED: final
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   final:
     postcondition:
       predicates:
@@ -497,7 +490,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
 `
 
 // wp6SuccessBeforeBoundaryProcedure has one accepted path that reaches SUCCEEDED
@@ -522,13 +515,14 @@ nodes:
           arguments: []
       routes:
         FAIL: final
+        UNKNOWN: UNRESOLVED
     operation:
       tool: ` + wp6ResponseProducerTool + `
       arguments: {}
       routes:
         SUCCEEDED: prepare-response
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   prepare-response:
     operation:
       tool: ` + wp6ResponseProducerTool + `
@@ -536,7 +530,7 @@ nodes:
       routes:
         SUCCEEDED: final
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   final:
     postcondition:
       predicates:
@@ -553,7 +547,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
 `
 
 // wp6UnreachableBoundaryProcedure names a declared but unreachable boundary Node.
@@ -576,7 +570,7 @@ nodes:
       routes:
         SUCCEEDED: final
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   orphan-response:
     operation:
       tool: ` + wp6ResponseProducerTool + `
@@ -584,7 +578,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   final:
     postcondition:
       predicates:
@@ -601,7 +595,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
 `
 
 // wp6BoundaryWithoutProducerProcedure names a boundary Node that does not declare
@@ -625,7 +619,7 @@ nodes:
       routes:
         SUCCEEDED: prepare-response
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   prepare-response:
     postcondition:
       predicates:
@@ -642,7 +636,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
 `
 
 type wp6FixtureOptions struct {
@@ -861,7 +855,15 @@ func TestV1Alpha5WP6SuccessBeforeBoundary(t *testing.T) {
 // declared but unreachable Node.
 func TestV1Alpha5WP6UnreachableBoundary(t *testing.T) {
 	diagnostics := wp6Check(t, wp6FixtureOptions{procedure: wp6UnreachableBoundaryProcedure})
-	wp6AssertCodes(t, diagnostics, "WAIT_RESPONSE_BOUNDARY_INVALID")
+	// The inherited graph also reports the deliberately orphaned boundary Node as
+	// UNREACHABLE_NODE/C_WARNING; the mandatory Wait-owned identity is the error.
+	errors := make([]Diagnostic, 0, len(diagnostics))
+	for _, diagnostic := range diagnostics {
+		if diagnostic.Severity == "error" {
+			errors = append(errors, diagnostic)
+		}
+	}
+	wp6AssertCodes(t, errors, "WAIT_RESPONSE_BOUNDARY_INVALID")
 }
 
 // TestV1Alpha5WP6EarlyFailureMappingMissing covers L.8.1/§8.4: an accepted early

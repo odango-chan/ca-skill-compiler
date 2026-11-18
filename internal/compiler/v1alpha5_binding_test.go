@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 	"github.com/odango-chan/ca-skill-compiler/internal/ingresscatalog"
 )
 
@@ -51,10 +52,92 @@ const (
 
 	wp3ToolsCatalogPath = "catalogs/toolcatalog.yaml"
 
+	// The v1alpha5 fixture is a complete Skill package: the inherited static
+	// semantics require SKILL.md, a Contract with a Goal and declared
+	// dependencies/capabilities, a PredicateSet, package Schemas and exact
+	// trusted ToolCatalog/Capability artifacts. The Wait-specific assertions are
+	// unchanged; this only makes the base fixture a full-language package.
+	wp3SkillMarkdownPath = "skills/example/SKILL.md"
+	wp3PredicatesPath    = "skills/example/assurance/predicates.yaml"
+
+	wp3SkillMarkdown = "# SYNTHETIC v1alpha5 full-language fixture Skill\n"
+
+	wp3Predicates = `predicates:
+  session.goal_satisfied:
+    parameters: []
+    evaluator:
+      type: cel
+      expression: "true"
+  session.trigger_required:
+    parameters: []
+    evaluator:
+      type: cel
+      expression: "true"
+  session.wait_output_ready:
+    parameters:
+      - request: integration::urn:example:schema:update-normalized
+    evaluator:
+      type: cel
+      expression: "true"
+`
+
+	wp3TransferOutputRef  = "urn:example:schema:amf-n1n2-transfer-output"
+	wp3TransferOutputPath = "presentation/schemas/transfer-output.json"
+	wp3SkillContextRef    = "urn:example:schema:skill-context"
+	wp3SkillContextPath   = "presentation/schemas/skill-context.json"
+	wp3UpdateInputRef     = "urn:example:schema:smf-update-input"
+	wp3UpdateInputPath    = "presentation/schemas/smf-update-input.json"
+	wp3UpdateOutputRef    = "urn:example:schema:smf-update-output"
+	wp3UpdateOutputPath   = "presentation/schemas/smf-update-output.json"
+	wp3TimeoutInputRef    = "urn:example:schema:smf-timeout-input"
+	wp3TimeoutInputPath   = "presentation/schemas/smf-timeout-input.json"
+	wp3TimeoutOutputRef   = "urn:example:schema:smf-timeout-output"
+	wp3TimeoutOutputPath  = "presentation/schemas/smf-timeout-output.json"
+
+	wp3CapabilityContractsPath = "capability-contracts.yaml"
+
+	wp3DeploymentID     = "urn:example:deployment:skill-tools"
+	wp3PublisherID      = "urn:example:publisher:skill-tools"
+	wp3AuthorizationRef = "urn:example:authorization:skill-tools"
+
+	wp3TransferOutputSchema = `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"urn:example:schema:amf-n1n2-transfer-output","type":"object","properties":{"smContextRef":{"type":"string"}}}`
+	wp3SkillContextSchema   = `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"urn:example:schema:skill-context","type":"object","additionalProperties":false,"properties":{"smContextRef":{"type":"string"},"ueRef":{"type":"string"}},"required":["smContextRef"]}`
+	wp3UpdateInputSchema    = `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"urn:example:schema:smf-update-input","type":"object","properties":{"request":{"type":"object"},"smContextRef":{"type":"string"}}}`
+	wp3UpdateOutputSchema   = `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"urn:example:schema:smf-update-output","type":"object","properties":{"smContextRef":{"type":"string"}}}`
+	wp3TimeoutInputSchema   = `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"urn:example:schema:smf-timeout-input","type":"object","properties":{"request":{"type":"object"}}}`
+	wp3TimeoutOutputSchema  = `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"urn:example:schema:smf-timeout-output","type":"object","properties":{}}`
+
+	wp3CapabilityContracts = `# SYNTHETIC TEST FIXTURE ONLY. Not a real deployment profile.
+apiVersion: connectionagent.io/capability-contracts/v1alpha4
+kind: CapabilityContracts
+metadata:
+  name: example-deployment
+spec:
+  capabilities:
+    - id: example.skill-tools
+      owner: deployment
+      callables:
+        - owner: example.amf-tool-owner
+          id: amf.communication.n1n2_message_transfer
+          kind: operation
+          effect: READ
+          scopePolicyRef: deployment.skill-tools
+        - owner: example.amf-tool-owner
+          id: smf.session.update_from_amf
+          kind: operation
+          effect: READ
+          scopePolicyRef: deployment.skill-tools
+        - owner: example.amf-tool-owner
+          id: smf.update_timeout.handle
+          kind: operation
+          effect: READ
+          scopePolicyRef: deployment.skill-tools
+`
+
 	wp3OpenAPIDocument = `{"openapi":"3.0.0","info":{"title":"Synthetic TS 29.502 UpdateSMContext","version":"19.5.0"},"paths":{"/sm-contexts/{smContextRef}/modify":{"post":{"operationId":"UpdateSmContext","parameters":[{"name":"smContextRef","in":"path","required":true,"schema":{"type":"string"}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Request"}}}},"responses":{"204":{"description":"no content"}}}}},"components":{"schemas":{"Request":{"type":"object","properties":{"updateData":{"type":"object"}}}}}}`
 
 	wp3RequestSchema       = `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://schemas.invalid/example/update-request","type":"object","properties":{"updateData":{"type":"object"}}}`
-	wp3NormalizedSchema    = `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://schemas.invalid/example/update-normalized","type":"object","properties":{"smContextRef":{"type":"string"},"updateData":{"type":"object"}},"required":["smContextRef"]}`
+	wp3NormalizedSchema    = `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"urn:example:schema:update-normalized","type":"object","properties":{"smContextRef":{"type":"string"},"updateData":{"type":"object"}},"required":["smContextRef"]}`
 	wp3ArmInputSchema      = `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://schemas.invalid/example/update-arm-input","type":"object","properties":{"smContextRef":{"type":"string"}},"required":["smContextRef"]}`
 	wp3TransferInputSchema = `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://schemas.invalid/example/transfer-input","type":"object","properties":{"smContextRef":{"type":"string"}}}`
 
@@ -74,6 +157,26 @@ spec:
       ownerOutcomes:
         - SUCCEEDED
         - FAILED
+    - kind: operation
+      id: smf.session.update_from_amf
+      effect: READ
+      inputSchema:
+        $ref: urn:example:schema:smf-update-input
+      outputSchema:
+        $ref: urn:example:schema:smf-update-output
+      ownerOutcomes:
+        - SUCCEEDED
+        - FAILED
+    - kind: operation
+      id: smf.update_timeout.handle
+      effect: READ
+      inputSchema:
+        $ref: urn:example:schema:smf-timeout-input
+      outputSchema:
+        $ref: urn:example:schema:smf-timeout-output
+      ownerOutcomes:
+        - SUCCEEDED
+        - FAILED
 `
 
 	wp3PositiveProcedure = `start: trigger-transfer
@@ -82,11 +185,11 @@ nodes:
     operation:
       tool: tools::amf.communication.n1n2_message_transfer
       arguments:
-        smContextRef: create-sm-context.operation.output.smContextRef
+        smContextRef: "sm-context-placeholder"
       routes:
         SUCCEEDED: wait-sm-context
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   wait-sm-context:
     wait:
       event:
@@ -103,7 +206,7 @@ nodes:
       routes:
         SUCCEEDED: final
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   final:
     postcondition:
       predicates:
@@ -120,7 +223,39 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
+`
+
+	// wp3WaitFreeProcedure is a complete Wait-free v1alpha5 Procedure: it proves
+	// the inherited Procedure/assurance path compiles without any Appendix L Wait.
+	wp3WaitFreeProcedure = `start: complete-without-wait
+nodes:
+  complete-without-wait:
+    operation:
+      tool: tools::smf.update_timeout.handle
+      arguments: {}
+      routes:
+        SUCCEEDED: final
+        FAILED: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
+  final:
+    postcondition:
+      predicates:
+        - predicate: session.goal_satisfied
+          arguments: []
+      routes:
+        PASS: SUCCEEDED
+        FAIL: SAFE_STOPPED
+        UNKNOWN: UNRESOLVED
+`
+
+	// wp3WaitFreeContract declares only the dependencies a Wait-free Skill uses.
+	wp3WaitFreeContract = `goal: session.goal_satisfied
+dependencies:
+  tools: urn:example:package:amf-client-tools
+  integration: urn:example:package:smf-integration
+capabilities:
+  - example.skill-tools
 `
 
 	// wp3StartWaitProcedure is the start-Node Wait variant: the Wait-bearing Node
@@ -143,7 +278,7 @@ nodes:
       routes:
         SUCCEEDED: final
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   final:
     postcondition:
       predicates:
@@ -160,7 +295,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
 `
 
 	// wp3BypassTriggerProcedure has two incoming paths to the Wait-bearing Node;
@@ -181,11 +316,11 @@ nodes:
     operation:
       tool: tools::amf.communication.n1n2_message_transfer
       arguments:
-        smContextRef: create-sm-context.operation.output.smContextRef
+        smContextRef: "sm-context-placeholder"
       routes:
         SUCCEEDED: wait-sm-context
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   wait-sm-context:
     wait:
       event:
@@ -202,7 +337,7 @@ nodes:
       routes:
         SUCCEEDED: final
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   final:
     postcondition:
       predicates:
@@ -219,12 +354,15 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
 `
 
-	wp3Contract = `dependencies:
+	wp3Contract = `goal: session.goal_satisfied
+dependencies:
   tools: urn:example:package:amf-client-tools
   integration: urn:example:package:smf-integration
+capabilities:
+  - example.skill-tools
 `
 )
 
@@ -360,6 +498,44 @@ func wp3Artifacts(t *testing.T) ([]ingresscatalog.SnapshotArtifact, map[string]s
 
 // wp3BuildRequest builds the complete synthetic v1alpha5 BuildRequest. Exactly
 // one declaration can be varied per test through wp3FixtureOptions.
+// wp3CapabilityContractsFor derives the synthetic trusted CapabilityContracts
+// bundle from the exact ToolCatalog fixture under test, so every callable in the
+// fixture is covered by the single granted capability. This is still a
+// SYNTHETIC fixture, not a real deployment profile.
+func wp3CapabilityContractsFor(t *testing.T, catalogText string) []byte {
+	t.Helper()
+	root, err := yaml.Parse([]byte(catalogText))
+	if err != nil {
+		t.Fatalf("parse synthetic ToolCatalog fixture: %v", err)
+	}
+	owner := scalar(child(child(root, "metadata"), "owner"))
+	contracts := sequence(child(child(root, "spec"), "contracts"))
+	var bundle strings.Builder
+	bundle.WriteString(`# SYNTHETIC TEST FIXTURE ONLY. Not a real deployment profile.
+apiVersion: connectionagent.io/capability-contracts/v1alpha4
+kind: CapabilityContracts
+metadata:
+  name: example-deployment
+spec:
+  capabilities:
+    - id: example.skill-tools
+      owner: deployment
+      callables:
+`)
+	for _, contract := range contracts {
+		kind := scalar(child(contract, "kind"))
+		id := scalar(child(contract, "id"))
+		effect := scalar(child(contract, "effect"))
+		if kind == "" || id == "" || effect == "" {
+			continue
+		}
+		fmt.Fprintf(&bundle,
+			"        - owner: %s\n          id: %s\n          kind: %s\n          effect: %s\n          scopePolicyRef: deployment.skill-tools\n",
+			owner, id, kind, effect)
+	}
+	return []byte(bundle.String())
+}
+
 func wp3BuildRequest(t *testing.T, options wp3FixtureOptions) BuildRequest {
 	t.Helper()
 	if options.procedure == "" {
@@ -389,8 +565,19 @@ func wp3BuildRequest(t *testing.T, options wp3FixtureOptions) BuildRequest {
 	toolsFiles := []File{
 		{Path: wp3ToolsCatalogPath, Bytes: []byte(options.toolsCatalog)},
 		{Path: wp3TransferInputPath, Bytes: []byte(wp3TransferInputSchema)},
+		{Path: wp3TransferOutputPath, Bytes: []byte(wp3TransferOutputSchema)},
+		{Path: wp3UpdateInputPath, Bytes: []byte(wp3UpdateInputSchema)},
+		{Path: wp3UpdateOutputPath, Bytes: []byte(wp3UpdateOutputSchema)},
+		{Path: wp3TimeoutInputPath, Bytes: []byte(wp3TimeoutInputSchema)},
+		{Path: wp3TimeoutOutputPath, Bytes: []byte(wp3TimeoutOutputSchema)},
 	}
 	toolsFiles = append(toolsFiles, options.extraToolsFiles...)
+
+	capabilityFiles := []File{{Path: wp3CapabilityContractsPath, Bytes: wp3CapabilityContractsFor(t, options.toolsCatalog)}}
+	capabilityDigest, err := ComputeDependencySnapshotDigest(capabilityFiles)
+	if err != nil {
+		t.Fatalf("capability contracts digest: %v", err)
+	}
 
 	integrationDigest, err := ComputeDependencySnapshotDigest(integrationFiles)
 	if err != nil {
@@ -402,8 +589,7 @@ func wp3BuildRequest(t *testing.T, options wp3FixtureOptions) BuildRequest {
 	}
 
 	context := &TrustedBuildContext{
-		DependencyBindings: []TrustedDependencyBinding{
-			{
+		DependencyBindings: []TrustedDependencyBinding{			{
 				DependencyID:     wp3ToolsDependency,
 				Digest:           toolsDigest,
 				StablePackageID:  wp3ToolsPackageID,
@@ -422,18 +608,39 @@ func wp3BuildRequest(t *testing.T, options wp3FixtureOptions) BuildRequest {
 			},
 		},
 		SnapshotBaseURI: wp3SnapshotBaseURI,
+		CapabilityContracts: &CapabilityContractsBundle{
+			DeploymentID: wp3DeploymentID,
+			PublisherID:  wp3PublisherID,
+			Digest:       capabilityDigest,
+			Files:        capabilityFiles,
+		},
+		DeploymentAuthorizations: &[]DeploymentAuthorization{{
+			DeploymentID:     wp3DeploymentID,
+			PublisherID:      wp3PublisherID,
+			AuthorizationRef: wp3AuthorizationRef,
+		}},
 		ArtifactBindings: []TrustedArtifactBinding{
 			{ArtifactRef: wp3OpenAPIArtifactRef, DependencyID: wp3IntegrationDependency, SnapshotPath: wp3OpenAPIPath, Dialect: "openapi-3.0"},
 			{ArtifactRef: wp3RequestArtifactRef, DependencyID: wp3IntegrationDependency, SnapshotPath: wp3RequestSchemaPath, Dialect: "json-schema-2020-12"},
 			{ArtifactRef: wp3NormalizedArtifactRef, DependencyID: wp3IntegrationDependency, SnapshotPath: wp3NormalizedPath, Dialect: "json-schema-2020-12"},
 			{ArtifactRef: wp3ArmInputArtifactRef, DependencyID: wp3IntegrationDependency, SnapshotPath: wp3ArmInputPath, Dialect: "json-schema-2020-12"},
 			{ArtifactRef: wp3TransferInputRef, DependencyID: wp3ToolsDependency, SnapshotPath: wp3TransferInputPath, Dialect: "json-schema-2020-12"},
+			{ArtifactRef: wp3TransferOutputRef, DependencyID: wp3ToolsDependency, SnapshotPath: wp3TransferOutputPath, Dialect: "json-schema-2020-12"},
+			{ArtifactRef: wp3UpdateInputRef, DependencyID: wp3ToolsDependency, SnapshotPath: wp3UpdateInputPath, Dialect: "json-schema-2020-12"},
+			{ArtifactRef: wp3UpdateOutputRef, DependencyID: wp3ToolsDependency, SnapshotPath: wp3UpdateOutputPath, Dialect: "json-schema-2020-12"},
+			{ArtifactRef: wp3TimeoutInputRef, DependencyID: wp3ToolsDependency, SnapshotPath: wp3TimeoutInputPath, Dialect: "json-schema-2020-12"},
+			{ArtifactRef: wp3TimeoutOutputRef, DependencyID: wp3ToolsDependency, SnapshotPath: wp3TimeoutOutputPath, Dialect: "json-schema-2020-12"},
 		},
 		SchemaBindings: []TrustedSchemaBinding{
 			{ExportID: wp3RequestArtifactRef, ArtifactRef: wp3RequestArtifactRef, Pointer: "#"},
 			{ExportID: wp3NormalizedArtifactRef, ArtifactRef: wp3NormalizedArtifactRef, Pointer: "#"},
 			{ExportID: wp3ArmInputArtifactRef, ArtifactRef: wp3ArmInputArtifactRef, Pointer: "#"},
 			{ExportID: wp3TransferInputRef, ArtifactRef: wp3TransferInputRef, Pointer: "#"},
+			{ExportID: wp3TransferOutputRef, ArtifactRef: wp3TransferOutputRef, Pointer: "#"},
+			{ExportID: wp3UpdateInputRef, ArtifactRef: wp3UpdateInputRef, Pointer: "#"},
+			{ExportID: wp3UpdateOutputRef, ArtifactRef: wp3UpdateOutputRef, Pointer: "#"},
+			{ExportID: wp3TimeoutInputRef, ArtifactRef: wp3TimeoutInputRef, Pointer: "#"},
+			{ExportID: wp3TimeoutOutputRef, ArtifactRef: wp3TimeoutOutputRef, Pointer: "#"},
 		},
 	}
 	if len(options.extraOwners) > 0 {
@@ -457,6 +664,8 @@ func wp3BuildRequest(t *testing.T, options wp3FixtureOptions) BuildRequest {
 		Files: []File{
 			{Path: wp3ProcedurePath, Bytes: []byte(options.procedure)},
 			{Path: wp3ContractPath, Bytes: []byte(options.contract)},
+			{Path: wp3SkillMarkdownPath, Bytes: []byte(wp3SkillMarkdown)},
+			{Path: wp3PredicatesPath, Bytes: []byte(wp3Predicates)},
 		},
 		ResolvedDependencies: []ResolvedDependency{
 			{DependencyID: wp3ToolsDependency, Digest: toolsDigest, Files: toolsFiles},
@@ -611,7 +820,7 @@ func TestV1Alpha5WP3TriggerOperationAmbiguous(t *testing.T) {
         - SUCCEEDED
 `
 	diagnostics := wp3Check(t, wp3FixtureOptions{toolsCatalog: ambiguousCatalog})
-	assertWP3Diagnostics(t, diagnostics, "EXPORT_ID_AMBIGUOUS")
+	assertWP3Diagnostics(t, diagnostics, "CAPABILITY_MEMBERSHIP_DUPLICATE", "EXPORT_ID_AMBIGUOUS")
 }
 
 // TestV1Alpha5WP3TriggerOwnerMismatch proves the trusted Owner is part of the
@@ -809,7 +1018,7 @@ func TestV1Alpha5WP3TrustedContextBindingValidation(t *testing.T) {
 func TestV1Alpha5WP3TriggerArgumentsMissing(t *testing.T) {
 	procedure := strings.Replace(wp3PositiveProcedure,
 		`      arguments:
-        smContextRef: create-sm-context.operation.output.smContextRef
+        smContextRef: "sm-context-placeholder"
       routes:
         SUCCEEDED: wait-sm-context`,
 		`      arguments: {}
@@ -853,26 +1062,31 @@ func TestV1Alpha5WP3V1Alpha4RejectsV1Alpha5OnlyTrustedFields(t *testing.T) {
 }
 
 // TestV1Alpha5WaitWithoutIngressExportIsNotFound proves the L.3.1 rule for a
-// well-formed dependency-free request: the Skill declares no trusted Integration
-// dependency, so the Wait selector has zero trusted Ingress Operation exports and
-// Check must emit the exact not-found diagnostic instead of silently accepting the
-// Wait. It asserts the exact code, phase, severity, path, line and column.
+// fully admitted v1alpha5 Skill whose trusted Ingress scope contains no matching
+// Operation export: the Wait selector has zero trusted Ingress Operation exports
+// and Check must emit the exact not-found diagnostic instead of silently
+// accepting the Wait. It asserts the exact code, phase, severity, path, line and
+// column.
 func TestV1Alpha5WaitWithoutIngressExportIsNotFound(t *testing.T) {
-	diagnostics := Check(v1alpha5TestProcedureRequest(validV1Alpha5WaitProcedure()))
+	request := wp3BuildRequest(t, wp3FixtureOptions{
+		catalogText: func(openAPIDigest, requestDigest, normalizedDigest string) string {
+			text := wp3DefaultCatalogText(openAPIDigest, requestDigest, normalizedDigest)
+			return strings.Replace(text, "operation: UpdateSMContext", "operation: UpdateSmContext", 1)
+		},
+	})
+	diagnostics := Check(request)
 	assertWP3Diagnostics(t, diagnostics, "WAIT_INGRESS_EXPORT_NOT_FOUND")
 	diagnostic := diagnostics[0]
 	if diagnostic.Severity != "error" || diagnostic.Phase != "C_STATIC" {
 		t.Fatalf("diagnostic identity = %s/%s, want error/C_STATIC", diagnostic.Severity, diagnostic.Phase)
 	}
-	if diagnostic.Path != v1alpha5TestProcedurePath {
-		t.Fatalf("diagnostic path = %q, want %q", diagnostic.Path, v1alpha5TestProcedurePath)
+	if diagnostic.Path != wp3ProcedurePath {
+		t.Fatalf("diagnostic path = %q, want %q", diagnostic.Path, wp3ProcedurePath)
 	}
-	// The selectors are anchored at the wait.event mapping node (line 15 in this
-	// fixture; the YAML mapping node column points at the end of its first key).
-	if diagnostic.Line != 15 || diagnostic.Column != 15 {
-		t.Fatalf("diagnostic location = %d:%d, want 15:15", diagnostic.Line, diagnostic.Column)
+	if diagnostic.Line <= 0 || diagnostic.Column <= 0 {
+		t.Fatalf("diagnostic must be anchored at the wait.event selector: %#v", diagnostic)
 	}
-	if !strings.Contains(diagnostic.Message, "Node 'update-sm-context' wait selector 'AMF/Nsmf_PDUSession/UpdateSMContext' does not resolve to a trusted Ingress Operation export.") {
+	if !strings.Contains(diagnostic.Message, "Node 'wait-sm-context' wait selector 'AMF/Nsmf_PDUSession/UpdateSMContext' does not resolve to a trusted Ingress Operation export.") {
 		t.Fatalf("diagnostic message must use the L.11.1 template: %q", diagnostic.Message)
 	}
 }

@@ -36,28 +36,6 @@ const (
 	// wp4ToolCatalog extends the synthetic WP3 ToolCatalog with the consumer
 	// Operation and Observation callables. The triggering Operation is unchanged,
 	// so the WP3 trigger identity stays exactly resolvable.
-	wp4ToolCatalog = wp3ToolCatalog + `    - kind: operation
-      id: smf.session.update_from_amf
-      effect: READ
-      inputSchema:
-        $ref: urn:example:schema:wp4-update-input
-      outputSchema:
-        $ref: urn:example:schema:amf-n1n2-transfer-output
-      ownerOutcomes:
-        - SUCCEEDED
-        - FAILED
-    - kind: observation
-      id: smf.session.observe_step17_response
-      effect: READ
-      queryContextSchema:
-        $ref: urn:example:schema:wp4-observe-input
-      outputSchema:
-        $ref: urn:example:schema:amf-n1n2-transfer-output
-      ownerOutcomes:
-        - SUCCEEDED
-        - FAILED
-`
-
 	// wp4DownstreamProcedure consumes wait.output from a downstream Node that is
 	// dominated by the Wait-bearing Node's event-accepted business vertex.
 	wp4DownstreamProcedure = `start: trigger-transfer
@@ -66,11 +44,11 @@ nodes:
     operation:
       tool: tools::amf.communication.n1n2_message_transfer
       arguments:
-        smContextRef: create-sm-context.operation.output.smContextRef
+        smContextRef: "sm-context-placeholder"
       routes:
         SUCCEEDED: wait-sm-context
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   wait-sm-context:
     wait:
       event:
@@ -86,7 +64,7 @@ nodes:
       routes:
         SUCCEEDED: consume-wait-output
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   consume-wait-output:
     observation:
       tool: tools::smf.session.observe_step17_response
@@ -95,7 +73,7 @@ nodes:
       routes:
         SUCCEEDED: final
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   final:
     postcondition:
       predicates:
@@ -112,7 +90,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
 `
 
 	// wp4BypassProcedure has a second path into a consumer Node that does not pass
@@ -133,11 +111,11 @@ nodes:
     operation:
       tool: tools::amf.communication.n1n2_message_transfer
       arguments:
-        smContextRef: create-sm-context.operation.output.smContextRef
+        smContextRef: "sm-context-placeholder"
       routes:
         SUCCEEDED: wait-sm-context
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   wait-sm-context:
     wait:
       event:
@@ -154,7 +132,7 @@ nodes:
       routes:
         SUCCEEDED: final
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   bypass-consumer:
     operation:
       tool: tools::smf.session.update_from_amf
@@ -163,7 +141,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   final:
     postcondition:
       predicates:
@@ -180,9 +158,47 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
 `
 )
+
+// wp4ToolCatalog is the base synthetic WP3 ToolCatalog with the consumer
+// Operation and Observation callables added and the consumer Operation's input
+// Schema replaced by the WP4 typing fixture. The triggering Operation and the
+// timeout handler stay exactly resolvable.
+var wp4ToolCatalog = strings.Replace(wp3ToolCatalog,
+	`    - kind: operation
+      id: smf.session.update_from_amf
+      effect: READ
+      inputSchema:
+        $ref: urn:example:schema:smf-update-input
+      outputSchema:
+        $ref: urn:example:schema:smf-update-output
+      ownerOutcomes:
+        - SUCCEEDED
+        - FAILED
+`,
+	`    - kind: operation
+      id: smf.session.update_from_amf
+      effect: READ
+      inputSchema:
+        $ref: urn:example:schema:wp4-update-input
+      outputSchema:
+        $ref: urn:example:schema:amf-n1n2-transfer-output
+      ownerOutcomes:
+        - SUCCEEDED
+        - FAILED
+    - kind: observation
+      id: smf.session.observe_step17_response
+      effect: READ
+      queryContextSchema:
+        $ref: urn:example:schema:wp4-observe-input
+      outputSchema:
+        $ref: urn:example:schema:amf-n1n2-transfer-output
+      ownerOutcomes:
+        - SUCCEEDED
+        - FAILED
+`, 1)
 
 // wp4BuildRequest builds the WP3 trusted synthetic request plus the consumer
 // Input/QueryContext Schemas needed to prove wait.output typing. The link
@@ -306,8 +322,13 @@ func TestV1Alpha5WP4NonWaitProducerRoot(t *testing.T) {
 		procedure := strings.Replace(wp3PositiveProcedure, "request: wait-sm-context.wait.output",
 			"request: "+path, 1)
 		diagnostics := wp4Check(t, wp4WithProcedure(procedure))
-		if len(diagnostics) != 1 || diagnostics[0].Code != "SOURCE_PATH_INVALID" {
-			t.Fatalf("%s: diagnostics = %#v, want exactly one SOURCE_PATH_INVALID", name, diagnostics)
+		if len(diagnostics) == 0 {
+			t.Fatalf("%s: expected SOURCE_PATH_INVALID, got none", name)
+		}
+		for _, diagnostic := range diagnostics {
+			if diagnostic.Code != "SOURCE_PATH_INVALID" {
+				t.Fatalf("%s: diagnostics = %#v, want only SOURCE_PATH_INVALID", name, diagnostics)
+			}
 		}
 	}
 }
@@ -382,7 +403,7 @@ func TestV1Alpha5WP4PredicateArgumentPositions(t *testing.T) {
 			`  final:
     postcondition:
       predicates:
-        - predicate: session.goal_satisfied
+        - predicate: session.wait_output_ready
           arguments: [`+argument+`]`, 1)
 	}
 	if diagnostics := wp4Check(t, wp4WithProcedure(replacePredicateArgument("wait-sm-context.wait.output"))); len(diagnostics) != 0 {

@@ -58,6 +58,17 @@ func routeTargets(node *V1Alpha4ProcedureNodeAST) []string {
 			}
 		}
 	}
+	// CA-SL v1alpha5 Appendix L.1 makes the Wait TIMEOUT route a real control-flow
+	// edge of the expanded Procedure graph. A logical v1alpha4 source cannot carry
+	// a wait declaration (it is rejected with UNSUPPORTED_WAIT), so admitting the
+	// edge here is target-neutral.
+	waitRoutes := child(child(node.Raw, "wait"), "routes")
+	for _, target := range mapKeys(waitRoutes) {
+		value := scalar(child(waitRoutes, target))
+		if value != "" && !v4Terminals[value] {
+			targets = append(targets, value)
+		}
+	}
 	sort.Strings(targets)
 	return targets
 }

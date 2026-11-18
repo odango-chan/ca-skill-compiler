@@ -75,6 +75,11 @@ var v1alpha5ManifestValidatedPasses = []string{
 	"wp3.trigger-correlation-binding",
 	"wp4.wait-output-sourcepath",
 	"wp6.response-boundary",
+	"inherited.package-and-dependency-identity",
+	"inherited.owner-tool-capability-linking",
+	"inherited.schema-cel-predicate-script",
+	"inherited.procedure-and-assurance",
+	"inherited.evidence-mutation-reconcile-retry-static",
 	"artifact.self-verification",
 }
 
@@ -82,11 +87,10 @@ var v1alpha5ManifestValidatedPasses = []string{
 // NOT gate. It keeps a successful artifact from being read as full validation;
 // the same list is documented in docs/known-limitations-v1alpha5.md.
 var v1alpha5ManifestNotValidated = []string{
-	"non-wait-tool-and-dependency-linking",
-	"package-skill-md-and-contract-semantics",
-	"predicate-schema-cel-script-evidence-mutation-retry-semantics",
-	"invocation-context-typing",
-	"normalization-mapping-completeness",
+	"evidence-descriptor-positive-path-validation",
+	"full-mutation-reconcile-positive-path-coverage",
+	"full-retry-contract-compatibility-and-path-coverage",
+	"ingress-normalization-binary-lifecycle-and-response-contract-completeness",
 	"host-runtime-integration-semantics",
 	"real-owner-artifact-qualification",
 }
@@ -370,6 +374,65 @@ func collectV1Alpha5ArtifactSkills(req BuildRequest) ([]v1alpha5ArtifactSkill, e
 				})
 			}
 		}
+
+		// The artifact dependency closure is the full inherited closure, not just
+		// the Wait trigger/Ingress links: ordinary Operation and Observation
+		// callables, Capability membership and Schema dependencies are part of the
+		// compiled Skill and must be represented exactly once.
+		filesByName := make(map[string][]byte, len(files))
+		for _, file := range files {
+			filesByName[file.Path] = file.Bytes
+		}
+		_, inherited := validateInheritedSkillPackage(
+			req, name, filesByName, parsedFiles,
+			inheritedValidationOptions{
+				allowWait:             true,
+				missingSourceMessage:  "Required v1alpha5 author source is missing",
+				additionalUsedAliases: v1alpha5IngressDependencyAliases(req, skillAST, parsedFiles),
+			},
+			func(string, *yaml.Node, string, string) {},
+		)
+		present := make(map[string]bool, len(dependencies))
+		for _, dependency := range dependencies {
+			present[dependency.DependencyID] = true
+		}
+		for _, alias := range inherited.identity.Closure {
+			if present[alias] {
+				continue
+			}
+			exports := make([]v1alpha5ManifestExportRef, 0)
+			for _, export := range inherited.ownerLinking.Exports {
+				if export.DependencyAlias != alias {
+					continue
+				}
+				if export.ExportKind != "operation" && export.ExportKind != "observation" && export.ExportKind != "schema" {
+					continue
+				}
+				exports = append(exports, v1alpha5ManifestExportRef{
+					ExportKind: export.ExportKind,
+					ExportID:   export.ExportID,
+					Owner:      export.TrustedOwner,
+				})
+			}
+			merged, err := normalizeV1Alpha5ManifestExports(exports)
+			if err != nil {
+				return nil, fmt.Errorf("Skill %s inherited dependency %s: %w", name, alias, err)
+			}
+			stablePackageID := ""
+			for _, identity := range inherited.identity.Identities {
+				if identity.Alias == alias {
+					stablePackageID = identity.StablePackageID
+					break
+				}
+			}
+			dependencies = append(dependencies, v1alpha5ManifestDependency{
+				DependencyID:    alias,
+				StablePackageID: stablePackageID,
+				Exports:         merged,
+			})
+			present[alias] = true
+		}
+		sort.Slice(dependencies, func(i, j int) bool { return dependencies[i].DependencyID < dependencies[j].DependencyID })
 
 		skills = append(skills, v1alpha5ArtifactSkill{
 			name:         name,

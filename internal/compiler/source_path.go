@@ -140,8 +140,21 @@ func checkV1Alpha4SourcePath(value string, nodes map[string]*V1Alpha4ProcedureNo
 		if node.Observation == nil {
 			return "SourcePath root " + segments[0] + " declares no observation stage"
 		}
+	case "wait":
+		// CA-SL v1alpha5 Appendix L.2: the accepted-event value of a Node-entry
+		// Wait is exposed as <nodeId>.wait.output in the Wait-bearing Node and, when
+		// dominated by its event-accepted edge, on later paths. Whether the Node is
+		// actually Wait-bearing is checked here; path availability and typed
+		// producer mapping are owned by the v1alpha5 Wait passes.
+		if child(node.Raw, "wait") == nil {
+			return "SourcePath root " + segments[0] + " declares no wait entry"
+		}
+		if len(segments) < 3 || segments[2] != "output" {
+			return "SourcePath root must be <node>.wait.output[.<field>...]"
+		}
+		return ""
 	default:
-		return "SourcePath root must be context or <node>.operation.output / <node>.observation.output"
+		return "SourcePath root must be context or <node>.operation.output / <node>.observation.output / <node>.wait.output"
 	}
 	if segments[2] != "output" {
 		return "SourcePath root must be <node>.<stage>.output"

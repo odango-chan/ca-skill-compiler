@@ -118,11 +118,11 @@ nodes:
     operation:
       tool: ca::amf.communication.n1n2_message_transfer
       arguments:
-        smContextRef: create-sm-context.operation.output.smContextRef
+        smContextRef: "sm-context-placeholder"
       routes:
         SUCCEEDED: update-sm-context
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   update-sm-context:
     wait:
       event:
@@ -148,7 +148,7 @@ nodes:
       routes:
         SUCCEEDED: prepare-step17-response
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
   prepare-step17-response:
     observation:
       tool: ca::smf.session.observe_step17_response
@@ -157,7 +157,7 @@ nodes:
       routes:
         SUCCEEDED: handle-update-timeout
         FAILED: SAFE_STOPPED
-        OUTCOME_UNKNOWN: UNRESOLVED
+        UNKNOWN: UNRESOLVED
   handle-update-timeout:
     operation:
       tool: ca::smf.update_timeout.handle
@@ -165,7 +165,7 @@ nodes:
       routes:
         SUCCEEDED: SAFE_STOPPED
         FAILED: UNRESOLVED
-        OUTCOME_UNKNOWN: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
 `
 }
 

@@ -26,6 +26,11 @@ type inheritedValidationOptions struct {
 	// missingSourceMessage is the target-specific diagnostic message for a
 	// required author source that is absent from the BuildRequest.
 	missingSourceMessage string
+	// additionalUsedAliases marks Contract dependency aliases that are consumed
+	// by target-specific constructs (the v1alpha5 Node-entry Wait consuming an
+	// IngressCatalog export) so the inherited UNUSED_DEPENDENCY warning is not
+	// raised for a genuinely used dependency.
+	additionalUsedAliases map[string]bool
 }
 
 // validateInheritedSkillPackage runs the inherited Skill package, dependency
@@ -72,7 +77,7 @@ func validateInheritedSkillPackage(
 	}
 
 	sourceAST := parseV1Alpha4SkillAST(name, parsedFiles)
-	identity := validateV1Alpha4DependencyIdentity(req, sourceAST)
+	identity := validateV1Alpha4DependencyIdentityWithUsed(req, sourceAST, opts.additionalUsedAliases)
 	// WP9: derive the Python Script ABI and input Schemas once per Skill so
 	// Procedure argument typing and Predicate Script checks share them.
 	scriptSchemas := validateV1Alpha4ScriptABI(req, identity, sourceAST, files, procedurePath, predicatesPath, errorAt)

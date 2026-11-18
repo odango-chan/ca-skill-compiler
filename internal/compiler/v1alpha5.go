@@ -1,20 +1,28 @@
 package compiler
 
-// CA-SL v1alpha5 static validation pipeline (WP2 + WP3 + WP4 + WP5 + WP6) and
-// deterministic artifact assembly (WP8).
+// CA-SL v1alpha5 static validation pipeline.
 //
-// The v1alpha5 Procedure/Wait AST is parsed and validated, the WP5 Procedure
+// v1alpha5 is one language target built from one pipeline. For every selected
+// Skill the v1alpha5 Procedure/Wait AST is parsed, the WP5 Procedure
 // control-flow graph is built and validated (Wait entry vertices,
-// EVENT_RECEIVED/TIMEOUT control edges, DAG, exact route targets and the
-// final-Postcondition-PASS goal rule), the WP3 trigger/correlation binding pass
-// links every Wait selector to exactly one trusted Ingress Operation export and
-// proves the triggering Operation/correlation contract on every reachable
-// incoming path, the WP4 wait.output pass binds that typed Producer to the exact
-// normalized request Schema, proves event-accepted-path availability and applies
-// conservative F.5 argument typing, and the WP6 response-boundary pass proves
-// the paired response boundary, post-dominance, typed response-result Producer
-// Output Schema compatibility and the Ingress-owned response contract/mapping
+// EVENT_RECEIVED/TIMEOUT control edges composed with the inherited graph, DAG,
+// exact route targets and the final-Postcondition-PASS goal rule), the WP3
+// trigger/correlation binding pass links every Wait selector to exactly one
+// trusted Ingress Operation export and proves the triggering
+// Operation/correlation contract on every reachable incoming path, the WP4
+// wait.output pass binds that typed Producer to the exact normalized request
+// Schema, proves event-accepted-path availability and applies conservative
+// argument typing, and the WP6 response-boundary pass proves the paired
+// response boundary, post-dominance, typed response-result Producer Output
+// Schema compatibility and the Ingress-owned response contract/mapping
 // completeness.
+//
+// CA-SL v1alpha5 inherits the released v1alpha4 normative semantics, so the same
+// Skill run also executes validateInheritedSkillPackage (package, Contract,
+// PredicateSet, Script, Dependency identity, Owner/Tool/Capability linking,
+// Schema/CEL, Procedure/assurance, Evidence/Mutation/Reconcile/retry static
+// checks) on the same normalized parse result. The Wait passes compose with the
+// inherited graph instead of forming a second language pipeline.
 //
 // Build then assembles the candidate deterministic artifact tree through
 // v1alpha5_artifact.go. Build success is static-compilation evidence only: it is
@@ -142,9 +150,80 @@ func checkV1Alpha5Sources(req BuildRequest) []Diagnostic {
 		// WP5 event-accepted-edge dominance and apply conservative argument typing.
 		// Build stays fail-closed below for the later work packages.
 		diagnostics = append(diagnostics, validateV1Alpha5WaitOutputSourcePaths(skill, procedurePath, waitBindingSource)...)
+		// WP9: run the complete inherited v1alpha5 static semantic pipeline on the
+		// same normalized parse result. CA-SL v1alpha5 inherits the released
+		// v1alpha4 package, dependency, Owner, Tool, Capability, Schema, CEL,
+		// Predicate, Script, Procedure and assurance obligations; Appendix L only
+		// adds the node-entry Wait declaration, which the inherited procedure pass
+		// admits through the v1alpha5 allowance.
+		inheritedDiagnostics, _ := validateInheritedSkillPackage(
+			req, name, files, parsedFiles,
+			inheritedValidationOptions{
+				allowWait:             true,
+				missingSourceMessage:  "Required v1alpha5 author source is missing",
+				additionalUsedAliases: v1alpha5IngressDependencyAliases(req, skill, parsedFiles),
+			},
+			add,
+		)
+		diagnostics = append(diagnostics, inheritedDiagnostics...)
 	}
 
 	return sortedV1Alpha5Diagnostics(diagnostics)
+}
+
+// v1alpha5IngressDependencyAliases returns the Contract dependency aliases that
+// supply an IngressCatalog consumed by at least one Node-entry Wait of this
+// Skill. The inherited dependency-identity pass otherwise reports such an alias
+// as unused because a Wait selector is not a qualified author reference, even
+// though the released Ingress contract is genuinely linked through it.
+func v1alpha5IngressDependencyAliases(req BuildRequest, skill *V1Alpha5SkillAST, parsedFiles map[string]*yaml.Node) map[string]bool {
+	used := map[string]bool{}
+	if skill == nil || skill.Procedure == nil {
+		return used
+	}
+	hasWait := false
+	for _, nodeID := range sortedStringMapKeys(skill.Procedure.ByID) {
+		if node := skill.Procedure.ByID[nodeID]; node != nil && node.Wait != nil {
+			hasWait = true
+			break
+		}
+	}
+	if !hasWait {
+		return used
+	}
+	contractNode := parsedFiles["skills/"+skill.Name+"/assurance/contract.yaml"]
+	dependencies := child(contractNode, "dependencies")
+	if dependencies == nil || dependencies.Kind != yaml.MappingNode {
+		return used
+	}
+	snapshots := make(map[string]ResolvedDependency, len(req.ResolvedDependencies))
+	for _, dependency := range req.ResolvedDependencies {
+		if _, exists := snapshots[dependency.DependencyID]; !exists {
+			snapshots[dependency.DependencyID] = dependency
+		}
+	}
+	for i := 0; i+1 < len(dependencies.Content); i += 2 {
+		alias := scalar(dependencies.Content[i])
+		snapshot, exists := snapshots[alias]
+		if !exists {
+			continue
+		}
+		for _, file := range snapshot.Files {
+			if !strings.HasSuffix(file.Path, ".yaml") && !strings.HasSuffix(file.Path, ".yml") {
+				continue
+			}
+			root, err := yaml.Parse(file.Bytes)
+			if err != nil {
+				continue
+			}
+			if scalar(child(root, "apiVersion")) == "connectionagent.io/ingresscatalog/v1alpha1" &&
+				scalar(child(root, "kind")) == "IngressCatalog" {
+				used[alias] = true
+				break
+			}
+		}
+	}
+	return used
 }
 
 func v1alpha5ParseYAML(file string, data []byte, add func(string, *yaml.Node, string, string)) *yaml.Node {
@@ -167,9 +246,41 @@ func v1alpha5ParseYAML(file string, data []byte, add func(string, *yaml.Node, st
 }
 
 func sortedV1Alpha5Diagnostics(diagnostics []Diagnostic) []Diagnostic {
+	diagnostics = dedupeV1Alpha5Diagnostics(diagnostics)
 	sortDiagnostics(diagnostics)
 	if diagnostics == nil {
 		return []Diagnostic{}
 	}
 	return diagnostics
+}
+
+// dedupeV1Alpha5Diagnostics drops duplicates produced when the inherited
+// procedure pass and the v1alpha5 Wait AST pass both validate the same shared
+// Procedure structure. Two diagnostics are duplicates only when every wire
+// identity field (severity, phase, code, path, line, column and message) is
+// identical, so distinct findings at the same location are always preserved.
+func dedupeV1Alpha5Diagnostics(diagnostics []Diagnostic) []Diagnostic {
+	if len(diagnostics) < 2 {
+		return diagnostics
+	}
+	type key struct {
+		severity, phase, code, path, message string
+		line, column                         int
+	}
+	seen := make(map[key]bool, len(diagnostics))
+	kept := make([]Diagnostic, 0, len(diagnostics))
+	for _, diagnostic := range diagnostics {
+		k := key{
+			severity: diagnostic.Severity, phase: diagnostic.Phase,
+			code: diagnostic.Code, path: diagnostic.Path,
+			line: diagnostic.Line, column: diagnostic.Column,
+			message: diagnostic.Message,
+		}
+		if seen[k] {
+			continue
+		}
+		seen[k] = true
+		kept = append(kept, diagnostic)
+	}
+	return kept
 }

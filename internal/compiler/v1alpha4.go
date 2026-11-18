@@ -334,6 +334,18 @@ func v4CheckProcedure(file string, source *V1Alpha4ProcedureAST, contract *V1Alp
 			// Owner Effect and SourcePath assignability remain unverified until exact
 			// Tool/Schema publication. No guessed Owner result classification.
 		}
+		if allowWait {
+			// Appendix L.1: the Wait TIMEOUT route is a control-flow edge of the
+			// expanded graph. Its target is validated by the v1alpha5 Wait graph
+			// pass; here it must only participate in the DAG/cycle proof.
+			waitRoutes := child(child(n, "wait"), "routes")
+			for _, outcome := range mapKeys(waitRoutes) {
+				target := scalar(child(waitRoutes, outcome))
+				if target != "" && ids[target] {
+					adjacency[id] = append(adjacency[id], target)
+				}
+			}
+		}
 	}
 	// Final-Postcondition precision: only a reachable final Postcondition PASS
 	// edge proves the Goal (E42/E117/E120). An unreachable legal-looking edge is

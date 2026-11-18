@@ -77,29 +77,54 @@ function nativeReference() {
   return JSON.parse(stdout);
 }
 
-// writeV1Alpha5Requests converts the checked-in synthetic v1alpha5 author sources
-// into explicit BuildRequest JSON files. The valid/invalid files contain author
-// files only; the trusted fixture is a compiler-owned SYNTHETIC trusted request
-// (not a real Owner artifact) that exercises a Wait-bearing successful Build.
+// writeV1Alpha5Requests derives explicit BuildRequest JSON files from the
+// checked-in complete trusted v1alpha5 fixture. The full-language pipeline runs
+// the inherited package/dependency/Owner/Tool/Capability/Schema/Predicate/Script/
+// Procedure semantics, so the valid and invalid cases must keep the complete
+// package and trusted context and only vary the Procedure. The fixture is
+// SYNTHETIC and compiler-owned, not a real Owner artifact.
 function writeV1Alpha5Requests() {
   const requests = {};
-  for (const name of ['valid', 'invalid']) {
-    const procedure = readFileSync(path.join(v1alpha5FixtureRoot, `${name}-procedure.yaml`));
-    const request = {
-      apiVersion: v1alpha5RequestAPIVersion,
-      languageTarget: v1alpha5LanguageTarget,
-      files: [{
-        path: 'skills/example/assurance/procedure.yaml',
-        bytes: Buffer.from(procedure).toString('base64'),
-      }],
-      resolvedDependencies: [],
-    };
+  const trustedSource = readFileSync(path.join(v1alpha5FixtureRoot, 'trusted-build-request.json'));
+  const trustedRequest = JSON.parse(trustedSource.toString('utf8'));
+
+  const withProcedure = (procedure) => {
+    const request = JSON.parse(JSON.stringify(trustedRequest));
+    request.files = request.files.map(file => file.path.endsWith('procedure.yaml')
+      ? { ...file, bytes: Buffer.from(procedure).toString('base64') }
+      : file);
+    return request;
+  };
+
+  const validProcedure = `start: complete-without-wait
+nodes:
+  complete-without-wait:
+    operation:
+      tool: tools::smf.update_timeout.handle
+      arguments: {}
+      routes:
+        SUCCEEDED: final
+        FAILED: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
+  final:
+    postcondition:
+      predicates:
+        - predicate: session.goal_satisfied
+          arguments: []
+      routes:
+        PASS: SUCCEEDED
+        FAIL: SAFE_STOPPED
+        UNKNOWN: UNRESOLVED
+`;
+  const invalidProcedure = readFileSync(path.join(v1alpha5FixtureRoot, 'invalid-procedure.yaml'));
+
+  for (const [name, procedure] of [['valid', validProcedure], ['invalid', invalidProcedure]]) {
     const file = `parity-v1alpha5-${name}-request.json`;
-    writeFileSync(path.join(webRoot, file), JSON.stringify(request));
+    writeFileSync(path.join(webRoot, file), JSON.stringify(withProcedure(procedure)));
     requests[name] = file;
   }
   const trusted = 'parity-v1alpha5-trusted-request.json';
-  writeFileSync(path.join(webRoot, trusted), readFileSync(path.join(v1alpha5FixtureRoot, 'trusted-build-request.json')));
+  writeFileSync(path.join(webRoot, trusted), trustedSource);
   requests.trusted = trusted;
   return requests;
 }
@@ -309,7 +334,7 @@ async function main() {
     const nativeV1Alpha5Invalid = nativeRequestReference(path.join(webRoot, v1alpha5Requests.invalid));
     const nativeV1Alpha5Trusted = nativeRequestReference(path.join(webRoot, v1alpha5Requests.trusted));
 
-    // (a) Wait-free author-only fixture: zero-diagnostic successful Build.
+    // (a) Wait-free Procedure inside the complete trusted package: zero-diagnostic\n    // successful Build.
     if (nativeV1Alpha5Valid.check.length !== 0) {
       fail(`v1alpha5 valid procedure must Check with zero diagnostics, got ${stable(nativeV1Alpha5Valid.check)}`);
     }
@@ -348,11 +373,15 @@ async function main() {
     }
     console.log(`ok: v1alpha5 trusted Build succeeds with dependency closure (${trustedPaths.length} files)`);
 
-    // (c) Invalid author fixture: deterministic located WAIT_* diagnostics and no
-    // artifact. A failed Build never emits partial output.
-    if (nativeV1Alpha5Invalid.check.length === 0) fail('v1alpha5 invalid Wait procedure unexpectedly Checked clean');
-    for (const diagnostic of nativeV1Alpha5Invalid.check) {
-      if (!String(diagnostic.code).startsWith('WAIT_')) fail(`invalid v1alpha5 case emitted non-WAIT_* code ${diagnostic.code}`);
+    // (c) Invalid Procedure inside the complete trusted package: deterministic
+    // located WAIT_* diagnostics and no artifact. The full-language pipeline also
+    // reports inherited package/structure diagnostics for this deliberately broken
+    // Procedure, so the Wait contract assertions below pin exactly the WAIT_*
+    // identities; Native/Chromium equality still covers every diagnostic.
+    const invalidWaitDiagnostics = nativeV1Alpha5Invalid.check.filter(diagnostic =>
+      String(diagnostic.code).startsWith('WAIT_'));
+    if (invalidWaitDiagnostics.length === 0) fail('v1alpha5 invalid Wait procedure unexpectedly produced no WAIT_* diagnostic');
+    for (const diagnostic of invalidWaitDiagnostics) {
       if (!(diagnostic.line > 0) || !(diagnostic.column > 0)) fail(`v1alpha5 diagnostic ${diagnostic.code} lacks line/column`);
       if (diagnostic.path !== 'skills/example/assurance/procedure.yaml') fail(`v1alpha5 diagnostic path = ${JSON.stringify(diagnostic.path)}`);
     }
