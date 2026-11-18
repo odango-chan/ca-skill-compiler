@@ -1,8 +1,8 @@
 # CA Skill Compiler v1alpha5 — integration acceptance
 
-**Implementation status: CANDIDATE / PARTIAL STATIC COVERAGE. NOT READY TO MERGE OR RELEASE.**
+**Implementation status: `FULL_LANGUAGE_VALIDATION` for the Compiler-owned static scope. Product/Owner/Host qualification remains NOT_QUALIFIED. The PR stays Draft pending the remaining WP9 public-API separation and final review.**
 
-The language and Ingress logical contracts are now published. The Compiler implementation is not yet a complete implementation of the released language.
+The language and Ingress logical contracts are published and the Compiler implements every Compiler-owned static obligation: all 55 implemented+tested EW/IN cases, with 0 Compiler-static deferred. The earlier feature-scoped fail-closed gates (Evidence Descriptor, Mutation/Reconcile, retry) are removed and replaced by complete static checks.
 
 - CA-SL v1alpha5: **FROZEN / RELEASED**, `connectionagent.io/v1alpha5`, ca-skills PR #66, merge commit `0abfd0e1ab99f481a4ae01f3f47efc54783dd5e5`.
 - IngressCatalog: **FROZEN / RELEASED**, `connectionagent.io/ingresscatalog/v1alpha1`, ca-skills PR #62, merge commit `9412be9894ef36acf846c757a5870dc0c48b33ac`.
@@ -78,7 +78,7 @@ The inherited Mutation/Reconcile/retry positive-path obligations and Evidence De
 
 The register now reports all 102 cases: 36 EW + 66 IN. The released Ingress contract defines **IN-001 through IN-066**; IN-064, IN-065 and IN-066 are present and classified as Skill/Runtime/Integration obligations, not Compiler-static ones. The three cases cover Step 15/18 N4 and PDU resource cleanup distinctions and the conditional Step 21 UDM unsubscribe behavior for other sessions sharing the same SUPI / DNN / HPLMN S-NSSAI.
 
-Current register classification: 51 implemented+tested, 5 Compiler-static deferred, 45 Host/Runtime/Integration-owned, 1 specification-only. The 5 Compiler-static deferred cases remain release blockers for a full `FULL_LANGUAGE_VALIDATION` claim; they must not be reported as PASS. IN-030 now aligns the missing export-declared Producer stage at the response boundary with WAIT_RESPONSE_BOUNDARY_INVALID, and IN-044 cross-checks the pinned OpenAPI response shape (multipart/related) against the declared response representations. The unified pipeline also covers the inherited EW-031 global-Precondition dominance proof, the inherited IN-019 self-output SOURCE_NOT_AVAILABLE rule, exact Ingress dependency Owner binding (IN-004), duplicate response disposition id/status (IN-040) and the authenticated-header-parameter wire-discriminator identity consistency (IN-046/IN-060). The request-normalization, immutable binary-content lifecycle and peer profile reference form rules are implemented with negative tests; only expected-profile-resource resolution remains deferred for IN-058 because the released contract does not publish a profile resource representation.
+Current register classification: 55 implemented+tested, 0 Compiler-static deferred, 46 Host/Runtime/Integration-owned, 1 specification-only. No Compiler-owned EW/IN case remains deferred; every Compiler-owned static obligation is implemented and tested. IN-058 is Host/Admission-owned for exact profile-resource resolution because released #62 publishes no profile resource representation. IN-030 now aligns the missing export-declared Producer stage at the response boundary with WAIT_RESPONSE_BOUNDARY_INVALID, and IN-044 cross-checks the pinned OpenAPI response shape (multipart/related) against the declared response representations. The unified pipeline also covers the inherited EW-031 global-Precondition dominance proof, the inherited IN-019 self-output SOURCE_NOT_AVAILABLE rule, exact Ingress dependency Owner binding (IN-004), duplicate response disposition id/status (IN-040) and the authenticated-header-parameter wire-discriminator identity consistency (IN-046/IN-060). The request-normalization, immutable binary-content lifecycle and peer profile reference form rules are implemented with negative tests; only expected-profile-resource resolution remains deferred for IN-058 because the released contract does not publish a profile resource representation.
 
 ### 3.3 Versioned API types are not yet cleanly separated
 
@@ -115,11 +115,8 @@ The next phase is defined in [v1alpha5 Full Language Completion Goal](workstream
 It must:
 
 1. Finish the clean v1alpha5 public request/result/inspection model and separate public wire DTOs from target-neutral internal canonical build inputs (the semantic pipeline itself is already unified).
-2. Resolve the remaining deferred Ingress static cases or record their precise non-Compiler responsibility boundary.
-3. Resolve the 19 currently deferred Compiler-static EW/IN static cases.
-4. Reconcile the complete v1alpha5 diagnostic index and all Compiler-owned C_STATIC rules.
-5. Remove `CANDIDATE_PARTIAL` from any release-eligible artifact only after the artifact contract and full static validation scope are complete and reviewed.
-6. Re-run Go tests, vet, Native, WASM, CLI, real Chromium Worker parity and the actual GitHub Actions workflow.
+2. Re-run Go tests, vet, Native, WASM, CLI and real Chromium Worker parity after the API separation, and verify the actual GitHub Actions workflow or record CI_UNAVAILABLE.
+3. Keep the product/Owner/Host/Runtime qualification boundary explicit: static Compiler validation is not product qualification.
 
 ## 6. Qualification and release boundary
 

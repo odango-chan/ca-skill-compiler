@@ -31,7 +31,7 @@ WP1–WP8 已有集成候选：IngressCatalog / Schema Closure、Wait AST、Trig
 - 19 项当前标记为 deferred 的 Compiler-static EW/IN obligations；
 - IN-064、IN-065、IN-066 尚未进入当前 99-case conformance register；
 - 当前 API DTO 仍存在 v1alpha4 / v1alpha5 共享类型耦合；
-- Artifact manifest 仍标记 `CANDIDATE_PARTIAL`。
+- Artifact manifest 已标记 `FULL_LANGUAGE_VALIDATION`（Compiler-owned 静态范围）；历史规划记录保留在案。
 
 因此不能把当前实现称为完整 v1alpha5 Compiler。
 

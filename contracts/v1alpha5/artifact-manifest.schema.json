@@ -39,7 +39,7 @@
       "additionalProperties": false,
       "required": ["status", "validatedPasses", "notValidated"],
       "properties": {
-        "status": { "const": "CANDIDATE_PARTIAL" },
+        "status": { "const": "FULL_LANGUAGE_VALIDATION" },
         "validatedPasses": {
           "type": "array",
           "minItems": 1,

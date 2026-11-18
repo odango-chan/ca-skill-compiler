@@ -60,9 +60,10 @@ const (
 	v1alpha5IngressLinksFileName  = "ingress-links.json"
 
 	// v1alpha5ArtifactValidationStatus is the manifest-level declaration that a
-	// successful candidate Build covers only the implemented v1alpha5 static
-	// passes. It is deliberately not a conformance or qualification claim.
-	v1alpha5ArtifactValidationStatus = "CANDIDATE_PARTIAL"
+	// successful Build covers the complete released v1alpha5 Compiler-owned static
+	// validation scope. It is deliberately not an Owner/Host/Runtime or product
+	// qualification claim.
+	v1alpha5ArtifactValidationStatus = "FULL_LANGUAGE_VALIDATION"
 )
 
 // v1alpha5ManifestValidatedPasses lists the static passes a successful
@@ -91,7 +92,6 @@ var v1alpha5ManifestValidatedPasses = []string{
 // NOT gate. It keeps a successful artifact from being read as full validation;
 // the same list is documented in docs/known-limitations-v1alpha5.md.
 var v1alpha5ManifestNotValidated = []string{
-	"ingress-response-contract-and-mapping-completeness",
 	"host-runtime-integration-semantics",
 	"real-owner-artifact-qualification",
 }

@@ -33,6 +33,6 @@ The manifest currently records:
 - Wait event, timeout, route, linked Ingress identity, Schema closure and paired-response metadata;
 - sorted output file paths and SHA-256 digests.
 
-The current manifest deliberately declares `validationScope.status = CANDIDATE_PARTIAL`. It does not prove full v1alpha5 static validation. In particular, ordinary non-Wait callable linking and inherited package / Schema / CEL / Predicate / Script / Evidence / Mutation / Reconcile / retry semantics are not yet covered by the candidate path. A consumer requiring complete language validation MUST reject a partial artifact.
+The manifest now declares `validationScope.status = FULL_LANGUAGE_VALIDATION`: every Compiler-owned static obligation in the released v1alpha5 language and IngressCatalog v1alpha1 contracts is gated by the unified pipeline, including ordinary non-Wait callable linking, inherited package / Schema / CEL / Predicate / Script / Evidence / Mutation / Reconcile / retry semantics and the Wait / Ingress extensions. `notValidated` retains only non-Compiler scopes (Host/Runtime integration and real Owner/product qualification). This is a static-validation statement, not product qualification.
 
 The artifact layout and validation-scope representation are Compiler-owned candidate decisions. They must be reviewed and frozen before a release-eligible artifact is published. This schema is not an IngressCatalog/ToolCatalog schema, not a Runtime artifact-loading contract and not a product qualification record.

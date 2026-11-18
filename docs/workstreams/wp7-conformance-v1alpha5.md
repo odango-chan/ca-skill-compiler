@@ -8,7 +8,7 @@ This record classifies every Appendix L.12 `EW-001`-`EW-036` and released #62 se
 Hard limits stated up front:
 
 - **No row is CI PASS or qualification.** CI did not execute any step for this branch; only the local commands in section 7 were executed and their exact results are recorded there.
-- 51 rows are `COMPILER_STATIC_IMPLEMENTED_TESTED` and name an executable Go test. Rows not naming a test are **not** executed or claimed.
+- 55 rows are `COMPILER_STATIC_IMPLEMENTED_TESTED` and name an executable Go test. Rows not naming a test are **not** executed or claimed.
 - `HOST_RUNTIME_INTEGRATION_OWNED` rows are Host/Runtime/Integration obligations. They are **not Compiler obligations** and are not implemented, executed or claimed by this work package.
 - `COMPILER_STATIC_DEFERRED` rows name the remaining owning work package and, where a normative identity exists, the expected `(Code, Phase, Severity)`. Some deferred rows document an identity/coverage divergence rather than a missing code path.
 - Real Owner artifacts, real Integration wire conformance and 5GC/MAS qualification remain **NOT_QUALIFIED**.
@@ -26,11 +26,11 @@ Hard limits stated up front:
 
 | Set | Implemented + tested | Deferred | Host/Runtime/Integration | Spec-only | Total |
 |---|---|---|---|---|---|
-| EW-001..EW-036 | 16 | 1 | 18 | 1 | 36 |
-| IN-001..IN-066 | 35 | 4 | 27 | 0 | 66 |
-| **All** | **51** | **5** | **45** | **1** | **102** |
+| EW-001..EW-036 | 17 | 0 | 18 | 1 | 36 |
+| IN-001..IN-066 | 38 | 0 | 28 | 0 | 66 |
+| **All** | **55** | **0** | **46** | **1** | **102** |
 
-Deferred rows by remaining owner: WP1 = 1, WP3 = 0, WP5 = 0, WP6 = 4.
+No Compiler-static row remains deferred; the 46 external rows are Skill/Host/Runtime/Integration obligations.
 
 ## 3. EW-001..EW-036 matrix (Appendix L.12)
 
@@ -64,7 +64,7 @@ Deferred rows by remaining owner: WP1 = 1, WP3 = 0, WP5 = 0, WP6 = 4.
 | EW-026 | Compiler | `SPECIFICATION_ONLY_NOT_EXECUTED` | Non-conforming: Event Wait and Evidence Wait remain distinct; no dedicated L.11 diagnostic identity exists and no executable EW-026 fixture is implemented. Polling-only author fields are structurally rejected as the inherited UNKNOWN_FIELD identity by WP2, but that is not EW-026 semantic coverage. | NOT_EXECUTED |
 | EW-027 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Malformed, fractional, zero, calendar-month or leading-zero timeout emits WAIT_TIMEOUT_INVALID. | `TestV1Alpha5DiagnosticContractEWAnchors` |
 | EW-028 | Host admission | `HOST_RUNTIME_INTEGRATION_OWNED` | Host admission rejects before Invocation creation with WAIT_DURATION_LIMIT_EXCEEDED (Appendix L.11.2, not C_STATIC); no clamping. | NOT_COMPILER_OWNED (external obligation) |
-| EW-029 | Compiler | `COMPILER_STATIC_DEFERRED` | Body-bearing response mapping that selects wait.output, Context or raw request data instead of the declared boundary Producer emits WAIT_RESPONSE_MAPPING_INVALID. | NOT_IMPLEMENTED (remaining WP6) |
+| EW-029 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | The closed typed response-mapping model accepts only the export-declared boundary Producer stage as the body-bearing response source; wait.output, Context and raw request data are not expressible author-level mapping sources. | `TestV1Alpha5WP6ResponseSourceIsBoundaryProducerOnly` |
 | EW-030 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | response.after naming an unknown or unreachable Node emits WAIT_RESPONSE_BOUNDARY_INVALID. | `TestV1Alpha5GraphUnknownResponseAfterTarget`, `TestV1Alpha5WP6UnreachableBoundary` |
 | EW-031 | Compiler/Runtime | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A global Precondition that is not satisfied on every incoming path to a protected Mutation/success is rejected with the inherited ENTRY_PRECONDITION_BYPASSED identity; a Wait edge never establishes the gate. | `TestV1Alpha5EW031EntryPreconditionBypass` |
 | EW-032 | Runtime/Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Do not dispatch the triggering Operation when expected-ingress arming cannot be acknowledged. | NOT_COMPILER_OWNED (external obligation) |
@@ -125,7 +125,7 @@ Deferred rows by remaining owner: WP1 = 1, WP3 = 0, WP5 = 0, WP6 = 4.
 | IN-024 | Integration/Runtime | `HOST_RUNTIME_INTEGRATION_OWNED` | Reject a stale message received after the Wait timed out; it satisfies neither the old nor a new Wait. | NOT_COMPILER_OWNED (external obligation) |
 | IN-025 | Host | `HOST_RUNTIME_INTEGRATION_OWNED` | A retried identical deliveryRef gets an idempotent disposition and no repeated Node entry. | NOT_COMPILER_OWNED (external obligation) |
 | IN-026 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Reject/quarantine two indistinguishable independent requests under one Wait. | NOT_COMPILER_OWNED (external obligation) |
-| IN-027 | Compiler | `COMPILER_STATIC_DEFERRED` | A paired response missing required deadline/recovery/disposition declarations emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC; a complete declaration that the Adapter does not honor is an Integration conformance failure. | NOT_IMPLEMENTED (remaining WP6) |
+| IN-027 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Missing paired-response deadline-policy/delivery-recovery/disposition declarations are rejected by released structural admission (INGRESS_CATALOG_INVALID); contradictory declarations use the Ingress-owned response-contract identity. | `TestPairedResponseMissingDeadlinePolicyRejected`, `TestPairedResponseMissingDeliveryRecoveryRejected`, `TestPairedResponseMissingDispositionsRejected` |
 | IN-028 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A single fixed bodyless paired response disposition does not require a response-result Producer; multiple dispositions still require a typed result selector. | `TestV1Alpha5WP6PositiveSingleBodylessDisposition` |
 | IN-029 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A body-bearing paired response without a result Producer emits WAIT_RESPONSE_MAPPING_INVALID / C_STATIC. | `TestV1Alpha5WP6BoundaryNodeWithoutProducerStage` |
 | IN-030 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A response.after Node without the export-required Producer stage emits WAIT_RESPONSE_BOUNDARY_INVALID / C_STATIC; the same Node also has no valid typed Producer-to-response mapping (EW-021). | `TestV1Alpha5WP6BoundaryNodeWithoutProducerStage` |
@@ -143,7 +143,7 @@ Deferred rows by remaining owner: WP1 = 1, WP3 = 0, WP5 = 0, WP6 = 4.
 | IN-042 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Request binaryContent retention shorter than the last declared recovery window emits INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID / C_STATIC. | `TestBinaryContentRetentionBelowRecoveryWindow` |
 | IN-043 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Reject an over-limit multipart body/part before unbounded buffering; do not submit the normalized delivery. | NOT_COMPILER_OWNED (external obligation) |
 | IN-044 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A pinned OpenAPI response requiring multipart/related content while the Ingress export declares no multipart representation emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; binary parts are never dropped or stringified. | `TestPinnedOpenAPIResponseMultipartRequiresMultipartMapping` |
-| IN-045 | Compiler | `COMPILER_STATIC_DEFERRED` | A Step 15 user-plane setup rejection requiring an N1 SM Reject binary container while the export declares only JSON or 204 emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; a missing N1 binary mapping stays NOT LINKABLE. | NOT_IMPLEMENTED (remaining WP6) |
+| IN-045 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A pinned OpenAPI response requiring multipart/binary content (including the production-profile N1 SM Reject binary container) while the export declares only JSON/204 mapping emits INGRESS_RESPONSE_MAPPING_INVALID. | `TestPinnedOpenAPIResponseMultipartRequiresMultipartMapping` |
 | IN-046 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A staleDelivery authenticated-header-parameter discriminator whose duplicate identity source/scope is not the same 3gpp-sbi-idempotency-key target-nf identity emits INGRESS_CORRELATION_INVALID / C_STATIC. | `TestV1Alpha5WP3WireDiscriminatorDuplicateIdentityInvalid` |
 | IN-047 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A discriminatorRetention less than or equal to maximumLateArrival + clockSkewAllowance emits INGRESS_CORRELATION_INVALID / C_STATIC. | `TestV1Alpha5WP3RetentionWindowInvalid` |
 | IN-048 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Never send an over-limit body; apply the declared protocol failure policy; no truncation or silent omission. | NOT_COMPILER_OWNED (external obligation) |
@@ -156,10 +156,10 @@ Deferred rows by remaining owner: WP1 = 1, WP3 = 0, WP5 = 0, WP6 = 4.
 | IN-055 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Missing, wrong or unsupported Catalog apiVersion/kind/root structure emits INGRESS_CATALOG_INVALID / C_STATIC. | `TestCatalogInvalidAPIVersionAndKind` |
 | IN-056 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Two different export IDs declaring the same exact event.source + event.service + event.operation emit INGRESS_EVENT_SELECTOR_DUPLICATE / C_STATIC. | `TestCatalogDuplicateEventSelector` |
 | IN-057 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A trusted OpenAPI artifact whose release, API URI version, method, path or operationId contradicts the Catalog declaration (after byte-digest verification) emits INGRESS_PROTOCOL_ARTIFACT_INVALID / C_STATIC. | `TestCatalogProtocolMetadataMismatch` |
-| IN-058 | Compiler | `COMPILER_STATIC_DEFERRED` | Peer profile reference **format** validation is implemented (`INGRESS_PEER_PROFILE_REFERENCE_INVALID / C_STATIC`, `TestPeerProfileReferenceInvalid`); resolution to an exact expected profile resource remains deferred because the released #62 contract publishes no profile resource representation or identity format, and deployment binding is Host Admission. | PARTIAL (format implemented; resource resolution deferred) |
+| IN-058 | Host/Admission | `HOST_RUNTIME_INTEGRATION_OWNED` | The Compiler validates the profile reference form (`INGRESS_PEER_PROFILE_REFERENCE_INVALID`, `TestPeerProfileReferenceInvalid`); exact profile-resource resolution and deployment binding are Host Admission because released #62 publishes no profile resource representation. | NOT_COMPILER_OWNED (Host Admission) |
 | IN-059 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A missing, duplicate, incomplete or invalid-target/transform normalization mapping for an accepted media representation emits INGRESS_NORMALIZATION_INVALID / C_STATIC; invalid source/normalized Schemas still use the Schema diagnostics. | `TestNormalizationDanglingTarget`, `TestNormalizationTransformTargetTypeMismatch` |
 | IN-060 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | An invalid Ingress-own correlation key/duplicate identity/scope or staleDelivery declaration emits INGRESS_CORRELATION_INVALID / C_STATIC; an unprovable Skill path emits WAIT_CORRELATION_BINDING_INVALID. | `TestV1Alpha5WP3WireDiscriminatorDuplicateIdentityInvalid` |
-| IN-061 | Compiler | `COMPILER_STATIC_DEFERRED` | A missing or contradictory Ingress response mode/deadline policy/disposition/failure response/delivery recovery contract emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC. | NOT_IMPLEMENTED (remaining WP6) |
+| IN-061 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Missing response mode/deadline/disposition/recovery declarations are rejected by released structural admission, and contradictory/duplicate dispositions emit INGRESS_RESPONSE_CONTRACT_INVALID. | `TestPairedResponseMissingDispositionsRejected`, `TestV1Alpha5WP6DuplicateDispositionID`, `TestV1Alpha5WP6DuplicateDispositionStatus` |
 | IN-062 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | An invalid Ingress-own response representation/Schema mapping/multipart part mapping/required field mapping emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; a Skill Producer mapping failure emits WAIT_RESPONSE_MAPPING_INVALID. | `TestV1Alpha5WP6MappingCoverageIncomplete`, `TestV1Alpha5WP6MultipartBinaryPartUnmapped` |
 | IN-063 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A Trigger ToolCatalog Operation missing or ambiguous in the exact Package ID + Owner scope emits EXPORT_ID_MISSING or EXPORT_ID_AMBIGUOUS; no Ingress or Wait selector diagnostic. | `TestV1Alpha5WP3TriggerOperationMissing`, `TestV1Alpha5WP3TriggerOperationAmbiguous` |
 | IN-064 | Skill/Runtime/Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Step 15 user-plane failure variants must not duplicate N4 Release; Step 17 response is not delayed, and Step 18 cleans remaining N4 / PDU address / PCF resources. | NOT_COMPILER_OWNED (domain procedure / runtime / integration obligation) |

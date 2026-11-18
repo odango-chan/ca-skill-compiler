@@ -35,14 +35,14 @@ repository does not translate or infer them, and no compatibility mode exists.
 
 ## Next target: CA-SL v1alpha5
 
-The released v1alpha5 language and IngressCatalog contracts are the normative target for the next Compiler implementation. The current implementation is a **partial candidate**, not a full-language release: Wait / Ingress compilation is present, while inherited package admission, ordinary non-Wait ToolCatalog linking, Capability, Schema/CEL, Predicate/Script, Evidence, Mutation, Reconcile and retry semantics are still being completed.
+The released v1alpha5 language and IngressCatalog contracts are the normative active target. The v1alpha5 Compiler implements the complete released Compiler-owned static validation scope: package/dependency/Owner/Tool/Capability linking, Schema/CEL/Predicate/Script, the full Procedure graph, Evidence Descriptor linking, Mutation/Reconcile/retry assurance, Wait/Ingress and the deterministic artifact pipeline. All feature-scoped fail-closed gates are removed. Product/Owner/Host/Runtime qualification remains NOT_QUALIFIED.
 
 - Integration PR: [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38) — OPEN / DRAFT.
 - Current acceptance: [v1alpha5 integration acceptance](docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
 - Remaining implementation Goal: [v1alpha5 full-language completion](docs/workstreams/v1alpha5-full-language-completion-goal.zh-CN.md).
 - Current known limitations: [v1alpha5 known limitations](docs/known-limitations-v1alpha5.md).
 
-The active development line targets v1alpha5. Backward compatibility with the v1alpha4 Compiler API or old projects is not required; published v1.0.0 artifacts and tags remain historical release records and are not rewritten. The current v1alpha5 artifact must continue to declare partial validation until every Compiler-owned static obligation is implemented and tested.
+The active development line targets v1alpha5. Backward compatibility with the v1alpha4 Compiler API or old projects is not required; published v1.0.0 artifacts and tags remain historical release records and are not rewritten. A successful v1alpha5 Build declares `validationScope.status = FULL_LANGUAGE_VALIDATION` for the Compiler-owned static scope; that is a static-validation statement, not Owner, Deployment, Host, Runtime, 5GC or MAS qualification.
 
 ## Quick start
 

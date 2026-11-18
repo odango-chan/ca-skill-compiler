@@ -46,7 +46,7 @@ However, the current v1alpha5 pipeline does not execute the full inherited stati
 - `internal/compiler/v1alpha5.go` runs the v1alpha5 request admission, YAML parsing, Procedure/Wait AST, Wait graph, Wait/Ingress binding, wait.output and response passes; it does not run the full inherited package / ToolCatalog / Capability / Schema / CEL / Predicate / Script / Evidence / Mutation / Reconcile / retry pipeline.
 - ordinary non-Wait `operation` / `observation` references are not all resolved to trusted ToolCatalog exports, Owner identities and callable Schemas;
 - required Skill package files and PredicateSet / Contract semantics are not fully admitted;
-- the current artifact explicitly declares `validationScope.status = CANDIDATE_PARTIAL`;
+- historical note: at goal start the artifact declared `validationScope.status = CANDIDATE_PARTIAL`; it now declares `FULL_LANGUAGE_VALIDATION` after all Compiler-owned static obligations were gated;
 - the current API model is coupled: `BuildRequest` / `TrustedBuildContext` are declared in `api_v1alpha4.go`, with v1alpha5-only fields on the shared context type;
 - the current EW/IN register lists 36 EW + 63 IN = 99 cases, while the released Ingress contract defines IN-001..IN-066. IN-064..IN-066 are missing;
 - the current register marks 19 Compiler-static cases deferred;

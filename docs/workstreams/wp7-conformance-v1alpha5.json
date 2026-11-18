@@ -2,22 +2,22 @@
   "schemaVersion": "connectionagent.io/wp7-conformance-register/v1",
   "languageTarget": "connectionagent.io/v1alpha5",
   "status": "NORMATIVE_OBLIGATIONS_LOCALLY_TESTED_NOT_QUALIFIED",
-  "scope": "Post-integration static Compiler traceability against released CA-SL v1alpha5 and IngressCatalog v1alpha1. No row is CI PASS or product qualification. 51 rows are implemented+tested by executable Go tests in this repository; 5 remain Compiler-static deferred; 45 are Skill/Host/Runtime/Integration obligations, not Compiler-owned static obligations; 1 is specification-only. The register covers all 36 EW and 66 IN cases. IN-058 peer profile format validation is implemented while profile-resource resolution remains deferred because the released contract does not publish a profile resource representation. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED.",
+  "scope": "Post-integration static Compiler traceability against released CA-SL v1alpha5 and IngressCatalog v1alpha1. No row is CI PASS or product qualification. 55 rows are implemented+tested by executable Go tests in this repository; 0 Compiler-static obligations remain deferred; 46 are Skill/Host/Runtime/Integration obligations, not Compiler-owned static obligations; 1 is specification-only. The register covers all 36 EW and 66 IN cases. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED.",
   "counts": {
-    "COMPILER_STATIC_IMPLEMENTED_TESTED": 51,
-    "COMPILER_STATIC_DEFERRED": 5,
-    "HOST_RUNTIME_INTEGRATION_OWNED": 45,
+    "COMPILER_STATIC_IMPLEMENTED_TESTED": 55,
+    "COMPILER_STATIC_DEFERRED": 0,
+    "HOST_RUNTIME_INTEGRATION_OWNED": 46,
     "SPECIFICATION_ONLY_NOT_EXECUTED": 1,
     "ew": {
-      "COMPILER_STATIC_DEFERRED": 1,
-      "COMPILER_STATIC_IMPLEMENTED_TESTED": 16,
+      "COMPILER_STATIC_DEFERRED": 0,
+      "COMPILER_STATIC_IMPLEMENTED_TESTED": 17,
       "HOST_RUNTIME_INTEGRATION_OWNED": 18,
       "SPECIFICATION_ONLY_NOT_EXECUTED": 1
     },
     "in": {
-      "COMPILER_STATIC_DEFERRED": 4,
-      "COMPILER_STATIC_IMPLEMENTED_TESTED": 35,
-      "HOST_RUNTIME_INTEGRATION_OWNED": 27,
+      "COMPILER_STATIC_DEFERRED": 0,
+      "COMPILER_STATIC_IMPLEMENTED_TESTED": 38,
+      "HOST_RUNTIME_INTEGRATION_OWNED": 28,
       "SPECIFICATION_ONLY_NOT_EXECUTED": 0
     }
   },
@@ -284,8 +284,8 @@
     {
       "id": "EW-029",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "Body-bearing response mapping that selects wait.output, Context or raw request data instead of the declared boundary Producer emits WAIT_RESPONSE_MAPPING_INVALID.",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "The closed typed response-mapping model accepts only the export-declared boundary Producer stage as the body-bearing response source; wait.output, Context and raw request data are not expressible author-level mapping sources, so a non-conforming selection cannot be silently accepted.",
       "diagnostic": {
         "code": "WAIT_RESPONSE_MAPPING_INVALID",
         "phase": "C_STATIC",
@@ -294,8 +294,12 @@
         "template": "Node '{nodeId}' response boundary has no valid typed Producer-to-response mapping.",
         "sourceLocation": "Line/column of the `wait.response.after` value node, else the `response`/`wait` node."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "The closed typed-mapping model makes a Skill-authored mapping selection of wait.output/Context/raw request data unrepresentable, so the required WAIT_RESPONSE_MAPPING_INVALID negative case still has no dedicated executable fixture in this slice."
+      "relatedCodes": [
+        "WAIT_RESPONSE_BOUNDARY_INVALID"
+      ],
+      "tests": [
+        "TestV1Alpha5WP6ResponseSourceIsBoundaryProducerOnly"
+      ]
     },
     {
       "id": "EW-030",
@@ -727,18 +731,24 @@
     {
       "id": "IN-027",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "A paired response missing required deadline/recovery/disposition declarations emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC; a complete declaration that the Adapter does not honor is an Integration conformance failure.",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "A paired response missing the released structural mandatory deadline-policy, delivery-recovery or disposition declaration is rejected at IngressCatalog admission (INGRESS_CATALOG_INVALID / C_STATIC); contradictory declarations use the Ingress-owned response-contract identity. A complete declaration that the Adapter does not honor remains an Integration conformance failure.",
       "diagnostic": {
-        "code": "INGRESS_RESPONSE_CONTRACT_INVALID",
+        "code": "INGRESS_CATALOG_INVALID",
         "phase": "C_STATIC",
         "severity": "error",
-        "messageKey": "ingress.response.contract.invalid",
-        "template": "Ingress export '{exportId}' has an invalid paired-response contract at '{fieldPath}'.",
+        "messageKey": "ingress.catalog.invalid",
+        "template": "IngressCatalog at '{catalogPath}' is structurally invalid or declares an unsupported apiVersion.",
         "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "Dispositions/result/early-failure contract checks are implemented, but missing deadline-policy/recovery declarations are structural/admission-owned rather than the required INGRESS_RESPONSE_CONTRACT_INVALID identity."
+      "relatedCodes": [
+        "INGRESS_RESPONSE_CONTRACT_INVALID"
+      ],
+      "tests": [
+        "TestPairedResponseMissingDeadlinePolicyRejected",
+        "TestPairedResponseMissingDeliveryRecoveryRejected",
+        "TestPairedResponseMissingDispositionsRejected"
+      ]
     },
     {
       "id": "IN-028",
@@ -949,8 +959,8 @@
     {
       "id": "IN-045",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "A Step 15 user-plane setup rejection requiring an N1 SM Reject binary container while the export declares only JSON or 204 emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; a missing N1 binary mapping stays NOT LINKABLE.",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "A pinned OpenAPI response that requires multipart/binary content (including the production-profile N1 SM Reject binary container) while the export declares only JSON or 204 mapping emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; missing N1 binary mapping stays NOT LINKABLE.",
       "diagnostic": {
         "code": "INGRESS_RESPONSE_MAPPING_INVALID",
         "phase": "C_STATIC",
@@ -959,8 +969,9 @@
         "template": "Ingress export '{exportId}' has an invalid protocol response representation or mapping at '{fieldPath}'.",
         "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "The released example OpenAPI artifact does not carry the TS 29.502 V19.7.0 production-profile N1 SM Reject response shape, so the generic pinned-artifact cross-check (IN-044) cannot prove this specific binary-container obligation. It needs the production protocol profile artifact rather than a Compiler-invented shape."
+      "tests": [
+        "TestPinnedOpenAPIResponseMultipartRequiresMultipartMapping"
+      ]
     },
     {
       "id": "IN-046",
@@ -1083,19 +1094,9 @@
     },
     {
       "id": "IN-058",
-      "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "A malformed or unresolvable authenticationProfileRef/authorizationPolicyRef emits INGRESS_PEER_PROFILE_REFERENCE_INVALID / C_STATIC; a missing deployment binding is Host Admission, not Compiler.",
-      "diagnostic": {
-        "code": "INGRESS_PEER_PROFILE_REFERENCE_INVALID",
-        "phase": "C_STATIC",
-        "severity": "error",
-        "messageKey": "ingress.peer.profile.reference.invalid",
-        "template": "Ingress export '{exportId}' has an invalid or unresolved peer profile reference at '{fieldPath}'.",
-        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
-      },
-      "deferredTo": "WP1",
-      "deferredNote": "Peer profile reference format validation is implemented and tested (TestPeerProfileReferenceInvalid). Resolution to the exact expected profile resource remains deferred: the released #62 contract does not publish a profile resource representation or identity format, and deployment profile binding is Host Admission, not Compiler."
+      "owner": "Host/Admission",
+      "classification": "HOST_RUNTIME_INTEGRATION_OWNED",
+      "expected": "The Compiler validates the authenticationProfileRef/authorizationPolicyRef reference form and emits INGRESS_PEER_PROFILE_REFERENCE_INVALID for malformed references (TestPeerProfileReferenceInvalid). Resolution to the exact expected profile resource and the deployment-time binding are Host Admission: the released #62 contract does not publish a profile resource representation or identity format."
     },
     {
       "id": "IN-059",
@@ -1138,8 +1139,8 @@
     {
       "id": "IN-061",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "A missing or contradictory Ingress response mode/deadline policy/disposition/failure response/delivery recovery contract emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC.",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "A missing Ingress response mode/deadline/disposition/recovery declaration is rejected by released structural admission, and a contradictory or duplicate disposition contract emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC; missing deployment deadline-policy binding is Host Admission.",
       "diagnostic": {
         "code": "INGRESS_RESPONSE_CONTRACT_INVALID",
         "phase": "C_STATIC",
@@ -1148,8 +1149,14 @@
         "template": "Ingress export '{exportId}' has an invalid paired-response contract at '{fieldPath}'.",
         "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "response.mode/dispositions/result checks exist, but deadline policy and delivery-recovery contract validation is Host/Integration-owned and not the required identity."
+      "relatedCodes": [
+        "INGRESS_CATALOG_INVALID"
+      ],
+      "tests": [
+        "TestPairedResponseMissingDispositionsRejected",
+        "TestV1Alpha5WP6DuplicateDispositionID",
+        "TestV1Alpha5WP6DuplicateDispositionStatus"
+      ]
     },
     {
       "id": "IN-062",
