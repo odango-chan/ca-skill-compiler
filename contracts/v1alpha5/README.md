@@ -1,7 +1,9 @@
 # CA Skill Compiler — v1alpha5 compiler-owned artifact contract
 
-**Language authority:** CA-SL v1alpha5 is FROZEN / RELEASED by ca-skills PR #66.  
-**Ingress authority:** IngressCatalog v1alpha1 and its diagnostic registry are FROZEN / RELEASED by ca-skills PR #62.  
+**Language authority:** CA-SL v1alpha5 is FROZEN / RELEASED by ca-skills PR #66.
+
+**Ingress authority:** IngressCatalog v1alpha1 and its diagnostic registry are FROZEN / RELEASED by ca-skills PR #62.
+
 **Compiler implementation:** CANDIDATE / PARTIAL STATIC COVERAGE; NOT READY TO RELEASE.
 
 This directory contains the Compiler-owned artifact manifest schema for the v1alpha5 implementation. It does not republish or override the language or Ingress logical contracts.

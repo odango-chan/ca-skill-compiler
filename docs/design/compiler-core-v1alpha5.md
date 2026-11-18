@@ -1,6 +1,7 @@
 # Compiler Core and Public API — CA-SL v1alpha5
 
-**Status:** implemented architecture record for the active `connectionagent.io/v1alpha5` target.  
+**Status:** implemented architecture record for the active `connectionagent.io/v1alpha5` target.
+
 **Language authority:** CA-SL v1alpha5 release commit `0abfd0e1ab99f481a4ae01f3f47efc54783dd5e5` (inherits the released v1alpha4 normative semantics) and the IngressCatalog v1alpha1 release commit `9412be9894ef36acf846c757a5870dc0c48b33ac`.
 
 ## 1. One compiler core

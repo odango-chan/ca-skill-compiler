@@ -1,14 +1,13 @@
 # CA Skill Compiler v1alpha5 — integration acceptance
 
-**Implementation status: `FULL_LANGUAGE_VALIDATION` for the Compiler-owned static scope. Product/Owner/Host qualification remains NOT_QUALIFIED. The PR stays Draft pending the remaining WP9 public-API separation and final review.**
+**Implementation status: `FULL_LANGUAGE_VALIDATION` for the Compiler-owned static scope. Product/Owner/Host qualification remains NOT_QUALIFIED. WP9 public API separation is complete. Review readiness for PR #38 is based on local acceptance at the final PR HEAD.**
 
-The language and Ingress logical contracts are published and the Compiler implements every Compiler-owned static obligation: all 55 implemented+tested EW/IN cases, with 0 Compiler-static deferred. The earlier feature-scoped fail-closed gates (Evidence Descriptor, Mutation/Reconcile, retry) are removed and replaced by complete static checks.
+The language and Ingress logical contracts are published. The EW/IN register classifies 55 cases as implemented and tested, with 0 Compiler-static deferred. The earlier feature-scoped fail-closed gates (Evidence Descriptor, Mutation/Reconcile, retry) are removed and replaced by complete static checks.
 
 - CA-SL v1alpha5: **FROZEN / RELEASED**, `connectionagent.io/v1alpha5`, ca-skills PR #66, merge commit `0abfd0e1ab99f481a4ae01f3f47efc54783dd5e5`.
 - IngressCatalog: **FROZEN / RELEASED**, `connectionagent.io/ingresscatalog/v1alpha1`, ca-skills PR #62, merge commit `9412be9894ef36acf846c757a5870dc0c48b33ac`.
 - Ingress diagnostics: **FROZEN / RELEASED**, `connectionagent.io/ingress-diagnostics/v1alpha1`, released with PR #62.
 - CA-SL PR #61 is closed without merge; PR #66 is the release PR and the normative authority. Do not cite #61 as the current publication.
-- Compiler PR #38 remains Draft. No Compiler PR has been merged to `main`.
 - Real Owner / Deployment / Integration Adapter / Host / Runtime / 5GC / MAS product qualification remains **NOT_QUALIFIED**.
 
 ## 1. Current integration candidate
@@ -20,8 +19,7 @@ The language and Ingress logical contracts are published and the Compiler implem
 | Integration HEAD | Tracked by live PR #38; see GitHub for its current head SHA |
 | Base | `main` |
 | PR | [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38) |
-| Changed files | 76 files at the latest PR review; use the live PR for the current commit count and HEAD SHA |
-| PR status | OPEN / DRAFT |
+| PR status and changed files | See live PR #38 |
 
 The following implementation slices are represented in #38. The child PRs are not independent merge candidates for `main`:
 
@@ -50,9 +48,7 @@ These are stacked implementation slices, not independent changes to merge to `ma
 - **WP8 — Build / CLI / Parity:** deterministic candidate artifacts, manifest verification, CLI target dispatch, Ingress inventory projection, Native/WASM/real-Chromium parity for the projections exercised by the current harness.
 - **WP9 — Unified Core:** one target-neutral inherited static semantic pipeline shared by the v1alpha4 historical entry and the v1alpha5 active target; the Appendix L Wait passes compose with it on the same normalized parse result and the same Diagnostic stream; the artifact dependency closure is the full inherited closure.
 
-These capabilities are useful and should be retained where they conform to the released specifications. They do not establish full v1alpha5 compiler conformance while the enumerated static obligations in section 3.2 and the inherited positive-path gates remain open.
-
-## 3. Critical uncovered scope
+## 3. Compiler static scope
 
 ### 3.1 v1alpha5 inherits the v1alpha4 language semantics — pipeline unified
 
@@ -72,50 +68,26 @@ The v1alpha5 entry path now runs **one** inherited static semantic pipeline (`va
 
 `v1alpha5_artifact.go` re-runs the same passes during assembly and refuses to emit an artifact if any would fail. The artifact dependency closure and `BuildResult.dependencyClosure` now include the full inherited closure, not just the Wait Ingress links.
 
-The inherited Mutation/Reconcile/retry positive-path obligations and Evidence Descriptor linking are now implemented and gated by the same pipeline (commit-proof/failure-class/reconcile receipt anchors, minimal proof Schema, Owner/READ/Capability coverage, recoverable-output assignability, retry business-identity and NOT_COMMITTED-edge proofs; guarantee descriptor resolution/uniqueness, Producer/provides.path matching, reference-root/selection/freshness rules, trusted IndependentDomains/CommonFact binding and PREDICATE_EVIDENCE_REQUIRED). All feature-scoped Build gates are removed. The §17.1 Host-recovery dual-Producer static check is also implemented. Remaining gaps are the deferred Ingress static cases in section 3.2.
+The inherited Mutation/Reconcile/retry positive-path obligations and Evidence Descriptor linking are now implemented and gated by the same pipeline (commit-proof/failure-class/reconcile receipt anchors, minimal proof Schema, Owner/READ/Capability coverage, recoverable-output assignability, retry business-identity and NOT_COMMITTED-edge proofs; guarantee descriptor resolution/uniqueness, Producer/provides.path matching, reference-root/selection/freshness rules, trusted IndependentDomains/CommonFact binding and PREDICATE_EVIDENCE_REQUIRED). All feature-scoped Build gates are removed. The §17.1 Host-recovery dual-Producer static check is also implemented.
 
-### 3.2 Ingress / Wait conformance register is incomplete
+### 3.2 Ingress / Wait conformance register
 
 The register now reports all 102 cases: 36 EW + 66 IN. The released Ingress contract defines **IN-001 through IN-066**; IN-064, IN-065 and IN-066 are present and classified as Skill/Runtime/Integration obligations, not Compiler-static ones. The three cases cover Step 15/18 N4 and PDU resource cleanup distinctions and the conditional Step 21 UDM unsubscribe behavior for other sessions sharing the same SUPI / DNN / HPLMN S-NSSAI.
 
-Current register classification: 55 implemented+tested, 0 Compiler-static deferred, 46 Host/Runtime/Integration-owned, 1 specification-only. No Compiler-owned EW/IN case remains deferred; every Compiler-owned static obligation is implemented and tested. IN-058 is Host/Admission-owned for exact profile-resource resolution because released #62 publishes no profile resource representation. IN-030 now aligns the missing export-declared Producer stage at the response boundary with WAIT_RESPONSE_BOUNDARY_INVALID, and IN-044 cross-checks the pinned OpenAPI response shape (multipart/related) against the declared response representations. The unified pipeline also covers the inherited EW-031 global-Precondition dominance proof, the inherited IN-019 self-output SOURCE_NOT_AVAILABLE rule, exact Ingress dependency Owner binding (IN-004), duplicate response disposition id/status (IN-040) and the authenticated-header-parameter wire-discriminator identity consistency (IN-046/IN-060). The request-normalization, immutable binary-content lifecycle and peer profile reference form rules are implemented with negative tests; only expected-profile-resource resolution remains deferred for IN-058 because the released contract does not publish a profile resource representation.
+Current register classification: 55 implemented+tested, 0 Compiler-static deferred, 46 Host/Runtime/Integration-owned, 1 specification-only. Each implemented row links to named tests. IN-058 is Host/Admission-owned for exact profile-resource resolution because released #62 publishes no profile resource representation. IN-030 now aligns the missing export-declared Producer stage at the response boundary with WAIT_RESPONSE_BOUNDARY_INVALID, and IN-044 cross-checks the pinned OpenAPI response shape (multipart/related) against the declared response representations. The unified pipeline also covers the inherited EW-031 global-Precondition dominance proof, the inherited IN-019 self-output SOURCE_NOT_AVAILABLE rule, exact Ingress dependency Owner binding (IN-004), duplicate response disposition id/status (IN-040) and the authenticated-header-parameter wire-discriminator identity consistency (IN-046/IN-060). The request-normalization, immutable binary-content lifecycle and peer profile reference form rules are implemented with negative tests; expected-profile-resource resolution belongs to Host Admission for IN-058 because the released contract does not publish a profile resource representation.
 
 ### 3.3 Public API separation: completed
 
 The shared public wire DTOs and strict JSON decoder now live in the target-neutral `internal/compiler/api.go`; the v1alpha5 public entries (`CheckV1Alpha5`, `BuildV1Alpha5`, `InspectV1Alpha5Dependencies`) live in `api_v1alpha5.go`; and `api_v1alpha4_target.go` holds only the frozen historical v1alpha4 envelope admission. The internal semantic model remains shared and version-neutral with one parser, one pipeline and one artifact path. See [Compiler core and public API](../design/compiler-core-v1alpha5.md).
-## 4. Local acceptance evidence recorded by Harness
+## 4. Review acceptance
 
-The unified-pipeline integration run records the following commands as executed locally on Windows / Go 1.26.6 / Node 24.18.0 / Chrome 158:
+Run the local gates in [AGENTS.md](../AGENTS.md) against the final PR HEAD and record the commit, tool versions and actual results in [PR #38](https://github.com/odango-chan/ca-skill-compiler/pull/38). Check the entire PR diff for whitespace errors. The EW/IN register classifies cases and links Compiler-owned entries to named tests.
 
-| Gate | Recorded result |
-|---|---|
-| `GOWORK=off go test ./... -count=1` | PASS (all packages) |
-| `GOWORK=off go vet ./...` | PASS |
-| `CGO_ENABLED=0 GOWORK=off go build ./...` | PASS |
-| `CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc-v1alpha5.wasm ./cmd/skillc-wasm` | PASS |
-| `go test ./cmd/skillc -run TestCLIEndToEnd -v` | PASS (13 tests) |
-| `CHROMIUM_PARITY=1 go test ./internal/parity -run TestChromiumWorkerParity -v` | PASS (real Chromium, 43.32s) |
-| `git diff --check` | PASS |
+GitHub Actions is excluded from this PR's review-readiness decision. The checks on the previously reviewed commit `25ef0f5` stopped before any steps ran because GitHub reported a billing or spending-limit restriction. Local results are recorded separately in the PR.
 
-These are local results and must not be described as GitHub Actions results.
+The CLI still labels v1alpha5 as candidate and exposes the frozen v1alpha4 target. v1alpha5 is the active language target for ongoing development.
 
-### GitHub Actions
-
-Latest integration PR run `44221754664` also concluded `failure` before any step executed; job `134525063316` has an empty step list. The immediately preceding PR run `44221402383` and push run `44221394375` also had zero executed steps. No Go test, vet, Native/WASM build or Chromium command has run in these jobs. This is not evidence of a source-code test failure.
-
-Status: **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**. The workflow was updated to target the integration branch and now defines Go tests, vet, Native/WASM builds, CLI E2E and real Chromium Worker parity. GitHub still fails before the first step on push and pull_request events; the runner/infrastructure cause remains undetermined from available job metadata. Harness-reported local PASS has not been independently reproduced at the latest integration HEAD; rerun locally before using it as release evidence.
-
-## 5. Required next implementation phase
-
-The next phase is defined in [v1alpha5 Full Language Completion Goal](workstreams/v1alpha5-full-language-completion-goal.zh-CN.md).
-
-It must:
-
-1. Finish the clean v1alpha5 public request/result/inspection model and separate public wire DTOs from target-neutral internal canonical build inputs (the semantic pipeline itself is already unified).
-2. Re-run Go tests, vet, Native, WASM, CLI and real Chromium Worker parity after the API separation, and verify the actual GitHub Actions workflow or record CI_UNAVAILABLE.
-3. Keep the product/Owner/Host/Runtime qualification boundary explicit: static Compiler validation is not product qualification.
-
-## 6. Qualification and release boundary
+## 5. Qualification and release boundary
 
 The following are independent of Compiler static implementation and remain unqualified until real evidence exists:
 
@@ -127,4 +99,4 @@ The following are independent of Compiler static implementation and remain unqua
 
 Synthetic fixtures are acceptable for deterministic Compiler tests, but must never be reported as real Owner, Deployment or 5GC qualification.
 
-**Merge decision: HOLD.** Keep #38 Draft until the inherited static semantics, missing Ingress obligations, API architecture, complete artifact scope and real CI execution are addressed. No merge or release is authorized by this acceptance document.
+Ready for Review opens code review. Merge and release decisions are separate.

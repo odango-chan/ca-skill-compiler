@@ -1,7 +1,11 @@
 # 下一代 CA Skill Compiler 开发计划
 
-**规范状态：** CA-SL v1alpha5 与 IngressCatalog v1alpha1 已正式 FROZEN / RELEASED。  
-**Compiler 状态：** v1alpha5 候选实现已进入集成阶段，但仍为 PARTIAL STATIC COVERAGE，尚不能合并或发布。  
+> 本文保留实施计划制定时的状态。当前状态见 [v1alpha5 集成验收](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md)。
+
+**规范状态：** CA-SL v1alpha5 与 IngressCatalog v1alpha1 已正式 FROZEN / RELEASED。
+
+**Compiler 状态：** v1alpha5 候选实现已进入集成阶段，但仍为 PARTIAL STATIC COVERAGE，尚不能合并或发布。
+
 **当前集成 PR：** [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38)，分支 `feat/compiler-v1alpha5-integration-20261117`，当前 HEAD `a351b4cd`（43 commits / 76 files），OPEN / DRAFT。
 
 ## 1. 已发布的规范基线

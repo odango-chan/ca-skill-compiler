@@ -2,9 +2,12 @@
 
 **Goal:** deliver a complete, deterministic Compiler for the released CA-SL v1alpha5 language and its released IngressCatalog v1alpha1 companion contract. This is implementation work, not another specification-design phase.
 
-**Repository:** `odango-chan/ca-skill-compiler`  
-**Integration PR:** [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38)  
-**Integration branch:** `feat/compiler-v1alpha5-integration-20261117`  
+**Repository:** `odango-chan/ca-skill-compiler`
+
+**Integration PR:** [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38)
+
+**Integration branch:** `feat/compiler-v1alpha5-integration-20261117`
+
 **Current integration HEAD at 2026-11-18 review:** `a351b4cd5861b9974726f5e8af5380c876b6d00d`
 
 ## 1. Normative authority — use released sources
