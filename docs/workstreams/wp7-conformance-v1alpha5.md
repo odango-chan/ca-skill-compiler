@@ -1,9 +1,9 @@
 # WP7 - v1alpha5 Diagnostics / Conformance traceability (post-integration)
 
-**Status:** Draft traceability record on `feat/compiler-v1alpha5-wp7b-conformance-inspect-20261117` (stacked on the integrated v1alpha5 baseline `feat/compiler-v1alpha5-integration-20261117`).
-**Language target:** `connectionagent.io/v1alpha5` (ca-skills #61 candidate).
+**Status:** Draft traceability record on the integrated v1alpha5 baseline `feat/compiler-v1alpha5-integration-20261117`.
+**Language target:** `connectionagent.io/v1alpha5` (FROZEN / RELEASED by ca-skills PR #66). IngressCatalog v1alpha1 and its diagnostic registry are FROZEN / RELEASED by PR #62.
 
-This record classifies every Appendix L.12 `EW-001`-`EW-036` and #62 section 14 `IN-001`-`IN-063` case against the **integrated** compiler tree (WP1-WP8 merged). It does not add language semantics and does not qualify the product.
+This record classifies every Appendix L.12 `EW-001`-`EW-036` and released #62 section 14 `IN-001`-`IN-066` case against the **integrated** compiler tree (WP1-WP8 merged). It does not add language semantics and does not qualify the product.
 
 Hard limits stated up front:
 
@@ -27,8 +27,8 @@ Hard limits stated up front:
 | Set | Implemented + tested | Deferred | Host/Runtime/Integration | Spec-only | Total |
 |---|---|---|---|---|---|
 | EW-001..EW-036 | 15 | 2 | 18 | 1 | 36 |
-| IN-001..IN-063 | 22 | 17 | 24 | 0 | 63 |
-| **All** | **37** | **19** | **42** | **1** | **99** |
+| IN-001..IN-066 | 22 | 17 | 27 | 0 | 66 |
+| **All** | **37** | **19** | **45** | **1** | **102** |
 
 Deferred rows by remaining owner: WP1 = 7, WP3 = 4, WP5 = 1, WP6 = 7.
 
@@ -95,7 +95,7 @@ Deferred rows by remaining owner: WP1 = 7, WP3 = 4, WP5 = 1, WP6 = 7.
 | EW-035 | `WAIT_DECLARATION_INVALID` | `wait.declaration.invalid` | Line/column of the offending `event`/`response` value node; nearest existing parent (`event`, else `wait` mapping) when missing. | `TestV1Alpha5DiagnosticContractEWAnchors` |
 | EW-036 | `WAIT_TIMEOUT_INVALID` | `wait.timeout.invalid` | Line/column of the `wait.timeout` value node; nearest existing parent (`wait` mapping) when missing. | `TestV1Alpha5DiagnosticContractEWAnchors` |
 
-## 4. IN-001..IN-063 matrix (#62 section 14)
+## 4. IN-001..IN-066 matrix (released #62 section 14)
 
 | Case | Owner layer | Classification | Expected result / diagnostic | Executable test |
 |---|---|---|---|---|
@@ -162,6 +162,9 @@ Deferred rows by remaining owner: WP1 = 7, WP3 = 4, WP5 = 1, WP6 = 7.
 | IN-061 | Compiler | `COMPILER_STATIC_DEFERRED` | A missing or contradictory Ingress response mode/deadline policy/disposition/failure response/delivery recovery contract emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC. | NOT_IMPLEMENTED (remaining WP6) |
 | IN-062 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | An invalid Ingress-own response representation/Schema mapping/multipart part mapping/required field mapping emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; a Skill Producer mapping failure emits WAIT_RESPONSE_MAPPING_INVALID. | `TestV1Alpha5WP6MappingCoverageIncomplete`, `TestV1Alpha5WP6MultipartBinaryPartUnmapped` |
 | IN-063 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A Trigger ToolCatalog Operation missing or ambiguous in the exact Package ID + Owner scope emits EXPORT_ID_MISSING or EXPORT_ID_AMBIGUOUS; no Ingress or Wait selector diagnostic. | `TestV1Alpha5WP3TriggerOperationMissing`, `TestV1Alpha5WP3TriggerOperationAmbiguous` |
+| IN-064 | Skill/Runtime/Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Step 15 user-plane failure variants must not duplicate N4 Release; Step 17 response is not delayed, and Step 18 cleans remaining N4 / PDU address / PCF resources. | NOT_COMPILER_OWNED (domain procedure / runtime / integration obligation) |
+| IN-065 | Skill/Runtime/Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Do not unsubscribe shared SUPI / DNN / HPLMN S-NSSAI data while another matching PDU Session remains. | NOT_COMPILER_OWNED (domain procedure / runtime / integration obligation) |
+| IN-066 | Skill/Runtime/Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Unsubscribe when no other matching PDU Session remains; keep Step 21 subscription cleanup distinct from Step 18 resource cleanup. | NOT_COMPILER_OWNED (domain procedure / runtime / integration obligation) |
 
 ## 5. Normative diagnostic code sets used by this record
 
@@ -182,11 +185,11 @@ Deferred rows by remaining owner: WP1 = 7, WP3 = 4, WP5 = 1, WP6 = 7.
 | WP5 | v1alpha5 static global-Precondition-bypass/dominance obligation | EW-031 |
 | WP6 | typed-mapping negative fixture, boundary-vs-mapping identity alignment, duplicate-disposition fixture, deadline/recovery contract identity, pinned-OpenAPI response cross-checks | EW-029, IN-027, IN-030, IN-040, IN-044, IN-045, IN-061 |
 
-External obligations (Host/Runtime/Integration; not Compiler obligations): EW-001, EW-002, EW-003, EW-004, EW-005, EW-006, EW-007, EW-008, EW-009, EW-010, EW-011, EW-017, EW-020, EW-023, EW-024, EW-025, EW-028, EW-032, IN-008, IN-009, IN-010, IN-011, IN-012, IN-017, IN-022, IN-024, IN-025, IN-026, IN-034, IN-035, IN-036, IN-037, IN-038, IN-041, IN-043, IN-048, IN-049, IN-050, IN-051, IN-052, IN-053, IN-054.
+External obligations (Skill/Host/Runtime/Integration; not Compiler-owned static obligations): EW-001, EW-002, EW-003, EW-004, EW-005, EW-006, EW-007, EW-008, EW-009, EW-010, EW-011, EW-017, EW-020, EW-023, EW-024, EW-025, EW-028, EW-032, IN-008, IN-009, IN-010, IN-011, IN-012, IN-017, IN-022, IN-024, IN-025, IN-026, IN-034, IN-035, IN-036, IN-037, IN-038, IN-041, IN-043, IN-048, IN-049, IN-050, IN-051, IN-052, IN-053, IN-054, IN-064, IN-065, IN-066.
 
 ## 7. Executed local evidence
 
-CI: **CI_UNAVAILABLE / no test steps executed** (no GitHub Actions run is claimed for this branch). Local commands executed on 2026-11-17 (Windows PowerShell, `go1.26.6 windows/amd64`, `GOWORK=off`, `CGO_ENABLED=0`):
+CI: **CI_UNAVAILABLE / no test steps executed**. GitHub Actions run `44091765010` concluded failure, but its job had zero executed steps; no Go test/build command ran. Local commands recorded by Harness on 2026-11-17 (Windows PowerShell, `go1.26.6 windows/amd64`, `GOWORK=off`, `CGO_ENABLED=0`):
 
 Local toolchain: `go version go1.26.6 windows/amd64`, `GOWORK=off`, `CGO_ENABLED=0`.
 
@@ -202,7 +205,7 @@ No row is thereby converted to CI PASS, language publication or product qualific
 
 ## 8. Limitations
 
-- This is a traceability and diagnostic-contract slice for the v1alpha5 candidate target; v1alpha4 remains the only published authoring contract.
+- This is a traceability and diagnostic-contract slice for the v1alpha5 Compiler implementation. The v1alpha5 language and Ingress contracts are already FROZEN / RELEASED; Compiler and product qualification remain incomplete.
 - `EW-026` has no dedicated diagnostic identity in Appendix L.11 and no executable fixture; it is recorded as `SPECIFICATION_ONLY_NOT_EXECUTED`.
 - 19 rows remain deferred with the remaining owner recorded; several rows document an identity/coverage divergence between the current implementation and the normative matrix rather than a missing code path.
 - No real Owner artifact, Integration Adapter wire conformance, Host/Runtime recovery or 5GC/MAS qualification is executed or implied. Those remain NOT_QUALIFIED.
