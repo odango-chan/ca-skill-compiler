@@ -146,9 +146,11 @@ func preflight(tokens token.Tokens) error {
 			continue
 		}
 		line, column := tokenPosition(item)
-		if item.Position != nil && item.Position.IndentLevel > maxDepth {
-			return &ParseError{Kind: LimitError, Message: "YAML indentation depth exceeds 64", Line: line, Column: column}
-		}
+		// goccy/go-yaml's IndentLevel is a token indentation counter, not
+		// the live YAML mapping/sequence nesting depth. It can exceed 64
+		// across many shallow sibling blocks (for example a CA-SL Procedure
+		// with several Nodes). Real nesting remains bounded by the converter
+		// and validateBounds, both of which enforce maxDepth.
 		switch item.Type {
 		case token.SequenceStartType, token.MappingStartType:
 			flowDepth++

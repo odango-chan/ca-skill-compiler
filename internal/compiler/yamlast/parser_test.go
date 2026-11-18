@@ -276,3 +276,39 @@ func TestValidateScalarLiteralRejectsAliasesAndMultilineQuotes(t *testing.T) {
 		t.Fatal("multiline quoted scalar accepted")
 	}
 }
+
+func TestParseAllowsManyShallowSiblingProcedureNodes(t *testing.T) {
+	// A real 13-operation CA-SL Procedure can have hundreds of YAML token
+	// indentation transitions without ever nesting more than a few levels.
+	// The tokenizer's Position.IndentLevel must not be used as AST depth.
+	var source strings.Builder
+	source.WriteString("start: step0\nnodes:\n")
+	for i := 0; i < 80; i++ {
+		source.WriteString(fmt.Sprintf(
+			"  step%d:\n    operation:\n      tool: mas::SC.VALIDATE_SUBSCRIPTION\n      arguments:\n        ue_identity: context.supi\n      routes:\n        FAILED: SAFE_STOPPED\n    postcondition:\n      predicates:\n        - predicate: establishment.mas.subscription_validated\n          arguments:\n            - step%d.operation.output\n      routes:\n        PASS: SUCCEEDED\n",
+			i, i,
+		))
+	}
+	root, err := Parse([]byte(source.String()))
+	if err != nil {
+		t.Fatalf("shallow sibling Procedure nodes must parse: %v", err)
+	}
+	nodes := field(root, "nodes")
+	if nodes == nil || nodes.Kind != MappingNode || len(nodes.Content) != 160 {
+		t.Fatalf("expected 80 distinct Procedure nodes, got %#v", nodes)
+	}
+}
+
+func TestParseRejectsGenuinelyDeepBlockNesting(t *testing.T) {
+	var source strings.Builder
+	for depth := 0; depth < maxDepth+4; depth++ {
+		source.WriteString(strings.Repeat("  ", depth))
+		source.WriteString(fmt.Sprintf("level%d:\n", depth))
+	}
+	source.WriteString(strings.Repeat("  ", maxDepth+4))
+	source.WriteString("value: x\n")
+	if _, err := Parse([]byte(source.String())); err == nil || !IsLimitError(err) {
+		t.Fatalf("genuinely deep YAML nesting must still fail closed: %v", err)
+	}
+}
+
