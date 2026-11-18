@@ -1160,22 +1160,19 @@
       "id": "IN-064",
       "owner": "Skill/Runtime/Integration",
       "classification": "HOST_RUNTIME_INTEGRATION_OWNED",
-      "expected": "For both Step 15 user-plane failure variants, perform the Step 17 SM Context Status Notify (Release) response without delaying it; do not repeat N4 Release when Step 17 already released N4, and release the still-live N4 Session in Step 18 when it was not previously released. Clean up any remaining PDU Session address and PCF association.",
-      "test": "NOT_COMPILER_OWNED (domain procedure / runtime / integration obligation)"
+      "expected": "For both Step 15 user-plane failure variants, perform the Step 17 SM Context Status Notify (Release) response without delaying it; do not repeat N4 Release when Step 17 already released N4, and release the still-live N4 Session in Step 18 when it was not previously released. Clean up any remaining PDU Session address and PCF association."
     },
     {
       "id": "IN-065",
       "owner": "Skill/Runtime/Integration",
       "classification": "HOST_RUNTIME_INTEGRATION_OWNED",
-      "expected": "When PDU Session establishment fails after Step 4 but another PDU Session for the same SUPI, DNN and HPLMN S-NSSAI remains, Step 21 must not execute Nudm_SDM_Unsubscribe. Unsubscribe only after no matching PDU Session remains; UDM may then perform Nudr_DM_Unsubscribe.",
-      "test": "NOT_COMPILER_OWNED (domain procedure / runtime / integration obligation)"
+      "expected": "When PDU Session establishment fails after Step 4 but another PDU Session for the same SUPI, DNN and HPLMN S-NSSAI remains, Step 21 must not execute Nudm_SDM_Unsubscribe. Unsubscribe only after no matching PDU Session remains; UDM may then perform Nudr_DM_Unsubscribe."
     },
     {
       "id": "IN-066",
       "owner": "Skill/Runtime/Integration",
       "classification": "HOST_RUNTIME_INTEGRATION_OWNED",
-      "expected": "When PDU Session establishment fails after Step 4 and no other PDU Session for the same SUPI, DNN and HPLMN S-NSSAI remains, Step 21 executes Nudm_SDM_Unsubscribe; UDM may perform Nudr_DM_Unsubscribe. Track this separately from Step 18 resource cleanup.",
-      "test": "NOT_COMPILER_OWNED (domain procedure / runtime / integration obligation)"
+      "expected": "When PDU Session establishment fails after Step 4 and no other PDU Session for the same SUPI, DNN and HPLMN S-NSSAI remains, Step 21 executes Nudm_SDM_Unsubscribe; UDM may perform Nudr_DM_Unsubscribe. Track this separately from Step 18 resource cleanup."
     }
   ]
 }
