@@ -281,7 +281,7 @@ func v1alpha5CheckUnknownFields(node *yaml.Node, allowed map[string]bool, add fu
 		if key.Kind == yaml.ScalarNode && allowed[key.Value] {
 			continue
 		}
-		add(key, "UNKNOWN_FIELD", "Unsupported v1alpha5 author field "+key.Value)
+		add(key, "UNKNOWN_FIELD", "Unsupported CA-SL author field "+key.Value)
 	}
 }
 
