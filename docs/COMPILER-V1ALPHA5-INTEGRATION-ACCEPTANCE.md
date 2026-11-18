@@ -1,142 +1,140 @@
-# CA Skill Compiler v1alpha5 — integration acceptance (local, candidate)
+# CA Skill Compiler v1alpha5 — integration acceptance
 
-**Status: CANDIDATE / DRAFT LOCAL ACCEPTANCE — NOT a release, NOT CI PASS, NOT product
-qualification.** The `connectionagent.io/v1alpha5` language target and the ca-skills
-PR #61/#62 contracts are Draft. `v1alpha4` remains the only published authoring
-contract. Real Owner / Deployment / 5GC / MAS qualification remains
-**NOT_QUALIFIED**. No PR was merged to `main`; the work is delivered as reviewed
-Draft PRs on dedicated branches.
+**Implementation status: CANDIDATE / PARTIAL STATIC COVERAGE. NOT READY TO MERGE OR RELEASE.**
 
-## 1. Delivered branches and PRs (all Draft, all pushed)
+The language and Ingress logical contracts are now published. The Compiler implementation is not yet a complete implementation of the released language.
 
-| WP | Branch | Remote HEAD at acceptance | PR |
-|---|---|---|---|
-| WP1 IngressCatalog + Schema Closure Digest v1 | `feat/compiler-v1alpha5-wp1-ingress-catalog-20261117` | `42a16d37c7d73d3becbd6a2e35e3cbbfedb67f48` | [#31](https://github.com/odango-chan/ca-skill-compiler/pull/31) |
-| WP2 Wait parser/AST + v1alpha5 API admission | `feat/compiler-v1alpha5-wait-ast-20261117` | `34993dc30b66f4cf7d573cbc81d884c356062a12` | [#30](https://github.com/odango-chan/ca-skill-compiler/pull/30) |
-| WP5 Procedure graph / Wait entry control | `feat/compiler-v1alpha5-wp5-procedure-graph-20261117` | `d33fe0d980ea423f9121de2e50cd5476da8bac57` | [#32](https://github.com/odango-chan/ca-skill-compiler/pull/32) |
-| WP7 Diagnostic contract / EW-IN traceability | `feat/compiler-v1alpha5-wp7-conformance-20261117` | `10d45cb757054077a16ff234a4f7aa306e4269a5` | [#33](https://github.com/odango-chan/ca-skill-compiler/pull/33) |
-| WP8 CLI + Native/WASM/Chromium parity (Check slice) | `feat/compiler-v1alpha5-wp8-parity-20261117` | `d95f97dd9bafb77690efd3ccc4fb97ab5384ee7a` | [#34](https://github.com/odango-chan/ca-skill-compiler/pull/34) |
-| WP3 Ingress exact link / trigger-correlation | `feat/compiler-v1alpha5-wp3-trigger-binding-20261117` | `ed9bebd9b5aa9eb14cb7c814de56d1fb935fcbe2` | [#35](https://github.com/odango-chan/ca-skill-compiler/pull/35) |
-| WP4 `wait.output` SourcePath | `feat/compiler-v1alpha5-wp4-wait-output-20261117` | `09d7e6beb78fbbfb01c2fb8f5e2286c13e050e39` | [#36](https://github.com/odango-chan/ca-skill-compiler/pull/36) |
-| WP6 Response boundary / typed mapping | `feat/compiler-v1alpha5-wp6-response-boundary-20261117` | `32f1de5d95dac9d8b21c0b3b2b2e1843a7a35972` | [#37](https://github.com/odango-chan/ca-skill-compiler/pull/37) |
-| Post-integration WP7 + Ingress DependencyInspection | `feat/compiler-v1alpha5-wp7b-conformance-inspect-20261117` | `45f7c03aecff68688e1202cef6559fc50b44a75c` | [#39](https://github.com/odango-chan/ca-skill-compiler/pull/39) |
-| Deterministic Build artifacts + artifact parity | `feat/compiler-v1alpha5-artifact-20261117` | `057c8dce49017ce9d82ff6f75e707c64f7db55e2` | [#40](https://github.com/odango-chan/ca-skill-compiler/pull/40) |
-| Consolidated integration baseline | `feat/compiler-v1alpha5-integration-20261117` | acceptance run at `e9b7d98` (see PR head) | [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38) |
+- CA-SL v1alpha5: **FROZEN / RELEASED**, `connectionagent.io/v1alpha5`, ca-skills PR #66, merge commit `0abfd0e1ab99f481a4ae01f3f47efc54783dd5e5`.
+- IngressCatalog: **FROZEN / RELEASED**, `connectionagent.io/ingresscatalog/v1alpha1`, ca-skills PR #62, merge commit `9412be9894ef36acf846c757a5870dc0c48b33ac`.
+- Ingress diagnostics: **FROZEN / RELEASED**, `connectionagent.io/ingress-diagnostics/v1alpha1`, released with PR #62.
+- CA-SL PR #61 is closed without merge; PR #66 is the release PR and the normative authority. Do not cite #61 as the current publication.
+- Compiler PR #38 remains Draft. No Compiler PR has been merged to `main`.
+- Real Owner / Deployment / Integration Adapter / Host / Runtime / 5GC / MAS product qualification remains **NOT_QUALIFIED**.
 
-Recommended merge order if/when the owner decides to merge: #31 → #30 → #32 → #35 →
-#36 → #37 → #34 → #33 → #39 → #40 → #38, retargeting stacked PRs as their bases land.
+## 1. Current integration candidate
 
-## 2. What the candidate compiler now does
+| Item | Value |
+|---|---|
+| Repository | `odango-chan/ca-skill-compiler` |
+| Integration branch | `feat/compiler-v1alpha5-integration-20261117` |
+| Integration HEAD | `d61610ca5e818ceb261d5de6547d4a377d3dc648` |
+| Base | `main` |
+| PR | [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38) |
+| Commits / changed files | 34 commits / 73 files |
+| PR status | OPEN / DRAFT |
 
-- **WP1** — Schema Closure Digest v1 implemented exactly (raw-byte artifact digest
-  binding, canonical document URI, dialect-aware `$id`/fragment resolution, exact
-  transitive `$ref` closure, JCS manifest, domain-separated SHA-256; #62 golden
-  vector reproduced: `sha256:ee0952a9ee8e7c14c83716cc101a6776556214f6d701f8e4e1517a89b8e5b74c`).
-  IngressCatalog v1alpha1 structural + identity admission with
-  `INGRESS_*` diagnostics, trusted-only discovery and typed projections.
-- **WP2** — Complete v1alpha5 Node-entry Wait grammar/AST with exact L.1.1 duration
-  subset, selector, response, TIMEOUT route and Wait-bearing-Node rules, precise
-  diagnostics/anchors, integrated `V1Alpha5ProcedureAST` and independent strict
-  v1alpha5 request/result/inspection API versions.
-- **WP3** — Trusted-only Ingress exact link (`WAIT_INGRESS_EXPORT_NOT_FOUND` /
-  `AMBIGUOUS`), exact ToolCatalog trigger Operation identity, typed
-  `armInputSchema`/normalized Schema binding through Schema Closure Digest v1,
-  correlation/stale-delivery and per-incoming-path trigger dominance/pre-dispatch
-  materialization (`WAIT_CORRELATION_BINDING_INVALID`).
-- **WP4** — `NodeId.wait.output` Producer SourcePath bound to the exact normalized
-  request Schema, event-accepted-path availability via graph dominance
-  (`SOURCE_NOT_AVAILABLE` on TIMEOUT/bypass), conservative consumer typing.
-- **WP5** — Procedure graph with Wait entry-control vertices, implicit
-  EVENT_RECEIVED and TIMEOUT control edges, DAG/reachability/dominance and the
-  final-Postcondition-PASS Goal rule; event receipt is never a Goal proof.
-- **WP6** — Paired-response boundary selection, post-dominance/early-failure
-  proof, typed response-result Producer/Output-Schema assignability and
-  Ingress-owned response contract/mapping coverage (`WAIT_RESPONSE_BOUNDARY_INVALID`,
-  `WAIT_RESPONSE_MAPPING_INVALID`, `INGRESS_RESPONSE_*`).
-- **WP7** — Normative diagnostic registry (all 9 L.11 Wait identities + emitted
-  Ingress identities with message keys/templates), 99-case EW/IN conformance
-  register (37 implemented+tested / 19 deferred / 42 external / 1 spec-only) with
-  JSON↔Markdown↔test-name integrity; no row is a conformance PASS.
-- **WP8** — Deterministic candidate Build artifact assembly and verification
-  (`manifest.json`, `skills/<name>/compiled/procedure.json`,
-  `skills/<name>/compiled/ingress-links.json`; JCS, sorted digests, measured
-  dependency closure, linked Ingress/response metadata, `validationScope`), CLI
-  support for both targets, v1alpha5 `DependencyInspection.ingressOperations`
-  inventory, and Native/WASM/real-Chromium Worker parity including per-file
-  artifact byte parity.
+The following implementation PR heads are ancestors of the #38 integration HEAD and their changes are already represented in #38:
 
-## 3. Executed local acceptance evidence
+- #30 WP2 Wait AST / Procedure admission
+- #31 WP1 IngressCatalog / Schema Closure
+- #32 WP5 Procedure Graph
+- #33 WP7 conformance / diagnostic traceability
+- #34 WP8 CLI / Native / WASM / Chromium parity
+- #35 WP3 Trigger / Correlation
+- #36 WP4 wait.output SourcePath
+- #37 WP6 Response Boundary
+- #39 WP7b DependencyInspection
+- #40 deterministic Build artifacts
 
-Environment: Windows, Go 1.26.6 windows/amd64, Node v24.18.0, Chrome 158.0.8127.37.
-All commands were actually executed on the integration branch; no CI result is claimed.
+These are stacked implementation slices, not ten independent changes that should all be merged to main. #38 is the single integration candidate. After the integration review is complete, close the child PRs as superseded by #38; do not merge them individually or replay their commits.
 
-| Gate | Command | Result |
-|---|---|---|
-| Unit/integration suite | `GOWORK=off go test ./... -count=1` | **PASS** (all packages) |
-| Vet | `GOWORK=off go vet ./...` | **PASS** |
-| CGO-free native build | `CGO_ENABLED=0 GOWORK=off go build ./...` | **PASS** |
-| Go/WASM build | `CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm` | **PASS** |
-| CLI end-to-end | `GOWORK=off go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | **PASS** (13 v1alpha4+v1alpha5 e2e tests) |
-| Real Chromium Worker parity | `CHROMIUM_PARITY=1 GOWORK=off go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | **PASS** (`TestChromiumWorkerParity` 36.27s) |
-| Whitespace | `git diff --check` | **PASS** |
+## 2. What WP1–WP8 currently implement
 
-Real-Chromium parity output includes, unchanged v1alpha4 projections, plus:
-`ok: v1alpha5 valid Check returns zero diagnostics`,
-`ok: v1alpha5 valid Build succeeds with deterministic artifact`,
-`ok: v1alpha5 trusted Build succeeds with dependency closure (3 files)`,
-`ok: v1alpha5 successful-Build artifact byte parity (3 files)`,
-`ok: v1alpha5 trusted successful-Build artifact byte parity (3 files)`,
-`ok: v1alpha5 trusted linked Ingress metadata identical`,
-`ok: v1alpha5 Chromium Worker VerifyArtifact PASS`,
-`ok: v1alpha5 inspect projection identical`,
-`PASS: Native and real Chromium Worker v1alpha5 artifact parity`,
-`PASS: Native and real Chromium Worker projections are identical`.
+- **WP1 — IngressCatalog / Schema Closure:** trusted IngressCatalog admission; raw artifact-byte digest verification; dialect-aware Schema root and nested `$id` resolution; exact transitive reference closure; JCS Schema Closure Digest v1; golden vector coverage.
+- **WP2 — Wait AST:** Node-entry Wait parsing integrated into a v1alpha5 Procedure AST; FixedDuration subset; exact selector fields; response boundary syntax; TIMEOUT route rules; source-positioned diagnostics.
+- **WP3 — Trigger / Correlation:** exact trusted Ingress export selection; exact ToolCatalog trigger Operation binding; typed arm-input and correlation checks on incoming paths.
+- **WP4 — Wait Output:** `NodeId.wait.output` SourcePath resolution against the normalized request Schema; path availability and conservative argument typing.
+- **WP5 — Procedure Graph:** Wait entry-control vertices; implicit EVENT_RECEIVED / TIMEOUT edges; graph reachability, DAG, dominance and final Postcondition-PASS goal checks.
+- **WP6 — Response Boundary:** paired response boundary, producer stage and response-result Schema mapping checks.
+- **WP7 — Diagnostic / Conformance:** Wait and emitted Ingress diagnostic traceability; current EW/IN register.
+- **WP8 — Build / CLI / Parity:** deterministic candidate artifacts, manifest verification, CLI target dispatch, Ingress inventory projection, Native/WASM/real-Chromium parity for the projections exercised by the current harness.
 
-**CI: CI_UNAVAILABLE.** No GitHub Actions runner executed any step for these
-branches in this environment; `gh pr checks` reports no checks. Local acceptance is
-never written as CI PASS.
+These capabilities are useful and should be retained where they conform to the released specifications. They do not establish full v1alpha5 compiler conformance.
 
-## 4. Not validated / deferred (see `docs/known-limitations-v1alpha5.md`)
+## 3. Critical uncovered scope
 
-- Non-Wait tool/dependency linking, full package requirements (`SKILL.md`,
-  contract/predicate registries, package Schemas, Script ABI) and the v1alpha4
-  Schema/CEL/predicate/Script/Evidence/Mutation/Reconcile/retry static semantics
-  are not implemented as v1alpha5 passes. The artifact manifest declares this via
-  `validationScope.status = CANDIDATE_PARTIAL` and lists the unvalidated
-  obligations; a consumer requiring full validation must reject such an artifact.
-- v1alpha5 `DependencyInspection` ingress inventory is trusted-binding scoped and
-  the real-Chromium trusted-ingress inventory parity phase is not claimed.
-- Studio v1alpha5 successful-Build rendering is not added.
-- Host / Runtime / Integration semantics (Wait lifecycle, event ingress,
-  tombstone/stale-delivery execution, response delivery, retries, authorization)
-  are out of Compiler scope.
-- All trusted Catalogs/ToolCatalogs/Schemas/OpenAPI artifacts used by tests and
-  parity are clearly marked SYNTHETIC compiler-owned fixtures, not real Owner
-  publications. Real Owner / Deployment / 5GC / MAS qualification remains
-  **NOT_QUALIFIED**.
+### 3.1 v1alpha5 inherits the v1alpha4 language semantics
 
-## 5. Reproduction
+The released v1alpha5 single-file specification explicitly defines v1alpha4 as its immutable normative inheritance baseline. Appendix L adds or replaces the Wait-related rules; it does not discard the inherited language.
 
-From the integration branch:
+The current v1alpha5 entry path in `internal/compiler/v1alpha5.go` runs its own request admission, YAML parsing, Procedure/Wait AST, Wait graph, Ingress/trigger/correlation, wait.output, response-boundary and artifact passes. It does **not** run the full inherited static semantic pipeline.
 
-```powershell
-$env:GOWORK='off'
-go test ./... -count=1
-go vet ./...
-$env:CGO_ENABLED='0'; go build ./...
-$env:CGO_ENABLED='0'; $env:GOOS='js'; $env:GOARCH='wasm'; go build -o dist/skillc.wasm ./cmd/skillc-wasm
-$env:CGO_ENABLED='1'
-go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v
-$env:CHROMIUM_PARITY='1'
-go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v
-```
+Consequently, the current candidate does not yet validate all inherited v1alpha5 obligations, including:
 
-`dist/`, `.parity-web/` and Chrome profiles are local build artifacts and are not
-committed.
+- required Skill package files and package structure (`SKILL.md`, Contract, PredicateSet, package Schemas and Script sources);
+- non-Wait Operation / Observation ToolCatalog linking, Owner attribution, dependency closure and ordinary callable Schema binding;
+- Capability linking and all ordinary Procedure argument / SourcePath typing;
+- inherited Schema allowlist, registry/closure, assignability and CEL checks;
+- Predicate declarations, parameter signatures, evaluator and Predicate Script ABI;
+- global Precondition, stage aggregation, route and final Postcondition obligations beyond the Wait-specific graph slice;
+- Evidence trust, Producer, independence, scope, correlation and freshness checks;
+- Mutation, Reconcile and retry-family static contracts;
+- complete inherited diagnostic ownership and static conformance coverage.
 
-## 6. Release boundary
+The current code can preserve ordinary Operation / Observation references in the compiled Procedure while not resolving them to trusted ToolCatalog exports. A Wait-free Skill can therefore produce a candidate Build even though ordinary tool references and package semantics have not been fully validated.
 
-This acceptance covers **Compiler-owned static capability on a candidate language
-target**, not a language release and not product qualification. `v1alpha4` behavior,
-diagnostics and artifact bytes are unchanged by this work. No PR was merged and no
-tag/release asset was modified.
+This is a **v1alpha5 implementation gap**, not a request to preserve the old v1alpha4 API or old-project compatibility.
+
+### 3.2 Ingress / Wait conformance register is incomplete
+
+The current register reports 99 cases: 36 EW + 63 IN. The released Ingress contract defines **IN-001 through IN-066**, not IN-001 through IN-063.
+
+The register is missing IN-064, IN-065 and IN-066. These cover Step 15/18 N4 and PDU resource cleanup distinctions, and the conditional Step 21 UDM unsubscribe behavior for other sessions sharing the same SUPI / DNN / HPLMN S-NSSAI. Add all three and classify their owning layer from the released contract; do not assume all are Compiler-owned.
+
+Current register classification: 37 implemented+tested, 19 Compiler-static deferred, 42 Host/Runtime/Integration-owned, 1 specification-only. These counts must be recalculated after adding IN-064..IN-066 and reconciling every row against the released contract.
+
+### 3.3 Versioned API types are not yet cleanly separated
+
+The current `BuildRequest`, `TrustedBuildContext` and shared result types are declared in `api_v1alpha4.go`; v1alpha5-only trusted artifact / Schema fields have been added to the shared context type and are rejected by the v1alpha4 validation path.
+
+This is an implementation coupling, not a required compatibility design. Refactor toward a clean v1alpha5 public request/result/inspection model and a target-neutral internal build model. Do not retain a v1alpha4 adapter or parallel API solely for backward compatibility.
+
+## 4. Local acceptance evidence recorded by Harness
+
+The integration acceptance report records the following commands as executed on Windows / Go 1.26.6 / Node 24.18.0 / Chrome 158:
+
+| Gate | Recorded result |
+|---|---|
+| `GOWORK=off go test ./... -count=1` | PASS |
+| `GOWORK=off go vet ./...` | PASS |
+| `CGO_ENABLED=0 GOWORK=off go build ./...` | PASS |
+| `CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm` | PASS |
+| CLI end-to-end | PASS (13 recorded v1alpha4/v1alpha5 tests) |
+| Real Chromium Worker parity | PASS (recorded `TestChromiumWorkerParity`, 36.27s) |
+| `git diff --check` | PASS |
+
+These are **Harness-reported local results** from the integration branch. They have not been independently rerun as part of this review and must not be described as GitHub Actions results.
+
+### GitHub Actions
+
+Run `44091765010` for `CA-SL v1alpha5 Wait AST + Procedure admission` concluded `failure`, but its job `134068413252` has **zero executed steps**. No Go test, vet or build command ran in that job. This is not evidence of a source-code test failure.
+
+Status: **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**. Fix or replace the workflow so the integration PR actually runs the full acceptance suite. Report CI and local acceptance separately.
+
+## 5. Required next implementation phase
+
+The next phase is defined in [v1alpha5 Full Language Completion Goal](workstreams/v1alpha5-full-language-completion-goal.zh-CN.md).
+
+It must:
+
+1. Refactor the API and compiler pipeline so v1alpha5 is the clean active target; preserve only target-neutral semantic components that are correct and useful.
+2. Implement all inherited v1alpha4 normative semantics as v1alpha5 semantics, without preserving the old v1alpha4 API or old project compatibility.
+3. Resolve every non-Wait Operation / Observation / Capability / Schema / Predicate / Script / Evidence / Mutation / Reconcile / retry obligation owned by Compiler.
+4. Complete the 19 currently deferred Compiler-static EW/IN cases and add/classify IN-064..IN-066.
+5. Reconcile the complete v1alpha5 diagnostic index and all Compiler-owned C_STATIC rules.
+6. Remove `CANDIDATE_PARTIAL` from any release-eligible artifact only after the artifact contract and full static validation scope are complete and reviewed.
+7. Re-run Go tests, vet, Native, WASM, CLI, real Chromium Worker parity and the actual GitHub Actions workflow.
+
+## 6. Qualification and release boundary
+
+The following are independent of Compiler static implementation and remain unqualified until real evidence exists:
+
+- production Owner packages and trusted export publication;
+- real Deployment authorization / profile binding;
+- Integration Adapter wire conformance, including HTTP/2 and multipart/binary handling;
+- Host/Runtime event admission, durable Wait lifecycle, tombstone/replay isolation and response delivery;
+- real 5GC / MAS end-to-end interoperability.
+
+Synthetic fixtures are acceptable for deterministic Compiler tests, but must never be reported as real Owner, Deployment or 5GC qualification.
+
+**Merge decision: HOLD.** Keep #38 Draft until the inherited static semantics, missing Ingress obligations, API architecture, complete artifact scope and real CI execution are addressed. No merge or release is authorized by this acceptance document.
