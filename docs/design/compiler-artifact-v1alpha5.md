@@ -10,7 +10,10 @@ normative authority. This contract publishes neither Owner artifacts nor
 deployment authorization, Runtime admission or 5GC/MAS qualification.
 
 Machine contract: [`contracts/v1alpha5/artifact-manifest.schema.json`](../../contracts/v1alpha5/artifact-manifest.schema.json)
-and [`contracts/v1alpha5/README.md`](../../contracts/v1alpha5/README.md).
+and [`contracts/v1alpha5/README.md`](../../contracts/v1alpha5/README.md). The
+machine contract declares its FROZEN v2.0.0 status in its own `title` and
+`description`; a successful Build's manifest bytes and every field meaning are
+unchanged by that status declaration.
 
 ## 1. Build path
 

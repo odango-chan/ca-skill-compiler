@@ -17,6 +17,11 @@ Adapter / Host / Runtime / 5GC / MAS).
   `connectionagent.io/ingress-diagnostics/v1alpha1`, released with PR #62.
 - CA-SL PR #61 is closed without merge; PR #66 is the normative authority.
 
+**Release-gate classification:** artifact contract **FROZEN**; Compiler-owned
+static validation **FULL_LANGUAGE_VALIDATION**; Compiler product
+**RELEASE_READY**; real Owner / Deployment / Host / Runtime / 5GC / MAS
+**NOT_QUALIFIED**.
+
 ## 1. Single-version architecture
 
 | Concern | Result |
@@ -80,6 +85,18 @@ FULL_LANGUAGE_VALIDATION` is a Compiler-owned static statement, and
 `notValidated` retains Host/Runtime and real Owner/product qualification.
 Changing a field meaning requires a new contract version.
 
+The frozen `build-request.schema.json` accepts trusted artifact/Schema bindings
+only at `trustedBuildContext.artifactBindings` and
+`trustedBuildContext.schemaBindings`. There is no top-level `artifactBinding` or
+`schemaBinding` property; the schema and the public strict JSON decoder
+(`DisallowUnknownFields`) reject it together with every other unknown top-level
+property. The frozen `artifact-manifest.schema.json` declares its FROZEN v2.0.0
+status in its own `title`/`description` metadata; the emitted manifest bytes are
+unchanged. Schema/decoder parity is bound by executable tests
+(`TestBuildRequestSchemaPropertiesMatchPublicDTOs`,
+`TestBuildRequestSchemaAndDecoderAcceptFrozenShape`,
+`TestV1Alpha5ArtifactManifestMatchesFrozenSchema`).
+
 ## 4. EW / IN register
 
 `docs/workstreams/wp7-conformance-v1alpha5.json` contains all **102** cases:
@@ -96,11 +113,13 @@ Host/Runtime obligations are not counted as Compiler PASS.
 
 ## 5. Local acceptance
 
-Executed on Windows/amd64 on 2026-11-18 at commit `0e5fd60a96107c4bd136a6a5b544b78649bfd853` (PR #38 head):
+Executed on Windows/amd64 on 2026-11-18 at commit `ffeff3758e56f9280293be26b5b994809a4460dd` (PR #38 head).
+This record is committed immediately after that verified code commit; the only
+delta between the verified commit and the final PR head is this documentation.
 
 | Tool | Version |
 |---|---|
-| Go | go1.26.6 windows/amd64 |
+| Go | go1.26.6 windows/amd64 (main gates); go1.27.4 windows/amd64 (Chromium parity harness via `GOTOOLCHAIN`) |
 | Node.js | v24.18.0 |
 | Chromium | 158.0.8127.37 (real headless browser) |
 
@@ -113,6 +132,14 @@ Executed on Windows/amd64 on 2026-11-18 at commit `0e5fd60a96107c4bd136a6a5b544b
 | CLI end-to-end | `GOWORK=off go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | PASS |
 | Chromium parity | `CHROMIUM_PARITY=1 GOWORK=off go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | PASS (real Chromium Worker) |
 | Whitespace | `git diff --check` | PASS |
+
+Final release-gate contract fixes verified at the same commit:
+
+| Fix | Evidence |
+|---|---|
+| BuildRequest schema no longer accepts top-level `artifactBinding` / `schemaBinding`; bindings stay under `trustedBuildContext` | `$defs` retained; `TestBuildRequestRejectsRetiredTopLevelBindings`, `TestTrustedBindingArraysAreLegalInsideTrustedBuildContext`, `TestBuildRequestSchemaPropertiesMatchPublicDTOs` PASS |
+| v1alpha4 API version / language target still fail closed through the schema and the public Build path | `TestBuildRequestRetiredLanguageIdentityFailsClosed` PASS (`REQUEST_INVALID` / `LANGUAGE_TARGET_UNSUPPORTED`, no artifact files) |
+| Artifact manifest schema declares FROZEN v2.0.0 status, no candidate/draft/partial wording, emitted bytes unchanged | `TestV1Alpha5ArtifactManifestMatchesFrozenSchema` PASS |
 
 Additional verified behaviors:
 
@@ -127,10 +154,13 @@ Additional verified behaviors:
   `Check`/`Build` and the CLI (`REQUEST_INVALID` / `LANGUAGE_TARGET_UNSUPPORTED`);
 - a v1alpha4 BuildResult cannot pass `VerifyBuildResult`.
 
-GitHub Actions did not execute any workflow step because the account's
-billing/spending limit blocked job execution (run `44269138587` completed in
-~2 seconds with zero steps). No CI PASS is claimed and no failed step is treated
-as a source failure.
+GitHub Actions remains **`CI_UNAVAILABLE`**: the account's billing/spending limit
+blocks job execution, so the workflow runs complete in about 1–2 seconds with
+zero executed steps (runs `44269664679` and `44269673985` for the current head;
+the earlier run `44269138587` behaved the same). `go test`/`go vet`/build gates
+and the real Chromium Worker parity are therefore executed locally and recorded
+above as `LOCAL_ACCEPTANCE_PASS`. No CI PASS is claimed, and a zero-step job is
+not treated as a source failure.
 
 ## 6. Status classification
 
@@ -146,8 +176,8 @@ as a source failure.
 ## 7. PR and release boundary
 
 PR [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38) on
-`feat/compiler-v1alpha5-integration-20261117` is the single integration
-candidate. Child PRs #30–#37, #39 and #40 are stacked slices already represented
+`feat/compiler-v1alpha5-integration-20261117` is the single integration PR.
+Child PRs #30–#37, #39 and #40 are stacked slices already represented
 in that branch and must not be merged again.
 
 Merging to `main`, creating a `v2.0.0` tag and publishing a Release each require

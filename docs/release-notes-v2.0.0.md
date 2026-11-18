@@ -21,7 +21,11 @@ approval. This document does not announce a published release.
   retry assurance) are implemented by the same v1alpha5 pipeline.
 - **Contract freeze.** `contracts/v1alpha5/` contains the frozen BuildRequest,
   BuildResult, DependencyInspection, artifact-manifest and digest-vector
-  contracts.
+  contracts. The frozen BuildRequest schema accepts trusted artifact/Schema
+  bindings only at `trustedBuildContext.artifactBindings` and
+  `trustedBuildContext.schemaBindings`; the public schema and the strict JSON
+  decoder agree on the accepted property set, and the artifact manifest schema
+  declares its FROZEN v2.0.0 status in its own metadata.
 
 ## Breaking changes
 
@@ -74,11 +78,14 @@ scope.
 
 ## Verification
 
-Local acceptance at the integration head: `go test ./... -count=1`, `go vet`,
-CGO-free native build, Go/WASM build, CLI end-to-end, real Chromium Worker
-parity and `git diff --check` all PASS (Go 1.26.6, Node 24.18.0, Chromium
-158.0.8127.37 on Windows/amd64). GitHub Actions did not execute (billing
-restriction); no CI PASS is claimed. Full record:
+Local acceptance at the integration head `ffeff37`: `go test ./... -count=1`,
+`go vet`, CGO-free native build, Go/WASM build, CLI end-to-end, real Chromium
+Worker parity and `git diff --check` all PASS (Go 1.26.6, Node 24.18.0, Chromium
+158.0.8127.37 on Windows/amd64; the Chromium parity harness runs through
+`GOTOOLCHAIN=go1.27.4` as required by `scripts/chromium-parity.mjs`). The
+BuildRequest schema/decoder alignment and the artifact-manifest freeze
+declaration are covered by executable contract tests. GitHub Actions did not
+execute (billing restriction, zero steps); no CI PASS is claimed. Full record:
 [docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md](COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
 
 ## Limitations
