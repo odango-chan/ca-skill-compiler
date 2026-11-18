@@ -17,13 +17,13 @@ The language and Ingress logical contracts are now published. The Compiler imple
 |---|---|
 | Repository | `odango-chan/ca-skill-compiler` |
 | Integration branch | `feat/compiler-v1alpha5-integration-20261117` |
-| Integration HEAD | `d61610ca5e818ceb261d5de6547d4a377d3dc648` |
+| Integration HEAD | `a351b4cd5861b9974726f5e8af5380c876b6d00d` |
 | Base | `main` |
 | PR | [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38) |
-| Commits / changed files | 34 commits / 73 files |
+| Commits / changed files | 43 commits / 76 files (verified against PR #38) |
 | PR status | OPEN / DRAFT |
 
-The following implementation PR heads are ancestors of the #38 integration HEAD and their changes are already represented in #38:
+The following implementation slices are represented in #38. The child PRs are not independent merge candidates for `main`:
 
 - #30 WP2 Wait AST / Procedure admission
 - #31 WP1 IngressCatalog / Schema Closure
@@ -36,7 +36,7 @@ The following implementation PR heads are ancestors of the #38 integration HEAD 
 - #39 WP7b DependencyInspection
 - #40 deterministic Build artifacts
 
-These are stacked implementation slices, not ten independent changes that should all be merged to main. #38 is the single integration candidate. After the integration review is complete, close the child PRs as superseded by #38; do not merge them individually or replay their commits.
+These are stacked implementation slices, not independent changes to merge to `main`. #38 is the single integration candidate. As of 2026-11-18, PRs #30–#37 are closed without merging to `main`; #39 and #40 were merged into the #38 feature branch. Their commits are retained in #38. No child PR needs to be merged independently or replayed.
 
 ## 2. What WP1–WP8 currently implement
 
@@ -107,9 +107,9 @@ These are **Harness-reported local results** from the integration branch. They h
 
 ### GitHub Actions
 
-Run `44091765010` for `CA-SL v1alpha5 Wait AST + Procedure admission` concluded `failure`, but its job `134068413252` has **zero executed steps**. No Go test, vet or build command ran in that job. This is not evidence of a source-code test failure.
+Latest PR #38 run `44220845990` for `CA-SL v1alpha5 Wait AST + Procedure admission` concluded `failure`, but its job `134521992904` has **zero executed steps**. The GitHub Actions step list is empty; no Go test, vet or build command ran. The earlier run `44091765010` had the same no-step failure mode. This is not evidence of a source-code test failure.
 
-Status: **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**. Fix or replace the workflow so the integration PR actually runs the full acceptance suite. Report CI and local acceptance separately.
+Status: **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**. The current workflow is still named and scoped as a Wait AST candidate workflow, and its push trigger targets the old WP2 branch rather than the integration branch. Update it to run the integration branch and full acceptance suite. Report CI and local acceptance separately. Harness-reported local PASS remains unverified at the current HEAD `a351b4cd`; rerun locally against this exact HEAD before using it as release evidence.
 
 ## 5. Required next implementation phase
 
