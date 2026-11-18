@@ -1,22 +1,22 @@
-# CA Skill Compiler — candidate v1alpha5 contracts
+# CA Skill Compiler — v1alpha5 compiler-owned artifact contract
 
-**Status: CANDIDATE / DRAFT.** These contracts belong to the candidate
-`connectionagent.io/v1alpha5` language/compiler target and are owned by this
-repository. They are independent of the frozen v1alpha4 contracts in
-`contracts/v1alpha4/`, which remain unchanged. The CA-SL v1alpha5 language
-specification (ca-skills #61) and the Integration Ingress Operation contract
-(ca-skills #62) are still Draft; nothing in this directory publishes a language,
-an Owner artifact, a deployment profile or a product/5GC qualification.
+**Language authority:** CA-SL v1alpha5 is FROZEN / RELEASED by ca-skills PR #66.  
+**Ingress authority:** IngressCatalog v1alpha1 and its diagnostic registry are FROZEN / RELEASED by ca-skills PR #62.  
+**Compiler implementation:** CANDIDATE / PARTIAL STATIC COVERAGE; NOT READY TO RELEASE.
+
+This directory contains the Compiler-owned artifact manifest schema for the v1alpha5 implementation. It does not republish or override the language or Ingress logical contracts.
+
+Normative sources:
+
+- [CA-SL v1alpha5](https://github.com/odango-chan/ca-skills/blob/0abfd0e1ab99f481a4ae01f3f47efc54783dd5e5/docs/skill-language-spec.v1alpha5.zh-CN.md)
+- [IngressCatalog v1alpha1 logical contract](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/integration-ingress-operation-contract-vnext.zh-CN.md)
+- [Ingress diagnostic registry v1alpha1](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/ingress-diagnostic-registry-v1alpha1.md)
 
 ## `artifact-manifest.schema.json`
 
-JSON Schema (Draft 2020-12) for the single top-level `manifest.json` emitted by a
-successful v1alpha5 `Build`. The manifest is serialized as canonical RFC 8785
-JCS. It is emitted by `internal/compiler/v1alpha5_artifact.go` and verified by
-`internal/compiler/v1alpha5_artifact_verify.go` through
-`compiler.VerifyBuildResult`.
+JSON Schema (Draft 2020-12) for the top-level `manifest.json` emitted by the current candidate v1alpha5 Build. It is serialized as canonical RFC 8785 JCS, emitted by `internal/compiler/v1alpha5_artifact.go` and verified by `internal/compiler/v1alpha5_artifact_verify.go`.
 
-Artifact layout (candidate, compiler-owned):
+Candidate artifact layout:
 
 ```text
 manifest.json
@@ -24,37 +24,15 @@ skills/<skill-name>/compiled/procedure.json
 skills/<skill-name>/compiled/ingress-links.json
 ```
 
-Key properties:
+The manifest currently records:
 
-- `apiVersion` is exactly `connectionagent.io/compiler-artifact/v1alpha5`;
-  `languageTarget` is exactly `connectionagent.io/v1alpha5`.
-- `generator` records the compiler product name/version only. No build commit,
-  timestamp, host or environment value is fabricated.
-- `dependencyClosure` lists only digest-verified dependency snapshots that are
-  referenced by linked Wait Ingress Operations / resolved trigger Operations.
-  Entries carry logical identity only (`dependencyId`, `stablePackageId`,
-  `exports[]`); no dependency bytes, digests, URLs or credentials are embedded.
-- `skills[]` records the Skill name, a domain-separated digest of its exact
-  author source bytes, its source file paths, its compiled file paths and one
-  `waitLinks[]` entry per Wait-bearing Node. Each entry records the exact event
-  selector, timeout, TIMEOUT route, linked Ingress Operation identity
-  (`dependencyAlias`, `catalogOwner`, `snapshotPath`, `operationId`,
-  `normalizedSchemaRef`, `normalizedSchemaClosureDigest`) and the paired-response
-  boundary/producer metadata proven by WP6.
-- `outputFiles[]` lists every emitted file except `manifest.json` itself, sorted
-  by path, with the sha256 of the exact emitted bytes. A manifest cannot contain
-  its own digest; the BuildResult carries the manifest bytes.
+- exact Compiler Artifact API version and CA-SL language target;
+- generator product identity without fabricated timestamps or environment values;
+- the measured dependency closure for the linked Wait Ingress / trigger Operations;
+- source digest and source / compiled file paths per Skill;
+- Wait event, timeout, route, linked Ingress identity, Schema closure and paired-response metadata;
+- sorted output file paths and SHA-256 digests.
 
-Determinism: the same `BuildRequest` produces byte-identical `outputFiles`
-(sorted paths, JCS canonical JSON, no timestamps or randomness) and the same
-`dependencyClosure`. The source digest excludes request file ordering.
+The current manifest deliberately declares `validationScope.status = CANDIDATE_PARTIAL`. It does not prove full v1alpha5 static validation. In particular, ordinary non-Wait callable linking and inherited package / Schema / CEL / Predicate / Script / Evidence / Mutation / Reconcile / retry semantics are not yet covered by the candidate path. A consumer requiring complete language validation MUST reject a partial artifact.
 
-Verification: `compiler.VerifyBuildResult` dispatches on the v1alpha5
-`BuildResult.apiVersion` and rejects duplicate/normalized-invalid paths, a
-non-canonical or self-inconsistent manifest, a missing or unlisted file, a
-sha256 mismatch, duplicate Skill/compiled-file claims, inconsistent
-`ingress-links.json` content and a `BuildResult.DependencyClosure` that
-disagrees with the manifest.
-
-These contracts are **not** an IngressCatalog/ToolCatalog contract, not a
-DependencyInspection contract and not a Runtime artifact-loading contract.
+The artifact layout and validation-scope representation are Compiler-owned candidate decisions. They must be reviewed and frozen before a release-eligible artifact is published. This schema is not an IngressCatalog/ToolCatalog schema, not a Runtime artifact-loading contract and not a product qualification record.
