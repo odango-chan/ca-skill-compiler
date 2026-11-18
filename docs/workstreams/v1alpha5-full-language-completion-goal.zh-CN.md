@@ -5,7 +5,7 @@
 **Repository:** `odango-chan/ca-skill-compiler`  
 **Integration PR:** [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38)  
 **Integration branch:** `feat/compiler-v1alpha5-integration-20261117`  
-**Current integration HEAD:** `d61610ca5e818ceb261d5de6547d4a377d3dc648`
+**Current integration HEAD at 2026-11-18 review:** `a351b4cd5861b9974726f5e8af5380c876b6d00d`
 
 ## 1. Normative authority — use released sources
 
@@ -173,7 +173,7 @@ Local acceptance and CI evidence must be reported separately. A local PASS is ne
 - Do not push directly to `main`; do not force-push; do not discard another Agent's commits.
 - Commit and push every implementation slice to GitHub, update PR #38 with the actual scope and test evidence, then verify remote HEAD SHA.
 - Keep #38 Draft until all acceptance gates pass. Do not merge it automatically.
-- Close child PRs #30–#37, #39 and #40 as superseded by #38 only after verifying their heads remain ancestors of the integration HEAD. Preserve their commit history in #38.
+- Child PR status checked 2026-11-18: #30–#37 are already closed without merging to `main`; #39 and #40 are already merged into the integration feature branch. Preserve all commits in #38; do not reopen, merge independently, or replay child PRs.
 - If remote write or CI is blocked, report `REMOTE_WRITE_BLOCKED` or `CI_UNAVAILABLE` with exact evidence. Never describe local-only work as repository delivery.
 
 ## 7. Per-run report
