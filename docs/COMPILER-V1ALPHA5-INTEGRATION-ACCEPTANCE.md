@@ -20,7 +20,7 @@ The language and Ingress logical contracts are now published. The Compiler imple
 | Integration HEAD | Tracked by live PR #38; see GitHub for its current head SHA |
 | Base | `main` |
 | PR | [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38) |
-| Commits / changed files | 47 commits / 76 files at the latest integration review; documentation/CI maintenance commits are also on this branch |
+| Changed files | 76 files at the latest PR review; use the live PR for the current commit count and HEAD SHA |
 | PR status | OPEN / DRAFT |
 
 The following implementation slices are represented in #38. The child PRs are not independent merge candidates for `main`:
@@ -107,9 +107,9 @@ These are **Harness-reported local results** from the integration branch. They h
 
 ### GitHub Actions
 
-Latest integration workflow runs are `44221402383` (pull_request) and `44221394375` (push). Both concluded `failure`, but jobs `134523879855` and `134523853739` have **zero executed steps**. No Go test, vet, Native/WASM build or Chromium command ran. Earlier run `44220845990` had the same no-step failure mode. This is not evidence of a source-code test failure.
+Latest integration PR run `44221754664` also concluded `failure` before any step executed; job `134525063316` has an empty step list. The immediately preceding PR run `44221402383` and push run `44221394375` also had zero executed steps. No Go test, vet, Native/WASM build or Chromium command has run in these jobs. This is not evidence of a source-code test failure.
 
-Status: **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**. The workflow was updated to target the integration branch and now defines Go tests, vet, Native/WASM builds, CLI E2E and real Chromium Worker parity. GitHub still fails before the first step on both push and pull_request events; the runner/infrastructure cause remains undetermined from available job metadata. Harness-reported local PASS has not been independently reproduced at the latest integration HEAD; rerun locally before using it as release evidence.
+Status: **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**. The workflow was updated to target the integration branch and now defines Go tests, vet, Native/WASM builds, CLI E2E and real Chromium Worker parity. GitHub still fails before the first step on push and pull_request events; the runner/infrastructure cause remains undetermined from available job metadata. Harness-reported local PASS has not been independently reproduced at the latest integration HEAD; rerun locally before using it as release evidence.
 
 ## 5. Required next implementation phase
 
