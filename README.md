@@ -13,7 +13,7 @@ or Runtime dispatch.
 
 | Item | Value |
 |---|---|
-| Compiler product version | **v2.0.0** |
+| Compiler product version | **v2.0.1** (YAML depth hotfix) |
 | Language target | **`connectionagent.io/v1alpha5`** — the only supported target |
 | BuildRequest API | `connectionagent.io/compiler-build-request/v1alpha5` |
 | BuildResult API | `connectionagent.io/compiler-build-result/v1alpha5` |
@@ -28,7 +28,7 @@ Compiler no longer exposes a v1alpha4 build entry, CLI target or compatibility
 mode. A v1alpha4 `apiVersion` or `languageTarget` fails closed like any other
 unsupported version.
 
-The previously released **v1.0.0** product (v1alpha4 target) remains an
+The previously released **v2.0.0** product remains immutable. v2.0.1 fixes an erroneous YAML token indentation-depth rejection for CA-SL Procedures with many sibling Nodes, without changing any v1alpha5 input/output contract. The earlier **v1.0.0** product (v1alpha4 target) remains an
 immutable historical release. It is documented under
 [docs/release-notes-v1.0.0.md](docs/release-notes-v1.0.0.md).
 
