@@ -6,7 +6,6 @@ on:
     paths:
       - "internal/compiler/**"
       - "internal/ingresscatalog/**"
-      - "internal/artifact/**"
       - "cmd/**"
       - "scripts/**"
       - "web/**"
@@ -18,7 +17,6 @@ on:
     paths:
       - "internal/compiler/**"
       - "internal/ingresscatalog/**"
-      - "internal/artifact/**"
       - "cmd/**"
       - "scripts/**"
       - "web/**"

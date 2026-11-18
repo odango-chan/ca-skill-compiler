@@ -127,9 +127,10 @@ Additional verified behaviors:
   `Check`/`Build` and the CLI (`REQUEST_INVALID` / `LANGUAGE_TARGET_UNSUPPORTED`);
 - a v1alpha4 BuildResult cannot pass `VerifyBuildResult`.
 
-GitHub Actions did not run the acceptance workflow because the account's
-billing/spending limit blocked job execution. No CI PASS is claimed and no
-failed step is treated as a source failure.
+GitHub Actions did not execute any workflow step because the account's
+billing/spending limit blocked job execution (run `44269138587` completed in
+~2 seconds with zero steps). No CI PASS is claimed and no failed step is treated
+as a source failure.
 
 ## 6. Status classification
 

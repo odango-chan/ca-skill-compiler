@@ -80,7 +80,7 @@ The public wire DTOs (`BuildRequest`, `BuildResult`, `Diagnostic`, `DependencyIn
 
 Local acceptance at commit `0e5fd60a96107c4bd136a6a5b544b78649bfd853` (2026-11-18, Windows/amd64, Go 1.26.6, Node 24.18.0, Chromium 158.0.8127.37): Go tests, vet, CGO-free Native build, WASM build, CLI end-to-end and real Chromium Worker parity PASS. Full record: [v1alpha5 single-version acceptance](COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md). Treat this as local evidence until independently reproduced.
 
-GitHub Actions run `44091765010` concluded failure with zero executed steps. No source test or build ran in that job. CI status is **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**, not CI PASS and not a source-code test failure.
+GitHub Actions runs `44091765010` and, for this head, `44269138587` concluded failure with zero executed steps (job completed in ~2 seconds, no steps). No source test or build ran in those jobs. CI status is **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**, not CI PASS and not a source-code test failure.
 
 Full acceptance must include actual execution of:
 
