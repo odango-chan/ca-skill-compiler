@@ -81,7 +81,7 @@
           "minLength": 1,
           "maxLength": 240,
           "description": "Normalized POSIX path relative to this immutable snapshot; Compiler additionally rejects absolute paths, empty segments, dot segments, backslash, colon, NUL and duplicate paths.",
-          "pattern": "^(?!/)(?!.*//)(?!.*(?:^|/)\\.{1,2}(/|$))(?!.*\\/$)[^\\\\:]+$"
+          "pattern": "^[^/\\\\:]+(?:/[^/\\\\:]+)*$"
         },
         "bytes": {
           "type": "string",
@@ -102,7 +102,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 240,
-          "pattern": "^skills/(?!\\.{1,2}(?:/|$))[^/\\\\:]+/(?!\\.{1,2}(?:/|$))[^/\\\\:]+(?:/(?!\\.{1,2}(?:/|$))[^/\\\\:]+)*$"
+          "pattern": "^skills/[^/\\\\:]+(?:/[^/\\\\:]+)+$"
         },
         "bytes": {
           "type": "string",

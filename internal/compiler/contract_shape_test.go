@@ -54,6 +54,10 @@ func validateContractShape(t *testing.T, schemaPath string, output any) {
 	}
 }
 
+func TestBuildRequestMatchesCurrentSchema(t *testing.T) {
+	validateContractShape(t, "../../contracts/v1alpha5/build-request.schema.json", wp3BuildRequest(t, wp3FixtureOptions{}))
+}
+
 func TestInspectionMatchesCurrentSchema(t *testing.T) {
 	inspection := InspectDependencies(wp3aBaseFixture(t).request(t))
 	validateContractShape(t, "../../contracts/v1alpha5/dependency-inspection.schema.json", inspection)
