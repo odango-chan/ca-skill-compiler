@@ -2,7 +2,7 @@
 
 **规范状态：** CA-SL v1alpha5 与 IngressCatalog v1alpha1 已正式 FROZEN / RELEASED。  
 **Compiler 状态：** v1alpha5 候选实现已进入集成阶段，但仍为 PARTIAL STATIC COVERAGE，尚不能合并或发布。  
-**当前集成 PR：** [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38)，分支 `feat/compiler-v1alpha5-integration-20261117`。
+**当前集成 PR：** [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38)，分支 `feat/compiler-v1alpha5-integration-20261117`，当前 HEAD `a351b4cd`（43 commits / 76 files），OPEN / DRAFT。
 
 ## 1. 已发布的规范基线
 
@@ -37,7 +37,7 @@ WP1–WP8 已有集成候选：IngressCatalog / Schema Closure、Wait AST、Trig
 
 ## 3. PR 结构
 
-#38 集成分支已经包含 #30–#37、#39、#40 对应分支的提交。应以 #38 作为唯一集成候选，不再按旧计划把这些 stacked PR 逐个合入 main。完成集成审查后，将子 PR 标记为被 #38 取代并关闭；保留它们的提交历史。
+#38 集成分支包含 #30–#37、#39、#40 对应实现切片。当前 #30–#37 已关闭但未合入 main；#39、#40 已合入 #38 的 feature branch。它们是 stacked implementation slices，不应再单独合入 main，也不应重复 cherry-pick。以 #38 作为唯一集成候选。
 
 #38 当前保持 Draft，不合并。
 
