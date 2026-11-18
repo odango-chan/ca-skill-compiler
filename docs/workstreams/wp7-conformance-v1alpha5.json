@@ -2,21 +2,21 @@
   "schemaVersion": "connectionagent.io/wp7-conformance-register/v1",
   "languageTarget": "connectionagent.io/v1alpha5",
   "status": "NORMATIVE_OBLIGATIONS_LOCALLY_TESTED_NOT_QUALIFIED",
-  "scope": "Post-integration static Compiler traceability against released CA-SL v1alpha5 and IngressCatalog v1alpha1. No row is CI PASS or product qualification. 43 rows are implemented+tested by executable Go tests in this repository; 13 remain Compiler-static deferred; 45 are Skill/Host/Runtime/Integration obligations, not Compiler-owned static obligations; 1 is specification-only. The register covers all 36 EW and 66 IN cases. IN-058 peer profile format validation is implemented while profile-resource resolution remains deferred because the released contract does not publish a profile resource representation. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED.",
+  "scope": "Post-integration static Compiler traceability against released CA-SL v1alpha5 and IngressCatalog v1alpha1. No row is CI PASS or product qualification. 49 rows are implemented+tested by executable Go tests in this repository; 7 remain Compiler-static deferred; 45 are Skill/Host/Runtime/Integration obligations, not Compiler-owned static obligations; 1 is specification-only. The register covers all 36 EW and 66 IN cases. IN-058 peer profile format validation is implemented while profile-resource resolution remains deferred because the released contract does not publish a profile resource representation. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED.",
   "counts": {
-    "COMPILER_STATIC_IMPLEMENTED_TESTED": 43,
-    "COMPILER_STATIC_DEFERRED": 13,
+    "COMPILER_STATIC_IMPLEMENTED_TESTED": 49,
+    "COMPILER_STATIC_DEFERRED": 7,
     "HOST_RUNTIME_INTEGRATION_OWNED": 45,
     "SPECIFICATION_ONLY_NOT_EXECUTED": 1,
     "ew": {
-      "COMPILER_STATIC_DEFERRED": 2,
-      "COMPILER_STATIC_IMPLEMENTED_TESTED": 15,
+      "COMPILER_STATIC_DEFERRED": 1,
+      "COMPILER_STATIC_IMPLEMENTED_TESTED": 16,
       "HOST_RUNTIME_INTEGRATION_OWNED": 18,
       "SPECIFICATION_ONLY_NOT_EXECUTED": 1
     },
     "in": {
-      "COMPILER_STATIC_DEFERRED": 11,
-      "COMPILER_STATIC_IMPLEMENTED_TESTED": 28,
+      "COMPILER_STATIC_DEFERRED": 6,
+      "COMPILER_STATIC_IMPLEMENTED_TESTED": 33,
       "HOST_RUNTIME_INTEGRATION_OWNED": 27,
       "SPECIFICATION_ONLY_NOT_EXECUTED": 0
     }
@@ -317,17 +317,18 @@
     },
     {
       "id": "EW-031",
-      "owner": "Compiler/Runtime",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "A global Precondition that is not satisfied on every incoming path to a protected Mutation/success is rejected with the inherited ENTRY_PRECONDITION_BYPASSED identity; a Wait edge never establishes the gate. The v1alpha5 static precedence/dominance obligation is not implemented in this stack.",
+      "owner": "Compiler",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "A global Precondition that is not satisfied on every incoming path to a protected Mutation/success is rejected with the inherited ENTRY_PRECONDITION_BYPASSED identity; a Wait edge never establishes the gate. The unified inherited Procedure graph now performs this dominance proof for v1alpha5.",
       "diagnostic": {
         "code": "ENTRY_PRECONDITION_BYPASSED",
         "phase": "C_STATIC",
         "severity": "error",
         "sourceLocation": "Inherited frozen identity: Compiler Diagnostic.path/line/column follow the emitted source location."
       },
-      "deferredTo": "WP5",
-      "deferredNote": "The v1alpha5 static global-Precondition-bypass/dominance obligation is not implemented; Runtime ownership alone does not satisfy EW-031."
+      "tests": [
+        "TestV1Alpha5EW031EntryPreconditionBypass"
+      ]
     },
     {
       "id": "EW-032",
@@ -446,19 +447,21 @@
     {
       "id": "IN-004",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Missing or mismatching Owner binding emits DEPENDENCY_EXPORT_OWNER_UNVERIFIED or DEPENDENCY_OWNER_MISMATCH (reused dependency identities); no Ingress alias.",
       "diagnostic": {
-        "code": "DEPENDENCY_EXPORT_OWNER_UNVERIFIED",
+        "code": "DEPENDENCY_OWNER_MISMATCH",
         "phase": "C_STATIC",
         "severity": "error",
-        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot; the message names the Dependency Alias and the exact ingressOperation export id."
       },
       "relatedCodes": [
-        "DEPENDENCY_OWNER_MISMATCH"
+        "DEPENDENCY_EXPORT_OWNER_UNVERIFIED"
       ],
-      "deferredTo": "WP3",
-      "deferredNote": "The v1alpha5 envelope emits DEPENDENCY_EXPORT_OWNER_UNVERIFIED for malformed export-owner records, but the exact missing/mismatched Owner binding case and the inherited DEPENDENCY_OWNER_MISMATCH identity still lack a dedicated executable fixture in this slice."
+      "tests": [
+        "TestV1Alpha5WP3IngressExportOwnerMismatch",
+        "TestV1Alpha5WP3IngressExportOwnerRecordMissing"
+      ]
     },
     {
       "id": "IN-005",
@@ -631,16 +634,20 @@
     {
       "id": "IN-019",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "A trigger argument that depends on the trigger's own not-yet-executed output emits SOURCE_NOT_AVAILABLE / C_STATIC.",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "A trigger argument that depends on the trigger's own not-yet-executed output emits SOURCE_NOT_AVAILABLE / C_STATIC; the dependent correlation binding is also rejected with WAIT_CORRELATION_BINDING_INVALID.",
       "diagnostic": {
         "code": "SOURCE_NOT_AVAILABLE",
         "phase": "C_STATIC",
         "severity": "error",
-        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
+        "sourceLocation": "Inherited frozen identity: Compiler Diagnostic.path/line/column follow the emitted source location."
       },
-      "deferredTo": "WP3",
-      "deferredNote": "The current pass reports WAIT_CORRELATION_BINDING_INVALID for an unavailable trigger argument; the required reused SOURCE_NOT_AVAILABLE identity has no dedicated executable assertion yet."
+      "relatedCodes": [
+        "WAIT_CORRELATION_BINDING_INVALID"
+      ],
+      "tests": [
+        "TestV1Alpha5WP3TriggerSelfOutputUnavailable"
+      ]
     },
     {
       "id": "IN-020",
@@ -874,7 +881,7 @@
     {
       "id": "IN-040",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "Duplicate response disposition id or HTTP status in one Ingress export emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "INGRESS_RESPONSE_CONTRACT_INVALID",
@@ -884,8 +891,10 @@
         "template": "Ingress export '{exportId}' has an invalid paired-response contract at '{fieldPath}'.",
         "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP6",
-      "deferredNote": "The duplicate disposition id/status code path exists, but no dedicated executable fixture asserts that identity in this slice."
+      "tests": [
+        "TestV1Alpha5WP6DuplicateDispositionID",
+        "TestV1Alpha5WP6DuplicateDispositionStatus"
+      ]
     },
     {
       "id": "IN-041",
@@ -951,8 +960,8 @@
     {
       "id": "IN-046",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "A staleDelivery declaration using 3gpp-Sbi-Request-Info.idempotency-key without a correct source/scope/duplicate identity emits INGRESS_CORRELATION_INVALID / C_STATIC.",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "A staleDelivery declaration using the 3gpp-Sbi-Request-Info idempotency-key as an authenticated-header-parameter discriminator while the duplicate identity source/scope is not the same 3gpp-sbi-idempotency-key target-nf identity emits INGRESS_CORRELATION_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "INGRESS_CORRELATION_INVALID",
         "phase": "C_STATIC",
@@ -961,8 +970,9 @@
         "template": "Ingress export '{exportId}' has an invalid correlation or stale-delivery declaration at '{fieldPath}'.",
         "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP3",
-      "deferredNote": "idempotency-key discriminator source/scope declaration validation is not implemented."
+      "tests": [
+        "TestV1Alpha5WP3WireDiscriminatorDuplicateIdentityInvalid"
+      ]
     },
     {
       "id": "IN-047",
@@ -1103,8 +1113,8 @@
     {
       "id": "IN-060",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "An invalid Ingress-own correlation key/duplicate identity/scope/staleDelivery declaration emits INGRESS_CORRELATION_INVALID / C_STATIC; an unprovable Skill path emits WAIT_CORRELATION_BINDING_INVALID.",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "An invalid Ingress-own correlation key/duplicate identity/scope or staleDelivery declaration emits INGRESS_CORRELATION_INVALID / C_STATIC; an unprovable Skill path emits WAIT_CORRELATION_BINDING_INVALID. The closed duplicate identity/scope enumeration itself is enforced by the released structural Catalog Schema.",
       "diagnostic": {
         "code": "INGRESS_CORRELATION_INVALID",
         "phase": "C_STATIC",
@@ -1116,8 +1126,9 @@
       "relatedCodes": [
         "WAIT_CORRELATION_BINDING_INVALID"
       ],
-      "deferredTo": "WP3",
-      "deferredNote": "The keyFields/staleDelivery slices are validated and tested, but the full duplicate identity/scope/staleDelivery declaration matrix is not."
+      "tests": [
+        "TestV1Alpha5WP3WireDiscriminatorDuplicateIdentityInvalid"
+      ]
     },
     {
       "id": "IN-061",

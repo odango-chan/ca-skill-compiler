@@ -485,6 +485,14 @@ func discoverV1Alpha5IngressExports(scope []v1alpha5Dependency, link *v1alpha5Li
 			}
 			owner := scalar(child(child(root, "metadata"), "owner"))
 			operationIDs := v1alpha5CatalogOperationIDs(root)
+			// IN-004: a Catalog that claims trusted ingressOperation exports must
+			// have an authorized Owner and an exact (kind, exportId, Owner) record
+			// for every declared Operation. The same inherited dependency-identity
+			// codes are reused; an Ingress-specific alias is never invented.
+			if ownerDiagnostics := v1alpha5IngressOwnerDiagnostics(dependency, owner, operationIDs, file.Path); len(ownerDiagnostics) > 0 {
+				diagnostics = append(diagnostics, ownerDiagnostics...)
+				continue
+			}
 			if !v1alpha5CatalogTrusted(dependency.Binding, owner, operationIDs) {
 				continue
 			}
@@ -518,6 +526,53 @@ func discoverV1Alpha5IngressExports(scope []v1alpha5Dependency, link *v1alpha5Li
 		return left.Operation.ID < right.Operation.ID
 	})
 	return exports, diagnostics
+}
+
+// v1alpha5IngressOwnerDiagnostics applies the inherited dependency Owner-binding
+// rules to an IngressCatalog that claims trusted ingressOperation exports: the
+// Catalog Owner must be an authorized Owner of the verified snapshot and every
+// declared Operation must carry an exact (kind, exportId, Owner) record. A
+// Catalog that names none of the declared exports is not this build's export
+// set and remains silently scoped out.
+func v1alpha5IngressOwnerDiagnostics(dependency v1alpha5Dependency, owner string, operationIDs []string, snapshotPath string) []Diagnostic {
+	if owner == "" || len(operationIDs) == 0 {
+		return nil
+	}
+	records := make(map[string]string)
+	for _, export := range dependency.Binding.ExportOwners {
+		if export.ExportKind != v1alpha5ExportKindIngressOperation {
+			continue
+		}
+		records[export.ExportID] = export.Owner
+	}
+	if len(records) == 0 {
+		return nil
+	}
+	authorized := false
+	for _, candidate := range dependency.Binding.AuthorizedOwners {
+		if candidate == owner {
+			authorized = true
+			break
+		}
+	}
+	if !authorized {
+		return []Diagnostic{v1alpha5StaticDiagnostic(snapshotPath, nil, "DEPENDENCY_OWNER_MISMATCH",
+			"IngressCatalog metadata.owner is not in the trusted authorized Owners for dependency alias "+dependency.Alias)}
+	}
+	var diagnostics []Diagnostic
+	for _, operationID := range operationIDs {
+		recordOwner, exists := records[operationID]
+		if !exists {
+			diagnostics = append(diagnostics, v1alpha5StaticDiagnostic(snapshotPath, nil, "DEPENDENCY_EXPORT_OWNER_UNVERIFIED",
+				"Trusted dependency binding has no ingressOperation export-owner record for "+operationID+" in dependency alias "+dependency.Alias))
+			continue
+		}
+		if recordOwner != owner {
+			diagnostics = append(diagnostics, v1alpha5StaticDiagnostic(snapshotPath, nil, "DEPENDENCY_OWNER_MISMATCH",
+				"IngressCatalog Operation "+operationID+" Owner record differs from the Catalog Owner for dependency alias "+dependency.Alias))
+		}
+	}
+	return diagnostics
 }
 
 func v1alpha5CatalogOperationIDs(root *yaml.Node) []string {

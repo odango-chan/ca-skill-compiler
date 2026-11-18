@@ -64,22 +64,18 @@ The remaining limitation is that some callable members are exercised only by syn
 - **IN-065:** no UDM unsubscribe while another matching PDU Session remains;
 - **IN-066:** unsubscribe when no matching PDU Session remains.
 
-Current recorded register counts: 43 implemented+tested, 13 Compiler-static deferred, 45 external, 1 spec-only. The deferred cases in section 5 remain release blockers for a full `FULL_LANGUAGE_VALIDATION` claim. IN-058 peer profile reference format validation is implemented and tested; only resolution to an expected profile resource remains deferred because the released #62 contract does not publish a profile resource representation or identity format.
+Current recorded register counts: 49 implemented+tested, 7 Compiler-static deferred, 45 external, 1 spec-only. The deferred cases in section 5 remain release blockers for a full `FULL_LANGUAGE_VALIDATION` claim. IN-058 peer profile reference format validation is implemented and tested; only resolution to an expected profile resource remains deferred because the released #62 contract does not publish a profile resource representation or identity format.
 
 ## 5. Deferred Compiler-static EW / IN obligations
 
-The current register marks 13 Compiler-owned static obligations deferred:
+The current register marks 7 Compiler-owned static obligations deferred:
 
 | Case(s) | Required static coverage |
 |---|---|
-| EW-029 | Reject body-bearing response mapping sourced from wait.output, Context or raw request instead of the declared boundary Producer |
-| EW-031 | Global Precondition dominance over protected Mutation / success; Wait edge does not satisfy the gate |
-| IN-004 | Exact dependency Owner binding and mismatch diagnostics |
-| IN-019 | Reject trigger arguments that depend on the trigger Operation's own not-yet-produced output |
-| IN-027, IN-040, IN-061 | Complete paired-response deadline, recovery, disposition and response-contract validation |
-| IN-030 | Require the export-declared Producer stage at the response boundary |
-| IN-044, IN-045 | Validate multipart/binary and N1 SM Reject response representation/mapping |
-| IN-046, IN-060 | Validate Ingress-owned correlation identity, scope, duplicate and stale-delivery declarations |
+| EW-029 | Reject body-bearing response mapping sourced from wait.output, Context or raw request instead of the declared boundary Producer (the closed typed-mapping model makes such a Skill-authored source unrepresentable) |
+| IN-027, IN-061 | Response deadline-policy / delivery-recovery semantic completeness; the missing-declaration half is already enforced by the released normative structural Catalog Schema, while deployment deadline-policy binding is Host Admission |
+| IN-030 | Require the export-declared Producer stage at the response boundary as WAIT_RESPONSE_BOUNDARY_INVALID (the current pass reports WAIT_RESPONSE_MAPPING_INVALID for the related EW-021 case) |
+| IN-044, IN-045 | Cross-check pinned OpenAPI response shape (multipart/binary, N1 SM Reject) against declared JSON/204 mappings; the released example fixtures do not carry the production-profile response shapes |
 | IN-058 | Expected profile resource resolution only (reference format validation is implemented; the released contract does not publish a profile resource representation) |
 
 The Compiler must implement every Compiler-owned static condition in this list or record a precise normative reason why it is owned elsewhere. It must not silently omit the cases from the register.

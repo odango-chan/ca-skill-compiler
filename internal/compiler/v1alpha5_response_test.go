@@ -888,6 +888,70 @@ func TestV1Alpha5WP6EarlyFailureMappingMissing(t *testing.T) {
 	}
 }
 
+// wp6RequireContractCode proves an INGRESS_RESPONSE_CONTRACT_INVALID identity is
+// emitted at the expected response field path.
+func wp6RequireContractCode(t *testing.T, diagnostics []Diagnostic, fieldPath string) {
+	t.Helper()
+	for _, diagnostic := range diagnostics {
+		if diagnostic.Code != "INGRESS_RESPONSE_CONTRACT_INVALID" {
+			continue
+		}
+		if !strings.Contains(diagnostic.Message, fieldPath) {
+			t.Fatalf("contract diagnostic must name %q: %q", fieldPath, diagnostic.Message)
+		}
+		return
+	}
+	t.Fatalf("expected INGRESS_RESPONSE_CONTRACT_INVALID at %q, got %#v", fieldPath, diagnostics)
+}
+
+// TestV1Alpha5WP6DuplicateDispositionID covers IN-040: duplicate response
+// disposition ids in one Ingress export are rejected with the Ingress-owned
+// response-contract identity (the closed structural Schema cannot express it).
+func TestV1Alpha5WP6DuplicateDispositionID(t *testing.T) {
+	diagnostics := wp6Check(t, wp6FixtureOptions{response: func(d wp6Digests) string {
+		block := wp6JSONBodyResponseBlock(d)
+		block = strings.Replace(block, "        result:", `          - id: updated
+            status: 201
+            body: none
+        result:`, 1)
+		return strings.Replace(block, "        result:\n          producer: operation", `        result:
+          producer: operation
+          dispositionSelector:
+            sourcePath: /dispositionId
+            cases:
+              - value: first
+                dispositionId: updated
+                representationId: json
+              - value: second
+                dispositionId: updated`, 1)
+	}})
+	wp6RequireContractCode(t, diagnostics, "/response/dispositions/1/id")
+}
+
+// TestV1Alpha5WP6DuplicateDispositionStatus covers IN-040: the same HTTP status
+// may only appear in one disposition; extra media types are representations of
+// that same disposition.
+func TestV1Alpha5WP6DuplicateDispositionStatus(t *testing.T) {
+	diagnostics := wp6Check(t, wp6FixtureOptions{response: func(d wp6Digests) string {
+		block := wp6JSONBodyResponseBlock(d)
+		block = strings.Replace(block, "        result:", `          - id: duplicate-status
+            status: 200
+            body: none
+        result:`, 1)
+		return strings.Replace(block, "        result:\n          producer: operation", `        result:
+          producer: operation
+          dispositionSelector:
+            sourcePath: /dispositionId
+            cases:
+              - value: first
+                dispositionId: updated
+                representationId: json
+              - value: second
+                dispositionId: duplicate-status`, 1)
+	}})
+	wp6RequireContractCode(t, diagnostics, "/response/dispositions/1/status")
+}
+
 // TestV1Alpha5WP6ProducerOutputSchemaIncompatible covers L.8.2/L.11.2: an
 // incompatible Producer Output Schema reuses INPUT_TYPE_MISMATCH, not
 // WAIT_RESPONSE_MAPPING_INVALID.

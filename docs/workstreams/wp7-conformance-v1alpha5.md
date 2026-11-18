@@ -8,7 +8,7 @@ This record classifies every Appendix L.12 `EW-001`-`EW-036` and released #62 se
 Hard limits stated up front:
 
 - **No row is CI PASS or qualification.** CI did not execute any step for this branch; only the local commands in section 7 were executed and their exact results are recorded there.
-- 43 rows are `COMPILER_STATIC_IMPLEMENTED_TESTED` and name an executable Go test. Rows not naming a test are **not** executed or claimed.
+- 49 rows are `COMPILER_STATIC_IMPLEMENTED_TESTED` and name an executable Go test. Rows not naming a test are **not** executed or claimed.
 - `HOST_RUNTIME_INTEGRATION_OWNED` rows are Host/Runtime/Integration obligations. They are **not Compiler obligations** and are not implemented, executed or claimed by this work package.
 - `COMPILER_STATIC_DEFERRED` rows name the remaining owning work package and, where a normative identity exists, the expected `(Code, Phase, Severity)`. Some deferred rows document an identity/coverage divergence rather than a missing code path.
 - Real Owner artifacts, real Integration wire conformance and 5GC/MAS qualification remain **NOT_QUALIFIED**.
@@ -26,11 +26,11 @@ Hard limits stated up front:
 
 | Set | Implemented + tested | Deferred | Host/Runtime/Integration | Spec-only | Total |
 |---|---|---|---|---|---|
-| EW-001..EW-036 | 15 | 2 | 18 | 1 | 36 |
-| IN-001..IN-066 | 28 | 11 | 27 | 0 | 66 |
-| **All** | **43** | **13** | **45** | **1** | **102** |
+| EW-001..EW-036 | 16 | 1 | 18 | 1 | 36 |
+| IN-001..IN-066 | 33 | 6 | 27 | 0 | 66 |
+| **All** | **49** | **7** | **45** | **1** | **102** |
 
-Deferred rows by remaining owner: WP1 = 1, WP3 = 4, WP5 = 1, WP6 = 7.
+Deferred rows by remaining owner: WP1 = 1, WP3 = 0, WP5 = 0, WP6 = 6.
 
 ## 3. EW-001..EW-036 matrix (Appendix L.12)
 
@@ -66,7 +66,7 @@ Deferred rows by remaining owner: WP1 = 1, WP3 = 4, WP5 = 1, WP6 = 7.
 | EW-028 | Host admission | `HOST_RUNTIME_INTEGRATION_OWNED` | Host admission rejects before Invocation creation with WAIT_DURATION_LIMIT_EXCEEDED (Appendix L.11.2, not C_STATIC); no clamping. | NOT_COMPILER_OWNED (external obligation) |
 | EW-029 | Compiler | `COMPILER_STATIC_DEFERRED` | Body-bearing response mapping that selects wait.output, Context or raw request data instead of the declared boundary Producer emits WAIT_RESPONSE_MAPPING_INVALID. | NOT_IMPLEMENTED (remaining WP6) |
 | EW-030 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | response.after naming an unknown or unreachable Node emits WAIT_RESPONSE_BOUNDARY_INVALID. | `TestV1Alpha5GraphUnknownResponseAfterTarget`, `TestV1Alpha5WP6UnreachableBoundary` |
-| EW-031 | Compiler/Runtime | `COMPILER_STATIC_DEFERRED` | A global Precondition that is not satisfied on every incoming path to a protected Mutation/success is rejected with the inherited ENTRY_PRECONDITION_BYPASSED identity; a Wait edge never establishes the gate. The v1alpha5 static precedence/dominance obligation is not implemented in this stack. | NOT_IMPLEMENTED (remaining WP5) |
+| EW-031 | Compiler/Runtime | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A global Precondition that is not satisfied on every incoming path to a protected Mutation/success is rejected with the inherited ENTRY_PRECONDITION_BYPASSED identity; a Wait edge never establishes the gate. | `TestV1Alpha5EW031EntryPreconditionBypass` |
 | EW-032 | Runtime/Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Do not dispatch the triggering Operation when expected-ingress arming cannot be acknowledged. | NOT_COMPILER_OWNED (external obligation) |
 | EW-033 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Missing wait.routes mapping or missing TIMEOUT key emits WAIT_TIMEOUT_ROUTE_INVALID. | `TestV1Alpha5DiagnosticContractEWAnchors` |
 | EW-034 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | An author-declared EVENT_RECEIVED or any extra key under wait.routes emits WAIT_TIMEOUT_ROUTE_INVALID; the normal event edge remains implicit. | `TestV1Alpha5DiagnosticContractEWAnchors` |
@@ -102,7 +102,7 @@ Deferred rows by remaining owner: WP1 = 1, WP3 = 4, WP5 = 1, WP6 = 7.
 | IN-001 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Resolve Ingress only in declared dependencies; zero matches emit WAIT_INGRESS_EXPORT_NOT_FOUND / C_STATIC; never guess from a global catalog. | `TestV1Alpha5WaitWithoutIngressExportIsNotFound`, `TestV1Alpha5WP3PositiveTrustedIngressLink` |
 | IN-002 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Selector with no matching export emits WAIT_INGRESS_EXPORT_NOT_FOUND / C_STATIC. | `TestV1Alpha5WP3SelectorNotFound` |
 | IN-003 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Selector matching multiple exports emits WAIT_INGRESS_EXPORT_AMBIGUOUS / C_STATIC. | `TestV1Alpha5WP3SelectorAmbiguous` |
-| IN-004 | Compiler | `COMPILER_STATIC_DEFERRED` | Missing or mismatching Owner binding emits DEPENDENCY_EXPORT_OWNER_UNVERIFIED or DEPENDENCY_OWNER_MISMATCH (reused dependency identities); no Ingress alias. | NOT_IMPLEMENTED (remaining WP3) |
+| IN-004 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Missing or mismatching Owner binding emits DEPENDENCY_EXPORT_OWNER_UNVERIFIED or DEPENDENCY_OWNER_MISMATCH (reused dependency identities); no Ingress alias. | `TestV1Alpha5WP3IngressExportOwnerMismatch`, `TestV1Alpha5WP3IngressExportOwnerRecordMissing` |
 | IN-005 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Duplicate export id emits INGRESS_EXPORT_ID_DUPLICATE / C_STATIC. | `TestCatalogDuplicateExportID` |
 | IN-006 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | OpenAPI artifact raw-byte digest mismatch emits the reused DEPENDENCY_IDENTITY_UNVERIFIED identity; must not emit INGRESS_PROTOCOL_ARTIFACT_INVALID. | `TestCatalogProtocolArtifactIdentityUnverified` |
 | IN-007 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Mixing 3GPP Service-Operation names with the pinned OpenAPI operationId emits INGRESS_PROTOCOL_ARTIFACT_INVALID / C_STATIC. | `TestCatalogProtocolMetadataMismatch` |
@@ -117,7 +117,7 @@ Deferred rows by remaining owner: WP1 = 1, WP3 = 4, WP5 = 1, WP6 = 7.
 | IN-016 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A multipart/binary part without a restricted immutable reference and lifecycle declaration emits INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID / C_STATIC; runtime payload-reference mismatch remains an Integration reject/quarantine. | `TestBinaryContentReferenceSchemaUnresolved` |
 | IN-017 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Host correlation metadata leaking into wait.output is an Integration conformance failure. | NOT_COMPILER_OWNED (external obligation) |
 | IN-018 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A trigger callable that is not an exact ToolCatalog Operation emits EXPORT_ID_MISSING or EXPORT_ID_AMBIGUOUS in the exact Package ID + Owner scope. | `TestV1Alpha5WP3TriggerOperationMissing`, `TestV1Alpha5WP3TriggerOperationAmbiguous` |
-| IN-019 | Compiler | `COMPILER_STATIC_DEFERRED` | A trigger argument that depends on the trigger's own not-yet-executed output emits SOURCE_NOT_AVAILABLE / C_STATIC. | NOT_IMPLEMENTED (remaining WP3) |
+| IN-019 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A trigger argument that depends on the trigger's own not-yet-executed output emits SOURCE_NOT_AVAILABLE / C_STATIC; the dependent correlation binding is also rejected. | `TestV1Alpha5WP3TriggerSelfOutputUnavailable` |
 | IN-020 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A start Wait without a verifiable correlation Context binding emits WAIT_CORRELATION_BINDING_INVALID / C_STATIC. | `TestV1Alpha5WP3StartWaitWithoutArmingStart` |
 | IN-021 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | An incoming path that cannot uniquely derive the trigger Operation/correlation binding emits WAIT_CORRELATION_BINDING_INVALID / C_STATIC. | `TestV1Alpha5WP3TriggerNotDominatingOnOnePath` |
 | IN-022 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Reject/quarantine a request matching two active expectedIngressRef values; never select the newest. | NOT_COMPILER_OWNED (external obligation) |
@@ -138,13 +138,13 @@ Deferred rows by remaining owner: WP1 = 1, WP3 = 4, WP5 = 1, WP6 = 7.
 | IN-037 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Architecture conformance failure: Integration must not heuristically select a Run/Node. | NOT_COMPILER_OWNED (external obligation) |
 | IN-038 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Integration must reject re-arming immediately after a closing Wait while the tombstone is unexpired. | NOT_COMPILER_OWNED (external obligation) |
 | IN-039 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | acceptedMediaTypes, sourceSchemas and normalization.representations not in one-to-one correspondence emit INGRESS_NORMALIZATION_INVALID / C_STATIC. | `TestNormalizationMediaTypeCorrespondence`, `TestNormalizationDuplicateSourceMediaType` |
-| IN-040 | Compiler | `COMPILER_STATIC_DEFERRED` | Duplicate response disposition id or HTTP status in one Ingress export emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC. | NOT_IMPLEMENTED (remaining WP6) |
+| IN-040 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Duplicate response disposition id or HTTP status in one Ingress export emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC. | `TestV1Alpha5WP6DuplicateDispositionID`, `TestV1Alpha5WP6DuplicateDispositionStatus` |
 | IN-041 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | After EVENT_ACCEPTED, a duplicate old request before tombstone expiry or a premature next arming must be rejected/quarantined and never delivered to the next Wait. | NOT_COMPILER_OWNED (external obligation) |
 | IN-042 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | Request binaryContent retention shorter than the last declared recovery window emits INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID / C_STATIC. | `TestBinaryContentRetentionBelowRecoveryWindow` |
 | IN-043 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Reject an over-limit multipart body/part before unbounded buffering; do not submit the normalized delivery. | NOT_COMPILER_OWNED (external obligation) |
 | IN-044 | Compiler | `COMPILER_STATIC_DEFERRED` | A pinned OpenAPI response requiring multipart/related binary parts while the export declares only JSON mapping emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; binary parts are never dropped or stringified. | NOT_IMPLEMENTED (remaining WP6) |
 | IN-045 | Compiler | `COMPILER_STATIC_DEFERRED` | A Step 15 user-plane setup rejection requiring an N1 SM Reject binary container while the export declares only JSON or 204 emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; a missing N1 binary mapping stays NOT LINKABLE. | NOT_IMPLEMENTED (remaining WP6) |
-| IN-046 | Compiler | `COMPILER_STATIC_DEFERRED` | A staleDelivery declaration using 3gpp-Sbi-Request-Info.idempotency-key without a correct source/scope/duplicate identity emits INGRESS_CORRELATION_INVALID / C_STATIC. | NOT_IMPLEMENTED (remaining WP3) |
+| IN-046 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A staleDelivery authenticated-header-parameter discriminator whose duplicate identity source/scope is not the same 3gpp-sbi-idempotency-key target-nf identity emits INGRESS_CORRELATION_INVALID / C_STATIC. | `TestV1Alpha5WP3WireDiscriminatorDuplicateIdentityInvalid` |
 | IN-047 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A discriminatorRetention less than or equal to maximumLateArrival + clockSkewAllowance emits INGRESS_CORRELATION_INVALID / C_STATIC. | `TestV1Alpha5WP3RetentionWindowInvalid` |
 | IN-048 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Never send an over-limit body; apply the declared protocol failure policy; no truncation or silent omission. | NOT_COMPILER_OWNED (external obligation) |
 | IN-049 | Integration | `HOST_RUNTIME_INTEGRATION_OWNED` | Reject/quarantine a mismatched, missing, duplicate or dangling multipart Content-ID; no normalized delivery. | NOT_COMPILER_OWNED (external obligation) |
@@ -158,7 +158,7 @@ Deferred rows by remaining owner: WP1 = 1, WP3 = 4, WP5 = 1, WP6 = 7.
 | IN-057 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A trusted OpenAPI artifact whose release, API URI version, method, path or operationId contradicts the Catalog declaration (after byte-digest verification) emits INGRESS_PROTOCOL_ARTIFACT_INVALID / C_STATIC. | `TestCatalogProtocolMetadataMismatch` |
 | IN-058 | Compiler | `COMPILER_STATIC_DEFERRED` | Peer profile reference **format** validation is implemented (`INGRESS_PEER_PROFILE_REFERENCE_INVALID / C_STATIC`, `TestPeerProfileReferenceInvalid`); resolution to an exact expected profile resource remains deferred because the released #62 contract publishes no profile resource representation or identity format, and deployment binding is Host Admission. | PARTIAL (format implemented; resource resolution deferred) |
 | IN-059 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A missing, duplicate, incomplete or invalid-target/transform normalization mapping for an accepted media representation emits INGRESS_NORMALIZATION_INVALID / C_STATIC; invalid source/normalized Schemas still use the Schema diagnostics. | `TestNormalizationDanglingTarget`, `TestNormalizationTransformTargetTypeMismatch` |
-| IN-060 | Compiler | `COMPILER_STATIC_DEFERRED` | An invalid Ingress-own correlation key/duplicate identity/scope/staleDelivery declaration emits INGRESS_CORRELATION_INVALID / C_STATIC; an unprovable Skill path emits WAIT_CORRELATION_BINDING_INVALID. | NOT_IMPLEMENTED (remaining WP3) |
+| IN-060 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | An invalid Ingress-own correlation key/duplicate identity/scope or staleDelivery declaration emits INGRESS_CORRELATION_INVALID / C_STATIC; an unprovable Skill path emits WAIT_CORRELATION_BINDING_INVALID. | `TestV1Alpha5WP3WireDiscriminatorDuplicateIdentityInvalid` |
 | IN-061 | Compiler | `COMPILER_STATIC_DEFERRED` | A missing or contradictory Ingress response mode/deadline policy/disposition/failure response/delivery recovery contract emits INGRESS_RESPONSE_CONTRACT_INVALID / C_STATIC. | NOT_IMPLEMENTED (remaining WP6) |
 | IN-062 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | An invalid Ingress-own response representation/Schema mapping/multipart part mapping/required field mapping emits INGRESS_RESPONSE_MAPPING_INVALID / C_STATIC; a Skill Producer mapping failure emits WAIT_RESPONSE_MAPPING_INVALID. | `TestV1Alpha5WP6MappingCoverageIncomplete`, `TestV1Alpha5WP6MultipartBinaryPartUnmapped` |
 | IN-063 | Compiler | `COMPILER_STATIC_IMPLEMENTED_TESTED` | A Trigger ToolCatalog Operation missing or ambiguous in the exact Package ID + Owner scope emits EXPORT_ID_MISSING or EXPORT_ID_AMBIGUOUS; no Ingress or Wait selector diagnostic. | `TestV1Alpha5WP3TriggerOperationMissing`, `TestV1Alpha5WP3TriggerOperationAmbiguous` |

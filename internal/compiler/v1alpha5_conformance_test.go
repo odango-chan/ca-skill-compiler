@@ -119,6 +119,13 @@ var wp7TestTable = map[string]func(*testing.T){
 	"TestV1Alpha5WP3TriggerNotDominatingOnOnePath":     TestV1Alpha5WP3TriggerNotDominatingOnOnePath,
 	"TestV1Alpha5WP3TriggerOperationAmbiguous":         TestV1Alpha5WP3TriggerOperationAmbiguous,
 	"TestV1Alpha5WP3TriggerOperationMissing":           TestV1Alpha5WP3TriggerOperationMissing,
+	"TestV1Alpha5WP3IngressExportOwnerMismatch":       TestV1Alpha5WP3IngressExportOwnerMismatch,
+	"TestV1Alpha5WP3IngressExportOwnerRecordMissing":  TestV1Alpha5WP3IngressExportOwnerRecordMissing,
+	"TestV1Alpha5EW031EntryPreconditionBypass":        TestV1Alpha5EW031EntryPreconditionBypass,
+	"TestV1Alpha5WP3TriggerSelfOutputUnavailable":     TestV1Alpha5WP3TriggerSelfOutputUnavailable,
+	"TestV1Alpha5WP3WireDiscriminatorDuplicateIdentityInvalid": TestV1Alpha5WP3WireDiscriminatorDuplicateIdentityInvalid,
+	"TestV1Alpha5WP6DuplicateDispositionID":           TestV1Alpha5WP6DuplicateDispositionID,
+	"TestV1Alpha5WP6DuplicateDispositionStatus":       TestV1Alpha5WP6DuplicateDispositionStatus,
 	"TestV1Alpha5WP4TimeoutHandlerReadIsUnavailable":   TestV1Alpha5WP4TimeoutHandlerReadIsUnavailable,
 	"TestV1Alpha5WP6BoundaryNodeWithoutProducerStage":  TestV1Alpha5WP6BoundaryNodeWithoutProducerStage,
 	"TestV1Alpha5WP6EarlyFailureMappingMissing":        TestV1Alpha5WP6EarlyFailureMappingMissing,
@@ -418,18 +425,18 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 	// cannot silently inflate or shrink.
 	wantImplemented := []string{
 		"EW-012", "EW-013", "EW-014", "EW-015", "EW-016", "EW-018", "EW-019",
-		"EW-021", "EW-022", "EW-027", "EW-030", "EW-033", "EW-034", "EW-035", "EW-036",
-		"IN-001", "IN-002", "IN-003", "IN-005", "IN-006", "IN-007", "IN-013",
-		"IN-014", "IN-015", "IN-016", "IN-018", "IN-020", "IN-021", "IN-023",
-		"IN-028", "IN-029", "IN-031", "IN-032", "IN-033", "IN-039", "IN-042",
-		"IN-047", "IN-055", "IN-056", "IN-057", "IN-059", "IN-062", "IN-063",
+		"EW-021", "EW-022", "EW-027", "EW-030", "EW-031", "EW-033", "EW-034", "EW-035", "EW-036",
+		"IN-001", "IN-002", "IN-003", "IN-004", "IN-005", "IN-006", "IN-007", "IN-013",
+		"IN-014", "IN-015", "IN-016", "IN-018", "IN-019", "IN-020", "IN-021", "IN-023",
+		"IN-028", "IN-029", "IN-031", "IN-032", "IN-033", "IN-039", "IN-040", "IN-042",
+		"IN-046", "IN-047", "IN-055", "IN-056", "IN-057", "IN-059", "IN-060", "IN-062", "IN-063",
 	}
 	if strings.Join(implementedIDs, ",") != strings.Join(wantImplemented, ",") {
 		t.Fatalf("implemented+tested set = %v, want exactly %v", implementedIDs, wantImplemented)
 	}
 
-	if counts[wp7Implemented] != 43 ||
-		counts[wp7Deferred] != 13 ||
+	if counts[wp7Implemented] != 49 ||
+		counts[wp7Deferred] != 7 ||
 		counts[wp7External] != 45 ||
 		counts[wp7Specification] != 1 {
 		t.Fatalf("unexpected classification totals: %#v", counts)
@@ -441,11 +448,11 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 		t.Fatalf("register summary counts disagree with rows: summary=%#v rows=%#v",
 			register.Counts, counts)
 	}
-	if register.Counts.EW[wp7Implemented] != 15 || register.Counts.EW[wp7Deferred] != 2 ||
+	if register.Counts.EW[wp7Implemented] != 16 || register.Counts.EW[wp7Deferred] != 1 ||
 		register.Counts.EW[wp7External] != 18 || register.Counts.EW[wp7Specification] != 1 {
 		t.Fatalf("unexpected EW summary counts: %#v", register.Counts.EW)
 	}
-	if register.Counts.IN[wp7Implemented] != 28 || register.Counts.IN[wp7Deferred] != 11 ||
+	if register.Counts.IN[wp7Implemented] != 33 || register.Counts.IN[wp7Deferred] != 6 ||
 		register.Counts.IN[wp7External] != 27 || register.Counts.IN[wp7Specification] != 0 {
 		t.Fatalf("unexpected IN summary counts: %#v", register.Counts.IN)
 	}

@@ -356,6 +356,13 @@ func v1alpha5ValidateStaleDelivery(export v1alpha5TrustedIngressExport, normaliz
 				return invalid("/correlation/staleDelivery/discriminator/path")
 			}
 		case "authenticated-header-parameter":
+			// #62 §7.4: the 3gpp-Sbi-Request-Info idempotency-key may double as
+			// the wire discriminator only when the protocol duplicate identity is
+			// the same key with the same authoritative scope. The released
+			// structural Schema already fixes the scope to target-nf.
+			if export.Operation.Correlation.Duplicate.IdentitySource != "3gpp-sbi-idempotency-key" {
+				return invalid("/correlation/duplicate/identitySource")
+			}
 		default:
 			return invalid("/correlation/staleDelivery/discriminator/kind")
 		}

@@ -781,7 +781,7 @@ func TestV1Alpha5WP3UntrustedOwnerSuppressed(t *testing.T) {
 		},
 	})
 	diagnostics := Check(request)
-	assertWP3Diagnostics(t, diagnostics, "WAIT_INGRESS_EXPORT_NOT_FOUND")
+	assertWP3Diagnostics(t, diagnostics, "DEPENDENCY_OWNER_MISMATCH")
 }
 
 // TestV1Alpha5WP3SchemaClosureDigestMismatch covers a declared schemaDigest that
@@ -1031,6 +1031,146 @@ func TestV1Alpha5WP3TriggerArgumentsMissing(t *testing.T) {
         SUCCEEDED: wait-sm-context`, 1)
 	diagnostics := wp3Check(t, wp3FixtureOptions{procedure: procedure})
 	assertWP3Diagnostics(t, diagnostics, "WAIT_CORRELATION_BINDING_INVALID")
+}
+
+// TestV1Alpha5WP3IngressExportOwnerMismatch covers IN-004: the trusted
+// ingressOperation export-owner record Owner differs from the Catalog Owner.
+func TestV1Alpha5WP3IngressExportOwnerMismatch(t *testing.T) {
+	request := wp3BuildRequest(t, wp3FixtureOptions{mutateContext: func(context *TrustedBuildContext) {
+		for index := range context.DependencyBindings {
+			if context.DependencyBindings[index].DependencyID != wp3IntegrationDependency {
+				continue
+			}
+			for ownerIndex := range context.DependencyBindings[index].ExportOwners {
+				context.DependencyBindings[index].ExportOwners[ownerIndex].Owner = "example.other-owner"
+			}
+		}
+	}})
+	assertWP3Diagnostics(t, Check(request), "DEPENDENCY_OWNER_MISMATCH")
+}
+
+// TestV1Alpha5WP3IngressExportOwnerRecordMissing covers IN-004: the trusted
+// binding declares ingressOperation exports but the Catalog Operation has no
+// exact export-owner record.
+func TestV1Alpha5WP3IngressExportOwnerRecordMissing(t *testing.T) {
+	request := wp3BuildRequest(t, wp3FixtureOptions{mutateContext: func(context *TrustedBuildContext) {
+		for index := range context.DependencyBindings {
+			if context.DependencyBindings[index].DependencyID != wp3IntegrationDependency {
+				continue
+			}
+			context.DependencyBindings[index].ExportOwners = []ExportOwner{{
+				ExportKind: v1alpha5ExportKindIngressOperation,
+				ExportID:   "nsmf-pdusession.other-export",
+				Owner:      wp3IntegrationOwner,
+			}}
+		}
+	}})
+	assertWP3Diagnostics(t, Check(request), "DEPENDENCY_EXPORT_OWNER_UNVERIFIED")
+}
+
+// TestV1Alpha5EW031EntryPreconditionBypass covers EW-031: a global Precondition
+// gate that a reachable success path bypasses is rejected with the inherited
+// ENTRY_PRECONDITION_BYPASSED identity. Wait entry control is not a fifth
+// business stage and never establishes the gate.
+func TestV1Alpha5EW031EntryPreconditionBypass(t *testing.T) {
+	contract := `goal: session.goal_satisfied
+precondition: gate.precondition
+dependencies:
+  tools: urn:example:package:amf-client-tools
+  integration: urn:example:package:smf-integration
+capabilities:
+  - example.skill-tools
+`
+	procedure := `start: entry
+nodes:
+  entry:
+    operation:
+      tool: tools::smf.update_timeout.handle
+      arguments: {}
+      routes:
+        SUCCEEDED: choose
+        FAILED: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
+  choose:
+    precondition:
+      predicates:
+        - predicate: session.goal_satisfied
+          arguments: []
+      routes:
+        PASS: gate
+        FAIL: shortcut
+        UNKNOWN: UNRESOLVED
+  gate:
+    precondition:
+      predicates:
+        - predicate: session.goal_satisfied
+          arguments: []
+      routes:
+        PASS: final
+        FAIL: SAFE_STOPPED
+        UNKNOWN: UNRESOLVED
+  shortcut:
+    operation:
+      tool: tools::smf.update_timeout.handle
+      arguments: {}
+      routes:
+        SUCCEEDED: final
+        FAILED: SAFE_STOPPED
+        UNKNOWN: SAFE_STOPPED
+  final:
+    postcondition:
+      predicates:
+        - predicate: session.goal_satisfied
+          arguments: []
+      routes:
+        PASS: SUCCEEDED
+        FAIL: SAFE_STOPPED
+        UNKNOWN: UNRESOLVED
+`
+	assertWP3Diagnostics(t, wp3Check(t, wp3FixtureOptions{procedure: procedure, contract: contract}), "ENTRY_PRECONDITION_BYPASSED")
+}
+
+// TestV1Alpha5WP3TriggerSelfOutputUnavailable covers IN-019: a trigger argument
+// that depends on the triggering Operation's own not-yet-produced output emits
+// the inherited SOURCE_NOT_AVAILABLE identity; the dependent correlation binding
+// is also rejected.
+func TestV1Alpha5WP3TriggerSelfOutputUnavailable(t *testing.T) {
+	procedure := strings.Replace(wp3PositiveProcedure,
+		`        smContextRef: "sm-context-placeholder"`,
+		`        smContextRef: trigger-transfer.operation.output.smContextRef`, 1)
+	diagnostics := wp3Check(t, wp3FixtureOptions{procedure: procedure})
+	assertWP3Diagnostics(t, diagnostics, "SOURCE_NOT_AVAILABLE", "WAIT_CORRELATION_BINDING_INVALID")
+}
+
+// TestV1Alpha5WP3WireDiscriminatorDuplicateIdentityInvalid covers IN-046/IN-060:
+// an authenticated-header-parameter wire discriminator may only double as the
+// stale-delivery discriminator when the duplicate identity source is the same
+// 3gpp-Sbi-Request-Info idempotency-key.
+func TestV1Alpha5WP3WireDiscriminatorDuplicateIdentityInvalid(t *testing.T) {
+	staleBlock := `        staleDelivery:
+          strategy: single-flight-tombstone
+          resourceKey: /smContextRef
+          maximumLateArrival: PT30S
+          clockSkewAllowance: PT5S
+          tombstoneRetention: PT60S
+          basisRef: urn:example:synthetic-guarantee`
+	wireBlock := `        staleDelivery:
+          strategy: wire-discriminator
+          discriminator:
+            kind: authenticated-header-parameter
+            header: 3gpp-Sbi-Request-Info
+            parameter: idempotency-key
+          maximumLateArrival: PT30S
+          clockSkewAllowance: PT5S
+          discriminatorRetention: PT60S
+          basisRef: urn:example:synthetic-guarantee`
+	diagnostics := wp3Check(t, wp3FixtureOptions{
+		catalogText: func(openAPIDigest, requestDigest, normalizedDigest string) string {
+			text := wp3DefaultCatalogText(openAPIDigest, requestDigest, normalizedDigest)
+			return strings.Replace(text, staleBlock, wireBlock, 1)
+		},
+	})
+	assertWP3Diagnostics(t, diagnostics, "INGRESS_CORRELATION_INVALID")
 }
 
 // TestV1Alpha5WP3DependencyIdentityFailureSuppressesLinking covers the
