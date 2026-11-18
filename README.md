@@ -1,7 +1,10 @@
 # CA Skill Compiler
 
-**Current target: CA-SL v1alpha4.** A deterministic, stateless Compiler for the frozen
-ConnectionAgent Skill Language. The Compiler consumes author Skill source, immutable
+**Released product baseline: CA Skill Compiler v1.0.0 / CA-SL v1alpha4.** The next
+implementation target is CA-SL v1alpha5, whose language specification and Ingress logical
+contract are now FROZEN / RELEASED; the v1alpha5 Compiler implementation remains partial
+and is not ready for release. A deterministic, stateless Compiler for the ConnectionAgent
+Skill Language. The Compiler consumes author Skill source, immutable
 dependency snapshots and a trusted build context, and produces frozen diagnostics plus a
 deterministic artifact file tree. One Go Core serves Native Go, Go/WASM and the reference
 CLI; it performs no network access, dependency acquisition, Python execution or Runtime
@@ -19,11 +22,13 @@ target remains the frozen `connectionagent.io/v1alpha4`.
 
 ## Normative authority
 
-- **CA-SL v1alpha4:** [ca-skills immutable commit 7f84393](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md)
-- **Frozen specification file blob:** `b70064c5737b8ee2b3d1435fe496357f44b42773`
-- Compiler-owned frozen contracts: `docs/design/*-v1alpha4.md` and `contracts/v1alpha4/`.
-- Companion authoring/schema notes are informative only. The single-file specification is
-  the only normative language authority.
+- **Released CA-SL v1alpha4 historical baseline:** [immutable commit 7f84393](https://github.com/odango-chan/ca-skills/blob/7f84393ee8c395e4d8c39a74cb5000a1f896588d/docs/skill-language-spec.v1alpha4.zh-CN.md).
+- **Released CA-SL v1alpha5:** [immutable release commit 0abfd0e](https://github.com/odango-chan/ca-skills/blob/0abfd0e1ab99f481a4ae01f3f47efc54783dd5e5/docs/skill-language-spec.v1alpha5.zh-CN.md).
+- **Released IngressCatalog v1alpha1:** [logical contract at release commit 9412be9](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/integration-ingress-operation-contract-vnext.zh-CN.md).
+- **Released Ingress diagnostic registry:** [v1alpha1 registry](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/ingress-diagnostic-registry-v1alpha1.md).
+- Compiler-owned v1alpha4 historical contracts: `docs/design/*-v1alpha4.md` and `contracts/v1alpha4/`.
+- Compiler-owned v1alpha5 candidate artifact contract: `contracts/v1alpha5/` and `docs/design/compiler-artifact-v1alpha5.md`.
+- The v1alpha5 language specification inherits the v1alpha4 normative semantics except where v1alpha5 explicitly adds or replaces rules. The compiler must implement the inherited semantics; it does not need to preserve the old v1alpha4 public API or old-project compatibility.
 
 v0.1 and v0.2 are historical records only. They are not fallback contracts, this
 repository does not translate or infer them, and no compatibility mode exists.
@@ -59,7 +64,7 @@ dependency is reported, never inferred. Full reference: [CLI v1alpha4](docs/cli-
 
 | Path | Purpose |
 |---|---|
-| `internal/compiler` | active v1alpha4 Core: BuildRequest envelope, YAML AST, dependency/Owner/Capability linking, Schema/CEL, Procedure graph, SourcePath, Script ABI |
+| `internal/compiler` | released v1alpha4 implementation plus the v1alpha5 candidate path; v1alpha5 inherited package/linking/Schema/CEL/Predicate/Script/Evidence/Mutation/Reconcile/retry coverage is still incomplete |
 | `internal/compiler/yamlast` | the single normalized YAML parser adapter |
 | `internal/pythoncst` | Python CST adapter (parse only; never executes Python) |
 | `internal/artifact` | deterministic artifact tree, JCS manifest and integrity verification |
@@ -96,6 +101,9 @@ dependency is reported, never inferred. Full reference: [CLI v1alpha4](docs/cli-
 | [Studio integration](docs/studio-integration-v1alpha4.md) | Go/WASM Worker and read-only Studio boundary |
 | [Machine contracts](contracts/v1alpha4/README.md) | JSON Schemas and golden vectors |
 | [Examples Guide](examples/README.md) | distinguishes the current positive Build fixture from historical migration inputs |
+| [v1alpha5 Integration Acceptance](docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md) | current implementation coverage, local evidence, CI status and release blockers |
+| [v1alpha5 Known Limitations](docs/known-limitations-v1alpha5.md) | explicit gaps against the released language and Ingress contracts |
+| [v1alpha5 Completion Goal](docs/workstreams/v1alpha5-full-language-completion-goal.zh-CN.md) | implementation plan for full inherited semantics and remaining static obligations |
 
 ## Version identifiers
 
@@ -141,6 +149,24 @@ historical completion claims.
 unfrozen external publication, and locally verified. **Not claimed:** product conformance
 certification, external Owner integration readiness, or real 5GC qualification. See
 [Known Limitations](docs/known-limitations-v1alpha4.md).
+
+## Next implementation target: CA-SL v1alpha5
+
+The language and Ingress logical contracts are released, but the Compiler implementation is not complete.
+
+| Area | Current status |
+|---|---|
+| Wait / Procedure graph / Trigger / Correlation / wait.output / Response Boundary | Implemented in the candidate integration branch; local acceptance reported by Harness |
+| IngressCatalog / Schema Closure Digest v1 | Implemented in the candidate integration branch; local vector coverage reported |
+| Deterministic candidate artifacts / Native-WASM-Chromium parity | Local PASS reported for the checked projections |
+| Inherited package, non-Wait ToolCatalog / Capability linking, Schema / CEL / Predicate / Script / Evidence / Mutation / Reconcile / retry semantics | NOT COMPLETE |
+| Remaining Compiler-static EW / IN obligations | 19 deferred in the current register; IN-064..IN-066 are not yet represented |
+| GitHub Actions | CI_UNAVAILABLE for the current integration candidate; latest recorded job executed zero steps |
+| Real Owner / Deployment / Host / Runtime / Integration / 5GC qualification | NOT_QUALIFIED |
+
+The v1alpha5 specification inherits the v1alpha4 normative semantics except where v1alpha5 explicitly adds or replaces rules. This is a language-semantic requirement, not a requirement to preserve v1alpha4 API or old-project compatibility. The historical v1.0.0 release remains unchanged; the active Compiler may be refactored or simplified around v1alpha5.
+
+See [integration acceptance](docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md), [known limitations](docs/known-limitations-v1alpha5.md) and the [full completion Goal](docs/workstreams/v1alpha5-full-language-completion-goal.zh-CN.md).
 
 ## Local verification
 
