@@ -39,7 +39,7 @@ var wp7Classifications = map[string]bool{
 // wp7EWCount and wp7INCount are the Appendix L.12 / #62 section 14 case counts.
 const (
 	wp7EWCount = 36
-	wp7INCount = 63
+	wp7INCount = 66
 )
 
 // Normative code sets for the register integrity check (hard-coded from
@@ -419,7 +419,7 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 
 	if counts[wp7Implemented] != 37 ||
 		counts[wp7Deferred] != 19 ||
-		counts[wp7External] != 42 ||
+		counts[wp7External] != 45 ||
 		counts[wp7Specification] != 1 {
 		t.Fatalf("unexpected classification totals: %#v", counts)
 	}
@@ -435,7 +435,7 @@ func TestV1Alpha5ConformanceRegisterIntegrity(t *testing.T) {
 		t.Fatalf("unexpected EW summary counts: %#v", register.Counts.EW)
 	}
 	if register.Counts.IN[wp7Implemented] != 22 || register.Counts.IN[wp7Deferred] != 17 ||
-		register.Counts.IN[wp7External] != 24 || register.Counts.IN[wp7Specification] != 0 {
+		register.Counts.IN[wp7External] != 27 || register.Counts.IN[wp7Specification] != 0 {
 		t.Fatalf("unexpected IN summary counts: %#v", register.Counts.IN)
 	}
 }
@@ -527,7 +527,7 @@ func TestV1Alpha5ConformanceNoPassClaims(t *testing.T) {
 }
 
 // TestV1Alpha5ConformanceDeterministicIDs is a compact independent check that
-// the register case order is exactly EW-001..EW-036, IN-001..IN-063.
+// the register case order is exactly EW-001..EW-036, IN-001..IN-066.
 func TestV1Alpha5ConformanceDeterministicIDs(t *testing.T) {
 	register := loadWP7Register(t)
 	got := make([]string, 0, len(register.Cases))
