@@ -72,7 +72,7 @@ The v1alpha5 entry path now runs **one** inherited static semantic pipeline (`va
 
 `v1alpha5_artifact.go` re-runs the same passes during assembly and refuses to emit an artifact if any would fail. The artifact dependency closure and `BuildResult.dependencyClosure` now include the full inherited closure, not just the Wait Ingress links.
 
-The inherited Mutation/Reconcile/retry positive-path obligations and Evidence Descriptor linking are now implemented and gated by the same pipeline (commit-proof/failure-class/reconcile receipt anchors, minimal proof Schema, Owner/READ/Capability coverage, recoverable-output assignability, retry business-identity and NOT_COMMITTED-edge proofs; guarantee descriptor resolution/uniqueness, Producer/provides.path matching, reference-root/selection/freshness rules, trusted IndependentDomains/CommonFact binding and PREDICATE_EVIDENCE_REQUIRED). All feature-scoped Build gates are removed. Remaining gaps are the §17.1 Host-recovery dual-Producer static slice and the deferred Ingress static cases in section 3.2.
+The inherited Mutation/Reconcile/retry positive-path obligations and Evidence Descriptor linking are now implemented and gated by the same pipeline (commit-proof/failure-class/reconcile receipt anchors, minimal proof Schema, Owner/READ/Capability coverage, recoverable-output assignability, retry business-identity and NOT_COMMITTED-edge proofs; guarantee descriptor resolution/uniqueness, Producer/provides.path matching, reference-root/selection/freshness rules, trusted IndependentDomains/CommonFact binding and PREDICATE_EVIDENCE_REQUIRED). All feature-scoped Build gates are removed. The §17.1 Host-recovery dual-Producer static check is also implemented. Remaining gaps are the deferred Ingress static cases in section 3.2.
 
 ### 3.2 Ingress / Wait conformance register is incomplete
 
@@ -115,7 +115,7 @@ The next phase is defined in [v1alpha5 Full Language Completion Goal](workstream
 It must:
 
 1. Finish the clean v1alpha5 public request/result/inspection model and separate public wire DTOs from target-neutral internal canonical build inputs (the semantic pipeline itself is already unified).
-2. Implement the §17.1 Host-recovery dual-Producer static slice for consumed recoverable Mutation outputs.
+2. Resolve the remaining deferred Ingress static cases or record their precise non-Compiler responsibility boundary.
 3. Resolve the 19 currently deferred Compiler-static EW/IN static cases.
 4. Reconcile the complete v1alpha5 diagnostic index and all Compiler-owned C_STATIC rules.
 5. Remove `CANDIDATE_PARTIAL` from any release-eligible artifact only after the artifact contract and full static validation scope are complete and reviewed.

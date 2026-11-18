@@ -912,6 +912,30 @@ func wp6RequireContractCode(t *testing.T, diagnostics []Diagnostic, fieldPath st
 	t.Fatalf("expected INGRESS_RESPONSE_CONTRACT_INVALID at %q, got %#v", fieldPath, diagnostics)
 }
 
+// TestV1Alpha5WP6ResponseSourceIsBoundaryProducerOnly covers EW-029: the closed
+// typed response mapping model accepts only the export-declared boundary
+// Producer stage as the body-bearing response source. wait.output, Context and
+// raw request data are not expressible author-level mapping sources, so no
+// non-conforming source can be silently selected.
+func TestV1Alpha5WP6ResponseSourceIsBoundaryProducerOnly(t *testing.T) {
+	request := wp6BuildRequest(t, wp6FixtureOptions{})
+	if diagnostics := Check(request); len(diagnostics) != 0 {
+		t.Fatalf("positive WP6 fixture must Check clean: %+v", diagnostics)
+	}
+	result := Build(request)
+	if !result.Success {
+		t.Fatalf("positive WP6 fixture must Build: %+v", result.Diagnostics)
+	}
+	manifest := v1alpha5DecodeManifest(t, result)
+	if len(manifest.Skills) != 1 || len(manifest.Skills[0].WaitLinks) != 1 {
+		t.Fatalf("unexpected WP6 manifest shape: %#v", manifest.Skills)
+	}
+	response := manifest.Skills[0].WaitLinks[0].Response
+	if response.ProducerStage == "" {
+		t.Fatalf("body-bearing response must record the export-declared Producer stage: %#v", response)
+	}
+}
+
 // TestV1Alpha5WP6DuplicateDispositionID covers IN-040: duplicate response
 // disposition ids in one Ingress export are rejected with the Ingress-owned
 // response-contract identity (the closed structural Schema cannot express it).

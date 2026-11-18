@@ -44,11 +44,10 @@ The previous candidate ran a detached Wait-only pipeline. That is fixed: one tar
 
 What remains is not a second pipeline but specific, enumerated static obligations:
 
-- the §17.1 Host-recovery dual-Producer static slice when a recoverable Mutation output is consumed;
 - the remaining deferred Ingress response-contract cases in section 5;
 - the final v1alpha5 Public API separation in section 6.
 
-The inherited Mutation/Reconcile/retry positive-path obligations and Evidence Descriptor linking are now implemented and gated by the same pipeline: commit-proof/failure-class/reconcile receipt anchors, minimal commit-proof Schema, failure-class Outcome/no-side-effect/retry rules, same-Owner dedicated READ and Capability coverage, recoverable-output assignability, retry business-identity and NOT_COMMITTED-edge proofs, guarantee descriptor resolution/uniqueness, Producer/`provides.path` matching, reference-root and selection/freshness rules, trusted IndependentDomains/CommonFact binding, and the PREDICATE_EVIDENCE_REQUIRED source-exemption rule. All feature-scoped fail-closed Build gates are removed.
+The inherited Mutation/Reconcile/retry positive-path obligations and Evidence Descriptor linking are now implemented and gated by the same pipeline: commit-proof/failure-class/reconcile receipt anchors, minimal commit-proof Schema, failure-class Outcome/no-side-effect/retry rules, same-Owner dedicated READ and Capability coverage, recoverable-output assignability, retry business-identity and NOT_COMMITTED-edge proofs, guarantee descriptor resolution/uniqueness, Producer/`provides.path` matching, reference-root and selection/freshness rules, trusted IndependentDomains/CommonFact binding, the PREDICATE_EVIDENCE_REQUIRED source-exemption rule, and the §17.1 Host-recovery dual-Producer check for consumed recoverable Mutation outputs. All feature-scoped fail-closed Build gates are removed.
 
 ## 3. Non-Wait Tool linking: implemented
 

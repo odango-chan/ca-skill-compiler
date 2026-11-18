@@ -254,6 +254,140 @@ func validateV1Alpha4EvidenceDescriptors(req BuildRequest, skill *V1Alpha4SkillA
 		}
 	}
 	_ = referenced
+	validateHostRecoveryDualProducer(skill, identity, ownerLinking, indexes, procedurePath, add)
+}
+
+// validateHostRecoveryDualProducer implements §17.1: when a reachable Predicate
+// consumes <original-mutation-node>.operation.output and that Mutation publishes
+// a trusted recoverable output through its dedicated Reconcile READ, every
+// required guarantee for that argument must declare both the normal Producer and
+// the Reconcile READ Producer. Without a recoverable-output promise the second
+// Producer is not required.
+func validateHostRecoveryDualProducer(skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, indexes map[string]snapshotExportIndex, procedurePath string, add func(string, *yaml.Node, string, string)) {
+	if skill == nil || skill.Procedure == nil || skill.Predicates == nil {
+		return
+	}
+	linked := map[string]linkedExport{}
+	ownerByExport := map[string]string{}
+	for _, export := range ownerLinking.Exports {
+		linked[export.DependencyAlias+"::"+export.ExportID] = export
+		owner := export.TrustedOwner
+		if owner == "" {
+			owner = export.SelfDeclaredOwner
+		}
+		ownerByExport[export.DependencyAlias+"::"+export.ExportID] = owner
+	}
+	graph := buildV1Alpha4ProcedureGraph(skill.Procedure)
+	start := scalar(skill.Procedure.Start)
+	reachable := reachableProcedureNodes(graph, start)
+	for _, nodeID := range sortedStringMapKeys(skill.Procedure.ByID) {
+		if !reachable[nodeID] {
+			continue
+		}
+		node := skill.Procedure.ByID[nodeID]
+		if node == nil {
+			continue
+		}
+		for _, stage := range []*V1Alpha4PredicateStageAST{node.Precondition, node.Postcondition} {
+			if stage == nil {
+				continue
+			}
+			for _, call := range stage.Predicates {
+				if call == nil {
+					continue
+				}
+				predicate := skill.Predicates.Definitions[scalar(unalias(call.Predicate))]
+				if predicate == nil || predicate.Evidence == nil {
+					continue
+				}
+				requires := unalias(child(predicate.Evidence, "requires"))
+				if requires == nil || requires.Kind != yaml.MappingNode {
+					continue
+				}
+				parameterIndex := predicateParameterIndex(predicate.Parameters)
+				arguments := sequence(call.Arguments)
+				for i := 0; i+1 < len(requires.Content); i += 2 {
+					parameter := scalar(unalias(requires.Content[i]))
+					index, ok := parameterIndex[parameter]
+					if !ok || index >= len(arguments) {
+						continue
+					}
+					argument := unalias(arguments[index])
+					producer, ok := recoverableMutationProducer(argument, skill, linked)
+					if !ok {
+						continue
+					}
+					alias := producer.DependencyAlias
+					targets := indexes[alias].callables[producer.MutationFields.ReconcileCallable]
+					if len(targets) != 1 {
+						continue
+					}
+					reconcile := targets[0]
+					reconcileOwner := ownerByExport[alias+"::"+reconcile.ExportID]
+					if reconcileOwner == "" {
+						reconcileOwner = reconcile.TrustedOwner
+					}
+					if reconcileOwner == "" {
+						reconcileOwner = reconcile.SelfDeclaredOwner
+					}
+					normalOwner := ownerByExport[alias+"::"+producer.ExportID]
+					if normalOwner == "" {
+						normalOwner = producer.SelfDeclaredOwner
+					}
+					for _, guarantee := range sequence(requires.Content[i+1]) {
+						guaranteeAlias, guaranteeID, ok := splitQualifiedReference(guarantee)
+						if !ok || guaranteeAlias != alias {
+							continue
+						}
+						descriptors := indexes[alias].evidence[guaranteeID]
+						if len(descriptors) != 1 {
+							continue
+						}
+						hasNormal := evidenceDescriptorDeclaresProducer(descriptors[0], producer.ExportID, "operation", normalOwner)
+						hasRecovery := evidenceDescriptorDeclaresProducer(descriptors[0], reconcile.ExportID, "operation", reconcileOwner)
+						if !hasNormal || !hasRecovery {
+							add(procedurePath, argument, "EVIDENCE_GUARANTEE_LINK_INVALID",
+								"Host-recoverable Mutation output requires the Evidence guarantee to declare both the normal Producer and the Reconcile READ Producer: "+guaranteeID)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// recoverableMutationProducer resolves <node>.operation.output to a linked
+// MUTATION export that publishes a trusted recoverable output.
+func recoverableMutationProducer(argument *yaml.Node, skill *V1Alpha4SkillAST, linked map[string]linkedExport) (linkedExport, bool) {
+	argument = unalias(argument)
+	if argument == nil || argument.Kind != yaml.ScalarNode || argument.Tag != "!!str" || argument.Style != 0 {
+		return linkedExport{}, false
+	}
+	segments := strings.Split(argument.Value, ".")
+	if len(segments) < 3 || segments[1] != "operation" || segments[2] != "output" {
+		return linkedExport{}, false
+	}
+	node := skill.Procedure.ByID[segments[0]]
+	if node == nil || node.Operation == nil {
+		return linkedExport{}, false
+	}
+	export, ok := linked[scalar(unalias(node.Operation.Tool))]
+	if !ok || export.Effect != "MUTATION" {
+		return linkedExport{}, false
+	}
+	if export.MutationFields.ReconcileCallable == "" || export.MutationFields.RecoverableSchemaID == "" {
+		return linkedExport{}, false
+	}
+	return export, true
+}
+
+func evidenceDescriptorDeclaresProducer(descriptor evidenceDescriptor, exportID, kind, owner string) bool {
+	for _, producer := range descriptor.Producers {
+		if producer.ID == exportID && producer.Kind == kind && producer.Outcome == "SUCCEEDED" && (owner == "" || producer.Owner == owner) {
+			return true
+		}
+	}
+	return false
 }
 
 func validateEvidenceDescriptorReference(alias, exportID string, indexes map[string]snapshotExportIndex, trusted *trustedEvidenceBindings, add func(string, *yaml.Node, string, string)) {

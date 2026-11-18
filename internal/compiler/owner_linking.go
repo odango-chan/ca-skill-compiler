@@ -421,6 +421,9 @@ func parseToolCatalogCallable(node *yaml.Node, owner, sourcePath string) (linked
 		if receipt, ok := schemaRefID(child(node, "receiptSchema")); ok {
 			export.ReceiptSchemaID = receipt
 		}
+		// F.1: Tool Operation exports may publish Evidence guarantees through the
+		// same guarantees.evidence.provides logical field as Observations.
+		export.EvidenceProvides = parseEvidenceProvides(child(node, "guarantees"))
 		if effect == "MUTATION" {
 			// G.2.1: the same-snapshot dedicated Reconcile READ callable.
 			if reconcile := child(child(node, "mutation"), "reconcile"); reconcile != nil {
