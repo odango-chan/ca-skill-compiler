@@ -17,10 +17,10 @@ The language and Ingress logical contracts are now published. The Compiler imple
 |---|---|
 | Repository | `odango-chan/ca-skill-compiler` |
 | Integration branch | `feat/compiler-v1alpha5-integration-20261117` |
-| Integration HEAD | `a351b4cd5861b9974726f5e8af5380c876b6d00d` |
+| Integration HEAD | Tracked by live PR #38; see GitHub for its current head SHA |
 | Base | `main` |
 | PR | [#38](https://github.com/odango-chan/ca-skill-compiler/pull/38) |
-| Commits / changed files | 43 commits / 76 files (verified against PR #38) |
+| Commits / changed files | 47 commits / 76 files at the latest integration review; documentation/CI maintenance commits are also on this branch |
 | PR status | OPEN / DRAFT |
 
 The following implementation slices are represented in #38. The child PRs are not independent merge candidates for `main`:
@@ -107,9 +107,9 @@ These are **Harness-reported local results** from the integration branch. They h
 
 ### GitHub Actions
 
-Latest PR #38 run `44220845990` for `CA-SL v1alpha5 Wait AST + Procedure admission` concluded `failure`, but its job `134521992904` has **zero executed steps**. The GitHub Actions step list is empty; no Go test, vet or build command ran. The earlier run `44091765010` had the same no-step failure mode. This is not evidence of a source-code test failure.
+Latest integration workflow runs are `44221402383` (pull_request) and `44221394375` (push). Both concluded `failure`, but jobs `134523879855` and `134523853739` have **zero executed steps**. No Go test, vet, Native/WASM build or Chromium command ran. Earlier run `44220845990` had the same no-step failure mode. This is not evidence of a source-code test failure.
 
-Status: **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**. The current workflow is still named and scoped as a Wait AST candidate workflow, and its push trigger targets the old WP2 branch rather than the integration branch. Update it to run the integration branch and full acceptance suite. Report CI and local acceptance separately. Harness-reported local PASS remains unverified at the current HEAD `a351b4cd`; rerun locally against this exact HEAD before using it as release evidence.
+Status: **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**. The workflow was updated to target the integration branch and now defines Go tests, vet, Native/WASM builds, CLI E2E and real Chromium Worker parity. GitHub still fails before the first step on both push and pull_request events; the runner/infrastructure cause remains undetermined from available job metadata. Harness-reported local PASS has not been independently reproduced at the latest integration HEAD; rerun locally before using it as release evidence.
 
 ## 5. Required next implementation phase
 
