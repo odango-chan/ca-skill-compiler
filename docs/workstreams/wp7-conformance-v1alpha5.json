@@ -2,11 +2,11 @@
   "schemaVersion": "connectionagent.io/wp7-conformance-register/v1",
   "languageTarget": "connectionagent.io/v1alpha5",
   "status": "NORMATIVE_OBLIGATIONS_LOCALLY_TESTED_NOT_QUALIFIED",
-  "scope": "Post-integration static Compiler traceability. No row is CI PASS or qualification. 37 rows are implemented+tested by executable Go tests in this repository; 19 remain deferred to named work packages; 42 are Host/Runtime/Integration obligations, not Compiler obligations; 1 is specification-only. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED.",
+  "scope": "Post-integration static Compiler traceability against released CA-SL v1alpha5 and IngressCatalog v1alpha1. No row is CI PASS or product qualification. 37 rows are implemented+tested by executable Go tests in this repository; 19 remain Compiler-static deferred; 45 are Skill/Host/Runtime/Integration obligations, not Compiler-owned static obligations; 1 is specification-only. The register covers all 36 EW and 66 IN cases. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED.",
   "counts": {
     "COMPILER_STATIC_IMPLEMENTED_TESTED": 37,
     "COMPILER_STATIC_DEFERRED": 19,
-    "HOST_RUNTIME_INTEGRATION_OWNED": 42,
+    "HOST_RUNTIME_INTEGRATION_OWNED": 45,
     "SPECIFICATION_ONLY_NOT_EXECUTED": 1,
     "ew": {
       "COMPILER_STATIC_IMPLEMENTED_TESTED": 15,
@@ -17,7 +17,7 @@
     "in": {
       "COMPILER_STATIC_IMPLEMENTED_TESTED": 22,
       "COMPILER_STATIC_DEFERRED": 17,
-      "HOST_RUNTIME_INTEGRATION_OWNED": 24,
+      "HOST_RUNTIME_INTEGRATION_OWNED": 27,
       "SPECIFICATION_ONLY_NOT_EXECUTED": 0
     }
   },
@@ -1155,6 +1155,27 @@
         "TestV1Alpha5WP3TriggerOperationMissing",
         "TestV1Alpha5WP3TriggerOperationAmbiguous"
       ]
+    },
+    {
+      "id": "IN-064",
+      "owner": "Skill/Runtime/Integration",
+      "classification": "HOST_RUNTIME_INTEGRATION_OWNED",
+      "expected": "For both Step 15 user-plane failure variants, perform the Step 17 SM Context Status Notify (Release) response without delaying it; do not repeat N4 Release when Step 17 already released N4, and release the still-live N4 Session in Step 18 when it was not previously released. Clean up any remaining PDU Session address and PCF association.",
+      "test": "NOT_COMPILER_OWNED (domain procedure / runtime / integration obligation)"
+    },
+    {
+      "id": "IN-065",
+      "owner": "Skill/Runtime/Integration",
+      "classification": "HOST_RUNTIME_INTEGRATION_OWNED",
+      "expected": "When PDU Session establishment fails after Step 4 but another PDU Session for the same SUPI, DNN and HPLMN S-NSSAI remains, Step 21 must not execute Nudm_SDM_Unsubscribe. Unsubscribe only after no matching PDU Session remains; UDM may then perform Nudr_DM_Unsubscribe.",
+      "test": "NOT_COMPILER_OWNED (domain procedure / runtime / integration obligation)"
+    },
+    {
+      "id": "IN-066",
+      "owner": "Skill/Runtime/Integration",
+      "classification": "HOST_RUNTIME_INTEGRATION_OWNED",
+      "expected": "When PDU Session establishment fails after Step 4 and no other PDU Session for the same SUPI, DNN and HPLMN S-NSSAI remains, Step 21 executes Nudm_SDM_Unsubscribe; UDM may perform Nudr_DM_Unsubscribe. Track this separately from Step 18 resource cleanup.",
+      "test": "NOT_COMPILER_OWNED (domain procedure / runtime / integration obligation)"
     }
   ]
 }
