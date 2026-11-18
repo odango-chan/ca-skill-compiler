@@ -1,92 +1,125 @@
-# Known Limitations — candidate CA-SL v1alpha5 compiler target
+# Known Limitations — CA-SL v1alpha5 Compiler implementation
 
-**Status: CANDIDATE / DRAFT.** The `connectionagent.io/v1alpha5` target is not a
-published language version and this compiler slice is not a product release.
-v1alpha4 remains the only published authoring contract. The CA-SL v1alpha5
-specification (ca-skills #61) and the Integration Ingress Operation contract
-(ca-skills #62) are Draft; where this compiler accepts a candidate shape it does
-not make that shape frozen or Owner-qualified.
+**Language status:** FROZEN / RELEASED.  
+**Compiler status:** CANDIDATE / PARTIAL STATIC COVERAGE — NOT READY TO RELEASE.  
+**Product qualification:** NOT_QUALIFIED.
 
-A successful v1alpha5 `Build` is static-compilation evidence only. It is not a
-Runtime authorization token, not a deployment/qualification decision and not a
-5GC/MAS interoperability claim. Real Owner/Deployment/5GC qualification remains
-**NOT_QUALIFIED**.
+Normative authorities:
 
-## 1. What Build currently proves
+- [CA-SL v1alpha5](https://github.com/odango-chan/ca-skills/blob/0abfd0e1ab99f481a4ae01f3f47efc54783dd5e5/docs/skill-language-spec.v1alpha5.zh-CN.md), released by ca-skills PR #66.
+- [IngressCatalog v1alpha1 logical contract](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/integration-ingress-operation-contract-vnext.zh-CN.md), released by ca-skills PR #62.
+- [Ingress diagnostic registry v1alpha1](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/ingress-diagnostic-registry-v1alpha1.md).
 
-A successful v1alpha5 Build means the implemented candidate pipeline accepted
-the request and produced the deterministic candidate artifact:
+## 1. What the current candidate Build actually validates
 
-- strict v1alpha5 request/dependency/trusted-context envelope admission;
-- WP2 Node-entry Wait/Procedure AST structural and lexical rules;
-- WP5 Procedure control-flow graph (Wait entry vertices, EVENT_RECEIVED/TIMEOUT
-  edges, DAG, exact route targets, final Postcondition-PASS goal rule);
-- WP3 exact trusted Ingress Operation link, correlation/arming contract and
-  trigger dominance on every reachable incoming path;
-- WP4 `wait.output` typed Producer binding, event-accepted-path availability and
-  conservative F.5 argument typing;
-- WP6 paired-response boundary/post-dominance, typed response-result Producer
-  Output Schema compatibility and Ingress response contract/mapping coverage;
-- deterministic artifact assembly and the candidate manifest/verification in
-  [`docs/design/compiler-artifact-v1alpha5.md`](design/compiler-artifact-v1alpha5.md).
+The current v1alpha5 path validates and assembles:
 
-The emitted manifest declares this scope explicitly:
-`validationScope = {status: "CANDIDATE_PARTIAL", validatedPasses: [...],
-notValidated: [...]}`. The list below is the same set that must appear in
-`validationScope.notValidated`; a consumer that requires full static validation
-must reject a `CANDIDATE_PARTIAL` artifact.
+- strict v1alpha5 request and trusted dependency context admission;
+- YAML parsing and duplicate-key handling for supplied author YAML files;
+- the v1alpha5 Procedure / Node-entry Wait AST slice;
+- Wait-specific Procedure graph control flow;
+- trusted Ingress Operation selection and Wait trigger / correlation binding;
+- `wait.output` SourcePath and event-accepted-path availability;
+- paired-response boundary and typed response mapping;
+- candidate deterministic artifact assembly and self-verification.
 
-## 2. Not implemented / not validated (Build does NOT gate all of these)
+The manifest marks this honestly as `validationScope.status = CANDIDATE_PARTIAL`. A consumer requiring full static validation MUST reject a partial artifact.
 
-- **Non-Wait tool and dependency linking.** Only Wait-linked Ingress exports and
-  resolved trigger Operations are linked. `operation`/`observation` tool
-  references outside a Wait trigger (for example `ca::...` or `tools::...` on
-  ordinary Nodes) are preserved in the compiled Procedure document but are not
-  resolved to trusted ToolCatalog exports, Owner identity or Schema bindings.
-  A Wait-free candidate Skill can therefore Build successfully while those tool
-  references remain unvalidated. The artifact's dependency closure intentionally
-  lists only dependencies referenced by linked Wait/trigger identities.
-- **Full package requirements.** v1alpha5 `SKILL.md`, `contract.yaml` semantics
-  beyond the dependency declaration, `predicates.yaml` registries, package
-  schemas and Script ABI obligations are not implemented for the candidate
-  target. Missing non-Procedure package files are not rejected by Build.
-- **Schema/CEL/predicate/Script/Evidence/Mutation/Reconcile/retry semantics** for
-  v1alpha5 are not implemented as v1alpha5 passes. v1alpha4 has its own frozen
-  gates; they do not transfer to this candidate target.
-- **WP7 conformance mapping.** The v1alpha5 diagnostic/conformance register is
-  traceability material only; it is not a conformance PASS and does not execute
-  cross-component EW/IN cases.
-- **v1alpha5 DependencyInspection / Ingress inventory limits.** The independent
-  `ingressOperations` projection exists and is built from the same trusted-only
-  Ingress discovery (no callable mixing), but it is not a Runtime inventory and
-  claims no Owner availability beyond the supplied trusted bindings. The real
-  Chromium trusted-ingress inventory byte-parity phase is not claimed (the
-  checked-in parity phase exercises author-only inspection).
-- **Host/Runtime/Integration semantics.** Wait lifecycle, event ingress,
-  tombstone/stale-delivery execution, response delivery, retries, authorization
-  revalidation and live SBI/5GC behaviour are out of Compiler scope and are not
-  implemented or qualified here.
-- **Real Owner artifacts.** Every trusted dependency/Schema/Catalog used in
-  tests and parity is a clearly marked SYNTHETIC fixture generated by the
-  compiler tests; none is a real Owner publication or deployment profile.
-- **Artifact consumer compatibility.** The v1alpha5 artifact layout and manifest
-  are a candidate compiler-owned decision. They are independent of v1alpha4 and
-  may change before any language/API freeze; consumers must opt in explicitly.
+## 2. Critical inherited-language gap
 
-## 3. Boundaries that remain unchanged
+CA-SL v1alpha5 is not a new language that discards v1alpha4. Its released single-file specification explicitly inherits the v1alpha4 normative semantics except where v1alpha5 Appendix L adds or replaces rules.
 
-- v1alpha4 behavior, diagnostics and artifact bytes are unchanged.
-- Compiler does not acquire dependencies, read credentials, authorize
-  deployments, admit Runtime invocations or execute Python.
-- The v1alpha5 artifact embeds no dependency bytes, digests, URLs, credentials
-  or Runtime state; the manifest records logical identity and exact digests of
-  its own emitted files only.
+The current v1alpha5 pipeline does not execute the full inherited static semantic pipeline. It must not be described as a complete v1alpha5 Compiler.
 
-## 4. Verification status
+Missing or not yet demonstrated in the v1alpha5 path:
 
-Local gates for this slice are recorded in
-[`docs/workstreams/wp8-parity-v1alpha5.md`](workstreams/wp8-parity-v1alpha5.md)
-(Go tests/vet/build, WASM build, CLI e2e, real headless-Chromium Worker parity
-with per-file artifact byte comparison). GitHub Actions runner results are
-reported separately as CI_UNAVAILABLE unless a runner actually executed steps;
-local acceptance is never written as CI PASS.
+- complete Skill package admission: `SKILL.md`, `contract.yaml`, `predicates.yaml`, package Schemas and Script source/ABI;
+- non-Wait Operation and Observation ToolCatalog export linking, exact Owner attribution, dependency closure and callable input/output Schema binding;
+- Capability linking and normal Procedure argument typing;
+- inherited Schema allowlist, Schema registry/closure, assignability and CEL checks;
+- Predicate declarations, parameter signatures, evaluator and Script ABI checks;
+- complete global Precondition, stage, route, terminal and final Postcondition rules;
+- Evidence trust binding, Producer / scope / independence / correlation / freshness checks;
+- Mutation, Reconcile and retry-family static semantics;
+- complete inherited C_STATIC diagnostic coverage and conformance traceability.
+
+The v1alpha4 implementation may provide reusable algorithms and tests, but v1alpha5 must implement the released v1alpha5 contract through a coherent pipeline. Calling the old public v1alpha4 Build entry point is not a substitute for a reviewed v1alpha5 pipeline.
+
+## 3. Non-Wait Tool linking is a release blocker
+
+Only Wait-linked Ingress exports and their trigger Operations are currently linked in the v1alpha5 candidate. Ordinary `operation` and `observation` references outside Wait triggers may be preserved in the compiled Procedure document without being resolved to trusted ToolCatalog exports, Owner identity or Schema bindings.
+
+This means a Wait-free candidate Skill can Build while ordinary callable references remain unchecked. Full v1alpha5 Build must fail closed on unresolved or untrusted non-Wait callable references.
+
+## 4. Ingress / Wait conformance register is incomplete
+
+The current `wp7-conformance-v1alpha5.json` lists 36 EW and only 63 IN cases. The released Ingress contract defines IN-001..IN-066. The register must add and classify:
+
+- **IN-064:** Step 15 failure variants and Step 18 N4 / PDU resource cleanup without duplicate release or delayed response;
+- **IN-065:** do not unsubscribe the shared SUPI / DNN / HPLMN S-NSSAI subscription while another matching PDU Session remains;
+- **IN-066:** unsubscribe when no other matching PDU Session remains, separately from Step 18 cleanup.
+
+Do not assume these three obligations are all Compiler-owned. Assign Compiler / Host / Runtime / Integration ownership from the normative conditions and add executable tests only for the Compiler-owned static portions.
+
+Current recorded register counts (37 implemented+tested, 19 Compiler-static deferred, 42 external, 1 spec-only) are provisional because the three missing IN cases have not been classified.
+
+## 5. Deferred Compiler-static EW / IN obligations
+
+The current register marks 19 Compiler-owned static obligations deferred:
+
+| Case(s) | Required static coverage |
+|---|---|
+| EW-029 | Reject body-bearing response mapping sourced from wait.output, Context or raw request instead of the declared boundary Producer |
+| EW-031 | Global Precondition dominance over protected Mutation / success; Wait edge does not satisfy the gate |
+| IN-004 | Exact dependency Owner binding and mismatch diagnostics |
+| IN-014, IN-015, IN-039, IN-059 | Complete normalization declaration, one-to-one media/schema/representation correspondence, required wire-field mapping |
+| IN-016, IN-042 | Immutable multipart/binary content reference and retention/recovery lifecycle |
+| IN-019 | Reject trigger arguments that depend on the trigger Operation's own not-yet-produced output |
+| IN-027, IN-040, IN-061 | Complete paired-response deadline, recovery, disposition and response-contract validation |
+| IN-030 | Require the export-declared Producer stage at the response boundary |
+| IN-044, IN-045 | Validate multipart/binary and N1 SM Reject response representation/mapping |
+| IN-046, IN-060 | Validate Ingress-owned correlation identity, scope, duplicate and stale-delivery declarations |
+| IN-058 | Validate authenticationProfileRef / authorizationPolicyRef syntax and resolution |
+
+The Compiler must implement every Compiler-owned static condition in this list or record a precise normative reason why it is owned elsewhere. It must not silently omit the cases from the register.
+
+## 6. API and architecture limitations
+
+The current code places the shared `BuildRequest` and `TrustedBuildContext` declarations in `api_v1alpha4.go`, while the shared context struct also carries v1alpha5-only artifact and Schema fields. The v1alpha4 validation rejects those fields.
+
+This is an unnecessary coupling. There is no requirement to preserve v1alpha4 public API or old project compatibility on the active development line. Refactor toward:
+
+- a clean v1alpha5 public BuildRequest / BuildResult / DependencyInspection contract;
+- a target-neutral internal canonical input model;
+- one normalized YAML AST and reusable semantic services;
+- one coherent v1alpha5 pipeline, including inherited language semantics and Wait / Ingress additions;
+- no dual Parser, Linker or compatibility adapters retained solely for v1alpha4.
+
+The published v1.0.0 tag/release remains a historical artifact and is not rewritten. The active development branch may remove or replace v1alpha4 code when doing so improves the architecture.
+
+## 7. Other boundaries
+
+- **Studio:** v1alpha5 successful-Build rendering is not included in the current Compiler integration candidate. Studio/LSP integration requires a separate acceptance.
+- **Host / Runtime / Integration:** event admission, durable Wait lifecycle, atomic event-vs-timeout arbitration, tombstone/replay execution, response delivery, retries, authorization revalidation and live SBI transport are not Compiler responsibilities.
+- **Real Owner artifacts:** current trusted Catalog / ToolCatalog / Schema / OpenAPI fixtures are synthetic. They prove static algorithm behavior only, not production Owner publication or deployment readiness.
+- **Real qualification:** production Owner, Deployment, Integration Adapter, Host/Runtime and 5GC/MAS qualification remain NOT_QUALIFIED.
+
+## 8. Verification status
+
+Harness recorded local PASS for Go tests, vet, CGO-free Native build, WASM build, CLI end-to-end and real Chromium Worker parity on the integration branch. Treat these as Harness-reported local evidence until independently reproduced.
+
+GitHub Actions run `44091765010` concluded failure, but its job had zero executed steps. No source test or build ran in that job. CI status is therefore **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**, not CI PASS and not a source-code test failure.
+
+Full acceptance must include actual execution of:
+
+```bash
+GOWORK=off go test ./... -count=1
+GOWORK=off go vet ./...
+CGO_ENABLED=0 GOWORK=off go build ./...
+CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm
+GOWORK=off go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v
+CHROMIUM_PARITY=1 GOWORK=off go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v
+git diff --check
+```
+
+Local acceptance and GitHub Actions status must be reported separately.
