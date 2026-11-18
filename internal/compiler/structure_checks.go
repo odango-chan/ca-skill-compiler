@@ -9,7 +9,7 @@ package compiler
 // not a separate language target.
 //
 // Package layout: this file owns the version-neutral shape checks that used to
-// live beside the retired v1alpha4 target entry. No target dispatch remains.
+// were formerly defined beside the retired target entry. No target dispatch remains.
 
 import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"

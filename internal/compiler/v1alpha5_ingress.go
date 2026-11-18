@@ -78,8 +78,8 @@ type v1alpha5TrustedIngressExport struct {
 
 // validateV1Alpha5DependencyContext is the strict v1alpha5 envelope admission for
 // the dependency snapshot set and the trusted build context. It validates the
-// shapes needed to link trusted exports; the v1alpha4 envelope validation is
-// untouched and explicitly rejects the v1alpha5-only context fields.
+// shapes needed to link trusted exports; this is the single admission, and the
+// inherited snapshot checks are not duplicated.
 func validateV1Alpha5DependencyContext(req BuildRequest) []Diagnostic {
 	var diagnostics []Diagnostic
 	add := func(code, path, message string) {
