@@ -1,3 +1,5 @@
+> **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+
 # Compiler Pipeline v1alpha4 (implementation map)
 
 **Status:** Implementation traceability document. It maps the frozen pipeline

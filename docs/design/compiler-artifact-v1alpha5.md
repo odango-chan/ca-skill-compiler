@@ -1,31 +1,30 @@
-# Compiler Artifact Contract v1alpha5 (CANDIDATE)
+# Compiler Artifact Contract v1alpha5 (FROZEN)
 
-**Status: CANDIDATE / DRAFT — compiler-owned.** This document describes the
-candidate `connectionagent.io/v1alpha5` artifact assembled by a successful
-`Build`. It is independent of the frozen v1alpha4 artifact contract
-(`docs/design/compiler-artifact-v1alpha4.md`, `contracts/v1alpha4/`,
-`internal/artifact/*`), which is unchanged. The CA-SL v1alpha5 language
-specification (ca-skills #61) and the Integration Ingress Operation contract
-(ca-skills #62) remain Draft; this slice publishes neither the language nor any
-Owner artifact, deployment authorization, Runtime admission or 5GC/MAS
-qualification.
+**Status: FROZEN for the v2.0.0 product line — compiler-owned.** This document
+describes the `connectionagent.io/v1alpha5` artifact assembled by a successful
+`Build`. It is independent of the historical v1alpha4 artifact contract
+(`docs/design/compiler-artifact-v1alpha4.md`, `contracts/v1alpha4/`). The CA-SL
+v1alpha5 language specification (ca-skills PR #66) and the Integration Ingress
+Operation contract v1alpha1 (ca-skills PR #62) are released and are the
+normative authority. This contract publishes neither Owner artifacts nor
+deployment authorization, Runtime admission or 5GC/MAS qualification.
 
 Machine contract: [`contracts/v1alpha5/artifact-manifest.schema.json`](../../contracts/v1alpha5/artifact-manifest.schema.json)
 and [`contracts/v1alpha5/README.md`](../../contracts/v1alpha5/README.md).
 
 ## 1. Build path
 
-`compiler.Build(req)` dispatches exactly on `req.LanguageTarget ==
-connectionagent.io/v1alpha5`. The v1alpha5 Build path:
+`compiler.Build(req)` is the single Build path. It:
 
-1. runs the strict v1alpha5 request/dependency/trusted-context admission
-   (`validateBuildRequestV1Alpha5`);
-2. runs the full implemented static pipeline — WP2 Procedure/Wait AST, WP5
-   Procedure graph, WP3 trigger/correlation binding, WP4 `wait.output`
-   SourcePath binding, WP6 response boundary/mapping
-   (`checkV1Alpha5Sources`);
+1. runs the single-version request/dependency/trusted-context admission
+   (`validateBuildRequest`);
+2. runs the complete static pipeline — Procedure/Wait AST, Procedure graph,
+   trigger/correlation binding, `wait.output` SourcePath binding, response
+   boundary/mapping, and the inherited package/linking/Schema/CEL/Predicate/
+   Script/Evidence/Mutation/Reconcile/retry passes (`checkSources` →
+   `validateSkillPackage`);
 3. **only when no error diagnostic was produced**, assembles the complete
-   deterministic artifact tree (`assembleV1Alpha5SuccessResult`) and returns
+   deterministic artifact tree (`assembleSuccessResult`) and returns
    `BuildResult.Success = true` with `OutputFiles`,
    `DependencyClosure` and `apiVersion =
    connectionagent.io/compiler-build-result/v1alpha5`;
@@ -35,14 +34,14 @@ connectionagent.io/v1alpha5`. The v1alpha5 Build path:
    Build with a clearly marked `CAPABILITY_INPUT_UNTRUSTED` diagnostic whose
    message is prefixed `fail-closed:`.
 
-The retired WP2-era residual fail-closed gate is gone. Remaining unvalidated
-candidate obligations are recorded in
+There is no residual fail-closed gate and no version dispatch. Remaining
+external (non-Compiler) obligations are recorded in
 [`docs/known-limitations-v1alpha5.md`](../known-limitations-v1alpha5.md); a
 successful Build is static-compilation evidence only.
 
 ## 2. Layout
 
-The layout is a documented candidate decision (not a frozen publication):
+The layout is a frozen compiler-owned decision for the v2.0.0 line:
 
 ```text
 manifest.json
@@ -95,10 +94,9 @@ closed.
 
 ## 5. Verification
 
-`compiler.VerifyBuildResult(result)` dispatches on `BuildResult.apiVersion`:
-
-- v1alpha4 results keep the frozen `internal/artifact.Verify` path unchanged;
-- v1alpha5 results use `verifyV1Alpha5ArtifactTree` and reject:
+`compiler.VerifyBuildResult(result)` accepts only a successful result carrying
+the `connectionagent.io/compiler-build-result/v1alpha5` API version; any other
+result version is rejected. It uses `verifyV1Alpha5ArtifactTree` and rejects:
   - duplicate, empty or non-normalized output paths;
   - a missing or non-canonical top-level manifest;
   - invalid `apiVersion`/`languageTarget`/generator identity;
@@ -121,7 +119,7 @@ tree, and writes atomically to a fresh empty output directory only.
 | Deterministic assembly and layout | `internal/compiler/v1alpha5_artifact.go` | `TestV1Alpha5BuildAssemblesTrustedArtifact`, `TestV1Alpha5BuildIsDeterministic`, `TestV1Alpha5BuildWaitFreeSucceeds` |
 | Manifest/link fields incl. WP6 response metadata | `internal/compiler/v1alpha5_artifact.go` | `TestV1Alpha5BuildAssemblesTrustedArtifact`, `TestV1Alpha5BuildPairedResponseMetadata` |
 | Verification and tamper rejection | `internal/compiler/v1alpha5_artifact_verify.go` | `TestV1Alpha5ArtifactVerificationDetectsTampering` |
-| Failed Build atomicity | `internal/compiler/v1alpha5.go`, `internal/compiler/api_v1alpha5_test.go` | `TestV1Alpha5BuildInvalidEmitsNoArtifact`, `TestBuildV1Alpha5ReportsWaitDiagnosticsAndEmitsNoArtifact` |
+| Failed Build atomicity | `internal/compiler/v1alpha5.go`, `internal/compiler/api_test.go` | `TestV1Alpha5BuildInvalidEmitsNoArtifact`, `TestBuildReportsWaitDiagnosticsAndEmitsNoArtifact` |
 | CLI write/verify | `cmd/skillc/main.go`, `cmd/skillc/e2e_test.go` | `TestCLIEndToEndV1Alpha5Build` |
 | Native/WASM/real-Chromium artifact byte parity | `scripts/chromium-parity.mjs`, `internal/parity/*` | `TestChromiumWorkerParity`, `TestV1Alpha5TrustedParityFixtureBuilds` |
 

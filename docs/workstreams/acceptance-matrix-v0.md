@@ -1,3 +1,5 @@
+> **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+
 # Compiler v0 · 单一验收矩阵（弱模型执行版）
 
 状态：全部初始 **NOT_RUN**。本表与 [Script Contract](../design/script-contract-v0.md)、[Procedure Link](../design/procedure-link-v0.md) 一起构成可验收的目标，不是对现有实现的声明。

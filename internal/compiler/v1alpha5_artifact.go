@@ -24,8 +24,8 @@ package compiler
 // claim. See docs/design/compiler-artifact-v1alpha5.md and
 // contracts/v1alpha5/artifact-manifest.schema.json.
 //
-// v1alpha4 artifact generation and verification are untouched; this file never
-// participates in the v1alpha4 Build path.
+// This is the single artifact path; there is no v1alpha4 artifact generator or
+// verifier in the active tree.
 
 import (
 	"crypto/sha256"
@@ -41,7 +41,7 @@ import (
 const (
 	// V1Alpha5ArtifactAPIVersion is the candidate Compiler Artifact API version
 	// for the v1alpha5 language target. It is independent of the frozen
-	// v1alpha4 artifact contract.
+	// inherited artifact contract lineage.
 	V1Alpha5ArtifactAPIVersion = "connectionagent.io/compiler-artifact/v1alpha5"
 	// V1Alpha5LanguageTarget is the candidate CA-SL language target recorded in
 	// the artifact manifest (also exported through V1Alpha5Target).

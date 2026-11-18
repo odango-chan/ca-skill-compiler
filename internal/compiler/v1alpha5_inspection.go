@@ -4,7 +4,7 @@ package compiler
 //
 // Ingress Operation exports are a separate inventory type (InspectedIngressOperation)
 // and are never mixed into InspectedCallable. The v1alpha5 inspection is
-// snapshot-scoped like the frozen v1alpha4 one: it validates the supplied
+// snapshot-scoped, like the inherited inspection contract: it validates the supplied
 // immutable dependency snapshots and trusted dependency bindings, reuses the WP3
 // trusted Ingress discovery (trusted Owner + exact ingressOperation export
 // identity + verified Schema Closure digests) and projects only exports whose

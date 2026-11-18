@@ -17,7 +17,7 @@ examples/ca-agent-demo-project/
 - `lib/tools/createdsession.tool.yaml` is the authoritative original ToolCatalog snapshot; `mas-proposed.tool.yaml` is byte-identical to MAS `design/tool-contract.yaml`.
 - `lib/manifest.yaml` is an added project-local **interface provenance/maturity** manifest, not an upstream file. `declared` / `proposed` do not mean Runtime READY or Tool authorization.
 - The two Skills' existing `schemas/establishment-request.schema.yaml` are authored Skill input schemas, not an invented Host context schema. Full external Host/Observation owner schemas are **not provided** by these ToolCatalogs.
-- Compiler v1.0.0 targets CA-SL v1alpha4 and does not compile this historical source tree as-is. Use this snapshot only for migration analysis and source-provenance review; do not treat a nonzero v1alpha4 check result as a compiler regression.
+- Compiler v2.0.0 targets CA-SL v1alpha5 and does not compile this historical source tree as-is. Use this snapshot only for migration analysis and source-provenance review; do not treat a nonzero check result as a compiler regression.
 - Do not alter these pinned files to force PASS. If migrating, create a separate `examples/ca-agent-demo-v0/` with redesigned Script signatures, authoritative lib references and new Procedure grammar, then validate there.
 - Compiling the ZIP from these original files does not imply actual Agent Host acceptance, ready Tool implementations, or 5GC E2E.
 

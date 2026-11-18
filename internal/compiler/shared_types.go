@@ -1,7 +1,7 @@
 package compiler
 
 // Shared public request/response and source-location types used by the active
-// v1alpha4 Core.
+// v1alpha5 Compiler Core.
 
 import yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 

@@ -1,3 +1,5 @@
+> **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+
 # Open-source Dependency Selection — Compiler v1alpha4
 
 - **Status:** ADOPTED IN CA SKILL COMPILER v1.0.0; LOCAL ACCEPTANCE PASS. Product qualification remains separate.

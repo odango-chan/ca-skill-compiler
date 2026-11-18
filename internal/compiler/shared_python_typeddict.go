@@ -1,6 +1,6 @@
 package compiler
 
-// Shared Python TypedDict-to-Schema derivation used by the active v1alpha4 Script
+// Shared Python TypedDict-to-Schema derivation used by the v1alpha5 Script
 // ABI.
 
 import (

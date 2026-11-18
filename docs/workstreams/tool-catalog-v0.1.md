@@ -1,3 +1,5 @@
+> **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+
 # Formal ToolCatalog integration and consistency report
 
 Updated: 2026-11-12. This report covers the Compiler's imported ToolCatalog boundary. The Compiler receives catalog bytes in `BuildRequest`; it does not load this fixture by default, read registrations, invoke adapters, or execute Tools.

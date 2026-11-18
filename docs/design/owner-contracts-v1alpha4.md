@@ -1,3 +1,5 @@
+> **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+
 # Owner Contract Linking v1alpha4
 
 **Status:** FROZEN Compiler-side linking contract for consuming the CA-SL v1alpha4 Owner and deployment contract profiles. Real Owner publications remain NOT_QUALIFIED where explicitly stated below.

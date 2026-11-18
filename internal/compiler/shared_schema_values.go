@@ -1,6 +1,6 @@
 package compiler
 
-// Shared Schema value helpers used by the active v1alpha4 G.4/F.5 validation.
+// Shared Schema value helpers used by the v1alpha5 G.4/F.5 validation.
 
 import (
 	"encoding/json"

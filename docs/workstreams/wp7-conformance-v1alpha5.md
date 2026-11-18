@@ -1,3 +1,5 @@
+> **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+
 # WP7 - v1alpha5 Diagnostics / Conformance traceability (post-integration)
 
 **Status:** Draft traceability record on the integrated v1alpha5 baseline `feat/compiler-v1alpha5-integration-20261117`.

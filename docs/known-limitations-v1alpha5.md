@@ -16,7 +16,7 @@ The v1alpha5 path is one pipeline. It validates and assembles:
 
 - strict v1alpha5 request and trusted dependency context admission;
 - YAML parsing and duplicate-key handling for supplied author YAML files;
-- **the complete inherited v1alpha4 static semantic pipeline** (`validateInheritedSkillPackage`), shared with the historical v1alpha4 entry point rather than reimplemented:
+- **the complete inherited v1alpha4 static semantic pipeline** (`validateSkillPackage`), implemented once for the single v1alpha5 target:
   - SKILL.md / Contract / PredicateSet / package Schema source admission;
   - Dependency Alias → immutable snapshot digest → trusted binding → Stable Package ID identity;
   - exact ToolCatalog / Owner / callable / CapabilityContracts linking for every Operation and Observation, Wait or not;
@@ -64,11 +64,11 @@ Current recorded register counts: 55 implemented+tested, 0 Compiler-static defer
 
 Every released Compiler-owned EW/IN case is implemented and covered by at least one executed negative or positive test. The register classification is 55 implemented+tested, 0 deferred, 46 external and 1 specification-only.
 
-## 6. API and architecture: separated
+## 6. API and architecture: single version
 
-The shared public wire DTOs (`BuildRequest`, `BuildResult`, `Diagnostic`, `DependencyInspection`, inspection rows) and the strict JSON transport decoder now live in the target-neutral `internal/compiler/api.go`; the v1alpha5 public entries (`CheckV1Alpha5`, `BuildV1Alpha5`, `InspectV1Alpha5Dependencies`) live in `api_v1alpha5.go`; and `api_v1alpha4_target.go` contains only the frozen historical v1alpha4 envelope admission. The internal semantic model is shared and version-neutral: one parser, one pipeline, one artifact path, no compatibility adapter and no second v1alpha5 implementation.
+The public wire DTOs (`BuildRequest`, `BuildResult`, `Diagnostic`, `DependencyInspection`, inspection rows), the strict JSON transport decoder and the four public entries (`Check`, `Build`, `InspectDependencies`, `VerifyBuildResult`) live in `internal/compiler/api.go`. Admission is single-version (`admission.go`); the internal semantic model is version-neutral (`SkillAST`, linking results, `artifactInput`): one parser, one pipeline, one artifact path and no compatibility adapter.
 
-`connectionagent.io/v1alpha5` is the active language target. `connectionagent.io/v1alpha4` remains a frozen historical dispatch target for release traceability; it receives no new semantics. The published v1.0.0 tag/release remains immutable. See [Compiler core and public API](../design/compiler-core-v1alpha5.md).
+`connectionagent.io/v1alpha5` is the only supported language target. The retired v1alpha4 API identity, CLI target, artifact generator and verifier are removed; a v1alpha4 `apiVersion` or `languageTarget` fails closed. The v1alpha4 language semantics remain implemented because v1alpha5 inherits them. The published v1.0.0 tag/release remains immutable historical evidence. See [Compiler core and public API](../design/compiler-core-v1alpha5.md).
 ## 7. Other boundaries
 
 - **Studio:** v1alpha5 successful-Build rendering is not included in the current Compiler integration candidate. Studio/LSP integration requires a separate acceptance.

@@ -1,3 +1,5 @@
+> **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+
 # Official Skill static acceptance and diagnostic classification
 
 Updated: 2026-11-12. This is a static Compiler result for the pinned ca-skills v0.2 snapshot and the approved CreatedSession ToolCatalog. It is not execution, Runtime qualification, or live 5GC evidence.

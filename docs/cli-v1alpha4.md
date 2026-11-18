@@ -1,3 +1,5 @@
+> **HISTORICAL DOCUMENT.** This file describes the published CA Skill Compiler v1.0.0 (CA-SL v1alpha4). The current CLI is [cli.md](cli.md) and targets CA-SL v1alpha5 only.
+
 # skillc CLI v1alpha4
 
 **Status:** Implemented reference CLI for the frozen CA-SL v1alpha4 Compiler Core.

@@ -441,8 +441,8 @@ func rejectSymlinkAncestors(abs string) error {
 }
 
 func validOutputPath(value string) bool {
-	// The v1alpha5 artifact has exactly one top-level manifest; the
-	// frozen v1alpha4 tree never emits it, so its behavior is unchanged.
+	// The v1alpha5 artifact has exactly one top-level manifest; compiled files
+	// live under skills/<skill>/compiled/.
 	if value == compiler.V1Alpha5ArtifactManifestPath {
 		return true
 	}

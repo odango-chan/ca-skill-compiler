@@ -7,7 +7,7 @@ package compiler
 // unique normalized paths, exactly one top-level canonical manifest, complete
 // file listing with matching sha256, per-Skill source/compiled file coherence,
 // ingress-links/manifest self-consistency, dependency-closure identity shape and
-// a canonical normalized Procedure document. The frozen v1alpha4 artifact
+// a canonical normalized Procedure document. The historical v1alpha4 artifact
 // verification path (internal/artifact.Verify) is unchanged.
 
 import (
