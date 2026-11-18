@@ -409,9 +409,9 @@ func evidencePositiveInteger(node *yaml.Node) (int64, bool) {
 	return int64(value), true
 }
 
-// validateV1Alpha4EvidenceDescriptors is the positive-path Evidence Descriptor
+// validateEvidenceDescriptors is the positive-path Evidence Descriptor
 // linking gate.
-func validateV1Alpha4EvidenceDescriptors(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validateEvidenceDescriptors(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Predicates == nil {
 		return
 	}
@@ -494,7 +494,7 @@ func validateV1Alpha4EvidenceDescriptors(req BuildRequest, skill *V1Alpha4SkillA
 // required guarantee for that argument must declare both the normal Producer and
 // the Reconcile READ Producer. Without a recoverable-output promise the second
 // Producer is not required.
-func validateHostRecoveryDualProducer(skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, indexes map[string]snapshotExportIndex, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validateHostRecoveryDualProducer(skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, indexes map[string]snapshotExportIndex, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Procedure == nil || skill.Predicates == nil {
 		return
 	}
@@ -508,7 +508,7 @@ func validateHostRecoveryDualProducer(skill *V1Alpha4SkillAST, identity dependen
 		}
 		ownerByExport[export.DependencyAlias+"::"+export.ExportID] = owner
 	}
-	graph := buildV1Alpha4ProcedureGraph(skill.Procedure)
+	graph := buildProcedureGraph(skill.Procedure)
 	start := scalar(skill.Procedure.Start)
 	reachable := reachableProcedureNodes(graph, start)
 	for _, nodeID := range sortedStringMapKeys(skill.Procedure.ByID) {
@@ -519,7 +519,7 @@ func validateHostRecoveryDualProducer(skill *V1Alpha4SkillAST, identity dependen
 		if node == nil {
 			continue
 		}
-		for _, stage := range []*V1Alpha4PredicateStageAST{node.Precondition, node.Postcondition} {
+		for _, stage := range []*PredicateStageAST{node.Precondition, node.Postcondition} {
 			if stage == nil {
 				continue
 			}
@@ -589,7 +589,7 @@ func validateHostRecoveryDualProducer(skill *V1Alpha4SkillAST, identity dependen
 
 // recoverableMutationProducer resolves <node>.operation.output to a linked
 // MUTATION export that publishes a trusted recoverable output.
-func recoverableMutationProducer(argument *yaml.Node, skill *V1Alpha4SkillAST, linked map[string]linkedExport) (linkedExport, bool) {
+func recoverableMutationProducer(argument *yaml.Node, skill *SkillAST, linked map[string]linkedExport) (linkedExport, bool) {
 	argument = unalias(argument)
 	if argument == nil || argument.Kind != yaml.ScalarNode || argument.Tag != "!!str" || argument.Style != 0 {
 		return linkedExport{}, false

@@ -329,10 +329,10 @@ func validV1Alpha5FixedDuration(value string) bool {
 // validV1Alpha5ResponseBoundaryNodeID accepts the inherited v1alpha4 NodeId
 // grammar only. Terminals and "context" are not NodeIds for this purpose.
 func validV1Alpha5ResponseBoundaryNodeID(value string) bool {
-	if value == "" || value == "context" || v4Terminals[value] {
+	if value == "" || value == "context" || reservedTerminals[value] {
 		return false
 	}
-	return v4NodeID.MatchString(value)
+	return nodeIDPattern.MatchString(value)
 }
 
 // validV1Alpha5WaitTimeoutTarget accepts another declared NodeId or exactly
@@ -345,7 +345,7 @@ func validV1Alpha5WaitTimeoutTarget(target string) bool {
 	case "SUCCEEDED", "context", "":
 		return false
 	default:
-		return v4NodeID.MatchString(target) && !v4Terminals[target]
+		return nodeIDPattern.MatchString(target) && !reservedTerminals[target]
 	}
 }
 

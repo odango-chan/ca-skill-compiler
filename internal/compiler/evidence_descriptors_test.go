@@ -14,7 +14,7 @@ func evidenceFixtureRequest(t *testing.T) BuildRequest {
 
 func expectEvidenceLinkDiagnostic(t *testing.T, req BuildRequest) {
 	t.Helper()
-	if !v4HasCode(Check(req), "EVIDENCE_GUARANTEE_LINK_INVALID") {
+	if !hasCode(Check(req), "EVIDENCE_GUARANTEE_LINK_INVALID") {
 		t.Fatalf("expected EVIDENCE_GUARANTEE_LINK_INVALID, got %+v", Check(req))
 	}
 }

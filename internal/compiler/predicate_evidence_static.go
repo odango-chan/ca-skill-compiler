@@ -43,7 +43,7 @@ func parseEvidenceProvides(guarantees *yaml.Node) []evidenceProvide {
 	return provides
 }
 
-func validateV1Alpha4PredicateEvidence(req BuildRequest, skill *V1Alpha4SkillAST, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validatePredicateEvidence(req BuildRequest, skill *SkillAST, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Procedure == nil || skill.Predicates == nil {
 		return
 	}
@@ -77,7 +77,7 @@ func validateV1Alpha4PredicateEvidence(req BuildRequest, skill *V1Alpha4SkillAST
 		if node == nil {
 			continue
 		}
-		for _, stage := range []*V1Alpha4PredicateStageAST{node.Precondition, node.Postcondition} {
+		for _, stage := range []*PredicateStageAST{node.Precondition, node.Postcondition} {
 			if stage == nil {
 				continue
 			}
@@ -137,7 +137,7 @@ func validateV1Alpha4PredicateEvidence(req BuildRequest, skill *V1Alpha4SkillAST
 
 // argumentNeedsEvidence reports whether one Predicate argument directly reads a
 // non-exempt external Producer output (§17.1 source exemption table).
-func argumentNeedsEvidence(argument *yaml.Node, skill *V1Alpha4SkillAST) bool {
+func argumentNeedsEvidence(argument *yaml.Node, skill *SkillAST) bool {
 	argument = unalias(argument)
 	if argument == nil || argument.Kind != yaml.ScalarNode || argument.Tag != "!!str" {
 		return false

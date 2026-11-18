@@ -8,19 +8,19 @@ import "testing"
 func TestE34RemovedProcedureRootAndReservedBindings(t *testing.T) {
 	fixture := wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "start: inspect-registration", "start: inspect-registration\ninputs: {ueRef: string}")
-	if got := Check(fixture.request(t)); !v4HasCode(got, "SOURCE_ROOT_INVALID") {
+	if got := Check(fixture.request(t)); !hasCode(got, "SOURCE_ROOT_INVALID") {
 		t.Fatalf("removed procedure root inputs field not reported: %+v", got)
 	}
 
 	fixture = wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "        ueRef: context.ueRef", "        ueRef: input.ueRef")
-	if got := Check(fixture.request(t)); !v4HasCode(got, "SOURCE_PATH_INVALID") {
+	if got := Check(fixture.request(t)); !hasCode(got, "SOURCE_PATH_INVALID") {
 		t.Fatalf("input.ueRef binding not rejected: %+v", got)
 	}
 
 	fixture = wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "  inspect-registration:", "  context:")
-	if got := Check(fixture.request(t)); !v4HasCode(got, "NODE_ID_RESERVED") {
+	if got := Check(fixture.request(t)); !hasCode(got, "NODE_ID_RESERVED") {
 		t.Fatalf("reserved context Node ID not rejected: %+v", got)
 	}
 }
@@ -28,7 +28,7 @@ func TestE34RemovedProcedureRootAndReservedBindings(t *testing.T) {
 func TestE36BareStringArgument(t *testing.T) {
 	fixture := wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "        ueRef: context.ueRef", "        ueRef: ue-1")
-	if got := Check(fixture.request(t)); !v4HasCode(got, "SOURCE_PATH_INVALID") {
+	if got := Check(fixture.request(t)); !hasCode(got, "SOURCE_PATH_INVALID") {
 		t.Fatalf("bare string argument not rejected: %+v", got)
 	}
 }
@@ -38,7 +38,7 @@ func TestE37OptionalProducerFieldNotAvailable(t *testing.T) {
 	fixture.replaceSnapshotFile("ca", "registration.schema.yaml", "  accessState:\n    type: string\n    enum: [ACTIVE, IDLE]", "  accessState:\n    type: string\n    enum: [ACTIVE, IDLE]\n  reason:\n    type: string")
 	fixture.refreshSnapshotDigests(t)
 	fixture.replaceFile(wp3aProcedurePath, "            - inspect-registration.observation.output", "            - inspect-registration.observation.output.reason")
-	if got := Check(fixture.request(t)); !v4HasCode(got, "SOURCE_NOT_AVAILABLE") {
+	if got := Check(fixture.request(t)); !hasCode(got, "SOURCE_NOT_AVAILABLE") {
 		t.Fatalf("optional producer field read not reported: %+v", got)
 	}
 }
@@ -64,7 +64,7 @@ nodes:
         SUCCEEDED: SUCCEEDED
         FAILED: FAILED
 `)
-	if got := Check(fixture.request(t)); !v4HasCode(got, "SOURCE_NOT_AVAILABLE") {
+	if got := Check(fixture.request(t)); !hasCode(got, "SOURCE_NOT_AVAILABLE") {
 		t.Fatalf("Precondition reading its own Observation output not rejected: %+v", got)
 	}
 }
@@ -84,7 +84,7 @@ nodes:
         UNKNOWN: UNRESOLVED
 `)
 	diagnostics := Check(fixture.request(t))
-	if v4HasCode(diagnostics, "FINAL_POSTCONDITION_MISSING") {
+	if hasCode(diagnostics, "FINAL_POSTCONDITION_MISSING") {
 		t.Fatalf("Postcondition-only start with PASS->SUCCEEDED rejected: %+v", diagnostics)
 	}
 }
@@ -103,7 +103,7 @@ nodes:
         FAIL: FAILED
         UNKNOWN: UNRESOLVED
 `)
-	if got := Check(invalid.request(t)); !v4HasCode(got, "FINAL_POSTCONDITION_MISSING") {
+	if got := Check(invalid.request(t)); !hasCode(got, "FINAL_POSTCONDITION_MISSING") {
 		t.Fatalf("Precondition PASS to SUCCEEDED without a final Postcondition edge accepted: %+v", got)
 	}
 
@@ -120,7 +120,7 @@ nodes:
         FAIL: FAILED
         UNKNOWN: UNRESOLVED
 `)
-	if got := Check(valid.request(t)); v4HasCode(got, "FINAL_POSTCONDITION_MISSING") {
+	if got := Check(valid.request(t)); hasCode(got, "FINAL_POSTCONDITION_MISSING") {
 		t.Fatalf("final Postcondition PASS->SUCCEEDED rejected: %+v", got)
 	}
 }

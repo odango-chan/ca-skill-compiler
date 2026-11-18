@@ -8,12 +8,12 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateV1Alpha4ArgumentKeys(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string) []Diagnostic {
+func validateArgumentKeys(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string) []Diagnostic {
 	diagnostics := make([]Diagnostic, 0)
 	if skill == nil || skill.Procedure == nil {
 		return diagnostics
 	}
-	registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity)
 	linked := map[string]linkedExport{}
 	for _, export := range ownerLinking.Exports {
 		if export.ExportKind == "operation" || export.ExportKind == "observation" {

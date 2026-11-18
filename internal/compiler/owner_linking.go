@@ -67,7 +67,7 @@ type catalogDocument struct {
 	callables []linkedExport
 }
 
-func validateV1Alpha4OwnerLinking(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult) ownerLinkingResult {
+func validateOwnerLinking(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult) ownerLinkingResult {
 	result := ownerLinkingResult{Diagnostics: []Diagnostic{}, Exports: []linkedExport{}}
 	if skill == nil || skill.Contract == nil || skill.Contract.Raw == nil {
 		return result

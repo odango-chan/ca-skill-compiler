@@ -22,7 +22,7 @@ func e106Predicates(evidence string) string {
 
 func e106StructuralDiagnostics(t *testing.T, evidence string) []Diagnostic {
 	t.Helper()
-	files := v4TestRequest("", "", e106Predicates(evidence), "").Files
+	files := testRequest("", "", e106Predicates(evidence), "").Files
 	var predicatesFile []byte
 	for _, file := range files {
 		if file.Path == "skills/pdu/assurance/predicates.yaml" {
@@ -34,12 +34,12 @@ func e106StructuralDiagnostics(t *testing.T, evidence string) []Diagnostic {
 		t.Fatalf("parse predicates: %v", err)
 	}
 	parsed := map[string]*yaml.Node{"skills/pdu/assurance/predicates.yaml": root}
-	ast := parseV1Alpha4SkillAST("pdu", parsed)
+	ast := parseSkillAST("pdu", parsed)
 	diagnostics := make([]Diagnostic, 0)
 	add := func(path string, node *yaml.Node, code, message string) {
 		diagnostics = append(diagnostics, dependencyDiagnostic("error", "C_STATIC", code, path, node, message))
 	}
-	validateV1Alpha4IndependenceGroups("skills/pdu/assurance/predicates.yaml", ast.Predicates, add)
+	validateIndependenceGroups("skills/pdu/assurance/predicates.yaml", ast.Predicates, add)
 	return diagnostics
 }
 
@@ -66,7 +66,7 @@ func TestE106IndependenceGroupStructuralLink(t *testing.T) {
             - parameter: ue
               guarantee: ca::ue.not-required
 `
-	if !v4HasCode(e106StructuralDiagnostics(t, notRequired), "EVIDENCE_GUARANTEE_LINK_INVALID") {
+	if !hasCode(e106StructuralDiagnostics(t, notRequired), "EVIDENCE_GUARANTEE_LINK_INVALID") {
 		t.Fatalf("independence member outside evidence.requires accepted")
 	}
 
@@ -77,7 +77,7 @@ func TestE106IndependenceGroupStructuralLink(t *testing.T) {
             - parameter: ue
               guarantee: ca::ue.registration-state
 `
-	if !v4HasCode(e106StructuralDiagnostics(t, singleMember), "EVIDENCE_GUARANTEE_LINK_INVALID") {
+	if !hasCode(e106StructuralDiagnostics(t, singleMember), "EVIDENCE_GUARANTEE_LINK_INVALID") {
 		t.Fatalf("single-member independence group accepted")
 	}
 }

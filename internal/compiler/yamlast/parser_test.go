@@ -106,7 +106,7 @@ func TestParseErrorsRetainSourceLocations(t *testing.T) {
 
 func TestParseRejectsDuplicateKeysAndUndefinedAliases(t *testing.T) {
 	for name, source := range map[string]string{
-		"duplicate-key": "value: 1\nvalue: 2\n",
+		"duplicate-key":   "value: 1\nvalue: 2\n",
 		"undefined-alias": "value: *missing\n",
 	} {
 		t.Run(name, func(t *testing.T) {

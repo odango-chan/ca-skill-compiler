@@ -157,7 +157,7 @@ func unwrapNode(node *yaml.Node) *yaml.Node {
 	}}
 }
 
-func validateV1Alpha4MutationContracts(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult) []Diagnostic {
+func validateMutationContracts(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult) []Diagnostic {
 	diagnostics := make([]Diagnostic, 0)
 	if skill == nil {
 		return diagnostics

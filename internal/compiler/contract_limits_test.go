@@ -8,9 +8,9 @@ import (
 )
 
 func TestContractLimitsPositive(t *testing.T) {
-	contract := v4TestContract + "limits:\n  maxActions: 3\n"
-	request := v4TestRequest(contract, v4TestProcedure, v4TestPredicates, v4TestSchema)
-	if v4HasCode(Check(request), "ACTION_LIMIT_INVALID") || v4HasCode(Check(request), "UNKNOWN_FIELD") {
+	contract := testContract + "limits:\n  maxActions: 3\n"
+	request := testRequest(contract, testProcedure, testPredicates, testSchema)
+	if hasCode(Check(request), "ACTION_LIMIT_INVALID") || hasCode(Check(request), "UNKNOWN_FIELD") {
 		t.Fatalf("valid limits rejected: %+v", Check(request))
 	}
 }
@@ -24,10 +24,10 @@ func TestContractLimitsInvalid(t *testing.T) {
 		"unknown field": "limits:\n  maxActions: 3\n  other: 1\n",
 	}
 	for name, limits := range cases {
-		contract := strings.Replace(v4TestContract, "capabilities: [fivegc-session-read]\n", "capabilities: [fivegc-session-read]\n"+limits, 1)
-		request := v4TestRequest(contract, v4TestProcedure, v4TestPredicates, v4TestSchema)
+		contract := strings.Replace(testContract, "capabilities: [fivegc-session-read]\n", "capabilities: [fivegc-session-read]\n"+limits, 1)
+		request := testRequest(contract, testProcedure, testPredicates, testSchema)
 		diagnostics := Check(request)
-		if !v4HasCode(diagnostics, "ACTION_LIMIT_INVALID") && !v4HasCode(diagnostics, "UNKNOWN_FIELD") {
+		if !hasCode(diagnostics, "ACTION_LIMIT_INVALID") && !hasCode(diagnostics, "UNKNOWN_FIELD") {
 			t.Fatalf("%s: invalid limits accepted: %+v", name, diagnostics)
 		}
 	}

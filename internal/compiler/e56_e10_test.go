@@ -12,7 +12,7 @@ import (
 func TestE56TerminalAsProcedureStart(t *testing.T) {
 	fixture := wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "start: inspect-registration", "start: SUCCEEDED")
-	if got := Check(fixture.request(t)); !v4HasCode(got, "PROCEDURE_START_MISSING") {
+	if got := Check(fixture.request(t)); !hasCode(got, "PROCEDURE_START_MISSING") {
 		t.Fatalf("terminal spelling as procedure start not rejected: %+v", got)
 	}
 }
@@ -21,7 +21,7 @@ func TestE56TerminalSpellingAsNodeID(t *testing.T) {
 	fixture := wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "start: inspect-registration", "start: SUCCEEDED")
 	fixture.replaceFile(wp3aProcedurePath, "  inspect-registration:", "  SUCCEEDED:")
-	if got := Check(fixture.request(t)); !v4HasCode(got, "NODE_ID_RESERVED") {
+	if got := Check(fixture.request(t)); !hasCode(got, "NODE_ID_RESERVED") {
 		t.Fatalf("terminal spelling as Node ID not rejected: %+v", got)
 	}
 }

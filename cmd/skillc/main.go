@@ -15,7 +15,7 @@ import (
 	"github.com/odango-chan/ca-skill-compiler/internal/projectinput"
 )
 
-const usageText = `skillc - CA-SL reference compiler CLI (active v1alpha5, frozen v1alpha4 historical target)
+const usageText = `skillc - CA-SL reference compiler CLI (CA-SL v1alpha5)
 
 Usage:
   skillc check   <PROJECT>                       static check a Skill source project
@@ -29,33 +29,27 @@ Usage:
 
 Options:
   --request FILE   read a complete BuildRequest JSON document instead of a project
-                   directory (strict decoding; the document's languageTarget
-                   selects the active v1alpha5 or frozen historical v1alpha4 compiler
-                   target; dependencies and trusted build context come from that
-                   document)
+                   directory (strict decoding; dependencies and trusted build
+                   context come from that document)
   --out DIR        artifact output directory; must be absent or empty. Defaults
                    to <PROJECT>/output in project mode and is required with
                    --request
   --skill NAME     select one Skill package; repeat for multiple targets
   --json           write machine-readable JSON to stdout instead of human text
 
-Language targets:
-  connectionagent.io/v1alpha4   frozen released target
-  connectionagent.io/v1alpha5   active target: full static Check for the Wait /
-                                Procedure AST is implemented, while Build keeps
-                                failing closed until WP3-WP6 complete
+Language target:
+  connectionagent.io/v1alpha5   the only supported CA-SL language target
 
-API versions (request and result are versioned independently):
-  build request   connectionagent.io/compiler-build-request/v1alpha4 (frozen)
-                  connectionagent.io/compiler-build-request/v1alpha5 (active)
-  build result    connectionagent.io/compiler-build-result/v1alpha4 (frozen)
-                  connectionagent.io/compiler-build-result/v1alpha5 (active)
+API versions:
+  build request        connectionagent.io/compiler-build-request/v1alpha5
+  build result         connectionagent.io/compiler-build-result/v1alpha5
+  dependency inspection connectionagent.io/compiler-dependency-inspection/v1alpha5
 
 Project layout:
   skills/...                       author Skill source (or files/skills/...)
   snapshots/<dependencyId>/...     immutable dependency snapshot file sets
-  trusted.json                     trusted dependency bindings and deployment
-                                   bundle directories (see docs/cli-v1alpha4.md)
+  trusted.json                     trusted dependency bindings, deployment
+                                   bundles and Ingress/Schema artifact bindings
 
 Exit codes:
   0  success
@@ -63,7 +57,8 @@ Exit codes:
   2  usage, input, or I/O error before or after compilation
 
 The CLI never infers a missing dependency, digest or Owner attribution: an
-incomplete trusted project is reported and fails closed.
+incomplete trusted project is reported and fails closed. v1alpha4 requests are
+rejected like every other unsupported language target.
 `
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }
@@ -91,14 +86,10 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return 2
 		}
 		fmt.Fprintf(stdout, "skillc %s\n", compiler.CompilerVersion)
-		fmt.Fprintf(stdout, "language target: %s (frozen)\n", compiler.V1Alpha4Target)
-		fmt.Fprintf(stdout, "language target: %s (active)\n", compiler.V1Alpha5Target)
-		fmt.Fprintf(stdout, "build request apiVersion: %s (frozen)\n", compiler.BuildRequestAPIVersion)
-		fmt.Fprintf(stdout, "build request apiVersion: %s (active)\n", compiler.BuildRequestAPIVersionV1Alpha5)
-		fmt.Fprintf(stdout, "build result apiVersion: %s (frozen)\n", compiler.BuildResultAPIVersion)
-		fmt.Fprintf(stdout, "build result apiVersion: %s (active)\n", compiler.BuildResultAPIVersionV1Alpha5)
-		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s (frozen)\n", compiler.DependencyInspectionAPIVersion)
-		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s (active)\n", compiler.DependencyInspectionAPIVersionV1Alpha5)
+		fmt.Fprintf(stdout, "language target: %s\n", compiler.V1Alpha5Target)
+		fmt.Fprintf(stdout, "build request apiVersion: %s\n", compiler.BuildRequestAPIVersion)
+		fmt.Fprintf(stdout, "build result apiVersion: %s\n", compiler.BuildResultAPIVersion)
+		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s\n", compiler.DependencyInspectionAPIVersion)
 		return 0
 	}
 	if command != "check" && command != "build" && command != "inspect" {

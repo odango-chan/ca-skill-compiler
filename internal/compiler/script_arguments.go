@@ -10,10 +10,10 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-// validateV1Alpha4ScriptArguments checks required/unknown keys of every
+// validateScriptArguments checks required/unknown keys of every
 // Procedure Script call site against the Script input TypedDict projection.
 // E67 maps these call-site failures to INPUT_REQUIRED_MISSING / INPUT_TYPE_MISMATCH.
-func validateV1Alpha4ScriptArguments(skill *V1Alpha4SkillAST, schemas map[string]map[string]any, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validateScriptArguments(skill *SkillAST, schemas map[string]map[string]any, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Procedure == nil || len(schemas) == 0 {
 		return
 	}
@@ -59,10 +59,10 @@ func validateV1Alpha4ScriptArguments(skill *V1Alpha4SkillAST, schemas map[string
 	}
 }
 
-// validateV1Alpha4InlineArgumentExpressions rejects inline object/array values
+// validateInlineArgumentExpressions rejects inline object/array values
 // used in Expression position for Operation/Observation arguments and for
 // PredicateCall arguments.
-func validateV1Alpha4InlineArgumentExpressions(skill *V1Alpha4SkillAST, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validateInlineArgumentExpressions(skill *SkillAST, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Procedure == nil {
 		return
 	}
@@ -77,7 +77,7 @@ func validateV1Alpha4InlineArgumentExpressions(skill *V1Alpha4SkillAST, procedur
 		if node.Observation != nil {
 			rejectInlineMapping(procedurePath, unalias(node.Observation.Arguments), add)
 		}
-		for _, stage := range []*V1Alpha4PredicateStageAST{node.Precondition, node.Postcondition} {
+		for _, stage := range []*PredicateStageAST{node.Precondition, node.Postcondition} {
 			if stage == nil {
 				continue
 			}

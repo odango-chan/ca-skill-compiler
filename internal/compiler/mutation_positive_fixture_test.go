@@ -198,7 +198,7 @@ func TestV1Alpha4RetryRequiresRetryableFailureClass(t *testing.T) {
 	fixture.files[wp3aProcedurePath] = []byte(specMutationRetryProcedure)
 	fixture.refreshSnapshotDigests(t)
 	req := wp3cRequest(t, fixture, specMutationCapabilityBundle(t))
-	if !v4HasCode(Check(req), "RETRY_CONTRACT_INVALID") {
+	if !hasCode(Check(req), "RETRY_CONTRACT_INVALID") {
 		t.Fatalf("retry without a retryable NOT_COMMITTED failure class accepted: %+v", Check(req))
 	}
 }
@@ -216,7 +216,7 @@ func TestV1Alpha4ReconcileRequiresGrantedCapability(t *testing.T) {
 	content := strings.Replace(string(bundle["capability-contracts.yaml"]), "        - owner: example-ue-owner\n          id: example.session.reconcile\n          kind: operation\n          effect: READ\n          scopePolicyRef: deployment.registration-read\n", "", 1)
 	bundle["capability-contracts.yaml"] = []byte(content)
 	req := wp3cRequest(t, fixture, bundle)
-	if !v4HasCode(Check(req), "RECONCILE_CONTRACT_INVALID") {
+	if !hasCode(Check(req), "RECONCILE_CONTRACT_INVALID") {
 		t.Fatalf("Reconcile READ without its own granted Capability accepted: %+v", Check(req))
 	}
 }

@@ -33,7 +33,7 @@ func TestEmittedDiagnosticCodesAreFrozen(t *testing.T) {
 
 	requests := []BuildRequest{
 		wp3aBaseFixture(t).request(t),
-		v4TestRequest(v4TestContract, v4TestProcedure, v4TestPredicates, v4TestSchema),
+		testRequest(testContract, testProcedure, testPredicates, testSchema),
 	}
 	for _, request := range requests {
 		for _, diagnostic := range Check(request) {

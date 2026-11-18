@@ -10,7 +10,7 @@ func TestDanglingRouteTargetUsesFrozenDiagnostic(t *testing.T) {
 	fixture.replaceFile(wp3aProcedurePath, "        FAILED: FAILED", "        FAILED: FAILED_TYPO")
 	request := fixture.request(t)
 	diagnostics := Check(request)
-	if !v4HasCode(diagnostics, "CONTROL_FLOW_DANGLING") {
+	if !hasCode(diagnostics, "CONTROL_FLOW_DANGLING") {
 		t.Fatalf("dangling route target not reported: %+v", diagnostics)
 	}
 	for _, diagnostic := range diagnostics {

@@ -2,17 +2,17 @@ package compiler
 
 import yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 
-// V1Alpha4SkillAST is the typed, source-positioned view of one Skill package.
+// SkillAST is the typed, source-positioned view of one Skill package.
 // Its raw nodes all point into the one normalized parse result per YAML file.
-type V1Alpha4SkillAST struct {
+type SkillAST struct {
 	Name       string
 	Files      map[string]*yaml.Node
-	Contract   *V1Alpha4ContractAST
-	Procedure  *V1Alpha4ProcedureAST
-	Predicates *V1Alpha4PredicateSetAST
+	Contract   *ContractAST
+	Procedure  *ProcedureAST
+	Predicates *PredicateSetAST
 }
 
-type V1Alpha4ContractAST struct {
+type ContractAST struct {
 	Raw           *yaml.Node
 	Span          SourceSpan
 	Goal          *yaml.Node
@@ -24,13 +24,13 @@ type V1Alpha4ContractAST struct {
 	Limits        *yaml.Node
 }
 
-type V1Alpha4PredicateSetAST struct {
+type PredicateSetAST struct {
 	Raw         *yaml.Node
 	Span        SourceSpan
-	Definitions map[string]*V1Alpha4PredicateAST
+	Definitions map[string]*PredicateAST
 }
 
-type V1Alpha4PredicateAST struct {
+type PredicateAST struct {
 	ID         string
 	Raw        *yaml.Node
 	Span       SourceSpan
@@ -39,39 +39,39 @@ type V1Alpha4PredicateAST struct {
 	Evaluator  *yaml.Node
 }
 
-type V1Alpha4ProcedureAST struct {
+type ProcedureAST struct {
 	Raw   *yaml.Node
 	Span  SourceSpan
 	Start *yaml.Node
 	Nodes *yaml.Node
-	ByID  map[string]*V1Alpha4ProcedureNodeAST
+	ByID  map[string]*ProcedureNodeAST
 }
 
-type V1Alpha4ProcedureNodeAST struct {
+type ProcedureNodeAST struct {
 	ID            string
 	Raw           *yaml.Node
 	Span          SourceSpan
-	Precondition  *V1Alpha4PredicateStageAST
-	Operation     *V1Alpha4OperationStageAST
-	Observation   *V1Alpha4ObservationStageAST
-	Postcondition *V1Alpha4PredicateStageAST
+	Precondition  *PredicateStageAST
+	Operation     *OperationStageAST
+	Observation   *ObservationStageAST
+	Postcondition *PredicateStageAST
 }
 
-type V1Alpha4PredicateStageAST struct {
+type PredicateStageAST struct {
 	Raw        *yaml.Node
 	Span       SourceSpan
-	Predicates []*V1Alpha4PredicateCallAST
+	Predicates []*PredicateCallAST
 	Routes     *yaml.Node
 }
 
-type V1Alpha4PredicateCallAST struct {
+type PredicateCallAST struct {
 	Raw       *yaml.Node
 	Span      SourceSpan
 	Predicate *yaml.Node
 	Arguments *yaml.Node
 }
 
-type V1Alpha4OperationStageAST struct {
+type OperationStageAST struct {
 	Raw       *yaml.Node
 	Span      SourceSpan
 	Tool      *yaml.Node
@@ -80,7 +80,7 @@ type V1Alpha4OperationStageAST struct {
 	Routes    *yaml.Node
 }
 
-type V1Alpha4ObservationStageAST struct {
+type ObservationStageAST struct {
 	Raw       *yaml.Node
 	Span      SourceSpan
 	Tool      *yaml.Node
@@ -88,12 +88,12 @@ type V1Alpha4ObservationStageAST struct {
 	Routes    *yaml.Node
 }
 
-func parseV1Alpha4SkillAST(name string, files map[string]*yaml.Node) *V1Alpha4SkillAST {
+func parseSkillAST(name string, files map[string]*yaml.Node) *SkillAST {
 	base := "skills/" + name + "/"
-	ast := &V1Alpha4SkillAST{Name: name, Files: files}
+	ast := &SkillAST{Name: name, Files: files}
 
 	if raw := files[base+"assurance/contract.yaml"]; raw != nil {
-		ast.Contract = &V1Alpha4ContractAST{
+		ast.Contract = &ContractAST{
 			Raw: raw, Span: sourceSpan(base+"assurance/contract.yaml", raw),
 			Goal: child(raw, "goal"), Precondition: child(raw, "precondition"),
 			RequestSchema: child(raw, "requestSchema"), ContextSchema: child(raw, "contextSchema"),
@@ -103,13 +103,13 @@ func parseV1Alpha4SkillAST(name string, files map[string]*yaml.Node) *V1Alpha4Sk
 	}
 	if raw := files[base+"assurance/predicates.yaml"]; raw != nil {
 		set := child(raw, "predicates")
-		predicateSet := &V1Alpha4PredicateSetAST{
+		predicateSet := &PredicateSetAST{
 			Raw: raw, Span: sourceSpan(base+"assurance/predicates.yaml", raw),
-			Definitions: make(map[string]*V1Alpha4PredicateAST),
+			Definitions: make(map[string]*PredicateAST),
 		}
 		for _, id := range mapKeys(set) {
 			definition := child(set, id)
-			predicateSet.Definitions[id] = &V1Alpha4PredicateAST{
+			predicateSet.Definitions[id] = &PredicateAST{
 				ID: id, Raw: definition, Span: sourceSpan(base+"assurance/predicates.yaml", definition),
 				Parameters: child(definition, "parameters"), Evidence: child(definition, "evidence"),
 				Evaluator: child(definition, "evaluator"),
@@ -119,33 +119,33 @@ func parseV1Alpha4SkillAST(name string, files map[string]*yaml.Node) *V1Alpha4Sk
 	}
 	if raw := files[base+"assurance/procedure.yaml"]; raw != nil {
 		nodes := child(raw, "nodes")
-		procedure := &V1Alpha4ProcedureAST{
+		procedure := &ProcedureAST{
 			Raw: raw, Span: sourceSpan(base+"assurance/procedure.yaml", raw),
 			Start: child(raw, "start"), Nodes: nodes,
-			ByID: make(map[string]*V1Alpha4ProcedureNodeAST),
+			ByID: make(map[string]*ProcedureNodeAST),
 		}
 		for _, id := range mapKeys(nodes) {
 			node := child(nodes, id)
-			parsed := &V1Alpha4ProcedureNodeAST{ID: id, Raw: node, Span: sourceSpan(base+"assurance/procedure.yaml", node)}
+			parsed := &ProcedureNodeAST{ID: id, Raw: node, Span: sourceSpan(base+"assurance/procedure.yaml", node)}
 			if stage := child(node, "precondition"); stage != nil {
-				parsed.Precondition = parseV1Alpha4PredicateStage(base+"assurance/procedure.yaml", stage)
+				parsed.Precondition = parsePredicateStage(base+"assurance/procedure.yaml", stage)
 			}
 			if stage := child(node, "operation"); stage != nil {
-				parsed.Operation = &V1Alpha4OperationStageAST{
+				parsed.Operation = &OperationStageAST{
 					Raw: stage, Span: sourceSpan(base+"assurance/procedure.yaml", stage),
 					Tool: child(stage, "tool"), Script: child(stage, "script"),
 					Arguments: child(stage, "arguments"), Routes: child(stage, "routes"),
 				}
 			}
 			if stage := child(node, "observation"); stage != nil {
-				parsed.Observation = &V1Alpha4ObservationStageAST{
+				parsed.Observation = &ObservationStageAST{
 					Raw: stage, Span: sourceSpan(base+"assurance/procedure.yaml", stage),
 					Tool: child(stage, "tool"), Arguments: child(stage, "arguments"),
 					Routes: child(stage, "routes"),
 				}
 			}
 			if stage := child(node, "postcondition"); stage != nil {
-				parsed.Postcondition = parseV1Alpha4PredicateStage(base+"assurance/procedure.yaml", stage)
+				parsed.Postcondition = parsePredicateStage(base+"assurance/procedure.yaml", stage)
 			}
 			procedure.ByID[id] = parsed
 		}
@@ -154,13 +154,13 @@ func parseV1Alpha4SkillAST(name string, files map[string]*yaml.Node) *V1Alpha4Sk
 	return ast
 }
 
-func parseV1Alpha4PredicateStage(path string, raw *yaml.Node) *V1Alpha4PredicateStageAST {
-	stage := &V1Alpha4PredicateStageAST{
+func parsePredicateStage(path string, raw *yaml.Node) *PredicateStageAST {
+	stage := &PredicateStageAST{
 		Raw: raw, Span: sourceSpan(path, raw), Routes: child(raw, "routes"),
-		Predicates: make([]*V1Alpha4PredicateCallAST, 0),
+		Predicates: make([]*PredicateCallAST, 0),
 	}
 	for _, call := range sequence(child(raw, "predicates")) {
-		stage.Predicates = append(stage.Predicates, &V1Alpha4PredicateCallAST{
+		stage.Predicates = append(stage.Predicates, &PredicateCallAST{
 			Raw: call, Span: sourceSpan(path, call),
 			Predicate: child(call, "predicate"), Arguments: child(call, "arguments"),
 		})

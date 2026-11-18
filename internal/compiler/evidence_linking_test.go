@@ -6,7 +6,7 @@ import "testing"
 
 func TestWP7EvidenceRequirementPositive(t *testing.T) {
 	request := wp3aBaseFixture(t).request(t)
-	if v4HasCode(Check(request), "PREDICATE_EVIDENCE_REQUIRED") {
+	if hasCode(Check(request), "PREDICATE_EVIDENCE_REQUIRED") {
 		t.Fatalf("valid Evidence requirement rejected: %+v", Check(request))
 	}
 }
@@ -40,7 +40,7 @@ func TestWP7GuaranteeReferenceSyntax(t *testing.T) {
     parameters: [{result: ca::urn:example:result:v1}]
     evaluator: {type: cel, expression: "result.ready == true"}
 `
-	request := v4TestRequest(v4TestContract, v4TestProcedure, valid, v4TestSchema)
+	request := testRequest(testContract, testProcedure, valid, testSchema)
 	for _, diagnostic := range Check(request) {
 		if diagnostic.Code == "QUALIFIED_REFERENCE_INVALID" {
 			t.Fatalf("valid guarantee reference rejected: %+v", diagnostic)
@@ -48,8 +48,8 @@ func TestWP7GuaranteeReferenceSyntax(t *testing.T) {
 	}
 
 	invalid := replaceAll(valid, "ca::ue.registration-state", "ue.registration-state")
-	request = v4TestRequest(v4TestContract, v4TestProcedure, invalid, v4TestSchema)
-	if !v4HasCode(Check(request), "QUALIFIED_REFERENCE_INVALID") {
+	request = testRequest(testContract, testProcedure, invalid, testSchema)
+	if !hasCode(Check(request), "QUALIFIED_REFERENCE_INVALID") {
 		t.Fatalf("unqualified guarantee reference accepted")
 	}
 }

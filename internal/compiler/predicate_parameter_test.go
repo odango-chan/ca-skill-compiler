@@ -8,13 +8,13 @@ import (
 )
 
 func TestPredicateParameterNameGrammar(t *testing.T) {
-	valid := v4TestRequest(v4TestContract, v4TestProcedure, v4TestPredicates, v4TestSchema)
-	if v4HasCode(Check(valid), "IDENTIFIER_INVALID") {
+	valid := testRequest(testContract, testProcedure, testPredicates, testSchema)
+	if hasCode(Check(valid), "IDENTIFIER_INVALID") {
 		t.Fatalf("valid Predicate parameter names rejected: %+v", Check(valid))
 	}
-	invalid := strings.Replace(v4TestPredicates, "- predicate: test.ready", "- predicate: test.ready", 1)
+	invalid := strings.Replace(testPredicates, "- predicate: test.ready", "- predicate: test.ready", 1)
 	invalid = strings.Replace(invalid, "{ue: string}", "{1bad: string}", 1)
-	diagnostics := Check(v4TestRequest(v4TestContract, v4TestProcedure, invalid, v4TestSchema))
+	diagnostics := Check(testRequest(testContract, testProcedure, invalid, testSchema))
 	found := false
 	for _, diagnostic := range diagnostics {
 		if diagnostic.Code == "IDENTIFIER_INVALID" && diagnostic.Path != "" && diagnostic.Line > 0 {

@@ -161,9 +161,9 @@ func TestPredicateScriptABIRules(t *testing.T) {
 
 func TestScriptABIIntegratedDiagnostic(t *testing.T) {
 	procedure := strings.Replace(scriptProcedure("scripts/compute.py"), "      script: scripts/compute.py", "      script: scripts/compute.py", 1)
-	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
+	request := testRequest(testContract, procedure, testPredicates, testSchema)
 	request.Files = append(request.Files, File{Path: "skills/pdu/scripts/compute.py", Bytes: []byte(procedureScriptABI)})
-	if v4HasCode(Check(request), "SCRIPT_CONTRACT_INVALID") {
+	if hasCode(Check(request), "SCRIPT_CONTRACT_INVALID") {
 		t.Fatalf("valid typed Procedure Script rejected: %+v", Check(request))
 	}
 	request.Files = append(request.Files[:len(request.Files)-1], File{Path: "skills/pdu/scripts/compute.py", Bytes: []byte("def main(input):\n    return {}\n")})

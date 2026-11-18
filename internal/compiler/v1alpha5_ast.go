@@ -124,7 +124,7 @@ func parseV1Alpha5ProcedureAST(path string, raw *yaml.Node) (*V1Alpha5ProcedureA
 		}
 		nodeID := key.Value
 		declared[nodeID] = true
-		if !v4NodeID.MatchString(nodeID) || v4Terminals[nodeID] || nodeID == "context" {
+		if !nodeIDPattern.MatchString(nodeID) || reservedTerminals[nodeID] || nodeID == "context" {
 			add(key, "NODE_ID_RESERVED", "Invalid or reserved Node ID")
 		}
 		nodeRaw := unalias(nodes.Content[i+1])
@@ -152,7 +152,7 @@ func parseV1Alpha5ProcedureAST(path string, raw *yaml.Node) (*V1Alpha5ProcedureA
 	// or invalid start is anchored at the start node when present, else at the
 	// nearest existing parent object (the Procedure root).
 	start, startIsString := v1alpha5NonEmptyString(procedure.Start)
-	if !startIsString || !v4NodeID.MatchString(start) || v4Terminals[start] || start == "context" || !declared[start] {
+	if !startIsString || !nodeIDPattern.MatchString(start) || reservedTerminals[start] || start == "context" || !declared[start] {
 		add(v1alpha5FallbackNode(procedure.Start, raw), "PROCEDURE_START_MISSING", "start must resolve to a declared Node")
 	}
 

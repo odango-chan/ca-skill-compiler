@@ -8,17 +8,17 @@ import (
 )
 
 func TestWP5StageRoutesPositive(t *testing.T) {
-	request := v4TestRequest(v4TestContract, v4TestProcedure, v4TestPredicates, v4TestSchema)
+	request := testRequest(testContract, testProcedure, testPredicates, testSchema)
 	diagnostics := Check(request)
 	for _, code := range []string{"ROUTE_NORMAL_OUTCOME_NOT_ALLOWED", "ROUTE_OUTCOME_MISSING", "ROUTE_OUTCOME_UNKNOWN"} {
-		if v4HasCode(diagnostics, code) {
+		if hasCode(diagnostics, code) {
 			t.Fatalf("positive Procedure emitted %s: %+v", code, diagnostics)
 		}
 	}
 }
 
 func TestWP5NonLastNormalOutcomeRejected(t *testing.T) {
-	procedure := strings.Replace(v4TestProcedure, `  read:
+	procedure := strings.Replace(testProcedure, `  read:
     observation:
       tool: ca::example.session.read
       arguments:
@@ -42,32 +42,32 @@ func TestWP5NonLastNormalOutcomeRejected(t *testing.T) {
         PASS: SUCCEEDED
         FAIL: FAILED
         UNKNOWN: UNRESOLVED`, 1)
-	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
-	if !v4HasCode(Check(request), "ROUTE_NORMAL_OUTCOME_NOT_ALLOWED") {
+	request := testRequest(testContract, procedure, testPredicates, testSchema)
+	if !hasCode(Check(request), "ROUTE_NORMAL_OUTCOME_NOT_ALLOWED") {
 		t.Fatalf("non-last normal Outcome route accepted: %+v", Check(request))
 	}
 }
 
 func TestWP5LastStageMissingNormalRoute(t *testing.T) {
-	procedure := strings.Replace(v4TestProcedure, `        PASS: SUCCEEDED
+	procedure := strings.Replace(testProcedure, `        PASS: SUCCEEDED
         FAIL: FAILED
         UNKNOWN: UNRESOLVED`, `        FAIL: FAILED
         UNKNOWN: UNRESOLVED`, 1)
-	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
-	if !v4HasCode(Check(request), "ROUTE_OUTCOME_MISSING") {
+	request := testRequest(testContract, procedure, testPredicates, testSchema)
+	if !hasCode(Check(request), "ROUTE_OUTCOME_MISSING") {
 		t.Fatalf("last stage without normal Outcome route accepted: %+v", Check(request))
 	}
 }
 
 func TestWP5PredicateStageInvalidRouteKey(t *testing.T) {
-	procedure := strings.Replace(v4TestProcedure, `        PASS: read
+	procedure := strings.Replace(testProcedure, `        PASS: read
         FAIL: FAILED
         UNKNOWN: UNRESOLVED`, `        PASS: read
         FAIL: FAILED
         UNKNOWN: UNRESOLVED
         RESULT: FAILED`, 1)
-	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
-	if !v4HasCode(Check(request), "ROUTE_OUTCOME_UNKNOWN") {
+	request := testRequest(testContract, procedure, testPredicates, testSchema)
+	if !hasCode(Check(request), "ROUTE_OUTCOME_UNKNOWN") {
 		t.Fatalf("ineligible predicate route key accepted: %+v", Check(request))
 	}
 }

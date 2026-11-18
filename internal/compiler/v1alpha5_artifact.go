@@ -35,7 +35,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/odango-chan/ca-skill-compiler/internal/artifact"
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
@@ -178,13 +177,13 @@ type v1alpha5ManifestOutputFile struct {
 }
 
 type v1alpha5ArtifactManifest struct {
-	APIVersion        string                         `json:"apiVersion"`
-	LanguageTarget    string                         `json:"languageTarget"`
+	APIVersion        string                          `json:"apiVersion"`
+	LanguageTarget    string                          `json:"languageTarget"`
 	ValidationScope   v1alpha5ManifestValidationScope `json:"validationScope"`
-	Generator         v1alpha5ManifestGenerator      `json:"generator"`
-	DependencyClosure []v1alpha5ManifestDependency   `json:"dependencyClosure"`
-	Skills            []v1alpha5ManifestSkill        `json:"skills"`
-	OutputFiles       []v1alpha5ManifestOutputFile   `json:"outputFiles"`
+	Generator         v1alpha5ManifestGenerator       `json:"generator"`
+	DependencyClosure []v1alpha5ManifestDependency    `json:"dependencyClosure"`
+	Skills            []v1alpha5ManifestSkill         `json:"skills"`
+	OutputFiles       []v1alpha5ManifestOutputFile    `json:"outputFiles"`
 }
 
 type v1alpha5IngressLinksDocument struct {
@@ -202,10 +201,10 @@ type v1alpha5ArtifactSkill struct {
 	dependencies []v1alpha5ManifestDependency
 }
 
-// assembleV1Alpha5SuccessResult builds the deterministic artifact tree for a
+// assembleSuccessResult builds the deterministic artifact tree for a
 // request whose v1alpha5 static validation returned zero error diagnostics. Any
 // assembly inconsistency fails the whole Build atomically.
-func assembleV1Alpha5SuccessResult(req BuildRequest) (BuildResult, error) {
+func assembleSuccessResult(req BuildRequest) (BuildResult, error) {
 	skills, err := collectV1Alpha5ArtifactSkills(req)
 	if err != nil {
 		return BuildResult{}, err
@@ -225,7 +224,7 @@ func assembleV1Alpha5SuccessResult(req BuildRequest) (BuildResult, error) {
 	}
 	sort.Strings(aliases)
 	return BuildResult{
-		APIVersion:        BuildResultAPIVersionV1Alpha5,
+		APIVersion:        BuildResultAPIVersion,
 		Success:           true,
 		Diagnostics:       []Diagnostic{},
 		DependencyClosure: aliases,
@@ -384,11 +383,9 @@ func collectV1Alpha5ArtifactSkills(req BuildRequest) ([]v1alpha5ArtifactSkill, e
 		for _, file := range files {
 			filesByName[file.Path] = file.Bytes
 		}
-		_, inherited := validateInheritedSkillPackage(
+		_, inherited := validateSkillPackage(
 			req, name, filesByName, parsedFiles,
-			inheritedValidationOptions{
-				allowWait:             true,
-				missingSourceMessage:  "Required v1alpha5 author source is missing",
+			validationOptions{
 				additionalUsedAliases: v1alpha5IngressDependencyAliases(req, skillAST, parsedFiles),
 			},
 			func(string, *yaml.Node, string, string) {},
@@ -600,7 +597,7 @@ func buildV1Alpha5ArtifactFiles(skills []v1alpha5ArtifactSkill) ([]v1alpha5Artif
 		if procedureValue == nil {
 			return nil, nil, fmt.Errorf("Skill %s Procedure document cannot be converted to JSON", skill.name)
 		}
-		procedureBytes, err := artifact.CanonicalizeValue(procedureValue)
+		procedureBytes, err := canonicalizeValue(procedureValue)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Skill %s Procedure document canonicalization failed: %w", skill.name, err)
 		}
@@ -608,7 +605,7 @@ func buildV1Alpha5ArtifactFiles(skills []v1alpha5ArtifactSkill) ([]v1alpha5Artif
 		if links == nil {
 			links = []v1alpha5ManifestWaitLink{}
 		}
-		linksBytes, err := artifact.CanonicalizeValue(v1alpha5IngressLinksDocument{Links: links})
+		linksBytes, err := canonicalizeValue(v1alpha5IngressLinksDocument{Links: links})
 		if err != nil {
 			return nil, nil, fmt.Errorf("Skill %s ingress link document canonicalization failed: %w", skill.name, err)
 		}
@@ -700,7 +697,7 @@ func buildV1Alpha5ArtifactFiles(skills []v1alpha5ArtifactSkill) ([]v1alpha5Artif
 		Skills:            manifestSkills,
 		OutputFiles:       outputFiles,
 	}
-	manifestBytes, err := artifact.CanonicalizeValue(manifest)
+	manifestBytes, err := canonicalizeValue(manifest)
 	if err != nil {
 		return nil, nil, fmt.Errorf("v1alpha5 artifact manifest canonicalization failed: %w", err)
 	}

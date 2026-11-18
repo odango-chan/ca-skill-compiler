@@ -19,7 +19,7 @@ const v1alpha5TestProcedurePath = "skills/example/assurance/procedure.yaml"
 
 func v1alpha5TestProcedureRequest(procedureYAML string) BuildRequest {
 	return BuildRequest{
-		APIVersion:     BuildRequestAPIVersionV1Alpha5,
+		APIVersion:     BuildRequestAPIVersion,
 		LanguageTarget: V1Alpha5Target,
 		Files: []File{
 			{Path: v1alpha5TestProcedurePath, Bytes: []byte(procedureYAML)},

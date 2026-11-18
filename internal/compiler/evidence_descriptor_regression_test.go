@@ -18,7 +18,7 @@ func evidenceRegressionRequest(t *testing.T, mutate func(*wp3aFixture)) BuildReq
 	}
 	fixture.refreshSnapshotDigests(t)
 	req := wp3cRequest(t, fixture, wp3cBaseBundle(t))
-	req.APIVersion = BuildRequestAPIVersionV1Alpha5
+	req.APIVersion = BuildRequestAPIVersion
 	req.LanguageTarget = V1Alpha5Target
 	return req
 }

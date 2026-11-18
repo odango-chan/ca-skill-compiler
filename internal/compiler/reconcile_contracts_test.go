@@ -82,7 +82,7 @@ properties:
   recovered: {$ref: urn:example:ca:registration:v1}
 `
 
-func reconcileFixture(t *testing.T, catalog string) (BuildRequest, *V1Alpha4SkillAST, dependencyIdentityResult, ownerLinkingResult) {
+func reconcileFixture(t *testing.T, catalog string) (BuildRequest, *SkillAST, dependencyIdentityResult, ownerLinkingResult) {
 	t.Helper()
 	fixture := wp3aBaseFixture(t)
 	fixture.addSnapshotFile("ca", "mutation-catalog.yaml", []byte(catalog))
@@ -93,24 +93,24 @@ func reconcileFixture(t *testing.T, catalog string) (BuildRequest, *V1Alpha4Skil
 	fixture.refreshSnapshotDigests(t)
 	req := fixture.request(t)
 	ast := wp3aParseSkillAST(t, req, wp3aSkillName)
-	identity := validateV1Alpha4DependencyIdentity(req, ast)
-	linking := validateV1Alpha4OwnerLinking(req, ast, identity)
+	identity := validateDependencyIdentity(req, ast)
+	linking := validateOwnerLinking(req, ast, identity)
 	return req, ast, identity, linking
 }
 
-func reconcileDiagnostics(t *testing.T, req BuildRequest, ast *V1Alpha4SkillAST, identity dependencyIdentityResult, linking ownerLinkingResult) []Diagnostic {
+func reconcileDiagnostics(t *testing.T, req BuildRequest, ast *SkillAST, identity dependencyIdentityResult, linking ownerLinkingResult) []Diagnostic {
 	t.Helper()
 	diagnostics := make([]Diagnostic, 0)
 	add := func(path string, node *yaml.Node, code, message string) {
 		diagnostics = append(diagnostics, dependencyDiagnostic("error", "C_STATIC", code, path, node, message))
 	}
 	capability := capabilityLinkingResult{}
-	validateV1Alpha4ReconcileContracts(req, ast, identity, linking, wp3aProcedurePath, add)
+	validateReconcileContracts(req, ast, identity, linking, wp3aProcedurePath, add)
 	// Exercise the positive-path assurance against the trusted snapshot's
 	// published Mutation contracts (the direct fixture has no Skill mutation link,
 	// so the used set is synthesised from the snapshot index).
 	used := ownerLinkingResult{Exports: fixtureMutationExports(req, identity)}
-	validateV1Alpha4MutationPositiveContracts(req, ast, identity, used, capability, wp3aProcedurePath, add)
+	validateMutationPositiveContracts(req, ast, identity, used, capability, wp3aProcedurePath, add)
 	return diagnostics
 }
 

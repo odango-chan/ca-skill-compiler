@@ -594,12 +594,12 @@ func wp3BuildRequest(t *testing.T, options wp3FixtureOptions) BuildRequest {
 	}
 
 	context := &TrustedBuildContext{
-		DependencyBindings: []TrustedDependencyBinding{			{
-				DependencyID:     wp3ToolsDependency,
-				Digest:           toolsDigest,
-				StablePackageID:  wp3ToolsPackageID,
-				AuthorizedOwners: []string{wp3ToolsOwner},
-			},
+		DependencyBindings: []TrustedDependencyBinding{{
+			DependencyID:     wp3ToolsDependency,
+			Digest:           toolsDigest,
+			StablePackageID:  wp3ToolsPackageID,
+			AuthorizedOwners: []string{wp3ToolsOwner},
+		},
 			{
 				DependencyID:     wp3IntegrationDependency,
 				Digest:           integrationDigest,
@@ -664,7 +664,7 @@ func wp3BuildRequest(t *testing.T, options wp3FixtureOptions) BuildRequest {
 	}
 
 	return BuildRequest{
-		APIVersion:     BuildRequestAPIVersionV1Alpha5,
+		APIVersion:     BuildRequestAPIVersion,
 		LanguageTarget: V1Alpha5Target,
 		Files: []File{
 			{Path: wp3ProcedurePath, Bytes: []byte(options.procedure)},
@@ -1182,28 +1182,6 @@ func TestV1Alpha5WP3DependencyIdentityFailureSuppressesLinking(t *testing.T) {
 		"sha256:1111111111111111111111111111111111111111111111111111111111111111"
 	diagnostics := Check(request)
 	assertWP3Diagnostics(t, diagnostics, "DEPENDENCY_IDENTITY_UNVERIFIED")
-}
-
-// TestV1Alpha5WP3V1Alpha4RejectsV1Alpha5OnlyTrustedFields keeps the frozen
-// v1alpha4 API closed: the shared TrustedBuildContext may carry the new fields,
-// but the v1alpha4 envelope validation explicitly rejects them.
-func TestV1Alpha5WP3V1Alpha4RejectsV1Alpha5OnlyTrustedFields(t *testing.T) {
-	request := BuildRequest{
-		APIVersion:           BuildRequestAPIVersion,
-		LanguageTarget:       V1Alpha4Target,
-		ResolvedDependencies: []ResolvedDependency{},
-		Files: []File{
-			{Path: "skills/example/SKILL.md", Bytes: []byte("# example\n")},
-		},
-		TrustedBuildContext: &TrustedBuildContext{
-			SnapshotBaseURI: "https://snapshots.invalid/example/build/",
-			SchemaBindings:  []TrustedSchemaBinding{{ExportID: "urn:example:schema:x", ArtifactRef: "urn:example:artifact:x", Pointer: "#"}},
-		},
-	}
-	diagnostics := Check(request)
-	if !hasV1Alpha5Diagnostic(diagnostics, "REQUEST_INVALID") {
-		t.Fatalf("v1alpha4 must reject v1alpha5-only trusted fields, got %#v", diagnostics)
-	}
 }
 
 // TestV1Alpha5WP3IngressNormalizationCoverage drives the Ingress-owned request

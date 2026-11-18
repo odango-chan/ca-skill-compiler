@@ -13,16 +13,16 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-var v4StageNormalOutcome = map[string]string{
-	"precondition": "PASS",
-	"operation":    "SUCCEEDED",
-	"observation":  "SUCCEEDED",
+var stageNormalOutcome = map[string]string{
+	"precondition":  "PASS",
+	"operation":     "SUCCEEDED",
+	"observation":   "SUCCEEDED",
 	"postcondition": "PASS",
 }
 
-var v4PredicateStageOutcomes = map[string]bool{"PASS": true, "FAIL": true, "UNKNOWN": true}
+var predicateStageOutcomes = map[string]bool{"PASS": true, "FAIL": true, "UNKNOWN": true}
 
-func validateV1Alpha4ProcedureStageRoutes(file string, procedure *V1Alpha4ProcedureAST, add func(string, *yaml.Node, string, string)) {
+func validateProcedureStageRoutes(file string, procedure *ProcedureAST, add func(string, *yaml.Node, string, string)) {
 	if procedure == nil || procedure.Nodes == nil {
 		return
 	}
@@ -43,7 +43,7 @@ func validateV1Alpha4ProcedureStageRoutes(file string, procedure *V1Alpha4Proced
 				continue
 			}
 			routes := child(body, "routes")
-			normal := v4StageNormalOutcome[stage]
+			normal := stageNormalOutcome[stage]
 			hasNormal := child(routes, normal) != nil
 			isLast := index == len(declared)-1
 			if !isLast && hasNormal {
@@ -56,7 +56,7 @@ func validateV1Alpha4ProcedureStageRoutes(file string, procedure *V1Alpha4Proced
 			}
 			if stage == "precondition" || stage == "postcondition" {
 				for _, outcome := range routeKeys(routes) {
-					if !v4PredicateStageOutcomes[outcome] {
+					if !predicateStageOutcomes[outcome] {
 						add(file, child(routes, outcome), "ROUTE_OUTCOME_UNKNOWN",
 							"Predicate stage route key is not eligible: "+outcome)
 					}

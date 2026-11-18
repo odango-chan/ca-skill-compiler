@@ -60,10 +60,10 @@ nodes:
 		}
 	}
 	diagnostics := Check(request)
-	if !v4HasCode(diagnostics, "SUCCESS_BYPASSES_FINAL_POSTCONDITION") {
+	if !hasCode(diagnostics, "SUCCESS_BYPASSES_FINAL_POSTCONDITION") {
 		t.Fatalf("local Postcondition PASS then direct success not reported: %+v", diagnostics)
 	}
-	if v4HasCode(diagnostics, "FINAL_POSTCONDITION_MISSING") {
+	if hasCode(diagnostics, "FINAL_POSTCONDITION_MISSING") {
 		t.Fatalf("reachable legal final edge present, FINAL_POSTCONDITION_MISSING must not be the diagnosis: %+v", diagnostics)
 	}
 }

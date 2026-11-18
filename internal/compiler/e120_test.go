@@ -62,13 +62,13 @@ nodes:
 `
 
 func TestE120GlobalPreconditionDominance(t *testing.T) {
-	bypass := v4TestRequest(v4TestContract, e120BypassProcedure, v4TestPredicates, v4TestSchema)
-	if !v4HasCode(Check(bypass), "ENTRY_PRECONDITION_BYPASSED") {
+	bypass := testRequest(testContract, e120BypassProcedure, testPredicates, testSchema)
+	if !hasCode(Check(bypass), "ENTRY_PRECONDITION_BYPASSED") {
 		t.Fatalf("path reaching SUCCEEDED without the global Precondition was accepted: %+v", Check(bypass))
 	}
 
-	gated := v4TestRequest(v4TestContract, e120GatedProcedure, v4TestPredicates, v4TestSchema)
-	if v4HasCode(Check(gated), "ENTRY_PRECONDITION_BYPASSED") {
+	gated := testRequest(testContract, e120GatedProcedure, testPredicates, testSchema)
+	if hasCode(Check(gated), "ENTRY_PRECONDITION_BYPASSED") {
 		t.Fatalf("gated procedure reported a false bypass: %+v", Check(gated))
 	}
 }
@@ -97,8 +97,8 @@ nodes:
         FAIL: FAILED
         UNKNOWN: UNRESOLVED
 `
-	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
-	if got := Check(request); !v4HasCode(got, "ENTRY_PRECONDITION_BYPASSED") {
+	request := testRequest(testContract, procedure, testPredicates, testSchema)
+	if got := Check(request); !hasCode(got, "ENTRY_PRECONDITION_BYPASSED") {
 		t.Fatalf("gate FAIL route to SUCCEEDED treated as Goal proof: %+v", got)
 	}
 }
@@ -144,7 +144,7 @@ nodes:
 				[]byte("\nprecondition: check.precondition\n")...)
 		}
 	}
-	if got := Check(request); !v4HasCode(got, "ENTRY_PRECONDITION_BYPASSED") {
+	if got := Check(request); !hasCode(got, "ENTRY_PRECONDITION_BYPASSED") {
 		t.Fatalf("gate FAIL route to a business Mutation not reported as a bypass: %+v", got)
 	}
 }

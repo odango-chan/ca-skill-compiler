@@ -18,7 +18,7 @@ package compiler
 // completeness.
 //
 // CA-SL v1alpha5 inherits the released v1alpha4 normative semantics, so the same
-// Skill run also executes validateInheritedSkillPackage (package, Contract,
+// Skill run also executes validateSkillPackage (package, Contract,
 // PredicateSet, Script, Dependency identity, Owner/Tool/Capability linking,
 // Schema/CEL, Procedure/assurance, Evidence/Mutation/Reconcile/retry static
 // checks) on the same normalized parse result. The Wait passes compose with the
@@ -36,38 +36,11 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-// validateV1Alpha5 is the v1alpha5 Build path. It re-runs the strict request
-// admission and the full static pipeline, then assembles the deterministic
-// artifact tree only when no error diagnostic was produced. Assembly failures
-// fail the whole Build atomically with a clearly marked internal diagnostic;
-// real source diagnostics are never masked.
-func validateV1Alpha5(req BuildRequest) BuildResult {
-	if diagnostics := validateBuildRequestV1Alpha5(req); len(diagnostics) > 0 {
-		return failedV1Alpha5BuildResult(diagnostics)
-	}
-	diagnostics := checkV1Alpha5Sources(req)
-	if hasErrorDiagnostic(diagnostics) {
-		return failedV1Alpha5BuildResult(diagnostics)
-	}
-	result, err := assembleV1Alpha5SuccessResult(req)
-	if err != nil {
-		diagnostics = append(diagnostics, Diagnostic{
-			Severity: "error",
-			Phase:    "C_STATIC",
-			Code:     "CAPABILITY_INPUT_UNTRUSTED",
-			Path:     "",
-			Message:  limitDiagnosticMessage("fail-closed: v1alpha5 artifact assembly failed: " + err.Error()),
-		})
-		return failedV1Alpha5BuildResult(diagnostics)
-	}
-	return result
-}
-
-// checkV1Alpha5Sources parses every selected Skill package exactly once and
+// checkSources parses every selected Skill package exactly once and
 // returns the v1alpha5 Procedure/Wait diagnostics. Only the Procedure author
 // file is consumed by WP2; the other YAML files are still parsed once so
 // malformed YAML and duplicate keys surface as YAML_PARSE_ERROR.
-func checkV1Alpha5Sources(req BuildRequest) []Diagnostic {
+func checkSources(req BuildRequest) []Diagnostic {
 	var diagnostics []Diagnostic
 	add := func(file string, n *yaml.Node, code, message string) {
 		line, column := 0, 0
@@ -100,7 +73,7 @@ func checkV1Alpha5Sources(req BuildRequest) []Diagnostic {
 	}
 	if len(skillNames) == 0 {
 		add("", nil, "SOURCE_ROOT_INVALID", "No logical Skill package rooted at skills/<name>")
-		return sortedV1Alpha5Diagnostics(diagnostics)
+		return sortedDiagnostics(diagnostics)
 	}
 
 	selected := make(map[string]bool)
@@ -150,17 +123,15 @@ func checkV1Alpha5Sources(req BuildRequest) []Diagnostic {
 		// WP5 event-accepted-edge dominance and apply conservative argument typing.
 		// Build stays fail-closed below for the later work packages.
 		diagnostics = append(diagnostics, validateV1Alpha5WaitOutputSourcePaths(skill, procedurePath, waitBindingSource)...)
-		// WP9: run the complete inherited v1alpha5 static semantic pipeline on the
-		// same normalized parse result. CA-SL v1alpha5 inherits the released
-		// v1alpha4 package, dependency, Owner, Tool, Capability, Schema, CEL,
-		// Predicate, Script, Procedure and assurance obligations; Appendix L only
-		// adds the node-entry Wait declaration, which the inherited procedure pass
-		// admits through the v1alpha5 allowance.
-		inheritedDiagnostics, _ := validateInheritedSkillPackage(
+		// Run the complete inherited static semantic pipeline on the same
+		// normalized parse result. CA-SL v1alpha5 inherits the released v1alpha4
+		// package, dependency, Owner, Tool, Capability, Schema, CEL, Predicate,
+		// Script, Procedure and assurance obligations; Appendix L only adds the
+		// node-entry Wait declaration, which the inherited procedure pass admits
+		// as part of the single v1alpha5 language.
+		inheritedDiagnostics, _ := validateSkillPackage(
 			req, name, files, parsedFiles,
-			inheritedValidationOptions{
-				allowWait:             true,
-				missingSourceMessage:  "Required v1alpha5 author source is missing",
+			validationOptions{
 				additionalUsedAliases: v1alpha5IngressDependencyAliases(req, skill, parsedFiles),
 			},
 			add,
@@ -168,7 +139,7 @@ func checkV1Alpha5Sources(req BuildRequest) []Diagnostic {
 		diagnostics = append(diagnostics, inheritedDiagnostics...)
 	}
 
-	return sortedV1Alpha5Diagnostics(diagnostics)
+	return sortedDiagnostics(diagnostics)
 }
 
 // v1alpha5IngressDependencyAliases returns the Contract dependency aliases that
@@ -245,7 +216,7 @@ func v1alpha5ParseYAML(file string, data []byte, add func(string, *yaml.Node, st
 	return root
 }
 
-func sortedV1Alpha5Diagnostics(diagnostics []Diagnostic) []Diagnostic {
+func sortedDiagnostics(diagnostics []Diagnostic) []Diagnostic {
 	diagnostics = dedupeV1Alpha5Diagnostics(diagnostics)
 	sortDiagnostics(diagnostics)
 	if diagnostics == nil {

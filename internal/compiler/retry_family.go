@@ -49,7 +49,7 @@ func retryFamilyViolations(edges []retryEdge, effects map[string]string) []retry
 	return violations
 }
 
-func validateV1Alpha4RetryMutationFamilies(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validateRetryMutationFamilies(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Procedure == nil {
 		return
 	}
@@ -79,7 +79,7 @@ func validateV1Alpha4RetryMutationFamilies(req BuildRequest, skill *V1Alpha4Skil
 			}
 		}
 	}
-	nodes := map[string]*V1Alpha4ProcedureNodeAST{}
+	nodes := map[string]*ProcedureNodeAST{}
 	edges := make([]retryEdge, 0)
 	for _, nodeID := range sortedStringMapKeys(skill.Procedure.ByID) {
 		node := skill.Procedure.ByID[nodeID]
@@ -123,7 +123,7 @@ func validateV1Alpha4RetryMutationFamilies(req BuildRequest, skill *V1Alpha4Skil
 	// the same Owner business identity, the original Mutation must publish a
 	// retryable, no-side-effect NOT_COMMITTED failure class, and the retry
 	// callable must accept the original business identity Schema.
-	registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity)
 	for _, edge := range edges {
 		retryNode := nodes[edge.nodeID]
 		targetNode := skill.Procedure.ByID[edge.target]

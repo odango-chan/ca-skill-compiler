@@ -9,12 +9,12 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateV1Alpha4ScriptValueTypes(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, scriptInputSchemas map[string]map[string]any, procedurePath string) []Diagnostic {
+func validateScriptValueTypes(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, scriptInputSchemas map[string]map[string]any, procedurePath string) []Diagnostic {
 	diagnostics := make([]Diagnostic, 0)
 	if skill == nil || skill.Procedure == nil || skill.Contract == nil || len(scriptInputSchemas) == 0 {
 		return diagnostics
 	}
-	registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity)
 	contextRoot, requestRoot := sourcePathRootSchemas(skill, registry)
 	producerSchemas := producerOutputSchemas(skill, ownerLinking, registry)
 	base := "skills/" + skill.Name + "/"

@@ -29,9 +29,9 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateV1Alpha4MutationPositiveContracts(
+func validateMutationPositiveContracts(
 	req BuildRequest,
-	skill *V1Alpha4SkillAST,
+	skill *SkillAST,
 	identity dependencyIdentityResult,
 	ownerLinking ownerLinkingResult,
 	capabilityLinking capabilityLinkingResult,
@@ -49,7 +49,7 @@ func validateV1Alpha4MutationPositiveContracts(
 			}
 		}
 	}
-	registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity)
 	// Positive-path assurance applies to the Mutation exports the selected Skill
 	// actually links; unrelated dependency content is not part of this closure.
 	usedMutations := map[string]bool{}

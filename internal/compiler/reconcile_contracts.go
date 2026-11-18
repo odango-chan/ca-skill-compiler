@@ -107,7 +107,7 @@ func parseMutationContractFields(node *yaml.Node) mutationContractFields {
 	return fields
 }
 
-func validateV1Alpha4ReconcileContracts(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validateReconcileContracts(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Contract == nil {
 		return
 	}
@@ -119,7 +119,7 @@ func validateV1Alpha4ReconcileContracts(req BuildRequest, skill *V1Alpha4SkillAS
 			}
 		}
 	}
-	registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity)
 	trustedOwner := map[string]string{}
 	for _, export := range ownerLinking.Exports {
 		trustedOwner[export.DependencyAlias+"\x00"+export.ExportKind+"\x00"+export.ExportID] = export.TrustedOwner

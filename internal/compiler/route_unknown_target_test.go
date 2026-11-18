@@ -20,7 +20,7 @@ spec:
       ownerOutcomes: [SUCCEEDED, NOT_COMMITTED]
       inputSchema: {$ref: urn:example:ca:registration-query:v1}
       outputSchema: {$ref: urn:example:ca:registration:v1}
-` + specMutationContractBlock))
+`+specMutationContractBlock))
 	fixture.refreshSnapshotDigests(t)
 	procedure := "start: mutate\nnodes:\n  mutate:\n    operation:\n      tool: ca::example.session.create\n      arguments: {}\n      routes:\n" + routes + `  final:
     postcondition:
@@ -39,12 +39,12 @@ spec:
 func TestMutationOutcomeUnknownSafeTerminal(t *testing.T) {
 	valid := "        SUCCEEDED: SAFE_STOPPED\n        NOT_COMMITTED: SAFE_STOPPED\n        OUTCOME_UNKNOWN: UNRESOLVED\n"
 	request := mutationRouteFixture(t, valid)
-	if v4HasCode(Check(request), "RECONCILE_CONTRACT_INVALID") {
+	if hasCode(Check(request), "RECONCILE_CONTRACT_INVALID") {
 		t.Fatalf("valid OUTCOME_UNKNOWN safe terminal rejected: %+v", Check(request))
 	}
 	invalid := "        SUCCEEDED: SAFE_STOPPED\n        NOT_COMMITTED: SAFE_STOPPED\n        OUTCOME_UNKNOWN: final\n"
 	request = mutationRouteFixture(t, invalid)
-	if !v4HasCode(Check(request), "RECONCILE_CONTRACT_INVALID") {
+	if !hasCode(Check(request), "RECONCILE_CONTRACT_INVALID") {
 		t.Fatalf("OUTCOME_UNKNOWN routed to a business node accepted: %+v", Check(request))
 	}
 }

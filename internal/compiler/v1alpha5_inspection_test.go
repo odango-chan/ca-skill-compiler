@@ -28,15 +28,20 @@ func TestV1Alpha5DependencyInspectionPositiveIngressInventory(t *testing.T) {
 	request := wp3BuildRequest(t, wp3FixtureOptions{})
 	inspection := InspectDependencies(request)
 
-	if inspection.APIVersion != DependencyInspectionAPIVersionV1Alpha5 {
+	if inspection.APIVersion != DependencyInspectionAPIVersion {
 		t.Fatalf("v1alpha5 inspection apiVersion = %q, want %q",
-			inspection.APIVersion, DependencyInspectionAPIVersionV1Alpha5)
+			inspection.APIVersion, DependencyInspectionAPIVersion)
 	}
 	if len(inspection.Diagnostics) != 0 {
 		t.Fatalf("positive v1alpha5 inspection must emit no diagnostics, got %#v", inspection.Diagnostics)
 	}
-	if len(inspection.Callables) != 0 || len(inspection.Schemas) != 0 {
-		t.Fatalf("v1alpha5 ingress inventory must not be mixed into callables/schemas: %#v", inspection)
+	if len(inspection.Callables) == 0 || len(inspection.Schemas) == 0 {
+		t.Fatalf("inspection must project the inherited callable/Schema inventory: %#v", inspection)
+	}
+	for _, callable := range inspection.Callables {
+		if callable.Kind == v1alpha5ExportKindIngressOperation {
+			t.Fatalf("ingress operation must not be projected as a callable: %#v", callable)
+		}
 	}
 	if len(inspection.IngressOperations) != 1 {
 		t.Fatalf("expected exactly one trusted Ingress Operation, got %#v", inspection.IngressOperations)
@@ -85,8 +90,10 @@ func TestV1Alpha5DependencyInspectionPositiveIngressInventory(t *testing.T) {
 	if err := json.Unmarshal(document["callables"], &callables); err != nil {
 		t.Fatalf("decode callables: %v", err)
 	}
-	if len(callables) != 0 {
-		t.Fatalf("ingress operations must not be mixed into callables: %s", encoded)
+	for _, callable := range callables {
+		if callable.Kind == v1alpha5ExportKindIngressOperation {
+			t.Fatalf("ingress operations must not be mixed into callables: %s", encoded)
+		}
 	}
 }
 
@@ -124,7 +131,7 @@ func TestV1Alpha5DependencyInspectionUntrustedCatalogsSuppressed(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			request := wp3BuildRequest(t, wp3FixtureOptions{mutateContext: test.mutate})
 			inspection := InspectDependencies(request)
-			if inspection.APIVersion != DependencyInspectionAPIVersionV1Alpha5 {
+			if inspection.APIVersion != DependencyInspectionAPIVersion {
 				t.Fatalf("apiVersion = %q", inspection.APIVersion)
 			}
 			if len(inspection.IngressOperations) != 0 {
@@ -219,7 +226,7 @@ func TestV1Alpha5DependencyInspectionDeterministic(t *testing.T) {
 func TestV1Alpha5DependencyInspectionAuthorOnlyRequest(t *testing.T) {
 	request := v1alpha5TestProcedureRequest(validV1Alpha5WaitProcedure())
 	inspection := InspectDependencies(request)
-	if inspection.APIVersion != DependencyInspectionAPIVersionV1Alpha5 {
+	if inspection.APIVersion != DependencyInspectionAPIVersion {
 		t.Fatalf("apiVersion = %q", inspection.APIVersion)
 	}
 	if len(inspection.Diagnostics) != 0 {
@@ -232,27 +239,27 @@ func TestV1Alpha5DependencyInspectionAuthorOnlyRequest(t *testing.T) {
 	}
 }
 
-// TestV1Alpha4DependencyInspectionUnchanged keeps the frozen v1alpha4 inspection
-// JSON projection byte-compatible: the new ingress field is omitted and the
-// existing callables/schemas projection is intact.
-func TestV1Alpha4DependencyInspectionUnchanged(t *testing.T) {
+// TestDependencyInspectionInheritedInventory checks the single inspection
+// projection: the inherited callables/schemas inventory is intact and an empty
+// Ingress inventory is omitted from the JSON projection.
+func TestDependencyInspectionInheritedInventory(t *testing.T) {
 	inspection := InspectDependencies(wp3dInspectRequest(t, wp3aBaseFixture(t)))
 	if inspection.APIVersion != DependencyInspectionAPIVersion {
-		t.Fatalf("v1alpha4 inspection apiVersion = %q, want %q",
+		t.Fatalf("inspection apiVersion = %q, want %q",
 			inspection.APIVersion, DependencyInspectionAPIVersion)
 	}
 	if len(inspection.Callables) == 0 || len(inspection.Schemas) == 0 {
-		t.Fatalf("v1alpha4 inspection lost its callables/schemas projection: %#v", inspection)
+		t.Fatalf("inspection lost its callables/schemas projection: %#v", inspection)
 	}
 	if len(inspection.IngressOperations) != 0 {
-		t.Fatalf("v1alpha4 inspection must not expose ingress operations: %#v",
+		t.Fatalf("inspection exposed ingress operations for an ingress-free scope: %#v",
 			inspection.IngressOperations)
 	}
 	encoded, err := json.Marshal(inspection)
 	if err != nil {
-		t.Fatalf("marshal v1alpha4 inspection: %v", err)
+		t.Fatalf("marshal inspection: %v", err)
 	}
 	if strings.Contains(string(encoded), "ingressOperations") {
-		t.Fatalf("v1alpha4 inspection JSON gained the v1alpha5-only field: %s", encoded)
+		t.Fatalf("ingressOperations should be omitted for an empty ingress inventory: %s", encoded)
 	}
 }

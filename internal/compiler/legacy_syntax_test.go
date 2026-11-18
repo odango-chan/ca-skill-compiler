@@ -4,12 +4,12 @@ package compiler
 
 import "testing"
 
-func TestLegacyWaitSyntaxPriority(t *testing.T) {
+func TestInvalidWaitDeclarationIsNotUnknownField(t *testing.T) {
 	fixture := wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "  inspect-registration:\n    observation:", "  inspect-registration:\n    wait: 1000\n    observation:")
 	diagnostics := Check(fixture.request(t))
-	if !v4HasCode(diagnostics, "UNSUPPORTED_WAIT") {
-		t.Fatalf("Wait syntax not classified as UNSUPPORTED_WAIT: %+v", diagnostics)
+	if !hasCode(diagnostics, "WAIT_DECLARATION_INVALID") {
+		t.Fatalf("invalid Wait declaration not classified as WAIT_DECLARATION_INVALID: %+v", diagnostics)
 	}
 	for _, diagnostic := range diagnostics {
 		if diagnostic.Code == "UNKNOWN_FIELD" {
@@ -22,19 +22,19 @@ func TestLegacyV02SyntaxPriority(t *testing.T) {
 	fixture := wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aProcedurePath, "  inspect-registration:\n    observation:", "  inspect-registration:\n    verify:\n      predicates: []\n    observation:")
 	diagnostics := Check(fixture.request(t))
-	if !v4HasCode(diagnostics, "UNSUPPORTED_V02_SYNTAX") {
+	if !hasCode(diagnostics, "UNSUPPORTED_V02_SYNTAX") {
 		t.Fatalf("legacy verify field not classified as UNSUPPORTED_V02_SYNTAX: %+v", diagnostics)
 	}
 }
 
 func TestRemovedV1Alpha3FieldStaysUnknown(t *testing.T) {
-	procedure := replaceOnceString(v4TestProcedure, "      tool: ca::example.session.read", "      tool: ca::example.session.read\n      target: ca::example.session.read")
-	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
+	procedure := replaceOnceString(testProcedure, "      tool: ca::example.session.read", "      tool: ca::example.session.read\n      target: ca::example.session.read")
+	request := testRequest(testContract, procedure, testPredicates, testSchema)
 	diagnostics := Check(request)
-	if !v4HasCode(diagnostics, "UNKNOWN_FIELD") {
+	if !hasCode(diagnostics, "UNKNOWN_FIELD") {
 		t.Fatalf("removed v1alpha3 target field must stay UNKNOWN_FIELD: %+v", diagnostics)
 	}
-	if v4HasCode(diagnostics, "UNSUPPORTED_V02_SYNTAX") || v4HasCode(diagnostics, "UNSUPPORTED_WAIT") {
+	if hasCode(diagnostics, "UNSUPPORTED_V02_SYNTAX") || hasCode(diagnostics, "UNSUPPORTED_WAIT") {
 		t.Fatalf("removed v1alpha3 field misclassified as legacy syntax: %+v", diagnostics)
 	}
 }

@@ -8,8 +8,8 @@ import (
 )
 
 func TestQualifiedCallableReference(t *testing.T) {
-	valid := v4TestRequest(v4TestContract, v4TestProcedure, v4TestPredicates, v4TestSchema)
-	if v4HasCode(Check(valid), "QUALIFIED_REFERENCE_INVALID") {
+	valid := testRequest(testContract, testProcedure, testPredicates, testSchema)
+	if hasCode(Check(valid), "QUALIFIED_REFERENCE_INVALID") {
 		t.Fatalf("valid tool reference rejected: %+v", Check(valid))
 	}
 	cases := map[string]string{
@@ -19,8 +19,8 @@ func TestQualifiedCallableReference(t *testing.T) {
 		"single colon": "tool: ca:ue.registration.current",
 	}
 	for name, replacement := range cases {
-		procedure := strings.Replace(v4TestProcedure, "tool: ca::example.session.read", replacement, 1)
-		request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
+		procedure := strings.Replace(testProcedure, "tool: ca::example.session.read", replacement, 1)
+		request := testRequest(testContract, procedure, testPredicates, testSchema)
 		diagnostics := Check(request)
 		found := false
 		for _, diagnostic := range diagnostics {

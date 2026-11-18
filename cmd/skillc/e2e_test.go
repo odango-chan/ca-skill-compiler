@@ -137,7 +137,7 @@ func TestCLIEndToEndVersion(t *testing.T) {
 	if versioned.code != 0 {
 		t.Fatalf("version exit = %d, stderr = %s", versioned.code, versioned.stderr)
 	}
-	for _, want := range []string{"skillc " + compiler.CompilerVersion, "language target: " + compiler.V1Alpha4Target} {
+	for _, want := range []string{"skillc " + compiler.CompilerVersion, "language target: " + compiler.V1Alpha5Target} {
 		if !strings.Contains(versioned.stdout, want) {
 			t.Fatalf("version output missing %q: %q", want, versioned.stdout)
 		}
@@ -170,7 +170,7 @@ func TestCLIEndToEndTrustedBuildAndDeterminism(t *testing.T) {
 	if len(firstTree) == 0 {
 		t.Fatal("build wrote no files")
 	}
-	if _, ok := firstTree[filepath.ToSlash("skills/verify-ue-registration/generated/artifact-manifest.json")]; !ok {
+	if _, ok := firstTree[filepath.ToSlash("manifest.json")]; !ok {
 		t.Fatalf("artifact manifest missing, files = %v", keysOf(firstTree))
 	}
 
@@ -438,7 +438,7 @@ func v1alpha5CLIRequestPath(t *testing.T, fixture string) string {
 		t.Fatalf("read v1alpha5 fixture %s: %v", fixture, err)
 	}
 	request := compiler.BuildRequest{
-		APIVersion:           compiler.BuildRequestAPIVersionV1Alpha5,
+		APIVersion:           compiler.BuildRequestAPIVersion,
 		LanguageTarget:       compiler.V1Alpha5Target,
 		Files:                []compiler.File{{Path: "skills/example/assurance/procedure.yaml", Bytes: raw}},
 		ResolvedDependencies: []compiler.ResolvedDependency{},
@@ -461,12 +461,10 @@ func TestCLIEndToEndV1Alpha5VersionAndHelp(t *testing.T) {
 	}
 	for _, want := range []string{
 		"skillc " + compiler.CompilerVersion,
-		"language target: " + compiler.V1Alpha4Target,
 		"language target: " + compiler.V1Alpha5Target,
 		compiler.BuildRequestAPIVersion,
-		compiler.BuildRequestAPIVersionV1Alpha5,
 		compiler.BuildResultAPIVersion,
-		compiler.BuildResultAPIVersionV1Alpha5,
+		compiler.DependencyInspectionAPIVersion,
 	} {
 		if !strings.Contains(versioned.stdout, want) {
 			t.Fatalf("version output missing %q: %q", want, versioned.stdout)
@@ -595,7 +593,7 @@ func TestCLIEndToEndV1Alpha5Build(t *testing.T) {
 	if err := json.Unmarshal([]byte(valid.stdout), &validResult); err != nil {
 		t.Fatalf("valid v1alpha5 build --json output: %v\n%s", err, valid.stdout)
 	}
-	if validResult.APIVersion != compiler.BuildResultAPIVersionV1Alpha5 || !validResult.Success {
+	if validResult.APIVersion != compiler.BuildResultAPIVersion || !validResult.Success {
 		t.Fatalf("valid v1alpha5 build result = apiVersion %q success %v", validResult.APIVersion, validResult.Success)
 	}
 	if len(validResult.Diagnostics) != 0 {
@@ -646,7 +644,7 @@ func TestCLIEndToEndV1Alpha5Build(t *testing.T) {
 	if err := json.Unmarshal([]byte(invalid.stdout), &invalidResult); err != nil {
 		t.Fatalf("invalid v1alpha5 build --json output: %v\n%s", err, invalid.stdout)
 	}
-	if invalidResult.APIVersion != compiler.BuildResultAPIVersionV1Alpha5 || invalidResult.Success {
+	if invalidResult.APIVersion != compiler.BuildResultAPIVersion || invalidResult.Success {
 		t.Fatalf("invalid v1alpha5 build result = apiVersion %q success %v", invalidResult.APIVersion, invalidResult.Success)
 	}
 	waitDiagnostics := 0
@@ -680,9 +678,9 @@ func TestCLIEndToEndV1Alpha5InspectIngressInventory(t *testing.T) {
 	if err := json.Unmarshal([]byte(first.stdout), &result); err != nil {
 		t.Fatalf("v1alpha5 inspect --json output: %v\n%s", err, first.stdout)
 	}
-	if result.APIVersion != compiler.DependencyInspectionAPIVersionV1Alpha5 {
+	if result.APIVersion != compiler.DependencyInspectionAPIVersion {
 		t.Fatalf("v1alpha5 inspect apiVersion = %q, want %q",
-			result.APIVersion, compiler.DependencyInspectionAPIVersionV1Alpha5)
+			result.APIVersion, compiler.DependencyInspectionAPIVersion)
 	}
 	if len(result.Diagnostics) != 0 {
 		t.Fatalf("author-only v1alpha5 inspect diagnostics = %+v, want []", result.Diagnostics)
@@ -715,4 +713,38 @@ func keysOf(files map[string][]byte) []string {
 		keys = append(keys, name)
 	}
 	return keys
+}
+
+// TestCLIEndToEndRejectsV1Alpha4Request proves the CLI has no v1alpha4 special
+// case: a v1alpha4 BuildRequest document is decoded and then rejected by the
+// single-version admission, and a project directory is always loaded as
+// v1alpha5.
+func TestCLIEndToEndRejectsV1Alpha4Request(t *testing.T) {
+	request := compiler.BuildRequest{
+		APIVersion:           "connectionagent.io/compiler-build-request/v1alpha4",
+		LanguageTarget:       "connectionagent.io/v1alpha4",
+		ResolvedDependencies: []compiler.ResolvedDependency{},
+		Files:                []compiler.File{{Path: "skills/demo/SKILL.md", Bytes: []byte("# demo\n")}},
+	}
+	encoded, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	requestPath := filepath.Join(t.TempDir(), "v1alpha4-request.json")
+	if err := os.WriteFile(requestPath, encoded, 0644); err != nil {
+		t.Fatal(err)
+	}
+	checked := runCLI(t, "check", "--request", requestPath, "--json")
+	if checked.code != 1 {
+		t.Fatalf("v1alpha4 check exit = %d, want 1; stdout = %s stderr = %s", checked.code, checked.stdout, checked.stderr)
+	}
+	for _, want := range []string{"REQUEST_INVALID", "LANGUAGE_TARGET_UNSUPPORTED"} {
+		if !strings.Contains(checked.stdout, want) {
+			t.Fatalf("v1alpha4 check output missing %q: %s", want, checked.stdout)
+		}
+	}
+	built := runCLI(t, "build", "--request", requestPath, "--out", filepath.Join(t.TempDir(), "out"))
+	if built.code != 1 {
+		t.Fatalf("v1alpha4 build exit = %d, want 1; stderr = %s", built.code, built.stderr)
+	}
 }

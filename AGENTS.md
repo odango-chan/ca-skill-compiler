@@ -1,8 +1,8 @@
 # CA Skill Compiler — Repository Instructions
 
-- **Current product release:** CA Skill Compiler v1.0.0
-- **Active language target:** released CA-SL v1alpha5 (`connectionagent.io/v1alpha5`), which inherits the released v1alpha4 normative semantics
-- **Published product release commit (immutable):** `252fd6c6dab15fb92806426aeb19d49a36b08d5e`
+- **Product version (this line):** CA Skill Compiler v2.0.0
+- **Only language target:** released CA-SL v1alpha5 (`connectionagent.io/v1alpha5`), which inherits the released v1alpha4 normative semantics
+- **Published v1.0.0 release commit (immutable):** `252fd6c6dab15fb92806426aeb19d49a36b08d5e`
 
 ## 1. Authority
 
@@ -20,9 +20,9 @@ Historical v0.1/v0.2 documents and fixtures are not current authority. Do not ad
 
 - v1.0.0 is published and its tag/release assets are immutable.
 - Product version and language version are independent.
-- CA-SL v1alpha5 is the active language target; v1alpha4 is a frozen historical target with no new language semantics.
-- v1.0.0 / v1alpha4 remains a historical release and is not rewritten; the active line implements the released v1alpha5 Wait/Ingress semantics through the unified pipeline.
-- Keep Compiler implementation status, local verification and real Owner/product qualification distinct. The release has local acceptance evidence; real 5GC/MAS qualification remains NOT_QUALIFIED.
+- CA-SL v1alpha5 is the only supported language target. There is no v1alpha4 build entry, CLI target, API identity or compatibility layer; a v1alpha4 `apiVersion` or `languageTarget` fails closed.
+- The v1alpha5 language inherits the released v1alpha4 semantics; those inherited obligations are implemented by the single v1alpha5 pipeline.
+- Keep Compiler implementation status, local verification and real Owner/product qualification distinct. Real 5GC/MAS qualification remains NOT_QUALIFIED.
 
 ## 3. Compiler ownership and trust boundaries
 
@@ -34,7 +34,7 @@ Host/Runtime remains responsible for Invocation, event ingress, Wait lifecycle, 
 
 ## 4. Build and fail-closed boundaries
 
-Check and Build share the same static validation pipeline. Build emits a complete deterministic artifact only when validation succeeds. The earlier v1alpha4 feature-scoped fail-closed gates are resolved: Evidence Descriptor linking, Mutation/Reconcile and retry assurance are implemented by the unified v1alpha5 pipeline. See [v1alpha5 Known Limitations](docs/known-limitations-v1alpha5.md).
+Check and Build share the same static validation pipeline. Build emits a complete deterministic artifact only when validation succeeds. Evidence Descriptor linking, Mutation/Reconcile and retry assurance are implemented by the single v1alpha5 pipeline; the earlier v1alpha4 feature-scoped fail-closed gates no longer exist. See [v1alpha5 Known Limitations](docs/known-limitations-v1alpha5.md).
 
 A successful Build is not a Runtime authorization token or product qualification.
 
@@ -53,7 +53,7 @@ A successful Build is not a Runtime authorization token or product qualification
 - Open a PR to `main`; keep it Draft while local verification has not been executed or review blockers remain.
 - Never push directly to `main`, force-push, or merge without explicit approval.
 - Do not claim tests, CI or Chromium acceptance passed unless actually executed and their exact results are recorded.
-- GitHub Actions was unavailable for the v1.0.0 release run; local acceptance commands and results are recorded in [Local Verification](docs/local-verification-v1alpha4.md).
+- GitHub Actions was unavailable for the v1.0.0 release run; that historical evidence is recorded in [Local Verification v1alpha4](docs/local-verification-v1alpha4.md). Current local acceptance is recorded in [v1alpha5 integration acceptance](docs/COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
 
 ## 7. Reproducible local gates
 

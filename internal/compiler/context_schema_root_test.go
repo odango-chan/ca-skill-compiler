@@ -10,14 +10,14 @@ func TestContextSchemaRootIdentityMismatch(t *testing.T) {
 	fixture.replaceSnapshotFile("ca-context", "invocation-context.schema.yaml", "type: object", "$ref: urn:example:ca:registration:v1")
 	fixture.refreshSnapshotDigests(t)
 	diagnostics := Check(fixture.request(t))
-	if !v4HasCode(diagnostics, "CONTEXT_SCHEMA_MISMATCH") {
+	if !hasCode(diagnostics, "CONTEXT_SCHEMA_MISMATCH") {
 		t.Fatalf("context Schema identity mismatch not reported: %+v", diagnostics)
 	}
 }
 
 func TestContextSchemaRootIdentityPositive(t *testing.T) {
 	diagnostics := Check(wp3aBaseFixture(t).request(t))
-	if v4HasCode(diagnostics, "CONTEXT_SCHEMA_MISMATCH") {
+	if hasCode(diagnostics, "CONTEXT_SCHEMA_MISMATCH") {
 		t.Fatalf("valid context Schema identity rejected: %+v", diagnostics)
 	}
 }

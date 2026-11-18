@@ -1,12 +1,13 @@
 package compiler
 
-// Target-neutral public Compiler API.
+// Public Compiler API.
 //
 // This file owns the public BuildRequest / BuildResult / Diagnostic /
 // DependencyInspection wire DTOs, the strict JSON transport decoder and the
-// exact language-target dispatch. The internal semantic pipeline is
-// version-neutral; v1alpha4 remains a frozen historical target dispatched from
-// here, while CA-SL v1alpha5 is the active language target.
+// four public entry points. CA-SL v1alpha5 is the only supported language
+// target: there is exactly one public API version set, one language target and
+// one compiler pipeline. Unknown targets fail closed during admission; there is
+// no fallback, version sniffing or compatibility router.
 //
 // The public structs intentionally carry no parser, linker or artifact-version
 // types, so the Compiler Core never imports or depends on a specific artifact
@@ -18,21 +19,25 @@ import (
 	"fmt"
 	"io"
 	"sort"
-
-	"github.com/odango-chan/ca-skill-compiler/internal/artifact"
 )
 
 const (
-	BuildRequestAPIVersion         = "connectionagent.io/compiler-build-request/v1alpha4"
-	BuildResultAPIVersion          = "connectionagent.io/compiler-build-result/v1alpha4"
-	DependencyInspectionAPIVersion = "connectionagent.io/compiler-dependency-inspection/v1alpha4"
-	maxResolvedDependencies        = 128
-	maxSelectedTargets             = 256
-	maxPathBytes                   = 240
-	maxTargetRunes                 = 80
-	maxDependencyIDBytes           = 128
-	maxOwnerIDRunes                = 160
-	maxExportIDRunes               = 240
+	// BuildRequestAPIVersion is the only accepted BuildRequest.apiVersion.
+	BuildRequestAPIVersion = "connectionagent.io/compiler-build-request/v1alpha5"
+	// BuildResultAPIVersion is stamped on every BuildResult, including
+	// fail-closed results.
+	BuildResultAPIVersion = "connectionagent.io/compiler-build-result/v1alpha5"
+	// DependencyInspectionAPIVersion is the independent dependency-inspection
+	// API version of the single v1alpha5 target.
+	DependencyInspectionAPIVersion = "connectionagent.io/compiler-dependency-inspection/v1alpha5"
+
+	maxResolvedDependencies = 128
+	maxSelectedTargets      = 256
+	maxPathBytes            = 240
+	maxTargetRunes          = 80
+	maxDependencyIDBytes    = 128
+	maxOwnerIDRunes         = 160
+	maxExportIDRunes        = 240
 )
 
 // BuildRequest is the only accepted Compiler input API. Byte slices use
@@ -86,10 +91,10 @@ type DeploymentAuthorization struct {
 	AuthorizationRef string `json:"authorizationRef"`
 }
 
-// TrustedArtifactBinding is one v1alpha5 trusted artifact binding: the exact
-// dependency snapshot file that holds an immutable protocol or Schema artifact,
-// its content dialect and its caller-declared artifact identity. It carries no
-// digest: WP1 always recomputes the artifact digest from the raw snapshot bytes.
+// TrustedArtifactBinding is one trusted artifact binding: the exact dependency
+// snapshot file that holds an immutable protocol or Schema artifact, its content
+// dialect and its caller-declared artifact identity. It carries no digest: the
+// Compiler always recomputes the artifact digest from the raw snapshot bytes.
 type TrustedArtifactBinding struct {
 	ArtifactRef  string `json:"artifactRef"`
 	DependencyID string `json:"dependencyId"`
@@ -97,7 +102,7 @@ type TrustedArtifactBinding struct {
 	Dialect      string `json:"dialect"`
 }
 
-// TrustedSchemaBinding is one v1alpha5 trusted Schema export binding: the exact
+// TrustedSchemaBinding is one trusted Schema export binding: the exact
 // artifactRef and canonical Schema root pointer (# or #/...) that define one
 // exported Schema identity.
 type TrustedSchemaBinding struct {
@@ -112,23 +117,11 @@ type TrustedBuildContext struct {
 	DeploymentAuthorizations *[]DeploymentAuthorization   `json:"deploymentAuthorizations,omitempty"`
 	EvidenceTrustBindings    *EvidenceTrustBindingsBundle `json:"evidenceTrustBindings,omitempty"`
 
-	// The following fields are v1alpha5-only trusted-context bindings. They are
-	// declared on the shared struct so the v1alpha5 target can express the
-	// trusted Ingress/Schema artifacts, but the frozen v1alpha4 envelope
-	// validation explicitly rejects any non-empty value so the v1alpha4 API stays
-	// closed.
+	// Trusted Ingress/Schema artifact bindings. Every artifact digest is
+	// recomputed from the raw dependency snapshot bytes at link time.
 	SnapshotBaseURI  string                   `json:"snapshotBaseURI,omitempty"`
 	ArtifactBindings []TrustedArtifactBinding `json:"artifactBindings,omitempty"`
 	SchemaBindings   []TrustedSchemaBinding   `json:"schemaBindings,omitempty"`
-}
-
-// v1alpha5OnlyContextPresent reports whether a TrustedBuildContext carries any
-// field that belongs only to the v1alpha5 API.
-func (ctx *TrustedBuildContext) v1alpha5OnlyContextPresent() bool {
-	if ctx == nil {
-		return false
-	}
-	return ctx.SnapshotBaseURI != "" || len(ctx.ArtifactBindings) > 0 || len(ctx.SchemaBindings) > 0
 }
 
 type Diagnostic struct {
@@ -175,10 +168,8 @@ type DependencyInspection struct {
 	Callables   []InspectedCallable `json:"callables"`
 	Schemas     []InspectedSchema   `json:"schemas"`
 
-	// IngressOperations is the independent v1alpha5 Ingress Operation inventory.
-	// It is empty for the frozen v1alpha4 target, so the v1alpha4 JSON projection
-	// is byte-compatible (omitempty). Ingress operations are never mixed into
-	// Callables.
+	// IngressOperations is the independent Ingress Operation inventory. Ingress
+	// operations are never mixed into Callables.
 	IngressOperations []InspectedIngressOperation `json:"ingressOperations,omitempty"`
 }
 
@@ -301,40 +292,48 @@ func rejectJSONNullArrayElements(raw json.RawMessage, name string) error {
 	return nil
 }
 
+// Check runs the complete static validation pipeline for one BuildRequest. It is
+// the only Check entry: Build runs exactly the same pipeline and only assembles
+// an artifact when Check returns no error diagnostic.
 func Check(req BuildRequest) []Diagnostic {
-	// Exact target dispatch before the v1alpha4 envelope validation, which
-	// deliberately treats every other target (including v1alpha5) as
-	// unsupported. There is no fallback or version sniffing.
-	if req.LanguageTarget == V1Alpha5Target {
-		return CheckV1Alpha5(req)
-	}
 	if diagnostics := validateBuildRequest(req); len(diagnostics) > 0 {
 		return diagnostics
 	}
-	return validateV1Alpha4(req).Diagnostics
+	return checkSources(req)
 }
 
+// Build compiles one BuildRequest. It re-runs the strict admission and the full
+// static pipeline, then assembles the deterministic artifact tree only when no
+// error diagnostic was produced. A failed Build never returns partial output
+// files.
 func Build(req BuildRequest) BuildResult {
-	if req.LanguageTarget == V1Alpha5Target {
-		return BuildV1Alpha5(req)
-	}
 	if diagnostics := validateBuildRequest(req); len(diagnostics) > 0 {
 		return failedBuildResult(diagnostics)
 	}
-	return validateV1Alpha4(req)
+	diagnostics := checkSources(req)
+	if hasErrorDiagnostic(diagnostics) {
+		return failedBuildResult(diagnostics)
+	}
+	result, err := assembleSuccessResult(req)
+	if err != nil {
+		diagnostics = append(diagnostics, Diagnostic{
+			Severity: "error",
+			Phase:    "C_STATIC",
+			Code:     "CAPABILITY_INPUT_UNTRUSTED",
+			Path:     "",
+			Message:  limitDiagnosticMessage("fail-closed: artifact assembly failed: " + err.Error()),
+		})
+		return failedBuildResult(diagnostics)
+	}
+	return result
 }
 
 // InspectDependencies is a read-only, snapshot-scoped inventory projection. It
 // validates the supplied immutable snapshots and trusted dependency/Owner
-// bindings, then lists only exports whose identity and Owner can be established.
-// It never resolves Skill author references, evaluates Capability Grants or
-// authorizes invocation.
+// bindings, then lists only exports whose identity and Owner can be
+// established. It never resolves Skill author references, evaluates Capability
+// Grants or authorizes invocation.
 func InspectDependencies(req BuildRequest) DependencyInspection {
-	// Exact target dispatch before the v1alpha4 snapshot inspection, which
-	// deliberately treats every other target (including v1alpha5) as unsupported.
-	if req.LanguageTarget == V1Alpha5Target {
-		return InspectV1Alpha5Dependencies(req)
-	}
 	return inspectDependencies(req)
 }
 
@@ -354,23 +353,24 @@ func failedBuildResult(diagnostics []Diagnostic) BuildResult {
 
 // VerifyBuildResult checks the structural integrity of a successful BuildResult
 // artifact tree (unique paths, canonical manifest per Skill, complete file
-// listing, generated Script Output Schema identity). It never writes to disk and
-// returns nil for an empty or failed result.
+// listing, source digests, Schema closure identity). It never writes to disk
+// and returns nil for an empty or failed result.
 //
-// v1alpha5 results dispatch to the candidate v1alpha5 artifact contract
-// verification; the frozen v1alpha4 artifact verification is unchanged.
+// A successful result must carry the single v1alpha5 BuildResult API version.
+// Any other result version is rejected rather than verified against a
+// different artifact contract.
 func VerifyBuildResult(result BuildResult) error {
 	if !result.Success {
 		return nil
 	}
-	files := make([]artifact.File, 0, len(result.OutputFiles))
+	if result.APIVersion != BuildResultAPIVersion {
+		return fmt.Errorf("unsupported BuildResult.apiVersion %q: expected %s", result.APIVersion, BuildResultAPIVersion)
+	}
+	files := make([]File, 0, len(result.OutputFiles))
 	for _, file := range result.OutputFiles {
-		files = append(files, artifact.File{Path: file.Path, Bytes: file.Bytes})
+		files = append(files, File{Path: file.Path, Bytes: file.Bytes})
 	}
-	if result.APIVersion == BuildResultAPIVersionV1Alpha5 {
-		return verifyV1Alpha5ArtifactTree(result, files)
-	}
-	return artifact.Verify(files)
+	return verifyV1Alpha5ArtifactTree(result, files)
 }
 
 func sortDiagnostics(diagnostics []Diagnostic) {

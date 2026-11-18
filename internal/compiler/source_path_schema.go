@@ -14,12 +14,12 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateV1Alpha4SourcePathSchemas(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, contractPath, procedurePath string) []Diagnostic {
+func validateSourcePathSchemas(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, contractPath, procedurePath string) []Diagnostic {
 	diagnostics := make([]Diagnostic, 0)
 	if skill == nil || skill.Contract == nil || skill.Contract.Raw == nil {
 		return diagnostics
 	}
-	registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity)
 	base := "skills/" + skill.Name + "/"
 
 	var requestRoot *yaml.Node
@@ -39,7 +39,7 @@ func validateV1Alpha4SourcePathSchemas(req BuildRequest, skill *V1Alpha4SkillAST
 		}
 	}
 
-	for _, value := range collectV1Alpha4SourcePathArguments(skill) {
+	for _, value := range collectSourcePathArguments(skill) {
 		value = unalias(value)
 		if value == nil || value.Kind != yaml.ScalarNode || value.Tag != "!!str" {
 			continue
@@ -137,10 +137,10 @@ func requiredProperty(schema *yaml.Node, name string) bool {
 	return false
 }
 
-// collectV1Alpha4SourcePathArguments gathers every author-provided argument that
+// collectSourcePathArguments gathers every author-provided argument that
 // is a SourcePath position (named Tool/Script arguments and positional
 // PredicateCall arguments).
-func collectV1Alpha4SourcePathArguments(skill *V1Alpha4SkillAST) []*yaml.Node {
+func collectSourcePathArguments(skill *SkillAST) []*yaml.Node {
 	values := make([]*yaml.Node, 0)
 	if skill == nil || skill.Procedure == nil {
 		return values
@@ -165,7 +165,7 @@ func collectV1Alpha4SourcePathArguments(skill *V1Alpha4SkillAST) []*yaml.Node {
 		if node.Observation != nil {
 			appendArguments(node.Observation.Arguments)
 		}
-		for _, stage := range []*V1Alpha4PredicateStageAST{node.Precondition, node.Postcondition} {
+		for _, stage := range []*PredicateStageAST{node.Precondition, node.Postcondition} {
 			if stage == nil {
 				continue
 			}

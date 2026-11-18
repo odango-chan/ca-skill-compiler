@@ -29,9 +29,9 @@ var celAllowedFunctions = map[string]bool{
 	"has": true, "size": true,
 }
 
-// checkV1Alpha4CELExpression returns an empty string when the expression is a
+// checkCELExpression returns an empty string when the expression is a
 // legal v1alpha4 CEL expression with a statically boolean result.
-func checkV1Alpha4CELExpression(expression string, parameters map[string]string) string {
+func checkCELExpression(expression string, parameters map[string]string) string {
 	if expression == "" {
 		return "CEL expression must be a nonempty string"
 	}
@@ -105,9 +105,9 @@ func celSubsetViolation(expression ast.Expr) string {
 	}
 }
 
-// v4CheckPredicateCEL validates Predicate parameter signatures and every cel
+// checkPredicateCEL validates Predicate parameter signatures and every cel
 // evaluator expression. Script evaluators are WP9 scope and are left untouched.
-func v4CheckPredicateCEL(file string, source *V1Alpha4PredicateSetAST, add func(string, *yaml.Node, string, string)) {
+func checkPredicateCEL(file string, source *PredicateSetAST, add func(string, *yaml.Node, string, string)) {
 	if source == nil {
 		return
 	}
@@ -153,7 +153,7 @@ func v4CheckPredicateCEL(file string, source *V1Alpha4PredicateSetAST, add func(
 			continue
 		}
 		expressionNode := child(predicate.Evaluator, "expression")
-		if problem := checkV1Alpha4CELExpression(scalar(expressionNode), parameters); problem != "" {
+		if problem := checkCELExpression(scalar(expressionNode), parameters); problem != "" {
 			add(file, expressionNode, "CEL_INVALID", problem)
 		}
 	}

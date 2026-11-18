@@ -151,7 +151,7 @@ func validateV1Alpha5DependencyContext(req BuildRequest) []Diagnostic {
 	ctx := req.TrustedBuildContext
 	if ctx == nil {
 		sortDiagnostics(diagnostics)
-		return sortedV1Alpha5Diagnostics(diagnostics)
+		return sortedDiagnostics(diagnostics)
 	}
 	if len(ctx.DependencyBindings) > maxResolvedDependencies || len(ctx.ArtifactBindings) > maxFiles || len(ctx.SchemaBindings) > maxFiles {
 		add("INPUT_LIMIT", "", "TrustedBuildContext exceeds the binding or authorization count limit")
@@ -190,9 +190,95 @@ func validateV1Alpha5DependencyContext(req BuildRequest) []Diagnostic {
 		}
 	}
 	validateV1Alpha5ArtifactBindings(ctx, dependencyFiles, add)
+	validateTrustedBundleInputs(ctx, add)
 
 	sortDiagnostics(diagnostics)
-	return sortedV1Alpha5Diagnostics(diagnostics)
+	return sortedDiagnostics(diagnostics)
+}
+
+// validateTrustedBundleInputs verifies the exact provenance of the trusted
+// deployment bundles: every supplied bundle must be structurally complete and
+// its declared digest must be recomputed from the supplied bytes. A trusted
+// deployment bundle also requires an explicit deployment authorization.
+func validateTrustedBundleInputs(ctx *TrustedBuildContext, add func(code, path, message string)) {
+	authorizations := []DeploymentAuthorization(nil)
+	if ctx.DeploymentAuthorizations != nil {
+		authorizations = *ctx.DeploymentAuthorizations
+	}
+	if ctx.DeploymentAuthorizations != nil && authorizations == nil {
+		add("REQUEST_INVALID", "", "TrustedBuildContext.deploymentAuthorizations must be an array, not null")
+	}
+	if len(authorizations) > 128 {
+		add("INPUT_LIMIT", "", "TrustedBuildContext exceeds the authorization count limit")
+	}
+	if ctx.CapabilityContracts != nil {
+		bundle := ctx.CapabilityContracts
+		if !validURIIdentity(bundle.DeploymentID) || !validURIIdentity(bundle.PublisherID) || !validDigest(bundle.Digest) || len(bundle.Files) == 0 {
+			add("CAPABILITY_INPUT_UNTRUSTED", "", "Trusted CapabilityContracts bundle is incomplete or malformed")
+		}
+		if valid := validateTrustedBundleFileSet(bundle.Files, "CapabilityContracts bundle", add); valid && len(bundle.Files) > 0 {
+			actual, err := ComputeDependencySnapshotDigest(bundle.Files)
+			if err != nil || actual != bundle.Digest {
+				add("CAPABILITY_INPUT_DIGEST_MISMATCH", "", "CapabilityContracts bundle digest does not match its original file bytes")
+			}
+		}
+	}
+	if ctx.EvidenceTrustBindings != nil {
+		bundle := ctx.EvidenceTrustBindings
+		if !validURIIdentity(bundle.DeploymentID) || !validURIIdentity(bundle.PublisherID) || !validDigest(bundle.SnapshotDigest) || len(bundle.Files) == 0 {
+			add("EVIDENCE_GUARANTEE_LINK_INVALID", "", "EvidenceTrustBindings bundle is incomplete or malformed")
+		}
+		if valid := validateTrustedBundleFileSet(bundle.Files, "EvidenceTrustBindings bundle", add); valid && len(bundle.Files) > 0 {
+			actual, err := ComputeDependencySnapshotDigest(bundle.Files)
+			if err != nil || actual != bundle.SnapshotDigest {
+				add("EVIDENCE_GUARANTEE_LINK_INVALID", "", "EvidenceTrustBindings bundle digest does not match its original file bytes")
+			}
+		}
+	}
+	if (ctx.CapabilityContracts != nil || ctx.EvidenceTrustBindings != nil) && ctx.DeploymentAuthorizations == nil {
+		add("REQUEST_INVALID", "", "TrustedBuildContext.deploymentAuthorizations is required when a trusted deployment bundle is supplied")
+	}
+	for _, authorization := range authorizations {
+		if !validURIIdentity(authorization.DeploymentID) || !validURIIdentity(authorization.PublisherID) || !validURIIdentity(authorization.AuthorizationRef) {
+			add("CAPABILITY_INPUT_UNTRUSTED", "", "Deployment authorization binding is incomplete or malformed")
+		}
+	}
+}
+
+// validateTrustedBundleFileSet applies the shared snapshot path, uniqueness and
+// size limits to one trusted bundle file set.
+func validateTrustedBundleFileSet(files []File, scope string, add func(code, path, message string)) bool {
+	valid := true
+	if len(files) > maxFiles {
+		add("INPUT_LIMIT", "", scope+" exceeds the 512-file limit")
+		valid = false
+	}
+	seen := make(map[string]bool, len(files))
+	seenFolded := make(map[string]bool, len(files))
+	for _, file := range files {
+		if file.Bytes == nil {
+			add("REQUEST_INVALID", file.Path, "File.bytes is required and must be a base64 string on the JSON wire")
+			valid = false
+		}
+		if !validRelativeSnapshotPath(file.Path) {
+			add("PACKAGE_PATH_INVALID", file.Path, "File path must be normalized UTF-8 POSIX relative path within its declared source or snapshot root")
+			valid = false
+		}
+		if seen[file.Path] {
+			add("PACKAGE_PATH_INVALID", file.Path, "Duplicate file path within "+scope)
+			valid = false
+		} else if seenFolded[strings.ToLower(file.Path)] {
+			add("PACKAGE_PATH_INVALID", file.Path, "Case-folded file path collision within "+scope)
+			valid = false
+		}
+		seen[file.Path] = true
+		seenFolded[strings.ToLower(file.Path)] = true
+		if len(file.Bytes) > maxFileSize {
+			add("INPUT_LIMIT", file.Path, "File exceeds the 2 MiB raw byte limit")
+			valid = false
+		}
+	}
+	return valid
 }
 
 // validExportKindV1Alpha5 is the v1alpha5 trusted export-kind set: the inherited

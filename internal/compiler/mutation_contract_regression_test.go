@@ -22,7 +22,7 @@ func mutationContractRequest(t *testing.T, catalog string, procedure string) Bui
 
 func assertMutationContractRejected(t *testing.T, req BuildRequest, phrase string) {
 	t.Helper()
-	if !v4HasCode(Check(req), "RECONCILE_CONTRACT_INVALID") {
+	if !hasCode(Check(req), "RECONCILE_CONTRACT_INVALID") {
 		t.Fatalf("malformed Mutation contract was accepted by Check: %+v", Check(req))
 	}
 	result := Build(req)
@@ -171,7 +171,7 @@ func recoveryMutationRequest(t *testing.T, catalog string, descriptor string) Bu
 func TestMutationInvalidRecoverableOutputPathRejected(t *testing.T) {
 	catalog := strings.Replace(recoveryMutationCatalog, `          recoverableOutputPath: output.recovered`, `          recoverableOutputPath: output.missing`, 1)
 	req := recoveryMutationRequest(t, catalog, recoveryDescriptor(true))
-	if !v4HasCode(Check(req), "RECONCILE_CONTRACT_INVALID") {
+	if !hasCode(Check(req), "RECONCILE_CONTRACT_INVALID") {
 		t.Fatalf("invalid recoverableOutputPath accepted: %+v", Check(req))
 	}
 	result := Build(req)

@@ -425,15 +425,3 @@ func TestV1Alpha5WP4Determinism(t *testing.T) {
 		t.Fatal("determinism fixture must produce a diagnostic")
 	}
 }
-
-// TestV1Alpha5WP4V1Alpha4RejectsWaitProducerSourcePath keeps the frozen v1alpha4
-// grammar closed: `<node>.wait.output` is not a v1alpha4 Producer SourcePath
-// (v1alpha4 has no Wait at all), so it stays SOURCE_PATH_INVALID.
-func TestV1Alpha5WP4V1Alpha4RejectsWaitProducerSourcePath(t *testing.T) {
-	procedure := strings.Replace(v4TestProcedure, "arguments: [read.observation.output]",
-		"arguments: [read.wait.output]", 1)
-	diagnostics := Check(v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema))
-	if !v4HasCode(diagnostics, "SOURCE_PATH_INVALID") {
-		t.Fatalf("v1alpha4 must reject wait as a Producer source, got %#v", diagnostics)
-	}
-}

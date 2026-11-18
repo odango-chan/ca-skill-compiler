@@ -33,9 +33,9 @@ func wireErrorResult(command, code, message string) any {
 		return compiler.BuildResult{
 			APIVersion:        compiler.BuildResultAPIVersion,
 			Success:           false,
-			Diagnostics:      diagnostics,
+			Diagnostics:       diagnostics,
 			DependencyClosure: []string{},
-			OutputFiles:      []compiler.File{},
+			OutputFiles:       []compiler.File{},
 		}
 	}
 }

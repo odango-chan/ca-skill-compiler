@@ -3,8 +3,8 @@
 // It builds the Go/WASM compiler, serves a static page, launches real headless
 // Chromium, runs Check/Build/Inspect through the same Web Worker transport used by
 // Skill Studio, and compares the browser results with the Native Go reference for
-// the same BuildRequest. Both the frozen v1alpha4 flow and the candidate v1alpha5
-// flow compare full projections, including successful-Build artifact byte parity
+// the same BuildRequest. The v1alpha5 flow
+// compares full projections, including successful-Build artifact byte parity
 // and Go Core artifact-integrity verification inside the Chromium Worker. The
 // v1alpha5 trusted fixture is SYNTHETIC and compiler-owned. Run from the
 // repository root:
@@ -64,8 +64,8 @@ function collectFiles(directory, prefix = '') {
 
 function writeRequest() {
   const request = {
-    apiVersion: 'connectionagent.io/compiler-build-request/v1alpha4',
-    languageTarget: 'connectionagent.io/v1alpha4',
+    apiVersion: v1alpha5RequestAPIVersion,
+    languageTarget: v1alpha5LanguageTarget,
     files: collectFiles(projectRoot),
     resolvedDependencies: [],
   };

@@ -40,7 +40,7 @@ func validDottedFileSegment(segment string) bool {
 	return true
 }
 
-func validateV1Alpha4ScriptPaths(skill *V1Alpha4SkillAST, files map[string][]byte, procedurePath string, add func(string, *yaml.Node, string, string)) {
+func validateScriptPaths(skill *SkillAST, files map[string][]byte, procedurePath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Procedure == nil {
 		return
 	}
@@ -64,10 +64,10 @@ func validateV1Alpha4ScriptPaths(skill *V1Alpha4SkillAST, files map[string][]byt
 	}
 }
 
-// validateV1Alpha4PredicateScriptEvaluators enforces the Predicate evaluator
+// validatePredicateScriptEvaluators enforces the Predicate evaluator
 // script shape (G.1 Evaluator = script: LocalScriptPath). Python CST/ABI analysis
 // remains NOT_IMPLEMENTED and fail-closed.
-func validateV1Alpha4PredicateScriptEvaluators(skill *V1Alpha4SkillAST, files map[string][]byte, predicatesPath string, add func(string, *yaml.Node, string, string)) {
+func validatePredicateScriptEvaluators(skill *SkillAST, files map[string][]byte, predicatesPath string, add func(string, *yaml.Node, string, string)) {
 	if skill == nil || skill.Predicates == nil {
 		return
 	}

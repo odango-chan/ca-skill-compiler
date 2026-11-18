@@ -209,10 +209,10 @@ func buildV1Alpha5ProcedureGraph(procedure *V1Alpha5ProcedureAST) *V1Alpha5Proce
 // v1alpha5GraphNodeID reports whether a declared Node id is a legal, non-reserved
 // NodeId and can therefore be represented as a graph vertex.
 func v1alpha5GraphNodeID(nodeID string) bool {
-	if nodeID == "" || nodeID == "context" || v4Terminals[nodeID] {
+	if nodeID == "" || nodeID == "context" || reservedTerminals[nodeID] {
 		return false
 	}
-	return v4NodeID.MatchString(nodeID)
+	return nodeIDPattern.MatchString(nodeID)
 }
 
 // v1alpha5WaitEntryVertexID returns the deterministic Wait entry-control vertex
@@ -269,7 +269,7 @@ func (graph *V1Alpha5ProcedureGraph) resolveTarget(target string) (string, bool)
 	if target == "" {
 		return "", false
 	}
-	if v4Terminals[target] {
+	if reservedTerminals[target] {
 		return target, true
 	}
 	if _, declared := graph.nodeVertices[target]; declared {
@@ -682,7 +682,7 @@ func validateV1Alpha5ProcedureGraph(procedurePath string, skill *V1Alpha5SkillAS
 			for _, outcome := range routeKeys(routes) {
 				valueNode := child(routes, outcome)
 				target := scalar(valueNode)
-				if _, ok := declared[target]; !ok && !v4Terminals[target] {
+				if _, ok := declared[target]; !ok && !reservedTerminals[target] {
 					add(valueNode, "CONTROL_FLOW_DANGLING", "Route value is neither a terminal nor an existing Node")
 				}
 			}
@@ -701,7 +701,7 @@ func validateV1Alpha5ProcedureGraph(procedurePath string, skill *V1Alpha5SkillAS
 			continue
 		}
 		if target := node.Wait.Routes.Timeout; target != "" {
-			if _, ok := declared[target]; !ok && !v4Terminals[target] {
+			if _, ok := declared[target]; !ok && !reservedTerminals[target] {
 				add(child(node.Wait.Routes.Raw, "TIMEOUT"), "CONTROL_FLOW_DANGLING",
 					"Wait TIMEOUT route value is neither a permitted stopping terminal nor an existing Node")
 			}

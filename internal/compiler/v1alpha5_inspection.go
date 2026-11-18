@@ -41,21 +41,20 @@ type InspectedIngressOperation struct {
 	NormalizedSchemaDigest string `json:"normalizedSchemaDigest"`
 }
 
-// inspectV1Alpha5Dependencies is the exact-target dispatch target for
-// InspectDependencies when BuildRequest.languageTarget is v1alpha5. It returns
-// the independent v1alpha5 inspection API version and the ingress inventory; the
-// inherited v1alpha4 projection (callables/schemas/diagnostics) is untouched.
-func inspectV1Alpha5Dependencies(req BuildRequest) DependencyInspection {
+// inspectDependencies is the single DependencyInspection projection. It returns
+// the inherited callable/Schema inventory and the independent Ingress Operation
+// inventory for the same verified snapshot scope.
+func inspectDependencies(req BuildRequest) DependencyInspection {
 	result := DependencyInspection{
-		APIVersion:        DependencyInspectionAPIVersionV1Alpha5,
+		APIVersion:        DependencyInspectionAPIVersion,
 		Diagnostics:       []Diagnostic{},
 		Callables:         []InspectedCallable{},
 		Schemas:           []InspectedSchema{},
 		IngressOperations: []InspectedIngressOperation{},
 	}
 
-	// Same strict v1alpha5 envelope/prerequisite admission as Check/Build.
-	diagnostics := validateBuildRequestV1Alpha5(req)
+	// Same strict envelope/prerequisite admission as Check/Build.
+	diagnostics := validateBuildRequest(req)
 	if len(diagnostics) != 0 {
 		sortDiagnostics(diagnostics)
 		result.Diagnostics = diagnostics
@@ -67,6 +66,18 @@ func inspectV1Alpha5Dependencies(req BuildRequest) DependencyInspection {
 
 	scope, scopeDiagnostics := v1alpha5InspectionDependencyScope(req)
 	diagnostics = append(diagnostics, scopeDiagnostics...)
+
+	// Inherited callable / Schema inventory for the same verified dependencies.
+	callables := make([]InspectedCallable, 0)
+	schemas := make([]InspectedSchema, 0)
+	for _, dependency := range scope {
+		snapshotCallables, snapshotSchemas, snapshotDiagnostics := inspectSnapshotExports(dependency.Snapshot, dependency.Binding)
+		callables = append(callables, snapshotCallables...)
+		schemas = append(schemas, snapshotSchemas...)
+		diagnostics = append(diagnostics, snapshotDiagnostics...)
+	}
+	sortInspectedCallables(callables)
+	sortInspectedSchemas(schemas)
 
 	exports, exportDiagnostics := discoverV1Alpha5IngressExports(scope, link)
 	diagnostics = append(diagnostics, exportDiagnostics...)
@@ -91,8 +102,45 @@ func inspectV1Alpha5Dependencies(req BuildRequest) DependencyInspection {
 		diagnostics = []Diagnostic{}
 	}
 	result.Diagnostics = diagnostics
+	result.Callables = callables
+	result.Schemas = schemas
 	result.IngressOperations = operations
 	return result
+}
+
+func sortInspectedCallables(callables []InspectedCallable) {
+	sort.Slice(callables, func(i, j int) bool {
+		a, b := callables[i], callables[j]
+		if a.DependencyID != b.DependencyID {
+			return a.DependencyID < b.DependencyID
+		}
+		if a.Owner != b.Owner {
+			return a.Owner < b.Owner
+		}
+		if a.Kind != b.Kind {
+			return a.Kind < b.Kind
+		}
+		if a.ID != b.ID {
+			return a.ID < b.ID
+		}
+		return a.SourcePath < b.SourcePath
+	})
+}
+
+func sortInspectedSchemas(schemas []InspectedSchema) {
+	sort.Slice(schemas, func(i, j int) bool {
+		a, b := schemas[i], schemas[j]
+		if a.DependencyID != b.DependencyID {
+			return a.DependencyID < b.DependencyID
+		}
+		if a.Owner != b.Owner {
+			return a.Owner < b.Owner
+		}
+		if a.ID != b.ID {
+			return a.ID < b.ID
+		}
+		return a.SourcePath < b.SourcePath
+	})
 }
 
 func inspectedV1Alpha5IngressOperation(export v1alpha5TrustedIngressExport) InspectedIngressOperation {

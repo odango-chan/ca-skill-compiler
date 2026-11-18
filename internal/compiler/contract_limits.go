@@ -10,7 +10,7 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateV1Alpha4ContractLimits(contractPath string, contract *V1Alpha4ContractAST, add func(string, *yaml.Node, string, string)) {
+func validateContractLimits(contractPath string, contract *ContractAST, add func(string, *yaml.Node, string, string)) {
 	if contract == nil || contract.Limits == nil {
 		return
 	}

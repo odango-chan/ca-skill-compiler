@@ -27,7 +27,7 @@ nodes:
         UNKNOWN: UNRESOLVED
 `)
 	diagnostics := Check(fixture.request(t))
-	if v4HasCode(diagnostics, "FINAL_POSTCONDITION_MISSING") {
+	if hasCode(diagnostics, "FINAL_POSTCONDITION_MISSING") {
 		t.Fatalf("no-SUCCEEDED procedure with legal stop routes rejected: %+v", diagnostics)
 	}
 
@@ -43,7 +43,7 @@ nodes:
         SUCCEEDED: SUCCEEDED
         FAILED: FAILED
 `)
-	if got := Check(missingFinal.request(t)); !v4HasCode(got, "FINAL_POSTCONDITION_MISSING") {
+	if got := Check(missingFinal.request(t)); !hasCode(got, "FINAL_POSTCONDITION_MISSING") {
 		t.Fatalf("direct SUCCEEDED without final Postcondition accepted: %+v", got)
 	}
 }
@@ -51,7 +51,7 @@ nodes:
 func TestE35DependencyRequirementObjectInvalid(t *testing.T) {
 	fixture := wp3aBaseFixture(t)
 	fixture.replaceFile(wp3aContractPath, "  ca: urn:example:ca:tools", "  ca: {id: urn:example:ca:tools}")
-	if got := Check(fixture.request(t)); !v4HasCode(got, "DEPENDENCY_REQUIREMENT_INVALID") {
+	if got := Check(fixture.request(t)); !hasCode(got, "DEPENDENCY_REQUIREMENT_INVALID") {
 		t.Fatalf("object dependency requirement not rejected: %+v", got)
 	}
 }
@@ -66,7 +66,7 @@ func TestE52EntryPreconditionReferenceVariants(t *testing.T) {
 	for _, declaration := range cases {
 		fixture := wp3aBaseFixture(t)
 		fixture.replaceFile(wp3aContractPath, "goal: ue.registration_verified", "goal: ue.registration_verified\n"+declaration)
-		if got := Check(fixture.request(t)); !v4HasCode(got, "ENTRY_PRECONDITION_REF_INVALID") {
+		if got := Check(fixture.request(t)); !hasCode(got, "ENTRY_PRECONDITION_REF_INVALID") {
 			t.Fatalf("invalid entry precondition reference %q accepted: %+v", declaration, got)
 		}
 	}
@@ -89,17 +89,17 @@ func TestE52UnreachableGlobalPreconditionReference(t *testing.T) {
         UNKNOWN: UNRESOLVED
   inspect-registration:`)
 	got := Check(fixture.request(t))
-	if !v4HasCode(got, "ENTRY_PRECONDITION_REF_INVALID") {
+	if !hasCode(got, "ENTRY_PRECONDITION_REF_INVALID") {
 		t.Fatalf("unreachable global precondition not reported as an invalid reference: %+v", got)
 	}
-	if v4HasCode(got, "ENTRY_PRECONDITION_BYPASSED") {
+	if hasCode(got, "ENTRY_PRECONDITION_BYPASSED") {
 		t.Fatalf("unreachable global precondition also reported as a path bypass: %+v", got)
 	}
 }
 
 func TestE60ReconcileBindMustBeOriginalInvocation(t *testing.T) {
 	req, _, _, _ := reconcileFixture(t, replaceAll(reconcileCatalog, "          bind: originalInvocationId", "          bind: otherInvocationId"))
-	if got := Check(req); !v4HasCode(got, "RECONCILE_CONTRACT_INVALID") {
+	if got := Check(req); !hasCode(got, "RECONCILE_CONTRACT_INVALID") {
 		t.Fatalf("Reconcile bind other than originalInvocationId not rejected: %+v", got)
 	}
 }

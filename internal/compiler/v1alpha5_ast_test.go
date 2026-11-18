@@ -194,7 +194,7 @@ nodes:
 
 func TestV1Alpha5ProcedureMissingProcedureFile(t *testing.T) {
 	req := BuildRequest{
-		APIVersion:     BuildRequestAPIVersionV1Alpha5,
+		APIVersion:     BuildRequestAPIVersion,
 		LanguageTarget: V1Alpha5Target,
 		Files: []File{
 			{Path: "skills/example/SKILL.md", Bytes: []byte("# example\n")},

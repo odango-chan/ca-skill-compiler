@@ -24,7 +24,7 @@ def main(input: In) -> Out:
 func optionalFieldRequest(t *testing.T, source string) BuildRequest {
 	t.Helper()
 	procedure := strings.Replace(scriptProcedure("scripts/compute.py"), "      arguments: {}\n", "      arguments:\n        value: context.ueRef\n", 1)
-	request := v4TestRequest(v4TestContract, procedure, v4TestPredicates, v4TestSchema)
+	request := testRequest(testContract, procedure, testPredicates, testSchema)
 	request.Files = append(request.Files, File{Path: "skills/pdu/scripts/compute.py", Bytes: []byte(source)})
 	return request
 }
@@ -32,7 +32,7 @@ func optionalFieldRequest(t *testing.T, source string) BuildRequest {
 func TestOptionalInputKeyRequiresGuard(t *testing.T) {
 	unsafe := optionalFieldScript(`    return {"result": input["note"]}
 `)
-	if !v4HasCode(Check(optionalFieldRequest(t, unsafe)), "SCRIPT_CONTRACT_INVALID") {
+	if !hasCode(Check(optionalFieldRequest(t, unsafe)), "SCRIPT_CONTRACT_INVALID") {
 		t.Fatalf("unguarded optional key read accepted")
 	}
 

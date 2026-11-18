@@ -20,7 +20,7 @@ spec:
       ownerOutcomes: [SUCCEEDED, FAILED, NOT_COMMITTED]
       inputSchema: {$ref: urn:example:ca:registration-query:v1}
       outputSchema: {$ref: urn:example:ca:registration:v1}
-` + specMutationContractBlock))
+`+specMutationContractBlock))
 	fixture.refreshSnapshotDigests(t)
 	fixture.files[wp3aProcedurePath] = []byte(`start: mutate
 nodes:
@@ -48,7 +48,7 @@ nodes:
 
 func TestProducerOutputNotAvailableOnNonSucceededPath(t *testing.T) {
 	diagnostics := Check(pathAvailabilityFixture(t))
-	if !v4HasCode(diagnostics, "SOURCE_NOT_AVAILABLE") {
+	if !hasCode(diagnostics, "SOURCE_NOT_AVAILABLE") {
 		t.Fatalf("output read on NOT_COMMITTED path accepted: %+v", diagnostics)
 	}
 }

@@ -1,5 +1,11 @@
 package compiler
 
+// Single-version public API admission tests.
+//
+// Every case exercises the public Check/Build/InspectDependencies entry points.
+// There is no version dispatch: v1alpha3, v1alpha4 and every other language
+// target or API version must fail closed.
+
 import (
 	"encoding/base64"
 	"encoding/json"
@@ -11,31 +17,22 @@ import (
 
 func validEnvelopeRequest() BuildRequest {
 	return BuildRequest{
-		APIVersion:          BuildRequestAPIVersion,
-		LanguageTarget:      V1Alpha4Target,
-		Files:               []File{{Path: "skills/demo/SKILL.md", Bytes: []byte("# demo\n")}},
+		APIVersion:           BuildRequestAPIVersion,
+		LanguageTarget:       V1Alpha5Target,
+		Files:                []File{{Path: "skills/demo/SKILL.md", Bytes: []byte("# demo\n")}},
 		ResolvedDependencies: []ResolvedDependency{},
 	}
 }
 
-func hasCode(diagnostics []Diagnostic, code string) bool {
-	for _, diagnostic := range diagnostics {
-		if diagnostic.Code == code {
-			return true
-		}
-	}
-	return false
-}
-
 func TestDependencySnapshotDigestGoldenVectors(t *testing.T) {
-	raw, err := os.ReadFile("../../contracts/v1alpha4/dependency-snapshot-digest-vectors.json")
+	raw, err := os.ReadFile("../../contracts/v1alpha5/dependency-snapshot-digest-vectors.json")
 	if err != nil {
 		t.Fatal(err)
 	}
 	var vectors struct {
 		Vectors []struct {
-			Name           string `json:"name"`
-			Files          []struct {
+			Name  string `json:"name"`
+			Files []struct {
 				Path  string `json:"path"`
 				Bytes string `json:"bytes"`
 			} `json:"files"`
@@ -116,11 +113,19 @@ func TestDependencySnapshotDigestIsOrderIndependentAndContentSensitive(t *testin
 	}
 }
 
-func TestBuildRequestRequiresExactIndependentVersions(t *testing.T) {
+func TestBuildRequestRequiresExactSingleVersion(t *testing.T) {
 	req := validEnvelopeRequest()
 	req.APIVersion = "connectionagent.io/compiler-build-request/v1alpha3"
 	if got := Check(req); !hasCode(got, "REQUEST_INVALID") {
 		t.Fatalf("unsupported API version was not rejected: %+v", got)
+	}
+
+	// The retired v1alpha4 request API identity must be rejected even when the
+	// language target field claims v1alpha5.
+	req = validEnvelopeRequest()
+	req.APIVersion = "connectionagent.io/compiler-build-request/v1alpha4"
+	if got := Check(req); !hasCode(got, "REQUEST_INVALID") {
+		t.Fatalf("v1alpha4 BuildRequest API was accepted: %+v", got)
 	}
 
 	req = validEnvelopeRequest()
@@ -128,13 +133,19 @@ func TestBuildRequestRequiresExactIndependentVersions(t *testing.T) {
 	if got := Check(req); !hasCode(got, "LANGUAGE_TARGET_UNSUPPORTED") {
 		t.Fatalf("unsupported language target was not rejected: %+v", got)
 	}
-}
 
-func TestBuildRequestRequiresExplicitEmptyDependencyArray(t *testing.T) {
-	req := validEnvelopeRequest()
-	req.ResolvedDependencies = nil
-	if got := Check(req); !hasCode(got, "REQUEST_INVALID") {
-		t.Fatalf("missing resolvedDependencies array was accepted: %+v", got)
+	req = validEnvelopeRequest()
+	req.LanguageTarget = "connectionagent.io/v1alpha4"
+	if got := Check(req); !hasCode(got, "LANGUAGE_TARGET_UNSUPPORTED") {
+		t.Fatalf("v1alpha4 language target was accepted: %+v", got)
+	}
+
+	result := Build(req)
+	if result.Success {
+		t.Fatalf("v1alpha4 Build succeeded: %+v", result)
+	}
+	if !hasCode(result.Diagnostics, "LANGUAGE_TARGET_UNSUPPORTED") {
+		t.Fatalf("v1alpha4 Build did not fail closed: %+v", result.Diagnostics)
 	}
 }
 
@@ -180,13 +191,13 @@ func TestBuildRequestVerifiesDependencySnapshotDigest(t *testing.T) {
 	}
 }
 
-func TestBuildResultUsesFrozenOutputEnvelopeAndFailureAtomicity(t *testing.T) {
+func TestBuildResultUsesSingleOutputEnvelopeAndFailureAtomicity(t *testing.T) {
 	result := Build(validEnvelopeRequest())
 	if result.APIVersion != BuildResultAPIVersion {
 		t.Fatalf("BuildResult apiVersion = %q", result.APIVersion)
 	}
 	if result.Success {
-		t.Fatal("source-only partial compiler must not claim a successful build")
+		t.Fatal("source-only compiler must not claim a successful build")
 	}
 	if result.DependencyClosure == nil || len(result.DependencyClosure) != 0 {
 		t.Fatalf("failed build must have empty dependencyClosure: %#v", result.DependencyClosure)
@@ -196,18 +207,18 @@ func TestBuildResultUsesFrozenOutputEnvelopeAndFailureAtomicity(t *testing.T) {
 	}
 	for _, diagnostic := range result.Diagnostics {
 		if diagnostic.Phase != "C_STATIC" || diagnostic.Severity != "error" || diagnostic.Message == "" {
-			t.Fatalf("invalid v1alpha4 diagnostic shape: %+v", diagnostic)
+			t.Fatalf("invalid diagnostic shape: %+v", diagnostic)
 		}
 	}
 }
 
-func TestInspectDependenciesFailsClosedUntilLinkerExists(t *testing.T) {
+func TestInspectDependenciesUsesSingleAPIAndFailsClosed(t *testing.T) {
 	req := validEnvelopeRequest()
 	result := InspectDependencies(req)
 	if result.APIVersion != DependencyInspectionAPIVersion {
 		t.Fatalf("DependencyInspection apiVersion = %q", result.APIVersion)
 	}
-	if result.Callables == nil || result.Schemas == nil {
+	if result.Callables == nil || result.Schemas == nil || result.IngressOperations == nil {
 		t.Fatal("empty inspection arrays must be non-null")
 	}
 	if len(result.Diagnostics) != 0 {
@@ -221,12 +232,12 @@ func TestInspectDependenciesFailsClosedUntilLinkerExists(t *testing.T) {
 	req.ResolvedDependencies[0].Digest, _ = ComputeDependencySnapshotDigest(req.ResolvedDependencies[0].Files)
 	result = InspectDependencies(req)
 	if !hasCode(result.Diagnostics, "DEPENDENCY_IDENTITY_UNVERIFIED") {
-		t.Fatalf("nonempty dependency inventory must fail closed before WP3: %+v", result)
+		t.Fatalf("nonempty dependency inventory must fail closed without a trusted binding: %+v", result)
 	}
 }
 
 func TestDecodeBuildRequestJSONIsStrictAndDecodesBase64(t *testing.T) {
-	wire := `{"apiVersion":"connectionagent.io/compiler-build-request/v1alpha4","languageTarget":"connectionagent.io/v1alpha4","files":[{"path":"skills/demo/SKILL.md","bytes":"IyBkZW1vCg=="}],"resolvedDependencies":[]}`
+	wire := `{"apiVersion":"connectionagent.io/compiler-build-request/v1alpha5","languageTarget":"connectionagent.io/v1alpha5","files":[{"path":"skills/demo/SKILL.md","bytes":"IyBkZW1vCg=="}],"resolvedDependencies":[]}`
 	req, err := DecodeBuildRequestJSON([]byte(wire))
 	if err != nil {
 		t.Fatal(err)
@@ -324,7 +335,8 @@ func TestBuildRequestRejectsInvalidPathEncodingAndNilBytes(t *testing.T) {
 	}
 }
 
-func TestBuildRequestRecomputesTrustedBundleDigests(t *testing.T) {
+func trustedBundleRequest(t *testing.T) (BuildRequest, string, string) {
+	t.Helper()
 	capabilityFiles := []File{{Path: "capabilities/contracts.yaml", Bytes: []byte("capabilities: []\n")}}
 	capabilityDigest, err := ComputeDependencySnapshotDigest(capabilityFiles)
 	if err != nil {
@@ -337,8 +349,8 @@ func TestBuildRequestRecomputesTrustedBundleDigests(t *testing.T) {
 	}
 	req := validEnvelopeRequest()
 	authorizations := []DeploymentAuthorization{{
-		DeploymentID: "urn:deployment:demo",
-		PublisherID: "urn:publisher:demo",
+		DeploymentID:     "urn:deployment:demo",
+		PublisherID:      "urn:publisher:demo",
 		AuthorizationRef: "urn:authorization:demo",
 	}}
 	req.TrustedBuildContext = &TrustedBuildContext{
@@ -349,13 +361,18 @@ func TestBuildRequestRecomputesTrustedBundleDigests(t *testing.T) {
 			Files:        capabilityFiles,
 		},
 		EvidenceTrustBindings: &EvidenceTrustBindingsBundle{
-			DeploymentID:  "urn:deployment:demo",
-			PublisherID:   "urn:publisher:demo",
+			DeploymentID:   "urn:deployment:demo",
+			PublisherID:    "urn:publisher:demo",
 			SnapshotDigest: evidenceDigest,
-			Files:         evidenceFiles,
+			Files:          evidenceFiles,
 		},
 		DeploymentAuthorizations: &authorizations,
 	}
+	return req, capabilityDigest, evidenceDigest
+}
+
+func TestBuildRequestRecomputesTrustedBundleDigests(t *testing.T) {
+	req, capabilityDigest, _ := trustedBundleRequest(t)
 	if got := Check(req); hasCode(got, "CAPABILITY_INPUT_DIGEST_MISMATCH") || hasCode(got, "EVIDENCE_GUARANTEE_LINK_INVALID") {
 		t.Fatalf("valid trusted bundle digests were rejected: %+v", got)
 	}

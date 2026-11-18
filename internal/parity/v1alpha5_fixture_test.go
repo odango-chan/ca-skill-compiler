@@ -35,7 +35,7 @@ func TestV1Alpha5TrustedParityFixtureBuilds(t *testing.T) {
 	if !result.Success {
 		t.Fatalf("trusted v1alpha5 parity fixture must Build, diagnostics = %#v", result.Diagnostics)
 	}
-	if result.APIVersion != compiler.BuildResultAPIVersionV1Alpha5 {
+	if result.APIVersion != compiler.BuildResultAPIVersion {
 		t.Fatalf("BuildResult.apiVersion = %q", result.APIVersion)
 	}
 	if len(result.DependencyClosure) != 2 {

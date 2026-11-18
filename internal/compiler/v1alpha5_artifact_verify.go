@@ -3,7 +3,7 @@ package compiler
 // CA-SL v1alpha5 WP8: candidate artifact-tree verification.
 //
 // VerifyBuildResult dispatches here for a successful BuildResult stamped with
-// BuildResultAPIVersionV1Alpha5. Verification never writes to disk and checks:
+// BuildResultAPIVersion. Verification never writes to disk and checks:
 // unique normalized paths, exactly one top-level canonical manifest, complete
 // file listing with matching sha256, per-Skill source/compiled file coherence,
 // ingress-links/manifest self-consistency, dependency-closure identity shape and
@@ -18,15 +18,13 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-
-	"github.com/odango-chan/ca-skill-compiler/internal/artifact"
 )
 
 // verifyV1Alpha5ArtifactTree checks one v1alpha5 BuildResult output tree.
-func verifyV1Alpha5ArtifactTree(result BuildResult, files []artifact.File) error {
-	if result.APIVersion != BuildResultAPIVersionV1Alpha5 {
+func verifyV1Alpha5ArtifactTree(result BuildResult, files []File) error {
+	if result.APIVersion != BuildResultAPIVersion {
 		return fmt.Errorf("v1alpha5 artifact verification requires BuildResult.apiVersion %q, got %q",
-			BuildResultAPIVersionV1Alpha5, result.APIVersion)
+			BuildResultAPIVersion, result.APIVersion)
 	}
 	if len(files) == 0 {
 		return fmt.Errorf("v1alpha5 artifact tree is empty")
@@ -46,7 +44,7 @@ func verifyV1Alpha5ArtifactTree(result BuildResult, files []artifact.File) error
 	if !exists {
 		return fmt.Errorf("v1alpha5 artifact is missing the top-level %s", V1Alpha5ArtifactManifestPath)
 	}
-	canonical, err := artifact.CanonicalizeJSON(manifestBytes)
+	canonical, err := canonicalizeJSON(manifestBytes)
 	if err != nil {
 		return fmt.Errorf("v1alpha5 manifest is not valid JSON: %w", err)
 	}
@@ -192,7 +190,7 @@ func verifyV1Alpha5ManifestSkillFiles(skill v1alpha5ManifestSkill, byPath map[st
 	if _, ok := procedureDocument["nodes"]; !ok {
 		return fmt.Errorf("v1alpha5 Skill %q Procedure document has no nodes", skill.Name)
 	}
-	canonical, err := artifact.CanonicalizeJSON(procedureRaw)
+	canonical, err := canonicalizeJSON(procedureRaw)
 	if err != nil || !bytes.Equal(canonical, procedureRaw) {
 		return fmt.Errorf("v1alpha5 Skill %q Procedure document is not canonical JCS", skill.Name)
 	}
@@ -201,7 +199,7 @@ func verifyV1Alpha5ManifestSkillFiles(skill v1alpha5ManifestSkill, byPath map[st
 	if !ok {
 		return fmt.Errorf("v1alpha5 manifest Skill %q is missing %s", skill.Name, linksPath)
 	}
-	canonical, err = artifact.CanonicalizeJSON(linksRaw)
+	canonical, err = canonicalizeJSON(linksRaw)
 	if err != nil || !bytes.Equal(canonical, linksRaw) {
 		return fmt.Errorf("v1alpha5 Skill %q ingress link document is not canonical JCS", skill.Name)
 	}

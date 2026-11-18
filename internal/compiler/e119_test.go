@@ -5,31 +5,31 @@ package compiler
 import "testing"
 
 func TestE119PredicateStageStructuralNegatives(t *testing.T) {
-	emptyList := replaceOnceString(v4TestProcedure,
+	emptyList := replaceOnceString(testProcedure,
 		"      predicates:\n        - predicate: test.complete\n          arguments: [read.observation.output]",
 		"      predicates: []")
-	if got := Check(v4TestRequest(v4TestContract, emptyList, v4TestPredicates, v4TestSchema)); !v4HasCode(got, "PREDICATE_GROUP_INVALID") {
+	if got := Check(testRequest(testContract, emptyList, testPredicates, testSchema)); !hasCode(got, "PREDICATE_GROUP_INVALID") {
 		t.Fatalf("empty postcondition predicates list accepted: %+v", got)
 	}
 
-	missingArguments := replaceOnceString(v4TestProcedure,
+	missingArguments := replaceOnceString(testProcedure,
 		"        - predicate: test.complete\n          arguments: [read.observation.output]",
 		"        - predicate: test.complete")
-	if got := Check(v4TestRequest(v4TestContract, missingArguments, v4TestPredicates, v4TestSchema)); !v4HasCode(got, "PREDICATE_GROUP_INVALID") {
+	if got := Check(testRequest(testContract, missingArguments, testPredicates, testSchema)); !hasCode(got, "PREDICATE_GROUP_INVALID") {
 		t.Fatalf("predicate member without arguments not classified structurally: %+v", got)
 	}
 
-	memberRoutes := replaceOnceString(v4TestProcedure,
+	memberRoutes := replaceOnceString(testProcedure,
 		"        - predicate: test.complete\n          arguments: [read.observation.output]",
 		"        - predicate: test.complete\n          arguments: [read.observation.output]\n          routes: {PASS: SUCCEEDED}")
-	if got := Check(v4TestRequest(v4TestContract, memberRoutes, v4TestPredicates, v4TestSchema)); !v4HasCode(got, "UNKNOWN_FIELD") {
+	if got := Check(testRequest(testContract, memberRoutes, testPredicates, testSchema)); !hasCode(got, "UNKNOWN_FIELD") {
 		t.Fatalf("predicate member carrying routes not reported: %+v", got)
 	}
 
-	postconditionGoal := replaceOnceString(v4TestProcedure,
+	postconditionGoal := replaceOnceString(testProcedure,
 		"    postcondition:\n      predicates:",
 		"    postcondition:\n      goal: pdu_session.initial_request_fulfilled\n      predicates:")
-	if got := Check(v4TestRequest(v4TestContract, postconditionGoal, v4TestPredicates, v4TestSchema)); !v4HasCode(got, "PREDICATE_GROUP_INVALID") {
+	if got := Check(testRequest(testContract, postconditionGoal, testPredicates, testSchema)); !hasCode(got, "PREDICATE_GROUP_INVALID") {
 		t.Fatalf("removed Postcondition goal field not classified structurally: %+v", got)
 	}
 }

@@ -34,7 +34,7 @@ type schemaRegistry struct {
 	local    map[string]schemaResource
 }
 
-func buildV1Alpha4SchemaRegistry(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult) schemaRegistry {
+func buildSchemaRegistry(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult) schemaRegistry {
 	registry := schemaRegistry{external: map[string][]schemaResource{}, local: map[string]schemaResource{}}
 	if skill == nil {
 		return registry
@@ -116,11 +116,11 @@ type schemaClosureResult struct {
 	visiting    map[string]bool
 }
 
-func validateV1Alpha4SchemaClosure(req BuildRequest, skill *V1Alpha4SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult) []Diagnostic {
+func validateSchemaClosure(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult) []Diagnostic {
 	if skill == nil || skill.Contract == nil || skill.Contract.Raw == nil {
 		return []Diagnostic{}
 	}
-	registry := buildV1Alpha4SchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity)
 	result := &schemaClosureResult{diagnostics: []Diagnostic{}, validated: map[string]bool{}, visiting: map[string]bool{}}
 	contractPath := "skills/" + skill.Name + "/assurance/contract.yaml"
 
@@ -426,7 +426,7 @@ func yamlNodeToJSONValue(node *yaml.Node) (any, bool) {
 // expectedContextSchemaURI returns the absolute Schema URI part of the frozen
 // Contract contextSchema QualifiedSchemaId (alias::uri), or empty when undeclared
 // or malformed (malformed identities are diagnosed by the contract slice).
-func expectedContextSchemaURI(skill *V1Alpha4SkillAST) string {
+func expectedContextSchemaURI(skill *SkillAST) string {
 	if skill == nil || skill.Contract == nil || skill.Contract.ContextSchema == nil {
 		return ""
 	}

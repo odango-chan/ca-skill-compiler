@@ -33,8 +33,8 @@ func wp4bClosure(t *testing.T, fixture wp3aFixture) []Diagnostic {
 	req := fixture.request(t)
 	identity := wp3aIdentity(t, req)
 	ast := wp3aParseSkillAST(t, req, wp3aSkillName)
-	ownerLinking := validateV1Alpha4OwnerLinking(req, ast, identity)
-	return wp4bDiagnostics(validateV1Alpha4SchemaClosure(req, ast, identity, ownerLinking))
+	ownerLinking := validateOwnerLinking(req, ast, identity)
+	return wp4bDiagnostics(validateSchemaClosure(req, ast, identity, ownerLinking))
 }
 
 func wp4bCheckBuildAgreement(t *testing.T, fixture wp3aFixture) []Diagnostic {

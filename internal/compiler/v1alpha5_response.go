@@ -309,7 +309,7 @@ func v1alpha5ResponsePathStates(graph *V1Alpha5ProcedureGraph, anchor, boundaryN
 			}
 			for _, edge := range edges {
 				completed := lastStage != "" && edge.Kind == V1Alpha5EdgeStageRoute &&
-					edge.Stage == lastStage && edge.Outcome == v4StageNormalOutcome[lastStage]
+					edge.Stage == lastStage && edge.Outcome == stageNormalOutcome[lastStage]
 				queue = append(queue, state{vertex: edge.To, completed: completed})
 			}
 			continue

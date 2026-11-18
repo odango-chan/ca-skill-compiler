@@ -33,7 +33,7 @@ func permuteRequest(request BuildRequest) BuildRequest {
 func TestDeterminismCheckBuildUnderPermutation(t *testing.T) {
 	requests := []BuildRequest{
 		wp3aBaseFixture(t).request(t),
-		v4TestRequest(v4TestContract, v4TestProcedure, v4TestPredicates, v4TestSchema),
+		testRequest(testContract, testProcedure, testPredicates, testSchema),
 	}
 	for index, request := range requests {
 		permuted := permuteRequest(request)
@@ -52,7 +52,7 @@ func TestDeterminismCheckBuildUnderPermutation(t *testing.T) {
 func TestDiagnosticContractShapeAndOrder(t *testing.T) {
 	requests := []BuildRequest{
 		wp3aBaseFixture(t).request(t),
-		v4TestRequest(v4TestContract, v4TestProcedure, v4TestPredicates, v4TestSchema),
+		testRequest(testContract, testProcedure, testPredicates, testSchema),
 	}
 	for _, request := range requests {
 		diagnostics := Check(request)

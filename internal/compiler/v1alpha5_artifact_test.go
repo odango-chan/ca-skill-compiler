@@ -14,7 +14,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/odango-chan/ca-skill-compiler/internal/artifact"
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v6"
 )
 
@@ -82,7 +81,7 @@ func TestV1Alpha5BuildAssemblesTrustedArtifact(t *testing.T) {
 	if !result.Success {
 		t.Fatalf("trusted v1alpha5 Build must succeed, diagnostics = %#v", result.Diagnostics)
 	}
-	if result.APIVersion != BuildResultAPIVersionV1Alpha5 {
+	if result.APIVersion != BuildResultAPIVersion {
 		t.Fatalf("BuildResult.apiVersion = %q", result.APIVersion)
 	}
 	if len(result.Diagnostics) != 0 {
@@ -200,7 +199,7 @@ func TestV1Alpha5BuildAssemblesTrustedArtifact(t *testing.T) {
 	// The compiled Procedure document must be canonical and preserve the
 	// validated source shape.
 	procedureRaw, _ := v1alpha5ResultFile(result, "skills/example/compiled/procedure.json")
-	canonical, err := artifact.CanonicalizeJSON(procedureRaw)
+	canonical, err := canonicalizeJSON(procedureRaw)
 	if err != nil || !bytes.Equal(canonical, procedureRaw) {
 		t.Fatalf("procedure.json is not canonical JCS: %v", err)
 	}
@@ -328,7 +327,7 @@ nodes:
 	if result.Success {
 		t.Fatal("invalid v1alpha5 procedure must not Build")
 	}
-	if result.APIVersion != BuildResultAPIVersionV1Alpha5 {
+	if result.APIVersion != BuildResultAPIVersion {
 		t.Fatalf("failed BuildResult.apiVersion = %q", result.APIVersion)
 	}
 	if len(result.OutputFiles) != 0 || len(result.DependencyClosure) != 0 {
@@ -404,7 +403,7 @@ func TestV1Alpha5ArtifactVerificationDetectsTampering(t *testing.T) {
 			t.Fatal(err)
 		}
 		manifest.OutputFiles[0].SHA256 = "sha256:" + strings.Repeat("0", 64)
-		rebuilt, err := artifact.CanonicalizeValue(manifest)
+		rebuilt, err := canonicalizeValue(manifest)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -414,7 +413,6 @@ func TestV1Alpha5ArtifactVerificationDetectsTampering(t *testing.T) {
 		t.Fatal("tampered manifest digest was accepted")
 	}
 }
-
 
 // TestV1Alpha5ArtifactManifestMatchesCandidateSchema keeps the emitted
 // candidate manifest and the shipped candidate contract from drifting. The
