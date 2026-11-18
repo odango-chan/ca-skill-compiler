@@ -160,7 +160,7 @@ func collectContractDependencies(contractPath string, dependencies *yaml.Node, d
 	return declared
 }
 
-// collectDependencyReferences scans only the frozen v1alpha4 source positions
+// collectDependencyReferences scans only the inherited Contract source positions
 // that can carry an external reference. It never searches arbitrary YAML strings
 // for "::": callable references come from Operation/Observation tool values,
 // external Schema references come from Contract.contextSchema, Predicate

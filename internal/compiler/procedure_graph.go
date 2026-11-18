@@ -2,7 +2,7 @@ package compiler
 
 // WP5: Procedure graph reachability, UNREACHABLE_NODE warning and global
 // Precondition dominance. The frozen Procedure grammar/cardinality/route checks
-// already live in v1alpha4.go; this slice adds the graph proofs that need the
+// are enforced by the inherited structural checks; this file adds the graph proofs that need the
 // reachable graph and the trusted callable Effects from WP3.
 
 import (

@@ -8,7 +8,7 @@ package compiler
 // priority over UNKNOWN_FIELD for the same structure. Removed v1alpha3-only
 // author fields such as `operation.target` stay UNKNOWN_FIELD.
 
-// legacyFieldClass classifies one non-v1alpha4 field name.
+// legacyFieldClass classifies one non-CA-SL field name.
 func legacyFieldClass(name string) string {
 	switch name {
 	case "wait", "await", "waitFor", "waitUntil", "waitPolicy", "awaitFor", "awaitUntil", "waitCondition", "waitTimeout":
