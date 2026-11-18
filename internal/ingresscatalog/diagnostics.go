@@ -17,6 +17,13 @@ const (
 	CodeIngressExportIDDuplicate       = "INGRESS_EXPORT_ID_DUPLICATE"
 	CodeIngressEventSelectorDuplicate  = "INGRESS_EVENT_SELECTOR_DUPLICATE"
 	CodeIngressProtocolArtifactInvalid = "INGRESS_PROTOCOL_ARTIFACT_INVALID"
+	// CodeIngressPeerProfileReferenceInvalid is the Ingress-owned identity for a
+	// malformed or unresolved peer authentication/authorization profile
+	// reference. Absence of a deployment-time binding is Host Admission.
+	CodeIngressPeerProfileReferenceInvalid = "INGRESS_PEER_PROFILE_REFERENCE_INVALID"
+	// CodeIngressNormalizationInvalid is the Ingress-owned identity for an invalid
+	// request normalization representation or mapping declaration.
+	CodeIngressNormalizationInvalid = "INGRESS_NORMALIZATION_INVALID"
 	// CodeIngressCorrelationInvalid is the Ingress-owned identity for an invalid
 	// correlation or stale-delivery declaration. WP3 uses it for export-side
 	// correlation/arming declaration failures; Skill-side failures keep the
@@ -50,6 +57,8 @@ var ingressMessageKeys = map[string]string{
 	CodeIngressExportIDDuplicate:             "ingress.export.id.duplicate",
 	CodeIngressEventSelectorDuplicate:        "ingress.event.selector.duplicate",
 	CodeIngressProtocolArtifactInvalid:       "ingress.protocol.artifact.invalid",
+	CodeIngressPeerProfileReferenceInvalid:   "ingress.peer.profile.reference.invalid",
+	CodeIngressNormalizationInvalid:          "ingress.normalization.invalid",
 	CodeIngressCorrelationInvalid:            "ingress.correlation.invalid",
 	CodeIngressResponseContractInvalid:       "ingress.response.contract.invalid",
 	CodeIngressResponseMappingInvalid:        "ingress.response.mapping.invalid",
@@ -61,6 +70,8 @@ var ingressMessageTemplates = map[string]string{
 	CodeIngressExportIDDuplicate:             "Ingress Operation export id '{exportId}' is duplicated in this trusted Catalog.",
 	CodeIngressEventSelectorDuplicate:        "Ingress event selector '{source}/{service}/{operation}' is declared by more than one export.",
 	CodeIngressProtocolArtifactInvalid:       "Ingress export '{exportId}' does not match the pinned protocol artifact metadata at '{fieldPath}'.",
+	CodeIngressPeerProfileReferenceInvalid:   "Ingress export '{exportId}' has an invalid or unresolved peer profile reference at '{fieldPath}'.",
+	CodeIngressNormalizationInvalid:          "Ingress export '{exportId}' has an invalid request normalization mapping at '{fieldPath}'.",
 	CodeIngressCorrelationInvalid:            "Ingress export '{exportId}' has an invalid correlation or stale-delivery declaration at '{fieldPath}'.",
 	CodeIngressResponseContractInvalid:       "Ingress export '{exportId}' has an invalid paired-response contract at '{fieldPath}'.",
 	CodeIngressResponseMappingInvalid:        "Ingress export '{exportId}' has an invalid protocol response representation or mapping at '{fieldPath}'.",
@@ -94,6 +105,8 @@ var diagnosticPrecedence = map[string]int{
 	CodeIngressExportIDDuplicate:             20,
 	CodeIngressEventSelectorDuplicate:        21,
 	CodeIngressProtocolArtifactInvalid:       30,
+	CodeIngressPeerProfileReferenceInvalid:   40,
+	CodeIngressNormalizationInvalid:          50,
 	CodeSchemaMissing:                        60,
 	CodeSchemaInvalid:                        61,
 	CodeIngressCorrelationInvalid:            60,

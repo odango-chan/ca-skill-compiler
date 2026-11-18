@@ -105,6 +105,14 @@ var v1Alpha5IngressDiagnosticRegistry = map[string]v1alpha5DiagnosticContract{
 		MessageKey: "ingress.binary.content.lifecycle.invalid",
 		Template:   "Ingress export '{exportId}' has an invalid immutable binary-content reference or lifecycle contract at '{fieldPath}'.",
 	},
+	"INGRESS_PEER_PROFILE_REFERENCE_INVALID": {
+		MessageKey: "ingress.peer.profile.reference.invalid",
+		Template:   "Ingress export '{exportId}' has an invalid or unresolved peer profile reference at '{fieldPath}'.",
+	},
+	"INGRESS_NORMALIZATION_INVALID": {
+		MessageKey: "ingress.normalization.invalid",
+		Template:   "Ingress export '{exportId}' has an invalid request normalization mapping at '{fieldPath}'.",
+	},
 }
 
 // v1alpha5NormativeDiagnosticContract resolves one diagnostic identity to its
@@ -405,6 +413,14 @@ func TestV1Alpha5DiagnosticContractMessageKeyRegistry(t *testing.T) {
 		"INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID": {
 			"ingress.binary.content.lifecycle.invalid",
 			"Ingress export '{exportId}' has an invalid immutable binary-content reference or lifecycle contract at '{fieldPath}'.",
+		},
+		"INGRESS_PEER_PROFILE_REFERENCE_INVALID": {
+			"ingress.peer.profile.reference.invalid",
+			"Ingress export '{exportId}' has an invalid or unresolved peer profile reference at '{fieldPath}'.",
+		},
+		"INGRESS_NORMALIZATION_INVALID": {
+			"ingress.normalization.invalid",
+			"Ingress export '{exportId}' has an invalid request normalization mapping at '{fieldPath}'.",
 		},
 	}
 	if !reflect.DeepEqual(v1Alpha5IngressDiagnosticRegistry, wantIngress) {

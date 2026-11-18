@@ -25,6 +25,7 @@ The v1alpha5 path is one pipeline. It validates and assembles:
   - Procedure graph reachability, dominance, stage aggregation, route-key eligibility, final-Postcondition Goal proof;
   - Evidence / Mutation / Reconcile / retry-family static contract checks;
 - the v1alpha5 Procedure / Node-entry Wait AST slice;
+- Ingress-owned request normalization, immutable binary-content lifecycle and peer profile reference form checks (media-type one-to-one correspondence, mapping target/source/transform semantics, required normalized and wire-field coverage, multipart part and binary bounds, binary retention vs declared recovery window, `alias::resource` profile reference form);
 - Wait-specific Procedure graph control flow (EVENT_RECEIVED / TIMEOUT edges composed with the inherited graph);
 - trusted Ingress Operation selection and Wait trigger / correlation binding;
 - `wait.output` SourcePath and event-accepted-path availability;
@@ -63,25 +64,23 @@ The remaining limitation is that some callable members are exercised only by syn
 - **IN-065:** no UDM unsubscribe while another matching PDU Session remains;
 - **IN-066:** unsubscribe when no matching PDU Session remains.
 
-Current recorded register counts: 37 implemented+tested, 19 Compiler-static deferred, 45 external, 1 spec-only. The 19 deferred cases in section 5 remain release blockers for a full `FULL_LANGUAGE_VALIDATION` claim.
+Current recorded register counts: 43 implemented+tested, 13 Compiler-static deferred, 45 external, 1 spec-only. The deferred cases in section 5 remain release blockers for a full `FULL_LANGUAGE_VALIDATION` claim. IN-058 peer profile reference format validation is implemented and tested; only resolution to an expected profile resource remains deferred because the released #62 contract does not publish a profile resource representation or identity format.
 
 ## 5. Deferred Compiler-static EW / IN obligations
 
-The current register marks 19 Compiler-owned static obligations deferred:
+The current register marks 13 Compiler-owned static obligations deferred:
 
 | Case(s) | Required static coverage |
 |---|---|
 | EW-029 | Reject body-bearing response mapping sourced from wait.output, Context or raw request instead of the declared boundary Producer |
 | EW-031 | Global Precondition dominance over protected Mutation / success; Wait edge does not satisfy the gate |
 | IN-004 | Exact dependency Owner binding and mismatch diagnostics |
-| IN-014, IN-015, IN-039, IN-059 | Complete normalization declaration, one-to-one media/schema/representation correspondence, required wire-field mapping |
-| IN-016, IN-042 | Immutable multipart/binary content reference and retention/recovery lifecycle |
 | IN-019 | Reject trigger arguments that depend on the trigger Operation's own not-yet-produced output |
 | IN-027, IN-040, IN-061 | Complete paired-response deadline, recovery, disposition and response-contract validation |
 | IN-030 | Require the export-declared Producer stage at the response boundary |
 | IN-044, IN-045 | Validate multipart/binary and N1 SM Reject response representation/mapping |
 | IN-046, IN-060 | Validate Ingress-owned correlation identity, scope, duplicate and stale-delivery declarations |
-| IN-058 | Validate authenticationProfileRef / authorizationPolicyRef syntax and resolution |
+| IN-058 | Expected profile resource resolution only (reference format validation is implemented; the released contract does not publish a profile resource representation) |
 
 The Compiler must implement every Compiler-owned static condition in this list or record a precise normative reason why it is owned elsewhere. It must not silently omit the cases from the register.
 

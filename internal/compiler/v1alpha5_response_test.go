@@ -161,6 +161,11 @@ spec:
                     pointer: ""
                   target: /updateData
                   transform: identity
+                - source:
+                    kind: path
+                    name: smContextRef
+                  target: /smContextRef
+                  transform: identity
         maxBytes: 4194304
       correlation:
         armInputSchemaRef: urn:example:schema:update-arm-input

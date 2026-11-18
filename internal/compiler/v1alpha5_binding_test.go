@@ -425,6 +425,11 @@ spec:
                     pointer: ""
                   target: /updateData
                   transform: identity
+                - source:
+                    kind: path
+                    name: smContextRef
+                  target: /smContextRef
+                  transform: identity
         maxBytes: 4194304
       correlation:
         armInputSchemaRef: urn:example:schema:update-arm-input
@@ -1059,6 +1064,43 @@ func TestV1Alpha5WP3V1Alpha4RejectsV1Alpha5OnlyTrustedFields(t *testing.T) {
 	if !hasV1Alpha5Diagnostic(diagnostics, "REQUEST_INVALID") {
 		t.Fatalf("v1alpha4 must reject v1alpha5-only trusted fields, got %#v", diagnostics)
 	}
+}
+
+// TestV1Alpha5WP3IngressNormalizationCoverage drives the Ingress-owned request
+// normalization static semantics through the public v1alpha5 Check path: a
+// required normalized property that no mapping provides must fail closed with
+// INGRESS_NORMALIZATION_INVALID.
+func TestV1Alpha5WP3IngressNormalizationCoverage(t *testing.T) {
+	diagnostics := wp3Check(t, wp3FixtureOptions{
+		catalogText: func(openAPIDigest, requestDigest, normalizedDigest string) string {
+			text := wp3DefaultCatalogText(openAPIDigest, requestDigest, normalizedDigest)
+			return strings.Replace(text,
+				`                - source:
+                    kind: path
+                    name: smContextRef
+                  target: /smContextRef
+                  transform: identity
+`, "", 1)
+		},
+	})
+	assertWP3Diagnostics(t, diagnostics, "INGRESS_NORMALIZATION_INVALID")
+	if !strings.Contains(diagnostics[0].Message, "request normalization mapping") {
+		t.Fatalf("normalization diagnostic must use the registry template: %q", diagnostics[0].Message)
+	}
+}
+
+// TestV1Alpha5WP3IngressPeerProfileReferenceInvalid drives the Ingress-owned
+// peer profile reference format rule through the public v1alpha5 Check path.
+func TestV1Alpha5WP3IngressPeerProfileReferenceInvalid(t *testing.T) {
+	diagnostics := wp3Check(t, wp3FixtureOptions{
+		catalogText: func(openAPIDigest, requestDigest, normalizedDigest string) string {
+			text := wp3DefaultCatalogText(openAPIDigest, requestDigest, normalizedDigest)
+			return strings.Replace(text,
+				"authenticationProfileRef: deployment-auth::synthetic-amf-peer",
+				"authenticationProfileRef: malformed-reference", 1)
+		},
+	})
+	assertWP3Diagnostics(t, diagnostics, "INGRESS_PEER_PROFILE_REFERENCE_INVALID")
 }
 
 // TestV1Alpha5WaitWithoutIngressExportIsNotFound proves the L.3.1 rule for a

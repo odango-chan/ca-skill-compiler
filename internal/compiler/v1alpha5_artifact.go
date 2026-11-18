@@ -75,6 +75,8 @@ var v1alpha5ManifestValidatedPasses = []string{
 	"wp3.trigger-correlation-binding",
 	"wp4.wait-output-sourcepath",
 	"wp6.response-boundary",
+	"wp1.request-normalization-and-binary-lifecycle",
+	"wp1.peer-profile-reference-form",
 	"inherited.package-and-dependency-identity",
 	"inherited.owner-tool-capability-linking",
 	"inherited.schema-cel-predicate-script",
@@ -90,7 +92,7 @@ var v1alpha5ManifestNotValidated = []string{
 	"evidence-descriptor-positive-path-validation",
 	"full-mutation-reconcile-positive-path-coverage",
 	"full-retry-contract-compatibility-and-path-coverage",
-	"ingress-normalization-binary-lifecycle-and-response-contract-completeness",
+	"ingress-response-contract-and-mapping-completeness",
 	"host-runtime-integration-semantics",
 	"real-owner-artifact-qualification",
 }

@@ -379,6 +379,7 @@ func AdmitCatalog(input CatalogInput, snapshot *TrustedSnapshot) *Admission {
 	admission.Diagnostics = append(admission.Diagnostics, checkExportIDUniqueness(admission.Catalog, input)...)
 	admission.Diagnostics = append(admission.Diagnostics, checkEventSelectorUniqueness(admission.Catalog, input)...)
 	admission.Diagnostics = append(admission.Diagnostics, checkProtocolArtifacts(admission.Catalog, snapshot, input)...)
+	admission.Diagnostics = append(admission.Diagnostics, checkIngressStaticSemantics(admission.Catalog, root, snapshot, input)...)
 
 	verified, schemaDiagnostics := verifySchemaClosures(admission.DeclaredSchemaBindings, snapshot, input)
 	admission.VerifiedSchemaClosures = verified

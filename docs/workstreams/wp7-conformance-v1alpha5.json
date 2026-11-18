@@ -2,21 +2,21 @@
   "schemaVersion": "connectionagent.io/wp7-conformance-register/v1",
   "languageTarget": "connectionagent.io/v1alpha5",
   "status": "NORMATIVE_OBLIGATIONS_LOCALLY_TESTED_NOT_QUALIFIED",
-  "scope": "Post-integration static Compiler traceability against released CA-SL v1alpha5 and IngressCatalog v1alpha1. No row is CI PASS or product qualification. 37 rows are implemented+tested by executable Go tests in this repository; 19 remain Compiler-static deferred; 45 are Skill/Host/Runtime/Integration obligations, not Compiler-owned static obligations; 1 is specification-only. The register covers all 36 EW and 66 IN cases. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED.",
+  "scope": "Post-integration static Compiler traceability against released CA-SL v1alpha5 and IngressCatalog v1alpha1. No row is CI PASS or product qualification. 43 rows are implemented+tested by executable Go tests in this repository; 13 remain Compiler-static deferred; 45 are Skill/Host/Runtime/Integration obligations, not Compiler-owned static obligations; 1 is specification-only. The register covers all 36 EW and 66 IN cases. IN-058 peer profile format validation is implemented while profile-resource resolution remains deferred because the released contract does not publish a profile resource representation. Real Owner artifacts, Integration wire conformance and 5GC/MAS qualification remain NOT_QUALIFIED.",
   "counts": {
-    "COMPILER_STATIC_IMPLEMENTED_TESTED": 37,
-    "COMPILER_STATIC_DEFERRED": 19,
+    "COMPILER_STATIC_IMPLEMENTED_TESTED": 43,
+    "COMPILER_STATIC_DEFERRED": 13,
     "HOST_RUNTIME_INTEGRATION_OWNED": 45,
     "SPECIFICATION_ONLY_NOT_EXECUTED": 1,
     "ew": {
-      "COMPILER_STATIC_IMPLEMENTED_TESTED": 15,
       "COMPILER_STATIC_DEFERRED": 2,
+      "COMPILER_STATIC_IMPLEMENTED_TESTED": 15,
       "HOST_RUNTIME_INTEGRATION_OWNED": 18,
       "SPECIFICATION_ONLY_NOT_EXECUTED": 1
     },
     "in": {
-      "COMPILER_STATIC_IMPLEMENTED_TESTED": 22,
-      "COMPILER_STATIC_DEFERRED": 17,
+      "COMPILER_STATIC_DEFERRED": 11,
+      "COMPILER_STATIC_IMPLEMENTED_TESTED": 28,
       "HOST_RUNTIME_INTEGRATION_OWNED": 27,
       "SPECIFICATION_ONLY_NOT_EXECUTED": 0
     }
@@ -554,35 +554,42 @@
     {
       "id": "IN-014",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "Inconsistent normalization mapping/fixed snapshot emits INGRESS_NORMALIZATION_INVALID / C_STATIC; dependency snapshot identity failures are reported first.",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "An inconsistent request normalization declaration emits INGRESS_NORMALIZATION_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "INGRESS_NORMALIZATION_INVALID",
         "phase": "C_STATIC",
         "severity": "error",
-        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
+        "messageKey": "ingress.normalization.invalid",
+        "template": "Ingress export '{exportId}' has an invalid request normalization mapping at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "IngressCatalog request normalization semantics remain unimplemented beyond structural admission."
+      "tests": [
+        "TestNormalizationDuplicateTarget",
+        "TestNormalizationMultipartBoundsInconsistent"
+      ]
     },
     {
       "id": "IN-015",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A required wire field not mapped to the normalized Schema emits INGRESS_NORMALIZATION_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "INGRESS_NORMALIZATION_INVALID",
         "phase": "C_STATIC",
         "severity": "error",
-        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
+        "messageKey": "ingress.normalization.invalid",
+        "template": "Ingress export '{exportId}' has an invalid request normalization mapping at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "Required wire-field coverage in request normalization remains unimplemented."
+      "tests": [
+        "TestNormalizationRequiredNormalizedPropertyUncovered"
+      ]
     },
     {
       "id": "IN-016",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A multipart/binary part without a restricted immutable reference and lifecycle declaration emits INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID / C_STATIC; runtime payload-reference mismatch remains an Integration reject/quarantine.",
       "diagnostic": {
         "code": "INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID",
@@ -592,8 +599,9 @@
         "template": "Ingress export '{exportId}' has an invalid immutable binary-content reference or lifecycle contract at '{fieldPath}'.",
         "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "Request-side immutable binary-content part lifecycle remains unimplemented (the response-side lifecycle slice is implemented by WP6)."
+      "tests": [
+        "TestBinaryContentReferenceSchemaUnresolved"
+      ]
     },
     {
       "id": "IN-017",
@@ -848,16 +856,20 @@
     {
       "id": "IN-039",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "acceptedMediaTypes, sourceSchemas and normalization.representations not in one-to-one correspondence emit INGRESS_NORMALIZATION_INVALID / C_STATIC.",
       "diagnostic": {
         "code": "INGRESS_NORMALIZATION_INVALID",
         "phase": "C_STATIC",
         "severity": "error",
-        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
+        "messageKey": "ingress.normalization.invalid",
+        "template": "Ingress export '{exportId}' has an invalid request normalization mapping at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "acceptedMediaTypes/sourceSchemas/normalization.representations correspondence remains unimplemented."
+      "tests": [
+        "TestNormalizationMediaTypeCorrespondence",
+        "TestNormalizationDuplicateSourceMediaType"
+      ]
     },
     {
       "id": "IN-040",
@@ -884,8 +896,8 @@
     {
       "id": "IN-042",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
-      "expected": "Request/response binaryContent retention shorter than the last declared consumer/recovery window emits INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID / C_STATIC.",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
+      "expected": "Request binaryContent retention shorter than the last declared recovery window emits INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID / C_STATIC; the response-side lifecycle checks already exist.",
       "diagnostic": {
         "code": "INGRESS_BINARY_CONTENT_LIFECYCLE_INVALID",
         "phase": "C_STATIC",
@@ -894,8 +906,9 @@
         "template": "Ingress export '{exportId}' has an invalid immutable binary-content reference or lifecycle contract at '{fieldPath}'.",
         "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "Request-side binaryContent retention vs consumer/recovery-window validation remains unimplemented; the response-side lifecycle checks exist."
+      "tests": [
+        "TestBinaryContentRetentionBelowRecoveryWindow"
+      ]
     },
     {
       "id": "IN-043",
@@ -1062,24 +1075,30 @@
         "code": "INGRESS_PEER_PROFILE_REFERENCE_INVALID",
         "phase": "C_STATIC",
         "severity": "error",
-        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
+        "messageKey": "ingress.peer.profile.reference.invalid",
+        "template": "Ingress export '{exportId}' has an invalid or unresolved peer profile reference at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
       "deferredTo": "WP1",
-      "deferredNote": "Peer authentication/authorization profile reference resolution remains unimplemented."
+      "deferredNote": "Peer profile reference format validation is implemented and tested (TestPeerProfileReferenceInvalid). Resolution to the exact expected profile resource remains deferred: the released #62 contract does not publish a profile resource representation or identity format, and deployment profile binding is Host Admission, not Compiler."
     },
     {
       "id": "IN-059",
       "owner": "Compiler",
-      "classification": "COMPILER_STATIC_DEFERRED",
+      "classification": "COMPILER_STATIC_IMPLEMENTED_TESTED",
       "expected": "A missing, duplicate, incomplete or invalid-target/transform normalization mapping for an accepted media representation emits INGRESS_NORMALIZATION_INVALID / C_STATIC; invalid source/normalized Schemas still use the Schema diagnostics.",
       "diagnostic": {
         "code": "INGRESS_NORMALIZATION_INVALID",
         "phase": "C_STATIC",
         "severity": "error",
-        "sourceLocation": "Deferred Ingress registry identity: the Compiler source location will be the trusted Catalog dependencyAlias + snapshotPath + RFC 6901 jsonPointer."
+        "messageKey": "ingress.normalization.invalid",
+        "template": "Ingress export '{exportId}' has an invalid request normalization mapping at '{fieldPath}'.",
+        "sourceLocation": "Compiler Diagnostic.path = the trusted dependency snapshot path of the IngressCatalog snapshot. The canonical field path is rendered into the message; the full registry sourceLocation record is not on the frozen compiler.Diagnostic wire."
       },
-      "deferredTo": "WP1",
-      "deferredNote": "Request normalization mapping coverage/target/transform validation remains unimplemented."
+      "tests": [
+        "TestNormalizationDanglingTarget",
+        "TestNormalizationTransformTargetTypeMismatch"
+      ]
     },
     {
       "id": "IN-060",

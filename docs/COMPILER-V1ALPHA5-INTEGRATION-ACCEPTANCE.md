@@ -78,7 +78,7 @@ The remaining gaps are enumerated, specific inherited obligations that the v1alp
 
 The register now reports all 102 cases: 36 EW + 66 IN. The released Ingress contract defines **IN-001 through IN-066**; IN-064, IN-065 and IN-066 are present and classified as Skill/Runtime/Integration obligations, not Compiler-static ones. The three cases cover Step 15/18 N4 and PDU resource cleanup distinctions and the conditional Step 21 UDM unsubscribe behavior for other sessions sharing the same SUPI / DNN / HPLMN S-NSSAI.
 
-Current register classification: 37 implemented+tested, 19 Compiler-static deferred, 45 Host/Runtime/Integration-owned, 1 specification-only. The 19 Compiler-static deferred cases remain release blockers for a full `FULL_LANGUAGE_VALIDATION` claim; they must not be reported as PASS.
+Current register classification: 43 implemented+tested, 13 Compiler-static deferred, 45 Host/Runtime/Integration-owned, 1 specification-only. The 13 Compiler-static deferred cases remain release blockers for a full `FULL_LANGUAGE_VALIDATION` claim; they must not be reported as PASS. The request-normalization, immutable binary-content lifecycle and peer profile reference form rules are now implemented with negative tests; only expected-profile-resource resolution remains deferred for IN-058 because the released contract does not publish a profile resource representation.
 
 ### 3.3 Versioned API types are not yet cleanly separated
 
