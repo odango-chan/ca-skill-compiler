@@ -78,9 +78,9 @@ The public wire DTOs (`BuildRequest`, `BuildResult`, `Diagnostic`, `DependencyIn
 
 ## 8. Verification status
 
-Harness recorded local PASS for Go tests, vet, CGO-free Native build, WASM build, CLI end-to-end and real Chromium Worker parity on the integration branch. Treat these as Harness-reported local evidence until independently reproduced.
+Local acceptance at commit `0e5fd60a96107c4bd136a6a5b544b78649bfd853` (2026-11-18, Windows/amd64, Go 1.26.6, Node 24.18.0, Chromium 158.0.8127.37): Go tests, vet, CGO-free Native build, WASM build, CLI end-to-end and real Chromium Worker parity PASS. Full record: [v1alpha5 single-version acceptance](COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md). Treat this as local evidence until independently reproduced.
 
-GitHub Actions run `44091765010` concluded failure, but its job had zero executed steps. No source test or build ran in that job. CI status is therefore **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**, not CI PASS and not a source-code test failure.
+GitHub Actions run `44091765010` concluded failure with zero executed steps. No source test or build ran in that job. CI status is **CI_UNAVAILABLE / NO TEST STEPS EXECUTED**, not CI PASS and not a source-code test failure.
 
 Full acceptance must include actual execution of:
 

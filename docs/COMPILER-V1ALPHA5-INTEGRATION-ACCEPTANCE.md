@@ -96,7 +96,7 @@ Host/Runtime obligations are not counted as Compiler PASS.
 
 ## 5. Local acceptance
 
-Executed on Windows/amd64 at the PR #38 head commit of this report:
+Executed on Windows/amd64 on 2026-11-18 at commit `0e5fd60a96107c4bd136a6a5b544b78649bfd853` (PR #38 head):
 
 | Tool | Version |
 |---|---|
