@@ -133,6 +133,26 @@ Skill 中声明 Capability，表示请求使用某项能力，不代表已经获
 
 开发链接不能把未验证的来源主张升级为可信 Owner；生产准入也不能只凭 Package ID 或仓库 URL 推断 Owner。
 
+### 3.6 与 C / C++ 工具链的类比
+
+这个类比可以帮助理解职责，但不是一一对应：
+
+| C / C++ | CA-SL 工具链 | 说明 |
+|---|---|---|
+| .c / .cpp | SKILL.md、procedure.yaml、predicates.yaml 等 | 作者维护的业务源代码 |
+| .h + linker symbol table / import library | Interface Package | 导出 Callable、Schema、Effect 和 Capability 接口 |
+| gcc / clang compile | Compile | 解析语言、检查类型和静态语义 |
+| ld / link.exe | Interface Link | 解析依赖别名、Callable 符号和 Schema 引用 |
+| .so / DLL / shared library | Runtime Provider Package | 真实运行实现；可以是二进制、容器或远程服务 |
+| linked executable | Linked Skill Artifact | 已链接的 Procedure 和接口绑定；仍可能需要运行时 Provider |
+| runtime loader / process policy | Host Runtime Admission | 检查实现是否存在、授权是否有效、运行条件是否满足 |
+
+因此，Interface Package 更像头文件加符号表，Runtime Provider 更像共享库，而 Linked Skill Artifact 更接近一个已链接的可执行程序或部署包，不是 .so 本身。
+
+区别在于 CA-SL 的业务逻辑是声明式 Procedure Graph，Operation 由 Host 通过 Provider 边界分派；Artifact 不会把 Go / Python 实现静态打包进来。即使 Link + Build 成功，运行时 Provider 缺失或未授权，Artifact 仍然不能执行。
+
+Evidence Guarantee 和 Deployment Grant 也不是“另一个头文件”：它们分别描述结果可信保证和目标环境授权，属于运行资格边界，而不是基础接口符号解析。
+
 ## 4. Compile → Interface Link → Build
 
 ### 4.1 依赖准备在 Compiler 之外
