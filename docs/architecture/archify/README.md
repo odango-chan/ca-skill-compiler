@@ -15,15 +15,14 @@
 | 04 | SCP-only AMF–SMF SBI Architecture | architecture | `04-scp-amf-smf.architecture.json` | `04-scp-amf-smf.html` | DESIGN |
 | 05a | PDU Session Establishment + N2 结果回传 | sequence | `05a-establishment-sequence.sequence.json` | `05a-establishment-sequence.html` | DESIGN |
 | 05a-ops | Establishment 13 Operation Node Capability 追踪 | architecture | `05a-ops-establishment-capabilities.architecture.json` | `05a-ops-establishment-capabilities.html` | 静态追踪 PASS |
-| 05b | UE / RAN 发起 Session Modification | sequence | `05b-ue-modification-sequence.sequence.json` | `05b-ue-modification-sequence.html` | DESIGN / BLOCKED |
-| 05c | 网络 / PCF 触发 Session Modification | sequence | `05c-network-modification-sequence.sequence.json` | `05c-network-modification-sequence.html` | DESIGN / BLOCKED |
-| 05d | UE / AMF 发起 Session Release | sequence | `05d-release-sequence.sequence.json` | `05d-release-sequence.html` | DESIGN / BLOCKED |
-| 05e | 网络侧触发 Session Release | sequence | `05e-network-release-sequence.sequence.json` | `05e-network-release-sequence.html` | DESIGN / BLOCKED |
+| 05b | UE / RAN 发起 Session Modification | sequence | `05b-ue-modification-sequence.sequence.json` | `05b-ue-modification-sequence.html` | DESIGN TARGET |
+| 05c | 网络 / PCF 触发 Session Modification | sequence | `05c-network-modification-sequence.sequence.json` | `05c-network-modification-sequence.html` | DESIGN TARGET |
+| 05d | UE / AMF 发起 Session Release | sequence | `05d-release-sequence.sequence.json` | `05d-release-sequence.html` | DESIGN TARGET |
+| 05e | 网络侧触发 Session Release | sequence | `05e-network-release-sequence.sequence.json` | `05e-network-release-sequence.html` | DESIGN TARGET |
 | 05f | Service Request / Handover / Path Switch | sequence | `05f-service-request-handover-sequence.sequence.json` | `05f-service-request-handover-sequence.html` | DESIGN |
 | 05g | Callback / Failure / UNKNOWN / Reconcile | sequence | `05g-callback-failure-sequence.sequence.json` | `05g-callback-failure-sequence.html` | DESIGN |
 
-`DESIGN` 表示设计目标，不代表已实现或 E2E 通过。`BLOCKED` 表示对应的
-`agent_step` 业务入口当前会被 OpenAMSM 拒绝。
+`DESIGN TARGET` 表示按既定业务架构表达的目标流程，不代表当前实现状态或 E2E 通过。本轮时序图不再把当前代码阻塞作为流程终点；分支、异步回调和安全停止按目标设计完整表达。
 
 ## 2. Archify 版本与命令
 
@@ -48,7 +47,18 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 `evidence/<figure>.finalize-summary.json` 与 `evidence/<figure>.visual-check.json`。
 完整验收记录见 [evidence/acceptance.md](evidence/acceptance.md)。
 
-## 4. 与绘图简报的两处有意偏差
+## 4. 七张业务时序图的设计表达口径
+
+05a–05g 以既定 SCP-only 业务设计为准，描述目标消息流，不按当前仓库实现状态裁剪流程。所有外部 SBI（AMF / PCF / UDM / Namf）经 SCP；OpenAMSM ↔ UPF 的 N4 / PFCP 直连；Host ↔ Client Tools ↔ OpenAMSM 的 Owner-private 调用属于内部受信边界，不经过 SCP。CA-Agent Host / Host Runtime、CA Client Tools、OpenAMSM SMF、外部 5GC 的归属通过 participant sublabel 和消息方向表达。
+
+- 05a 明确 s3 后返回 201 + Host Location，后续 OES 步骤继续同一 Run；s10 的 N2 结果返回原 occurrence。
+- 05b 区分新业务 Modify 与命中既有 Pending 的 N2 结果；按 m0 → m2（optional）→ m3 → m4 → m5 表达。
+- 05c 区分 PCF callback 与 Owner scoped event；不把 PCF 通知误画成 AMF Nsmf 请求。
+- 05d / 05e 按 r1（optional）→ r2 → r3 → r4 → r5 → r6 表达释放资源结算。
+- 05f 把 Service Request 与 Handover / Path Switch 作为两个互斥分支，始终操作既有 Session。
+- 05g 分开表达有效 callback、重复/迟到 callback，以及 UNKNOWN / exact-original Reconcile。
+
+## 5. 与绘图简报的两处有意偏差
 
 1. **时序图类型**：绘图简报建议使用 Archify Workflow JSON，但 3GPP 风格时序要求时间自上而下、
    请求/响应方向明确。Archify 的原生 `sequence` 渲染器正是为此设计，因此 05a–05g 使用
@@ -57,7 +67,7 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
    **命名 phase 段（segment）+ 消息标签前缀（`alt` / `重复 / 迟到回调`）** 表达，并在卡片中说明
    分支条件；未以颜色单独承载分支语义。
 
-## 5. 已知限制（构件层面，非内容层面）
+## 6. 已知限制（构件层面，非内容层面）
 
 - `architecture` 的 `region` 边界要求"只包住成员、无空槽"的紧凑矩形
   （`layout/boundary-encloses-non-member`）。图 04 中 Client Tools 的 Codec 与 Provider 位于
@@ -68,7 +78,7 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 - sequence 图在 1440×900 下有纵向滚动（`data-reader-fit="width-first"`）。这是 Archify 对
   sequence 的既定阅读契约：宽度自适应、纵向滚动；横向不溢出。
 
-## 6. 事实基线
+## 7. 事实基线
 
 全部命名与流程取自下列来源（含版本锁定），逐文件 SHA 见
 [evidence/source-inventory.md](evidence/source-inventory.md)：
@@ -79,13 +89,13 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 - `env-openamsm` @ `594dec78`（OpenAPI、OES plans、`nsmf-handler.c`）
 - 本仓库 `ca-skill-compiler` @ PR #48 分支 `docs/toolchain-architecture-vnext-20261119`
 
-## 7. 规范版本差异
+## 8. 规范版本差异
 
 实现侧 OpenAPI 为 **TS 29.502 V19.5.0 / TS 29.518 V19.6.0**，业务设计文档引用
 **V19.7.0 / V19.8.0**。本图集只用已核对的实现版本标注 operationId 与 URI，设计目标版本
 标为未核对。详见 [evidence/version-audit.md](evidence/version-audit.md)。
 
-## 8. 复现
+## 9. 复现
 
 ```bash
 # 需要本机已安装 Archify 3.2.0；以下路径相对于仓库根目录

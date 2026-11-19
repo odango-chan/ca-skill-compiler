@@ -52,7 +52,7 @@
   <h1>CA-SL 工具链与 SCP-only AMF–SMF 架构图</h1>
   <p class="sub">
     架构评审 / 开发实施 / E2E 测试的可追溯图形基线 · Archify 3.2.0 ·
-    CA-SL v1alpha5 冻结 · 全部为设计表达，不代表已实现或 E2E 通过
+    CA-SL v1alpha5 冻结 · 全部为目标设计表达，不代表当前实现状态或 E2E 通过
   </p>
 
   <h2>一、工具链及系统架构</h2>
@@ -117,28 +117,28 @@
         <td><a href="05b-ue-modification-sequence.html">UE / RAN 发起 Session Modification</a></td>
         <td class="type">sequence</td>
         <td><a href="05b-ue-modification-sequence.sequence.json">JSON</a></td>
-        <td class="state">F03 + F04 · 无正式 Skill · 阻塞</td>
+        <td class="state">F03 + F04 · 目标设计</td>
       </tr>
       <tr>
         <td class="num">05c</td>
         <td><a href="05c-network-modification-sequence.html">网络 / PCF 触发 Session Modification</a></td>
         <td class="type">sequence</td>
         <td><a href="05c-network-modification-sequence.sequence.json">JSON</a></td>
-        <td class="state">F05 · 事件桥接未实现</td>
+        <td class="state">F05 · 目标设计</td>
       </tr>
       <tr>
         <td class="num">05d</td>
         <td><a href="05d-release-sequence.html">UE / AMF 发起 Session Release</a></td>
         <td class="type">sequence</td>
         <td><a href="05d-release-sequence.sequence.json">JSON</a></td>
-        <td class="state">F06 + F07 · 无正式 Skill · 阻塞</td>
+        <td class="state">F06 + F07 · 目标设计</td>
       </tr>
       <tr>
         <td class="num">05e</td>
         <td><a href="05e-network-release-sequence.html">网络侧触发 Session Release</a></td>
         <td class="type">sequence</td>
         <td><a href="05e-network-release-sequence.sequence.json">JSON</a></td>
-        <td class="state">F08 · 触达路径未闭环</td>
+        <td class="state">F08 · 目标设计</td>
       </tr>
       <tr>
         <td class="num">05f</td>
@@ -152,7 +152,7 @@
         <td><a href="05g-callback-failure-sequence.html">Callback / Failure / UNKNOWN / Reconcile</a></td>
         <td class="type">sequence</td>
         <td><a href="05g-callback-failure-sequence.sequence.json">JSON</a></td>
-        <td class="state">F11 · 不盲重派未知副作用</td>
+        <td class="state">F11 · exact-original Reconcile，不盲重派</td>
       </tr>
     </tbody>
   </table>

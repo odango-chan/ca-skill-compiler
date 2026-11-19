@@ -1,0 +1,77 @@
+name: Archify sequence diagrams
+
+on:
+  pull_request:
+    paths:
+      - "docs/architecture/archify/*.sequence.json"
+      - ".github/workflows/archify-sequences.yml"
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: archify-sequences-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Chromium for Archify browser checks
+        run: |
+          npm install --prefix "$RUNNER_TEMP/archify-browser" playwright@1.56.1
+          "$RUNNER_TEMP/archify-browser/node_modules/.bin/playwright" install --with-deps chromium
+          CHROME="$(node -e "console.log(require('$RUNNER_TEMP/archify-browser/node_modules/playwright').chromium.executablePath())")"
+          echo "ARCHIFY_CHROME=$CHROME" >> "$GITHUB_ENV"
+          echo "ARCHIFY_CHROME_NO_SANDBOX=1" >> "$GITHUB_ENV"
+
+      - name: Fetch pinned Archify 3.2.0 bundle
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/archify-package"
+          cd "$RUNNER_TEMP/archify-package"
+          TARBALL="$(npm pack --ignore-scripts --silent @tt-a1i/archify-dsh@1.1.0)"
+          echo "e65d77e4d7ca34562d33f22480b0b4eae2b1e51ef13cd542c2618b228830b20d  $TARBALL" | sha256sum -c
+          mkdir package
+          tar -xzf "$TARBALL" -C package
+          test -f package/package/skills/archify/bin/archify.mjs
+          echo "ARCHIFY_CLI=$RUNNER_TEMP/archify-package/package/package/skills/archify/bin/archify.mjs" >> "$GITHUB_ENV"
+
+      - name: Finalize, check and capture seven target sequences
+        run: |
+          set -euo pipefail
+          for source in docs/architecture/archify/05{a,b,c,d,e,f,g}-*.sequence.json; do
+            name="$(basename "$source" .sequence.json)"
+            html="docs/architecture/archify/${name}.html"
+            node "$ARCHIFY_CLI" finalize sequence "$source" "$html" --quality showcase --json
+            node "$ARCHIFY_CLI" check "$html" --require-provenance --json
+            node "$ARCHIFY_CLI" visual-check "$html" --require-provenance --out-dir docs/architecture/archify/evidence --summary
+          done
+
+      - name: Commit rendered HTML and browser evidence
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/architecture/archify
+          if git diff --cached --quiet; then
+            echo "No rendered artifact changes."
+            exit 0
+          fi
+          git commit -m "docs(archify): render seven target sequence diagrams"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
