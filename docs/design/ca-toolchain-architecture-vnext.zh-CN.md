@@ -136,7 +136,7 @@ flowchart TD
 
 ## 6. MAS 对接与冻结边界
 
-先从 ca-client-tools 的 13 个 Operation 与 25 个候选 Schema 整理 Callable 和 Capability Catalog，补足 `ca-context` Subject Context 及实际引用的 Ingress / Schema 闭包。完整候选包可开启新 Development Build 的离线验收；独立 Provider 与测试 Grant 通过 Host 验证后才进入真实派发。Mock AMF 是 5GC 测试对端，完整 SBI 用例经本地 NRF/SCP 到真实 SMF handler。其响应不生成 Owner Commit Proof，也不解决复合 SSM 的 30 秒上限和缺少持久化 Owner continuation。已派发操作的 `OWNER_DEFERRED` 与进入节点的 `INGRESS_WAIT` 继续分开。阶段对应 [ca-agent-demo #217 的 G0–G5](https://github.com/odango-chan/ca-agent-demo/pull/217)。
+先从 ca-client-tools 的 13 个 Operation 与 25 个候选 Schema 整理 Callable 和 Capability Catalog，补足 `ca-context` Subject Context 及实际引用的 Ingress / Schema 闭包。完整候选包可开启新 Development Build 的离线验收；独立 Provider 与测试 Grant 通过 Host 验证后才进入真实派发。Mock AMF 是 5GC 测试对端：H1 Direct Relay 将 Namf 直接发送到 `OPENAMSM_AGENT_RELAY_URL`，不证明 NRF/SCP 的 Namf discovery；H2 清空 relay URL 并将 Mock AMF 注册到本地 NRF/SCP，单独验证服务发现。UDM/PCF 等其他 NF 仍使用本地 NRF/SCP。两种 Namf 路由必须分开报告。Mock AMF 响应不生成 Owner Commit Proof，也不解决复合 SSM 的 30 秒上限和缺少持久化 Owner continuation。已派发操作的 `OWNER_DEFERRED` 与进入节点的 `INGRESS_WAIT` 继续分开。阶段对应 [ca-agent-demo #217 的 G0–G5](https://github.com/odango-chan/ca-agent-demo/pull/217)。
 
 冻结的 [v1alpha5 Artifact 契约](compiler-artifact-v1alpha5.md) 及 [v2.0.2 机器契约](../../contracts/v1alpha5/README.md) 保持现有结果含义。新产物不得声明冻结契约的 `FULL_LANGUAGE_VALIDATION` 状态；须列出已执行检查与因缺失保证材料而延期的检查；延期检查按原规则完成后方可执行。现有 fixture、严格构建和生产接入继续按各自已发布契约验收。本文仅供评审，当前没有新的构建模式或 MAS qualification。
 
