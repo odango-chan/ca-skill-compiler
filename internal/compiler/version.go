@@ -8,4 +8,4 @@ package compiler
 // The v2.0.x product line is the single-version v1alpha5 Compiler. v1alpha4
 // BuildRequest/CLI input is rejected, which is a breaking public-API change
 // relative to the v1.0.0 product release.
-const CompilerVersion = "v2.0.1"
+const CompilerVersion = "v2.0.2"

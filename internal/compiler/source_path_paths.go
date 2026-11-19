@@ -12,23 +12,44 @@ package compiler
 // Recoverable-output assignability to the original output contract remains later
 // WP8 work; a declared recoverable output is not rejected here.
 
-import (
-	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
-)
+import "strings"
 
-// producerKeyReachability returns, per route key of the producer Node, the set of
-// Nodes reachable by following that key's target (BFS over the whole graph).
-func producerKeyReachability(skill *SkillAST, producerID string) map[string]map[string]bool {
+// producerKeyReachability tracks routes that leave a Node before its producing
+// stage succeeds. A later stage can only run after the producer succeeds.
+func producerKeyReachability(skill *SkillAST, sourcePath string) map[string]map[string]bool {
 	result := map[string]map[string]bool{}
 	if skill == nil || skill.Procedure == nil {
 		return result
 	}
+	producerID, rest, _ := strings.Cut(sourcePath, ".")
+	producerStage, _, _ := strings.Cut(rest, ".")
 	graph := buildProcedureGraph(skill.Procedure)
 	for _, edge := range procedureRouteEdges(skill.Procedure) {
 		if edge.from != producerID {
 			continue
 		}
-		reachable := map[string]bool{edge.to: true}
+		key := edge.key
+		switch {
+		case edge.stage == producerStage:
+			if key == stageNormalOutcome[producerStage] {
+				continue
+			}
+		case edge.stage == "precondition" || (edge.stage == "operation" && producerStage == "observation"):
+			// An earlier-stage exit bypasses this producer. Even an earlier
+			// operation's COMMITTED edge provides no observation output.
+			key = ""
+		default:
+			continue
+		}
+		reachable := result[key]
+		if reachable == nil {
+			reachable = map[string]bool{}
+			result[key] = reachable
+		}
+		if reachable[edge.to] {
+			continue
+		}
+		reachable[edge.to] = true
 		queue := []string{edge.to}
 		for len(queue) > 0 {
 			current := queue[0]
@@ -40,14 +61,13 @@ func producerKeyReachability(skill *SkillAST, producerID string) map[string]map[
 				}
 			}
 		}
-		result[edge.key] = reachable
 	}
 	return result
 }
 
-func nonSucceededProducerPath(producerID, consumerID string, reachability map[string]map[string]bool) (committed bool, other bool) {
+func nonSucceededProducerPath(consumerID string, reachability map[string]map[string]bool) (committed bool, other bool) {
 	for key, reachable := range reachability {
-		if key == "SUCCEEDED" || !reachable[consumerID] {
+		if !reachable[consumerID] {
 			continue
 		}
 		if key == "COMMITTED" {
@@ -58,5 +78,3 @@ func nonSucceededProducerPath(producerID, consumerID string, reachability map[st
 	}
 	return committed, other
 }
-
-var _ = yaml.Node{}
