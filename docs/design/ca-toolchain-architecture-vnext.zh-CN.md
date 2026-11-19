@@ -139,3 +139,54 @@ flowchart TD
 先从 ca-client-tools 的 13 个 Operation 与 25 个候选 Schema 整理 Callable 和 Capability Catalog，补足 `ca-context` Subject Context 及实际引用的 Ingress / Schema 闭包。完整候选包可开启新 Development Build 的离线验收；独立 Provider 与测试 Grant 通过 Host 验证后才进入真实派发。Mock AMF 是 5GC 测试对端，完整 SBI 用例经本地 NRF/SCP 到真实 SMF handler。其响应不生成 Owner Commit Proof，也不解决复合 SSM 的 30 秒上限和缺少持久化 Owner continuation。已派发操作的 `OWNER_DEFERRED` 与进入节点的 `INGRESS_WAIT` 继续分开。阶段对应 [ca-agent-demo #217 的 G0–G5](https://github.com/odango-chan/ca-agent-demo/pull/217)。
 
 冻结的 [v1alpha5 Artifact 契约](compiler-artifact-v1alpha5.md) 及 [v2.0.2 机器契约](../../contracts/v1alpha5/README.md) 保持现有结果含义。新产物不得声明冻结契约的 `FULL_LANGUAGE_VALIDATION` 状态；须列出已执行检查与因缺失保证材料而延期的检查；延期检查按原规则完成后方可执行。现有 fixture、严格构建和生产接入继续按各自已发布契约验收。本文仅供评审，当前没有新的构建模式或 MAS qualification。
+
+## 7. 视觉评审基线
+
+本轮工具链评审配套三张独立可读的架构图。图中案例统一为 **session-demo**；跨图摘要标记统一使用：
+
+- MAS 源：\`sha256:…mas\`
+- Context Interface：\`sha256:…ctx\`
+- Linked Artifact：\`sha256:…artifact\`
+- Runtime Provider：\`sha256:…provider\`
+
+这四个摘要在图中是追踪占位符；实际构建记录必须写入真实摘要，不得把省略号当成摘要值。
+
+### 7.1 工具链全景
+
+全景图使用三条泳道：
+
+1. **发布与依赖准备**：Interface Package 与 Runtime Provider Package 分别发布；Capability Catalog 属于 Interface Package 的导出内容；Deployment Grant 由部署方独立签发并交给 Host。
+2. **离线 Compiler**：只接收 Skill 源、精确 Interface snapshots、dependencies.lock 和可选 Assurance Export；不访问 Registry、不部署 Provider、不签发 Grant。
+3. **Host / Runtime**：验证 Artifact、Provider Binding、Grant、Assurance 和当前 Invocation；通过 Admission 后才允许派发。
+
+### 7.2 离线构建
+
+离线构建图按四个阶段展示，每个阶段明确标注输入、处理和输出：
+
+| 阶段 | 输入 | 处理 | 输出 |
+|---|---|---|---|
+| Compile | SKILL.md、Procedure / Predicate source | 语言解析与静态校验 | 编译后的 Skill IR / 诊断 |
+| Resolve Interface Link | dependencies.lock、Interface Package snapshots | Callable、Schema、Capability、Ingress 闭包解析 | 精确链接记录 |
+| Evaluate obligations | 可选 Assurance Export、静态声明 | 计算保证材料的存在性与适用范围 | obligations.json |
+| Assemble Artifact | 源摘要、锁、链接记录、义务记录 | 规范化、完整性验证、确定性打包 | manifest + Linked Skill Artifact |
+
+错误边界：
+
+- 缺少或冲突的 Interface / Schema / Callable：Link 失败，**不得产生 Artifact**。
+- 接口闭合但缺 Evidence：仍可产生 Development Artifact；相应义务为 \`UNRESOLVED\`，执行状态为 \`NOT_ADMITTED\`。
+- Deployment Grant 不进入离线 Build 输入；它属于部署方与 Host Admission 的交接材料。
+
+### 7.3 Host 准入与执行
+
+准入图应明确五类材料汇入 Host Admission：
+
+1. Linked Skill Artifact 与锁定依赖闭包；
+2. Runtime Provider Package / 已部署实例绑定；
+3. Capability Catalog 中的接口成员关系；
+4. Assurance Export / Evidence 验证材料；
+5. Deployment Grant 与当前 Invocation Scope。
+
+隔离 Host 只有在显式 opt-in 且测试策略允许时，才可接收 Development Artifact；生产 Host 必须拒收 Development Artifact。通过准入后，派发、恢复前复核、结算和 Reconcile 仍须按原始 Operation occurrence 执行。UNKNOWN 只能进入经授权的 exact-original Reconcile，不得盲目重试。
+
+图 1–3 的可编辑 Archify JSON 与 HTML 当前由评审工作区生成；在这些源文件正式进入仓库前，本节作为其语义和命名基线。不要在仓库文档中使用某台开发机的绝对 Windows 路径作为共享链接。
+
