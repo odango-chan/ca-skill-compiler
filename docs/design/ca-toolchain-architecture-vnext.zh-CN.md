@@ -136,13 +136,13 @@ flowchart TD
 
 ## 6. MAS 对接与冻结边界
 
-先从 ca-client-tools 的 13 个 Operation 与 25 个候选 Schema 整理 Callable 和 Capability Catalog，补足 `ca-context` Subject Context 及实际引用的 Ingress / Schema 闭包。完整候选包可开启新 Development Build 的离线验收；独立 Provider 与测试 Grant 通过 Host 验证后才进入真实派发。Mock AMF 是 5GC 测试对端：H1 Direct Relay 将 Namf 直接发送到 `OPENAMSM_AGENT_RELAY_URL`，不证明 NRF/SCP 的 Namf discovery；H2 清空 relay URL 并将 Mock AMF 注册到本地 NRF/SCP，单独验证服务发现。UDM/PCF 等其他 NF 仍使用本地 NRF/SCP。两种 Namf 路由必须分开报告。Mock AMF 响应不生成 Owner Commit Proof，也不解决复合 SSM 的 30 秒上限和缺少持久化 Owner continuation。已派发操作的 `OWNER_DEFERRED` 与进入节点的 `INGRESS_WAIT` 继续分开。阶段对应 [ca-agent-demo #217 的 G0–G5](https://github.com/odango-chan/ca-agent-demo/pull/217)。
+先从 ca-client-tools 的 13 个 Operation 与 25 个候选 Schema 整理 Callable 和 Capability Catalog，补足 `ca-context` Subject Context 及实际引用的 Ingress / Schema 闭包。完整候选包可开启新 Development Build 的离线验收；独立 Provider 与测试 Grant 通过 Host 验证后才进入真实派发。Mock AMF 是 5GC 测试对端；**所有 H1/H2/H3 网络集成/E2E 测试强制 SCP**。H1 为 SCP Mock AMF 完整双向 SBI；H2 使用同一 SCP 拓扑测试 NRF Discovery、Target-apiRoot、Binding、SCP 故障恢复和多 UE；H3 是 SCP + 真实 AMF/UERANSIM。OpenAMSM → Host 是受信内部 Namf Relay，Host → SCP → AMF 才是正式 Namf 通信。Host → Owner 使用固定私有绑定；UDM/PCF 等其他 NF 仍使用本地 SCP/NRF。不存在无 SCP 或 Direct Mock Relay 的正式集成 Profile。Mock AMF 响应不生成 Owner Commit Proof，也不解决复合 SSM 的 30 秒上限和缺少持久化 Owner continuation。已派发操作的 `OWNER_DEFERRED` 与进入节点的 `INGRESS_WAIT` 继续分开。阶段对应 [ca-agent-demo #217 的 G0–G5](https://github.com/odango-chan/ca-agent-demo/pull/217)。
 
 冻结的 [v1alpha5 Artifact 契约](compiler-artifact-v1alpha5.md) 及 [v2.0.2 机器契约](../../contracts/v1alpha5/README.md) 保持现有结果含义。新产物不得声明冻结契约的 `FULL_LANGUAGE_VALIDATION` 状态；须列出已执行检查与因缺失保证材料而延期的检查；延期检查按原规则完成后方可执行。现有 fixture、严格构建和生产接入继续按各自已发布契约验收。本文仅供评审，当前没有新的构建模式或 MAS qualification。
 
 ## 7. 视觉评审基线
 
-本轮工具链评审配套三张独立可读的架构图。图中案例统一为 **session-demo**；跨图摘要标记统一使用：
+本轮工具链评审原有三张独立可读的架构图，另增加一张 SCP-only AMF–SMF SBI 网络架构图；重绘工作要求见 [Archify 专项简报](archify-redraw-brief-scp-only-20261119.zh-CN.md)。图中案例统一为 **session-demo**；跨图摘要标记统一使用：
 
 - MAS 源：\`sha256:…mas\`
 - Context Interface：\`sha256:…ctx\`
@@ -188,5 +188,5 @@ flowchart TD
 
 隔离 Host 只有在显式 opt-in 且测试策略允许时，才可接收 Development Artifact；生产 Host 必须拒收 Development Artifact。通过准入后，派发、恢复前复核、结算和 Reconcile 仍须按原始 Operation occurrence 执行。UNKNOWN 只能进入经授权的 exact-original Reconcile，不得盲目重试。
 
-图 1–3 的可编辑 Archify JSON 与 HTML 当前由评审工作区生成；在这些源文件正式进入仓库前，本节作为其语义和命名基线。不要在仓库文档中使用某台开发机的绝对 Windows 路径作为共享链接。
+原三张图的可编辑 Archify JSON 与 HTML 目前只在评审工作区生成，第四张 SCP SBI 图尚待重绘；在这些源文件正式进入仓库前，本节作为其语义和命名基线。不要在仓库文档中使用某台开发机的绝对 Windows 路径作为共享链接。
 
