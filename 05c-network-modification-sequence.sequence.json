@@ -1,0 +1,423 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "05c · 网络 / PCF 触发 Session Modification（SCP-only）",
+    "subtitle": "F05 · 目标业务时序 · PCF callback 先到 OpenAMSM；Owner scoped event 再进入 CA-Agent Run",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "docs/architecture/archify/05c-network-modification-sequence.html"
+  },
+  "participants": [
+    {
+      "id": "pcf",
+      "type": "external",
+      "label": "PCF",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "scp",
+      "type": "external",
+      "label": "SCP",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "smf",
+      "type": "backend",
+      "label": "OpenAMSM SMF",
+      "sublabel": "OpenAMSM · SM Context / GSM / OES / N4 Owner"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "CA-Agent Host",
+      "sublabel": "CA-Agent · SBI Ingress / Resource Router / URI Map"
+    },
+    {
+      "id": "runtime",
+      "type": "backend",
+      "label": "Host Runtime",
+      "sublabel": "CA-Agent · Run / Procedure / Postcondition"
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "Client Tools Provider",
+      "sublabel": "CA Client Tools · 固定 Owner / SBI Egress"
+    },
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "ue",
+      "type": "external",
+      "label": "UE / gNB",
+      "sublabel": "外部 UE / 接入网"
+    },
+    {
+      "id": "upf",
+      "type": "external",
+      "label": "UPF · N4 Peer",
+      "sublabel": "外部 5GC · N4 不经 SCP"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 314,
+      "label": "PCF trigger · SCP → OpenAMSM → Host scoped event"
+    },
+    {
+      "from": 278,
+      "to": 602,
+      "label": "Modify OES · m0 / m2 / m3"
+    },
+    {
+      "from": 534,
+      "to": 954,
+      "label": "m4 · Namf relay / UE-RAN exchange"
+    },
+    {
+      "from": 886,
+      "to": 1242,
+      "label": "m4 correlation · m5 N4 follow-up"
+    },
+    {
+      "from": 1206,
+      "to": 1338,
+      "label": "Owner outcome and protocol response"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01",
+      "from": "pcf",
+      "to": "scp",
+      "y": 168,
+      "label": "Npcf_SMPolicyControl_Notify（PCF notification）",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m02",
+      "from": "scp",
+      "to": "smf",
+      "y": 200,
+      "label": "OpenAMSM callback URI / SM Policy event",
+      "variant": "default"
+    },
+    {
+      "id": "m03",
+      "from": "smf",
+      "to": "host",
+      "y": 232,
+      "label": "Owner-private scoped event · SUPI / PSI / trigger / generation",
+      "variant": "security"
+    },
+    {
+      "id": "m04",
+      "from": "host",
+      "to": "runtime",
+      "y": 264,
+      "label": "Locate existing Session; start or continue Modify Run",
+      "variant": "default"
+    },
+    {
+      "id": "m05",
+      "from": "runtime",
+      "to": "tools",
+      "y": 296,
+      "label": "m0 · SC.UPDATE_SM_CONTEXT",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m06",
+      "from": "tools",
+      "to": "smf",
+      "y": 328,
+      "label": "m0 Owner context update",
+      "variant": "security"
+    },
+    {
+      "id": "m07",
+      "from": "runtime",
+      "to": "tools",
+      "y": 360,
+      "label": "m2 · CA.UPDATE_CHARGING（optional）",
+      "variant": "default"
+    },
+    {
+      "id": "m08",
+      "from": "tools",
+      "to": "smf",
+      "y": 392,
+      "label": "m2 optional charging step",
+      "variant": "security"
+    },
+    {
+      "id": "m09",
+      "from": "runtime",
+      "to": "tools",
+      "y": 424,
+      "label": "m3 · UPN.MODIFY_UP_SESSION",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m10",
+      "from": "tools",
+      "to": "smf",
+      "y": 456,
+      "label": "m3 Owner N4 modification",
+      "variant": "security"
+    },
+    {
+      "id": "m11",
+      "from": "smf",
+      "to": "upf",
+      "y": 488,
+      "label": "PFCP Session Modification Request (Type 52)",
+      "variant": "default"
+    },
+    {
+      "id": "m12",
+      "from": "upf",
+      "to": "smf",
+      "y": 520,
+      "label": "PFCP Session Modification Response (Type 53)",
+      "variant": "return"
+    },
+    {
+      "id": "m13",
+      "from": "smf",
+      "to": "tools",
+      "y": 552,
+      "label": "m3 result",
+      "variant": "return"
+    },
+    {
+      "id": "m14",
+      "from": "runtime",
+      "to": "tools",
+      "y": 584,
+      "label": "m4 · SSM.SIGNAL_UE_AN",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m15",
+      "from": "tools",
+      "to": "smf",
+      "y": 616,
+      "label": "m4 Owner AN signaling operation",
+      "variant": "security"
+    },
+    {
+      "id": "m16",
+      "from": "smf",
+      "to": "host",
+      "y": 648,
+      "label": "OpenAMSM private Namf Relay request",
+      "variant": "security"
+    },
+    {
+      "id": "m17",
+      "from": "host",
+      "to": "tools",
+      "y": 680,
+      "label": "Fixed Namf egress",
+      "variant": "security"
+    },
+    {
+      "id": "m18",
+      "from": "tools",
+      "to": "scp",
+      "y": 712,
+      "label": "Namf_Communication_N1N2MessageTransfer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m19",
+      "from": "scp",
+      "to": "amf",
+      "y": 744,
+      "label": "N1/N2 modification information",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m20",
+      "from": "amf",
+      "to": "ue",
+      "y": 776,
+      "label": "Forward NAS / RAN modification",
+      "variant": "default"
+    },
+    {
+      "id": "m21",
+      "from": "ue",
+      "to": "amf",
+      "y": 808,
+      "label": "N1 / N2 response",
+      "variant": "return"
+    },
+    {
+      "id": "m22",
+      "from": "amf",
+      "to": "scp",
+      "y": 840,
+      "label": "Nsmf_PDUSession_UpdateSMContext · N1/N2 result",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m23",
+      "from": "scp",
+      "to": "host",
+      "y": 872,
+      "label": "Existing Host Location",
+      "variant": "default"
+    },
+    {
+      "id": "m24",
+      "from": "host",
+      "to": "runtime",
+      "y": 904,
+      "label": "correlate exact m4 occurrence / generation",
+      "variant": "default"
+    },
+    {
+      "id": "m25",
+      "from": "runtime",
+      "to": "tools",
+      "y": 936,
+      "label": "continue original m4 Owner operation",
+      "variant": "security"
+    },
+    {
+      "id": "m26",
+      "from": "tools",
+      "to": "smf",
+      "y": 968,
+      "label": "Owner-private N1/N2 result update",
+      "variant": "security"
+    },
+    {
+      "id": "m27",
+      "from": "smf",
+      "to": "tools",
+      "y": 1000,
+      "label": "AN result adopted / tunnel data",
+      "variant": "return"
+    },
+    {
+      "id": "m28",
+      "from": "tools",
+      "to": "runtime",
+      "y": 1032,
+      "label": "resume same Modify Run",
+      "variant": "return"
+    },
+    {
+      "id": "m29",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1064,
+      "label": "m5 · UPN.MODIFY_UP_SESSION",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m30",
+      "from": "tools",
+      "to": "smf",
+      "y": 1096,
+      "label": "m5 Owner N4 follow-up",
+      "variant": "security"
+    },
+    {
+      "id": "m31",
+      "from": "smf",
+      "to": "upf",
+      "y": 1128,
+      "label": "PFCP Session Modification Request (Type 52 · AN F-TEID)",
+      "variant": "default"
+    },
+    {
+      "id": "m32",
+      "from": "upf",
+      "to": "smf",
+      "y": 1160,
+      "label": "PFCP Session Modification Response (Type 53)",
+      "variant": "return"
+    },
+    {
+      "id": "m33",
+      "from": "smf",
+      "to": "tools",
+      "y": 1192,
+      "label": "m5 final Owner result / n3_synced",
+      "variant": "return"
+    },
+    {
+      "id": "m34",
+      "from": "tools",
+      "to": "runtime",
+      "y": 1224,
+      "label": "complete or safe stop",
+      "variant": "return"
+    },
+    {
+      "id": "m35",
+      "from": "runtime",
+      "to": "host",
+      "y": 1256,
+      "label": "Final business outcome + response obligation",
+      "variant": "return"
+    },
+    {
+      "id": "m36",
+      "from": "host",
+      "to": "scp",
+      "y": 1288,
+      "label": "Nsmf response when the triggering exchange requires one",
+      "variant": "return"
+    },
+    {
+      "id": "m37",
+      "from": "scp",
+      "to": "amf",
+      "y": 1320,
+      "label": "Response",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "触发源与事件归属",
+      "items": [
+        "PCF notification 是 PCF → SCP → OpenAMSM 的既有网络侧回调，不是 AMF → Host 的 Nsmf 请求",
+        "OpenAMSM 以受信 scoped event 把准确 Session、触发原因和 generation 交给 Host；Host 决定对应 Run 的启动或继续",
+        "SMF-local timer / decision 是 Owner 内部触发，不应伪装成 PCF 或 AMF 消息"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Modify 流程",
+      "items": [
+        "按 OES：m0 → m2（optional）→ m3 → m4 → m5",
+        "PCF notification 已代表策略侧事件；不重复画一个无依据的 Npcf Update",
+        "m4 的 N1/N2 结果经 SCP 回到 Host，再按 exact occurrence 交还 OpenAMSM；m5 才消费 AN tunnel 信息"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "四责任域",
+      "items": [
+        "外部 5GC：PCF / SCP / AMF / UE-gNB / UPF",
+        "CA-Agent：Host scoped-event ingress、Session Router、Runtime Run",
+        "CA Client Tools：固定 Owner-private / Namf egress",
+        "OpenAMSM：SMF Owner、OES、GSM、PFCP；N4 直连 UPF"
+      ]
+    }
+  ]
+}
