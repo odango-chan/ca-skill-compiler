@@ -1,108 +1,40 @@
 # CA Skill Compiler 下一阶段演进路线
 
-> **状态：PROPOSAL / NON-NORMATIVE**
+> **状态：三项架构原则已批准，契约与路线待评审，尚未实现。**
 >
-> **基线：** CA-SL v1alpha5 FROZEN；Compiler v2.0.2 RELEASED。
->
-> 本路线不启动语言 vNext，也不改变当前冻结契约。目标是先完善接口包与链接模型，再让 Compiler 生成可以离线交付、但尚未获得执行资格的开发 Artifact。
+> 现行基线为 CA-SL v1alpha5 和 Compiler v2.0.2。v2.1.x 是产品规划候选；API、Artifact 与各发布包独立定版。契约见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，MAS G0–G5 验收见 [ca-agent-demo #217](https://github.com/odango-chan/ca-agent-demo/pull/217)。
 
-## 1. 下一版本的目标
+## 1. 交付顺序与退出条件
 
-建议下一轮以 Compiler 产品线的 v2.1.x 作为候选演进窗口（版本号待评审，不是已批准的 Release 承诺），继续使用 CA-SL v1alpha5。
-
-核心目标：
-
-> 一个 Skill 只要依赖的接口定义完整，就可以完成 Compile、Interface Link 和 Artifact Build；缺少 Evidence、Deployment 或实际 Provider 时，产物仍然可以生成，但必须明确不可据此执行。
-
-这轮不做：
-
-- 新的 CA-SL 语言语义；
-- 第二套 Procedure / Runtime 引擎；
-- Compiler 内置 Package Registry / Package Manager；
-- Compiler 自动下载依赖；
-- Compiler 执行 Provider 或网络调用；
-- Compiler 签发 Owner / Deployment / Qualification 证明。
-
-## 2. 分阶段路线
-
-| 阶段 | 交付 | 主要责任 | 退出标准 |
-|---|---|---|---|
-| V0 — Architecture Freeze | Interface Package、Capability Catalog、Assurance Export、Runtime Provider、Deployment Grant 的边界文档 | Compiler + Skills + Host + Provider Owner | 概念、身份、版本和责任边界无歧义 |
-| V1 — Interface Export | 可发布的 Package Manifest、Callable Catalog、Schema Closure、Capability Catalog | Provider / Owner CI；不是 Compiler | MAS 13 个 Callable 和 25 个 Schema 可以形成稳定接口快照 |
-| V2 — Resolver Input | 外部 Resolver 生成锁定依赖输入，Compiler 只消费快照 | Studio / CI / 调用方 | 同一锁文件能取得相同包版本和字节；Compiler 无网络依赖 |
-| V3 — Interface Link Build | 新版本化 Build API 支持仅基于接口包生成 Development Artifact | Compiler | 没有 Evidence / Deployment / Runtime Provider 时，合法 Skill 仍能 Link + Build |
-| V4 — Host Admission | Host 单独绑定 Runtime Provider、Capability Grant、Assurance 与 Invocation Context | ca-agent-demo | 未授权 / 未绑定 / 保证不足的 Artifact 在真实 Dispatch 前被拒绝 |
-| V5 — MAS Integration | MAS Development Artifact 进入现有 Host / Runtime / Provider 执行链 | ca-agent-demo + ca-client-tools + env-openamsm | 本地真实 Provider / Mock AMF 测试通过，再进入真实 AMF / UERANSIM |
-
-## 3. Compiler vNext 的接口演进
-
-下一版 Build API 需要把当前 v1alpha5 的输入职责拆清楚：
-
-- **必需输入：** Skill 源码、确定的 Interface Package 快照、Compiler Target。
-- **可选输入：** Assurance Export。提供时必须严格校验；缺失时只记录未满足的保证要求。
-- **不属于 Compiler Build 输入：** 目标环境的 Deployment Grant、Provider endpoint、凭据和运行时状态。
-- **外部 Resolver 输入：** 精确 Package ID / version / digest 与对应快照；Compiler 校验输入内容，不负责版本选择和下载。
-
-如果要改变当前 BuildRequest / BuildResult / Artifact Manifest 的结构或成功条件，必须新增版本化 API / Artifact Contract。不能在 v1alpha5 的冻结契约中通过一个隐式开关改变含义。
-
-## 4. 必须通过的设计与测试
-
-### 4.1 正向测试
-
-1. 有完整 Callable、Schema、Effect 和 Capability Catalog，无 Evidence / Deployment / Provider，Interface Link PASS。
-2. 同一输入重复 Build，Artifact 字节完全一致。
-3. 同一锁定快照在 Native / WASM / Chromium Worker 的结果一致。
-4. Artifact 能被独立 Verify，并能准确列出依赖闭包和 Callable Binding。
-5. 加入可选 Assurance Export 后，Compiler 能校验其结构与精确绑定。
-
-### 4.2 负向测试
-
-1. 缺少 Callable 或 Callable 身份不唯一：Link FAIL。
-2. 缺少 Input / Output Schema 或 $ref closure 不完整：Link FAIL。
-3. Schema 类型不匹配、Capability Catalog 缺少成员：Link FAIL。
-4. Package ID、版本或内容摘要与实际输入不匹配：Link FAIL。
-5. Assurance Export 已提供但结构损坏、Producer 错误或 Schema 绑定错误：FAIL。
-6. 没有 Evidence：允许 Development Artifact，但明确 PENDING，不得声称保证已满足。
-7. 没有 Deployment Grant：允许 Artifact Build；真实 Host Admission 必须拒绝未授权执行。
-8. 没有 Runtime Provider：允许 Artifact Build；Host 不得派发到不存在的实现。
-9. Development Artifact 被当作生产 Artifact 使用：Host Admission 必须拒绝。
-
-### 4.3 MAS 专项验收
-
-- 使用 ca-client-tools 当前 13 Operation source map 和 25 个 Schema 候选构造 Interface Package。
-- 为 ca-context 提供独立 Subject Context Interface Package。
-- 在没有 Evidence / Deployment / Provider 运行实例的条件下生成 Development Artifact。
-- Artifact 显示准确的未满足 Assurance 项，不把候选接口冒充可信 Owner 发布。
-- 再接入真实 Provider、Host Admission 和 env-openamsm，逐步进入 Mock AMF 与真实 AMF E2E。
-
-## 5. 跨仓库职责
-
-| 仓库 | 下一阶段职责 | 不应该承担 |
+| 阶段 | 责任与交付 | 依赖与退出标准 |
 |---|---|---|
-| ca-skills | 保持 v1alpha5 源码和接口引用清晰；维护 MAS 示例 | 不承担 Provider Release 或 Host 授权 |
-| ca-skill-compiler | Interface Link、确定性 Artifact、契约验证 | 不做 Registry、下载、部署、Qualification、Runtime |
-| ca-client-tools | 发布准确的 MAS Interface Export；实现独立 Runtime Provider | 不把私有 backend operation ID 当作 Skill 公共 Callable ID |
-| ca-agent-demo | Artifact Admission、Provider Binding、Temporal 与唯一 Procedure Runtime | 不重写 Compiler 或另造 MAS 图引擎 |
-| env-openamsm | 真实 5GC 环境、Mock AMF 测试对端、真实 AMF / UERANSIM 验收 | 不替 Host 产生虚假的 Owner Proof |
+| V0 — 契约评审 | Compiler、Skills、Host 与 Provider Owner 核对接口快照、锁、义务、独立发布、授权与准入 | 对照冻结规范逐项标记静态检查和外部义务；批准新入口、正反样例和生产拒绝规则后定版 |
+| V1 — 接口发布 | ca-client-tools / Owner 发布 MAS Interface Package；ca-context 维护方提供 Subject Context；相关 Owner 提供实际引用的 Ingress 导出 | V0；以 13 Operation、25 候选 Schema 为输入，退出以实际可达闭包、精确 Effect、稳定 ID 和不可变快照为准；对应 G0 |
+| V2 — 锁定与分发 | Studio / CI / 调用方实现外部 Resolver、签名信任检查、锁生成和快照准备 | V0 可并行，V1 真实样例用于验收；锁可离线重放，显式报告约束冲突与传递依赖缺失 |
+| V3 — 开发构建 | Compiler 实现显式版本化 Development Build / Verify；记录义务与静态验证范围 | V1 + V2；接口完整时无 Evidence、Grant、Provider 也能生成并 Verify；Native / WASM / Chromium Worker 字节一致；对应 G1 |
+| V4 — Host Admission | ca-agent-demo 增加显式新产物入口，复用现有 Procedure Runtime；ca-client-tools 独立发布 Provider | 可与 V3 并行设计；G2 验收要求真实 V3 产物、同摘要闭包重验、精确 Provider Binding、测试授权、拒绝与恢复用例；G3 是独立运行时门槛 |
+| V5 — MAS 集成 | ca-agent-demo + ca-client-tools + env-openamsm 验收 Provider、Mock AMF，再验证真实 AMF / UERANSIM | G4 依赖 G0–G3 和独立 Provider；G5 依赖 G4、持久化 Owner continuation、真实协议关联、可信 Evidence 及目标授权；各阶段分别记录实际证据 |
 
-## 6. 版本与发布纪律
+V0–V5 是工具链交付顺序，G0–G5 是 MAS 验收门槛。G3 可独立于 G1 推进，最终联调仍需 G2 和 G3 同时满足。Mock AMF 经本地 NRF/SCP 验证完整 SBI 路径；直接调用 handler 单独记录。Mock AMF 不解决复合 SSM 的 30 秒限制、恢复句柄或 Owner Commit Proof。G5 的现场结论与生产 qualification 分别评估。
 
-- v2.0.2 保持不变，是当前发布基线。
-- 下一版产品版本号和新 API / Artifact 版本号独立决定。
-- CA-SL v1alpha5 保持冻结；本路线不引入语言兼容层。
-- 设计评审通过前不改动 v2.0.2 的 Build 成功条件。
-- 新开发模式必须显式区分 INTERFACE_LINKED、ARTIFACT_BUILT 与运行时 ADMITTED；不以一个 PASS 表示全部阶段。
-- Compiler 生成的 Artifact 是不可变编译产物；Owner / Deployment / Qualification 结果由外部权威独立发布和验证。
+## 2. 兼容和迁移
 
-## 7. 近期建议
+1. **保留现行入口。** 固定 v2.0.2 基线及冻结 Build / Verify、可信依赖和 fixture 流程。为现有 Native / WASM / Studio 调用方保留原契约。以发布时正反样例对比结果、诊断及产物摘要，检查旧入口行为。
+2. **从发布源重建接口快照。** Owner 从现有 ToolCatalog、Schema、CapabilityContracts 和 Ingress 材料提取接口内容，确认 ID、Effect、成员关系及复用的协议版本。环境 Scope 由部署方使用独立 Grant 管理，保证由相应权威重新绑定并签发。原 v1alpha5 输入保持其既有含义；发布过程不自动转换授权或推断 Owner。
+3. **显式试用。** Studio / CI 并行生成新锁和开发产物，先做离线验证；调用方显式选择新 BuildRequest，分发对应 BuildResult / Artifact 和锁定快照。Host 按入口及确切版本拒绝混用和未知契约。冻结 fixture 继续用于原测试目的。
+4. **隔离部署。** G2 验收后以 Host 环境级 opt-in 接收开发产物，把测试信任根、Grant 与 Provider 绑定限定在目标环境。运行中变更策略或撤销 Grant 时阻断新派发，保留在途结算；继续保证生产入口拒绝开发产物。
+5. **回滚与后续生产契约。** 关闭开发接入口，停止新开发 Invocation，保留在途状态与审计并按原绑定完成授权结算。既有部署继续使用已验证的冻结产物与绑定。回滚 Provider 时按旧摘要重新验兼容和准入。生产如需采用新格式，另评审契约后重新构建和签发对应保证；禁止就地修改开发 Artifact 或仅凭补齐外部材料提升其 profile。
 
-第一优先不是改 Compiler 算法，而是先从 MAS 现有资料中整理一个最小 Interface Package：
+## 3. 验收矩阵
 
-1. 稳定 mas Package ID 和版本；
-2. 13 个 Callable 导出及准确 Effect 声明；
-3. 13 个 Input / 12 个 Output Schema；
-4. 独立 Capability Catalog；
-5. ca-context Subject Context Schema Package；
-6. 可重复生成的快照与锁定输入。
+| 检查 | 预期证据 |
+|---|---|
+| 接口闭合与确定性 | 无 Evidence、Grant、Provider 的完整接口可以生成 `LINKED / BUILT / NOT_ADMITTED`；重排输入、跨 Native / WASM / Chromium Worker 重建一致；离线 Verify 能检查精确快照和所有义务 |
+| 依赖与类型负例 | 缺传递包或 Schema 片段、版本冲突、同版异摘要、未锁引用、重复符号、缺失 Capability 成员、未知 Effect、Wait / Ingress / 响应绑定缺失，均失败且无产物 |
+| Assurance | 缺失外部材料按义务记录 `UNRESOLVED`；结构有效仅为 `DESCRIPTOR_PRESENT`；矛盾、错误绑定或篡改导致构建或校验失败；越权签名、过期或重放 Evidence 在 Host 阻断 |
+| Provider 独立发版 | Interface 先发布即可构建；同一接口摘要的第二个 Provider 需单独证明兼容并重新 Admission；只有范围匹配、协议不合或映射歧义均拒绝 |
+| 授权与恢复 | 无 Grant、错误环境或主体、错 Scope、已撤销、生产接收开发产物、未知 API / Artifact 均失败；恢复复核身份与权限；`UNKNOWN` 保留原尝试，不盲重试 |
+| 基线与迁移 | v2.0.2 冻结输入、输出与诊断基线不变；已发布产物和授权继续按原入口验收；回滚能封住新派发并保留未结算 Invocation |
+| MAS 跨仓库 | G0 记录实际闭包，G1 记录开发产物，G2/G3 证明拒绝与可恢复运行，G4 验证真实 Provider / Mock AMF 路径，G5 记录真实 AMF / UERANSIM 和用户面证据 |
 
-完成后，才能用一个真实 MAS Skill 验证新 Link 模型，而不是继续用合成 fixture 证明 Compiler 自己能编译 fixture。
+以上是后续交付门槛。当前评审验证文档和契约提案；代码验收、G0–G5 实跑与生产资格均待交付。

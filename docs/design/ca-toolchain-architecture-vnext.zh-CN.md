@@ -1,372 +1,139 @@
 # CA-SL 工具链架构：编译、接口链接与执行资格分离
 
-> **状态：DESIGN PROPOSAL / NON-NORMATIVE / NOT IMPLEMENTED**
+> **状态：原则已通过评审；以下契约为提案，尚未冻结或实现。**
 >
-> **当前基线：** CA-SL v1alpha5（FROZEN）；CA Skill Compiler v2.0.2（RELEASED）。
->
-> 本文定义下一代工具链的演进方向，不修改 v1alpha5 语言语义、Compiler v2.0.2 的 BuildRequest / BuildResult / Artifact Contract，也不声称新流程已经实现。若本文与当前冻结契约冲突，当前冻结契约优先；本文只作为下一版本设计输入。
+> 当前基线为冻结的 CA-SL v1alpha5（`connectionagent.io/v1alpha5`）和已发布的 Compiler v2.0.2。现有语言规则、BuildRequest / BuildResult / Artifact 契约及实现行为以冻结基线为准。迁移步骤见[演进路线](compiler-evolution-roadmap-vnext.zh-CN.md)，Host 和 MAS E2E 边界见 [ca-agent-demo #217](https://github.com/odango-chan/ca-agent-demo/pull/217)。
 
-## 1. 目标
+## 1. 已批准的原则
 
-将四个经常被混为一谈的问题分开：
+1. Capability Catalog 定义能力身份与 Callable 成员关系；Deployment Grant 由部署方签发，授权具体环境中的使用。
+2. 接口闭合时，Evidence 缺失仍可完成 Development Build。产物保留显式义务，在 Host Admission 成功前禁止执行。
+3. Interface Package 与 Runtime Provider Package 各自发布、定版和回滚。Provider 以精确接口身份声明兼容性。
 
-1. **Compile：** Skill 源码是否符合 CA-SL 语言和静态语义。
-2. **Link：** Skill 引用的 Callable、Schema、Capability 接口是否能从明确的依赖包中解析。
-3. **Build：** 是否能生成确定、可复现、可验证的 Linked Skill Artifact。
-4. **Runtime Admission：** 当前 Host、Provider、环境和授权是否允许执行这个 Artifact。
+Compile 验证源码与语言静态规则，Interface Link 固定接口和类型闭包，Build 生成确定性产物，Qualification 由外部验证机构给出特定组合的保证结论，Host Admission 针对具体 Invocation 决定是否允许执行。
 
-Evidence、Deployment 和真实 Provider 部署属于执行保证或运行环境，不应成为生成一个接口完整的开发 Artifact 的普遍前置条件。
-
-设计目标是允许以下状态合法存在：
-
-| 阶段 | 结果 |
-|---|---|
-| Source validation | PASS |
-| Interface linking | PASS |
-| Artifact build | PASS |
-| Evidence assurance | PENDING / NOT PROVIDED |
-| Deployment authorization | NOT CHECKED |
-| Runtime execution | BLOCKED until Host Admission |
-
-这不是“放宽检查后假装通过”。Artifact 必须明确保留未满足的保证要求；不能把缺失的 Evidence、Owner 证明或 Deployment 授权伪造成 PASS。
-
-## 2. 责任边界
-
-### 2.1 Compiler 负责什么
-
-- 解析 CA-SL 源码并执行语言规定的静态检查。
-- 消费调用方已经解析好的、不可变的依赖快照。
-- 解析依赖别名、Callable、Schema、Capability 接口和数据类型。
-- 检查 Procedure Graph、Predicate、参数绑定和可静态证明的约束。
-- 生成确定性的 Linked Artifact，并验证产物自身完整性。
-- 对可选提供的 Assurance 描述执行格式和静态一致性检查。
-- 明确报告未解析的接口引用或尚未满足的外部保证要求。
-
-### 2.2 Compiler 不负责什么
-
-- 不实现 Package Registry，不下载或发现依赖。
-- 不负责依赖版本选择、包发布、发布签名或 Provider Release。
-- 不生成或授予 Deployment Authorization。
-- 不运行 Provider、Operation、Observation 或 Python Script。
-- 不处理真实 SBI、HTTP/2、网络事件或 Temporal Workflow。
-- 不替 Owner 证明 Mutation 已提交，不生成真实 Evidence。
-- 不执行产品 Qualification，也不决定生产环境是否允许执行。
-
-**Digest 的边界：** Package Publisher / Resolver 负责为发布的不可变包分配并发布版本和内容摘要；Build 调用方把精确快照及其摘要交给 Compiler。Compiler 可以重新计算并校验输入字节，也可以为自己生成的 Artifact 输出完整性摘要，但不承担包版本管理、包摘要发布或 Registry 生命周期。
-
-### 2.3 外部组件职责
-
-| 组件 | 责任 |
-|---|---|
-| Provider 源码与 CI | 构建实际实现；从类型定义、注册表或 OpenAPI 等来源生成候选接口导出 |
-| Package Publisher / Registry | 发布不可变 Interface Package、Runtime Provider Package 和可选 Assurance Package |
-| Resolver（Studio / CI / 调用方） | 选择版本、取得依赖、生成 lock，并将精确快照传给 Compiler |
-| Compiler | 只消费已解析输入，完成静态编译、接口链接和 Artifact Build |
-| Host / Runtime | 验证 Artifact，绑定 Provider，检查授权和运行时保证，执行 Procedure |
-| Owner / Evidence Authority | 对实际 Operation 效果、Commit Proof、Reconcile 和 Evidence Guarantee 负责 |
-| Deployment Authority | 对某个环境中的 Capability Grant、Scope 和执行策略负责 |
-
-## 3. Package 模型
-
-下一代工具链应把“接口可链接”和“运行实现可执行”拆开。下面是逻辑模型，不是已经冻结的文件布局。
-
-### 3.1 Interface Package
-
-Interface Package 是 Compiler 完成接口链接所需的最小外部依赖。
-
-至少包含：
-
-- 稳定 Package ID、版本和不可变内容摘要；
-- 对外导出的 Callable ID；
-- Callable kind、参数和结果 Schema 引用；
-- 完整的 Input / Output Schema 闭包；
-- Callable 的声明 Effect（例如 READ / MUTATION）；
-- Capability Catalog：Capability 身份及其 Callable 成员关系；
-- 声明的 Package / Publisher 来源信息。
-
-它描述“有什么接口、接口如何调用”，不证明接口实现已经部署，也不证明声明的行为已经获得生产信任。
-
-Interface Package 的 Publisher 可以从 Go 类型、Python 类型、OpenAPI、注册表或手工维护的 Owner 契约生成接口候选。自动生成适合参数、字段、Schema 和导出清单；Effect、业务副作用和错误语义必须由接口 Owner 确认，不能只从函数签名推断。
-
-### 3.2 Runtime Provider Package
-
-Runtime Provider Package 是实际执行实现，独立于 Interface Package 发布。
-
-它包含或引用：
-
-- Provider 二进制、容器或运行时模块；
-- Callable 到具体实现的映射；
-- 运行时依赖与兼容性信息；
-- 可部署的 Provider 版本及其内容摘要。
-
-Interface Package 可以先发布，Runtime Provider Package 可以后续发布。Host 只有在运行时找到与 Artifact 中接口绑定兼容的实现后，才能派发 Operation。
-
-### 3.3 Assurance Export
-
-Assurance Export 是可选的保证材料，可以与 Interface Package 同包发布，也可以独立版本化，但必须精确绑定 Callable、Schema 和适用版本。
-
-可能包含：
-
-- Mutation Receipt / Commit Proof 的结构与绑定规则；
-- 原始 Operation 的 Reconcile 契约；
-- Owner Outcomes、无副作用证明和安全重试约束；
-- Evidence Guarantee、Producer、Scope、Correlation、Freshness；
-- 对应的信任来源和验证材料。
-
-没有 Assurance Export 不应阻止接口链接和开发 Artifact 生成。但缺少必要保证时，Host 不得把未知结果解释为已提交，不得盲目重试，也不得宣称生产级 Evidence。
-
-### 3.4 Capability 定义与 Deployment Grant 必须分开
-
-这是下一代接口契约需要明确拆分的部分：
-
-- **Capability Catalog**：定义 Capability ID、其所属接口包以及它允许映射的 Callable。它是接口身份和链接信息。
-- **Deployment Grant / Capability Authorization**：决定某个部署环境是否授予这个 Capability、允许哪些 Scope、资源和操作。它是环境授权。
-
-Skill 中声明 Capability，表示请求使用某项能力，不代表已经获得部署授权。
-
-当前 v1alpha5 的 CapabilityContracts 同时承载成员关系和部署 Scope 等信息。下一代若要允许没有 Deployment 的 Interface Link，需要通过新的、版本化的契约把 Capability Catalog 与 Deployment Grant 分开；不得静默改变现有 v1alpha5 CapabilityContracts 的含义。
-
-### 3.5 Owner 身份的两个层次
-
-- Interface Package 可以声明来源命名空间和发布者主张，供开发阶段识别和链接。
-- 经验证的 Owner 身份、签名和发布授权属于可信发布 / 运行资格要求。
-
-开发链接不能把未验证的来源主张升级为可信 Owner；生产准入也不能只凭 Package ID 或仓库 URL 推断 Owner。
-
-### 3.6 与 C / C++ 工具链的类比
-
-这个类比可以帮助理解职责，但不是一一对应：
-
-| C / C++ | CA-SL 工具链 | 说明 |
-|---|---|---|
-| .c / .cpp | SKILL.md、procedure.yaml、predicates.yaml 等 | 作者维护的业务源代码 |
-| .h + linker symbol table / import library | Interface Package | 导出 Callable、Schema、Effect 和 Capability 接口 |
-| gcc / clang compile | Compile | 解析语言、检查类型和静态语义 |
-| ld / link.exe | Interface Link | 解析依赖别名、Callable 符号和 Schema 引用 |
-| .so / DLL / shared library | Runtime Provider Package | 真实运行实现；可以是二进制、容器或远程服务 |
-| linked executable | Linked Skill Artifact | 已链接的 Procedure 和接口绑定；仍可能需要运行时 Provider |
-| runtime loader / process policy | Host Runtime Admission | 检查实现是否存在、授权是否有效、运行条件是否满足 |
-
-因此，Interface Package 更像头文件加符号表，Runtime Provider 更像共享库，而 Linked Skill Artifact 更接近一个已链接的可执行程序或部署包，不是 .so 本身。
-
-区别在于 CA-SL 的业务逻辑是声明式 Procedure Graph，Operation 由 Host 通过 Provider 边界分派；Artifact 不会把 Go / Python 实现静态打包进来。即使 Link + Build 成功，运行时 Provider 缺失或未授权，Artifact 仍然不能执行。
-
-Evidence Guarantee 和 Deployment Grant 也不是“另一个头文件”：它们分别描述结果可信保证和目标环境授权，属于运行资格边界，而不是基础接口符号解析。
-
-## 4. Compile → Interface Link → Build
-
-### 4.1 依赖准备在 Compiler 之外
+## 2. 发布与信任边界
 
 ~~~mermaid
 flowchart LR
-    SRC["Provider source / types / OpenAPI"] --> CI["Provider CI"]
-    CI --> IFACE["Interface Package"]
-    CI --> RUNTIME["Runtime Provider Package"]
-    OWNER["Owner review / assurance evidence"] --> ASSURE["Optional Assurance Export"]
-    IFACE --> REG["Package Registry"]
-    RUNTIME --> REG
-    ASSURE --> REG
-    REG --> RESOLVER["Resolver: Studio / CI / caller"]
-    RESOLVER --> LOCK["Resolved snapshots + dependency lock"]
-    LOCK --> COMPILER["skillc"]
-    SKILL["Skill source"] --> COMPILER
-    COMPILER --> ARTIFACT["Linked Skill Artifact"]
+    SRC["Types, OpenAPI, Owner contracts"] --> PUB["Interface Publisher"]
+    PUB --> IP["Interface Package"]
+    IMPL["Provider implementation"] --> RP["Runtime Provider Package"]
+    IP --> IR["Interface distribution"]
+    IR --> RES["External Resolver / Studio / CI"]
+    RES --> IN["Exact snapshots + dependencies.lock"]
+    IN --> C["Offline Compiler"]
+    SK["Skill source"] --> C
+    C --> ART["Linked Skill Artifact"]
+    RP --> DEP["Deployment inventory"]
+    EA["Owner / Evidence Authority"] --> AE["Assurance Export"]
+    AE -->|Optional static descriptors| C
+    AE -->|Verified claims| H["Host Admission"]
+    ART --> H
+    DEP --> H
+    DA["Deployment Authority"] -->|Deployment Grant| H
 ~~~
 
-Registry / Resolver 可以自动选择版本、下载包和生成 lock，但这些能力不属于 Compiler。Compiler 接收的是调用方已经确定的输入快照；它不访问网络，也不自行选择依赖版本。
+| 角色 | 产物或权限 |
+|---|---|
+| Interface Publisher | 确认公共接口、Effect 和错误语义；签发接口包发布声明。类型与导出清单可自动提取，副作用语义需 Owner 确认 |
+| Runtime Provider Publisher | 发布实现及其受支持的接口身份；声明兼容范围并提交逐摘要兼容证明 |
+| Resolver | 选择版本、获取字节、核验来源与发布权限、生成锁定输入；显式更新锁文件 |
+| Compiler | 离线复算摘要、验证闭包、链接、生成产物及诊断；签名来源与执行授权由各自权威验证 |
+| Owner / Evidence Authority | 以 Host 认可的权限对 Operation 保证、Evidence 规则或资格结论签发声明 |
+| Deployment Authority | 发行和撤销环境及主体范围内的 Deployment Grant |
+| Host | 依据独立配置的信任根、环境策略及当前 Invocation 验证以上材料；默认拒绝，只有授权路径可派发 |
 
-### 4.2 Compiler 内部流程
+包名是逻辑身份，版本是发布标识，摘要固定字节，签名关联明确的身份和授权。Registry、包内的 Owner 声明、Compiler 的静态 PASS 和摘要匹配均不能代替 Host 的信任判定。
+
+## 3. 包、锁和运行授权
+
+### 3.1 Interface Package 与 Capability Catalog
+
+首版采用一个不可变目录快照：根 `package.json`、显式列出的 export 文件和 Schema 文件。Manifest 包含 `apiVersion`、`packageId`、`version`、语言目标、发布者命名空间、直接依赖约束、导出项 `{kind,id,path}` 及文件清单 `{path,sha256}`。发布声明在快照外签名，签名覆盖包身份、版本与快照摘要。包发布采用 SemVer：对既有消费者破坏接口、Effect、成员关系或协议约束时升主版本；新增兼容导出升次版本；兼容修订升修订版本。任一内容变更发布新版本和摘要；同一版本不得覆写。首版快照摘要沿用[现有快照摘要编码与测试向量](../../contracts/v1alpha5/dependency-snapshot-digest-vectors.json)，通过不同清单类型选择契约。
+
+| Export kind | 内容 |
+|---|---|
+| CallableCatalog | 命名空间下的 Callable ID、kind、Effect、输入/输出及相关错误、结果 Schema 引用 |
+| Schema | 固定 dialect、规范 Schema ID 和内容路径；外部引用只能进入已锁定快照 |
+| CapabilityCatalog | `capabilityId`、所属 Interface Package、精确 Callable 成员；独立 export kind，可与 CallableCatalog 同包发布 |
+| IngressCatalog | 保留已发布 Ingress Operation 契约，固定 Operation、协议版本、标准化事件、响应及引用的 Schema；供 Trigger / Wait 和响应边界链接 |
+
+跨包 Capability 成员使用声明过的依赖别名和精确 Callable ID。Subject Context、Observation、错误/结果、声明中引用的 Receipt / Reconcile 类型，以及 Wait 输出和响应映射所需类型均进入 Schema 闭包。保证材料可缺失；源码方面必需的声明、明确的 Effect、接口符号和类型仍须通过静态检查。发布过程可组合多个源 export，Resolver 与 Compiler 交接时每个发布版本只有一个权威快照。
+
+### 3.2 依赖锁与闭包
+
+`dependencies.lock` 由 Resolver 生成。首版字段为版本身份、根别名指向的包键、`packages[]`。包键为 `{packageId,version,snapshotDigest}`，每项另记录每条直接依赖的本地别名和目标包键。Compiler 接收锁和精确快照，按 manifest 核验格式、声明、路径、摘要、依赖约束与边，并遍历至固定点。拒绝缺包、多余输入、歧义别名、冲突 Schema ID、同一 ID/版本异摘要、首版包依赖环和外部未锁定引用。Schema 内部递归继续遵循冻结语言支持的规则，解析时按规范 URI 和片段去重。首版每个包 ID 在同一图中只允许一个版本，遇到冲突由 Resolver 显式报错；禁止 Compiler 隐式选版本、下载或回退。
+
+Artifact 完整嵌入规范化锁、已绑定导出与闭包摘要。快照本身由交付方按锁提供；离线 Verify 先验证产物清单与文件，再用提供的精确快照重验接口闭包。仅可访问 Artifact 时可做完整性校验，Host 最终准入必须完成闭包验证。锁文件不含下载地址、凭据或部署数据。
+
+### 3.3 Runtime Provider Package 与绑定
+
+Provider manifest 提供 Provider ID / 版本、实现摘要、运行时协议版本、支持的精确 Interface Package 键、Callable → 实现映射及兼容证明引用。Provider 版本独立演进；范围声明用于发现候选，Host 只接受枚举的接口摘要和与其绑定的兼容证明。接口先发布、多个实现支持同一接口、只更新 Provider 版本均可；只要接口键和语义未变，Artifact 可复用，仍须重新 Admission。
+
+部署清单由 Host 受信配置管理，将 Provider 实现摘要和 Callable 映射到具有可验证身份的实例、协议、endpoint 和凭据引用。每次 Admission 固定选择；无匹配或选择歧义即拒绝。切换实现、部署配置或目标环境时重新 Admission。网络 endpoint、凭据与私有上下文只驻留在 Host / Provider 边界。
+
+### 3.4 Assurance Export 与 Deployment Grant
+
+Assurance Export 独立版本化和签发。最小绑定为接口包键、Callable ID、相关 Schema 闭包摘要、义务类型及策略范围；实现相关声明另绑定 Provider 实现摘要，结论关联目标环境时另绑定环境和适用期。独立 Evidence Authority 可签发其被委派的 Evidence 声明；Owner 的 Commit Proof / Reconcile 保证须由相应 Owner 或其经验证授权的签发者承担。结构正确只意味着可供 Host 验证。实跑 Evidence 另按 Invocation、原 Operation、主体、来源和新鲜度验证。HTTP 成功响应不构成 Commit Proof。
+
+Deployment Grant 单独签名，至少含 `grantId`、签发者、环境及策略版本、主体、Artifact 摘要、允许的接口能力和 Callable、Provider 实现或实例范围、资源 Scope、有效期和撤销引用。Host 将 Skill 请求、Catalog 成员、Grant 范围和 Invocation 上下文求交；任一必需绑定缺失、过期、撤销、签发权限不明或范围不匹配即拒绝。Catalog 不携带授权数据，Resolver 不把 Grant 交给 Compiler。
+
+## 4. Development Build 契约
+
+提案使用独立契约族，首版以 `connectionagent.io/<kind>/v1alpha1` 标识，其中 Build 相关 kind 为 `compiler-development-build-request`、`compiler-development-build-result`、`compiler-development-artifact`，输入 kind 为 `interface-package`、`interface-dependency-lock`、`assurance-export`。Provider 和 Grant 自有 `runtime-provider-package` 与 `deployment-grant` 版本。产品版本、语言目标、线格式版本和包发布版本独立。调用方显式选择新入口与契约版本；任何未知版本或不匹配的入口拒绝处理。
+
+| 契约 | 提案字段与规则 |
+|---|---|
+| BuildRequest | `apiVersion`、`languageTarget=connectionagent.io/v1alpha5`、`profile=DEVELOPMENT`、源码文件、Interface 快照、锁、可选 Assurance Export |
+| BuildResult | `apiVersion`、Source / Interface Link / Artifact 状态、结构化诊断、静态保证记录、Artifact 文件清单及摘要；失败原子返回无产物 |
+| Artifact | `apiVersion`、语言目标、生成器版本、`profile=DEVELOPMENT`、源码摘要、规范化锁、Procedure、Callable / Ingress 链接、义务记录、文件摘要；执行状态固定 `NOT_ADMITTED` |
 
 ~~~mermaid
 flowchart TD
-    A["Skill source + resolved Interface snapshots"] --> B["Source admission and CA-SL validation"]
-    B --> C{"Source valid?"}
-    C -- "No" --> X["Diagnostics; no Artifact"]
-    C -- "Yes" --> D["Build normalized AST / Procedure IR"]
-    D --> E["Resolve dependency aliases and Package identities"]
-    E --> F["Resolve Callable IDs and kinds"]
-    F --> G["Resolve Input / Output Schema closure and type bindings"]
-    G --> H["Resolve Capability Catalog identities and membership"]
-    H --> I["Validate Procedure dataflow, routes and static semantics"]
-    I --> J{"Interface closure complete?"}
-    J -- "No" --> X
-    J -- "Yes" --> K["Optional Assurance analysis"]
-    K --> L["Record unresolved external obligations; never fabricate PASS"]
-    L --> M["Deterministic Artifact assembly"]
-    M --> N["Artifact self-verification"]
-    N --> O["Linked Artifact"]
+    IN["Source + lock + exact snapshots + optional Assurance Export"] --> S["Compile and validate v1alpha5 source"]
+    S --> L["Link Callable, Schema, Capability and Ingress closure"]
+    L --> A["Validate static contracts and supplied Assurance descriptors"]
+    A --> O["Emit complete obligation list"]
+    O --> B["Assemble and verify deterministic Development Artifact"]
+    B --> DONE["LINKED / BUILT / NOT_ADMITTED"]
+    S -->|Invalid source| X["Diagnostics / no Artifact"]
+    L -->|Incomplete or inconsistent interface| X
+    A -->|Malformed, contradictory or wrong target| X
+    B -->|Assembly or verification failure| X
 ~~~
 
-开发 Build 的关键规则：
+义务记录从静态链接后的 Skill 声明及已知的保证适用规则生成。每条记录含确定性 `obligationId`（由类型、来源位置与绑定身份计算）、`kind`（如 `OWNER_TRUST`、`COMMIT_PROOF`、`RECONCILE`、`EVIDENCE_GUARANTEE`）、稳定的 Node/Stage 或 Skill 范围、包键、适用的 Callable 与 Schema 摘要、所需保证及 `status`。缺失材料为 `UNRESOLVED` 并带原因；材料静态匹配为 `DESCRIPTOR_PRESENT` 并附材料摘要。两者都需 Host 核验。必需语法声明缺失、静态约束不成立或已提供描述损坏是错误。冻结规范 §17.2 / G.3 要求的 Evidence 描述符链接和逐路径充分性检查，在材料缺失时明确记为待验证义务（含对应规则及消费路径）。Compiler 仍执行可判定的检查；提供材料后若违反绑定、独立性、Scope、Correlation 或 Freshness 约束，即失败。Host 在派发前须以受信材料逐项完成适用的冻结规则检查，并将校验结果绑定到 Artifact 和目标 Provider；隔离策略只能改变受信权威与额外环境要求，不能免除冻结语言要求。Provider Binding、环境授权及 Invocation 资格单独记录为 `NOT_CHECKED`；Build 不推断部署状态。
 
-- Callable、Schema、Capability Catalog 等接口身份必须真实存在于输入的 Interface Package 中。
-- 缺失 Callable、Schema、Schema closure、Capability 定义或类型不匹配，仍然是 Link Error。
-- 没有 Evidence Guarantee 时，可以将相应保证记录为未解析义务；不能将它标为已验证。
-- 没有 Deployment Grant 时，Compiler 仍可生成 Artifact；Host 在目标环境执行 Admission。
-- 已提供但格式错误、相互矛盾或绑定到错误 Callable 的 Assurance 数据仍必须报错，不能因为是 Development Build 而忽略损坏输入。
-- 声明 Effect 是接口信息；真实 Commit Proof、Reconcile 和 Evidence 是更高层的保证。未知 Effect 不得被默认为 READ。
+产物采用 JCS JSON、排序路径及稳定顺序；对 manifest 之外的每个产物文件逐字节求摘要，Artifact 身份由含版本域的规范 manifest 摘要给出，manifest 不包含自身摘要。相同源码字节、快照、描述与生成器版本应产生同一产物。Verify 还检查必需义务与链接记录一致、覆盖完整。产物禁止嵌入 endpoint、凭据、主体私有数据、Grant 或可执行授权令牌。
 
-### 4.3 结果状态必须分层
-
-建议使用不同维度表达结果，而不是一个含义模糊的 PASS：
-
-| 维度 | 示例状态 | 解释 |
-|---|---|---|
-| Source | VALID / INVALID | 语言和源码检查结果 |
-| Interface Link | LINKED / UNRESOLVED | Callable、Schema、Capability 接口闭合情况 |
-| Artifact | BUILT / NOT_BUILT | 是否生成并验证产物 |
-| Assurance | COMPLETE / PENDING / INVALID | 可选保证材料的静态闭合情况 |
-| Deployment | NOT_CHECKED | Compiler 不检查目标环境授权 |
-| Execution | NOT_ADMITTED | Compiler 不决定运行准入 |
-
-LINKED + BUILT + ASSURANCE_PENDING 是合法的开发产物状态。它不是 FULLY_QUALIFIED，也不意味着可以执行。
-
-## 5. Linked Artifact 的概念模型
-
-下一代 Artifact 应至少能表达：
-
-- Skill 源码身份和语言目标；
-- 规范化的 Procedure Graph / IR；
-- 精确的依赖闭包和 Package 版本引用；
-- 每个 Operation / Observation 的 Callable 绑定；
-- 参数、结果和 Schema 的解析结果；
-- Capability 请求及其接口身份；
-- 未满足的 Assurance 义务；
-- Artifact 自身的确定性完整性信息。
-
-示意布局：
-
-~~~text
-linked-skill/
-  manifest.json
-  skills/
-    establish-pdu-session-mas/
-      compiled/
-        procedure.json
-        linked-bindings.json
-        assurance-obligations.json
-~~~
-
-以上文件名仅用于说明职责，不是当前或下一版本已冻结的 Artifact Contract。
-
-Artifact 不应嵌入 Provider endpoint、凭据、运行时 token、SUPI、PSI、SM Context 私有引用或部署授权。它应绑定接口身份，而不是绑定某台机器或某个运行环境。
-
-Artifact 一旦构建即保持不可变。后续增加 Evidence、部署授权或 Provider 实现，不应静默修改旧 Artifact；新的接口闭包需要重新 Build，环境授权和资格材料则由外部系统独立绑定到精确 Artifact 身份。
-
-## 6. Runtime Admission 与 Qualification
-
-### 6.1 执行架构
+## 5. Host Admission、Qualification 与运行生命周期
 
 ~~~mermaid
 flowchart TD
-    ART["Linked Skill Artifact"] --> HOST["Generic Host / Runtime Admission"]
-    PROVIDER["Runtime Provider Package + local binding"] --> HOST
-    GRANT["Deployment Grant / Scope Policy"] --> HOST
-    ASSURANCE["Owner / Mutation / Evidence trust material"] --> HOST
-    CONTEXT["Authenticated Invocation Context"] --> HOST
-    HOST --> DECIDE{"All target-profile requirements satisfied?"}
-    DECIDE -- "No" --> BLOCK["Reject before dispatch / retain unresolved state"]
-    DECIDE -- "Yes" --> RUN["Existing Procedure Graph Runtime"]
-    RUN --> DISPATCH["Authorized Tool Dispatch"]
-    DISPATCH --> PROVIDER
-    PROVIDER --> NETWORK["OpenAMSM / 5GC / external systems"]
-    NETWORK --> OBS["Authoritative result / Observation"]
-    OBS --> VERIFY["Runtime evidence and outcome verification"]
-    VERIFY --> RESULT["Invocation terminal result"]
+    A["Immutable Development Artifact + locked snapshots"] --> V["Verify format, provenance, closure and obligations"]
+    P["Verified Provider and instance binding"] --> G["Evaluate target policy and authenticated Invocation"]
+    D["Deployment Grant and revocation state"] --> G
+    Q["Verified Assurance and optional qualification record"] --> G
+    V --> G
+    G --> J{"Profile and all applicable obligations satisfied?"}
+    J -->|No| R["Reject before dispatch"]
+    J -->|Yes| S["Invocation-scoped Host admission"]
+    S --> RUN["Existing Procedure Runtime"]
+    RUN --> CHECK["Revalidate authorization before dispatch / resume"]
+    CHECK -->|Valid| DIS["Dispatch to pinned Provider"]
+    CHECK -->|Invalid| HOLD["Block dispatch and retain settlement state"]
+    DIS --> SET["Verify correlated result / Evidence and settle"]
+    SET -->|Unknown outcome| HOLD
 ~~~
 
-Host Admission 至少检查：
+- **开发或集成。** 仅显式配置 opt-in 的隔离 Host 可接收 `DEVELOPMENT`，必须验证实际测试 Grant、身份与 Provider Binding；测试信任根或替代保证由目标策略明确规定。需要真实 Mutation 的路径必须满足相应 Owner、结算和重试约束。任何未满足的强制义务均阻断相关 Invocation；测试设施和模拟结果仅用于其批准范围。
+- **生产。** 生产 Host 拒绝 `DEVELOPMENT`，即使外部材料后来补齐。生产入口保留冻结基线，未来若要支持新格式须定义专门的生产产物契约与准入策略并重新构建。Qualification 是外部签发、绑定 Artifact 摘要、Provider 实现、环境策略及有效期的保证结论；它不能授予 Scope 或替代每次 Admission。
+- **准入生命周期。** Host 的决定绑定 Invocation、Artifact、Provider、Grant、策略版本和有效期。派发和恢复前复核身份、Scope 与撤销；策略改变、材料失效或绑定变化后重新准入。阻断新派发不抹除已有副作用或待结算记录。出现 `UNKNOWN` 时保留原尝试标识并执行经授权的 Reconcile；无可信结论时阻止盲目重试。
+- **不可变性。** Evidence、部署绑定和 Grant 通过外部精确引用补齐，不改写产物或其义务状态。接口、源码或产物契约变化后重新 Build。Host 的已准入、拒绝和结算状态归 Invocation 所有。
 
-1. Artifact 格式、完整性和受信来源；
-2. 目标 Runtime 与 Artifact / Provider 接口兼容；
-3. 所有需要执行的 Callable 都有精确 Provider Binding；
-4. 目标环境授予了 Skill 请求的 Capability 和 Scope；
-5. 该执行路径所需的 Owner、Mutation、Reconcile、Evidence 保证已满足；
-6. Invocation Context、身份、预算、幂等和并发约束有效。
+## 6. MAS 对接与冻结边界
 
-如果只是离线编译，或在隔离开发环境中运行受控 Mock，以上生产要求可以不满足；但不能因此让未授权的真实网络 Mutation 进入生产执行路径。
+先从 ca-client-tools 的 13 个 Operation 与 25 个候选 Schema 整理 Callable 和 Capability Catalog，补足 `ca-context` Subject Context 及实际引用的 Ingress / Schema 闭包。完整候选包可开启新 Development Build 的离线验收；独立 Provider 与测试 Grant 通过 Host 验证后才进入真实派发。Mock AMF 是 5GC 测试对端，完整 SBI 用例经本地 NRF/SCP 到真实 SMF handler。其响应不生成 Owner Commit Proof，也不解决复合 SSM 的 30 秒上限和缺少持久化 Owner continuation。已派发操作的 `OWNER_DEFERRED` 与进入节点的 `INGRESS_WAIT` 继续分开。阶段对应 [ca-agent-demo #217 的 G0–G5](https://github.com/odango-chan/ca-agent-demo/pull/217)。
 
-### 6.2 Qualification 不属于 Compiler
-
-Qualification 是针对具体 Artifact、Provider、Owner、Deployment 和环境的外部结论。它应由相应的发布 / 验收流程产生，而不是由 Compiler 根据缺少诊断推断。
-
-Compiler 可以报告“哪些静态接口已链接、哪些 Assurance 引用未解析”；它不能发布 Owner 证明、授予部署权限或签发生产资格。
-
-## 7. 现有 v1alpha5 与下一代设计的兼容边界
-
-| 项目 | 当前 v1alpha5 / Compiler v2.0.2 | 下一代设计目标 |
-|---|---|---|
-| 语言语义 | FROZEN | 不因本设计而改变 |
-| BuildRequest / Result / Artifact | FROZEN | 如需改变，发布新版本契约 |
-| Interface Package | 通过现有依赖快照和 ToolCatalog 等材料表达 | 形成明确、可独立发布的接口包 |
-| Capability 定义与授权 | 当前 CapabilityContracts 承担多个职责 | 分离 Capability Catalog 与 Deployment Grant |
-| Evidence | 当前静态链接流程要求相应可信材料 | 允许 Interface Build 保留未满足的 Assurance 义务 |
-| Deployment | 当前 Build 输入包含可信部署材料 | 不作为接口链接前置；由 Host Admission 检查 |
-| Provider 实现 | 不由 Compiler 执行 | 独立发布并在运行时绑定 |
-| Package 获取 / 发布 | Compiler 不负责 | 仍由外部 Publisher / Registry / Resolver 负责 |
-
-**不得在 v2.0.2 中偷偷改变现有 Build 的成功条件。** Development Interface Build 应通过新版本化的 Build/API/Artifact Contract 引入，语言目标仍可保持 connectionagent.io/v1alpha5。
-
-## 8. MAS 示例：如何先生成开发 Artifact
-
-截至 2026-11-19，MAS 已经有较完整的源映射候选：
-
-- 13 个固定 MAS Operation 的映射；
-- 13 个 CA-facing Input Schema；
-- 12 个 normalized result Schema；
-- 共 25 个候选 JSON Schema，已进行结构检查；
-- ca-client-tools PR #16 已合并 Schema ID / 文件名迁移；
-- ca-client-tools PR #14 仍是 Typed Provider 原型，不是正式 Owner 发布；
-- ca-skills MAS 仍缺少正式接口包身份和可信依赖快照；ca-context 也需要可解析的接口快照。
-
-因此，下一代 Development Build 的第一步应当是：
-
-1. 将现有 13 个 Operation 和 25 个 Schema 整理成一个**接口候选包**，给出稳定 Package ID、版本和精确 Schema ID。
-2. 为 13 个 Skill Capability 提供独立的 Capability Catalog，明确每个 Capability 与 Callable 的关系；不混入部署授权。
-3. 为 ca-context 提供可解析的 Subject Context Schema Interface Package。
-4. 把这些精确接口快照交给 Compiler，生成 INTERFACE_LINKED 的开发 Artifact。
-5. Evidence Guarantee、正式 Owner 信任和 Deployment Grant 暂时缺失时，保留 PENDING / NOT_CHECKED；不声称可生产执行。
-6. 等真实 Provider 和 Host Admission 完成后，再进入 Integration E2E。
-
-这一步不要求 ca-client-tools 已经实现所有 Mutation，也不要求 OpenAMSM 已经为每个 Operation 提供正式 Commit Proof；但接口定义必须准确，Effect 不能凭空猜测，实际执行仍受 Host 的安全策略限制。
-
-相关当前记录：
-
-- [ca-skills #71 — MAS source/contract closure](https://github.com/odango-chan/ca-skills/issues/71)
-- [ca-client-tools #14 — typed MAS Provider prototype](https://github.com/odango-chan/ca-client-tools/pull/14)
-- [ca-client-tools #16 — MAS Schema ID migration](https://github.com/odango-chan/ca-client-tools/pull/16)
-- [ca-agent-demo #215 — MAS E2E](https://github.com/odango-chan/ca-agent-demo/issues/215)
-
-## 9. 设计决策与待定项
-
-### 本文建议冻结的原则
-
-1. Interface Link 不依赖 Evidence Guarantee 已经发布。
-2. Interface Link 不依赖 Deployment Authorization 已经授予。
-3. Interface Link 需要真实、精确的 Callable、Schema、Effect 和 Capability Catalog 定义。
-4. Provider 实现可以晚于 Interface Package 发布；没有 Runtime Binding 的 Artifact 不可执行。
-5. Evidence / Mutation / Reconcile 是 Assurance 层；缺失时记录未满足义务，不得伪造证明。
-6. Deployment Grant 是环境授权；由 Host Admission 检查，不属于 Compiler Link。
-7. Compiler 只消费已解析依赖，不做 Package Registry、版本选择、网络下载、发布或 Qualification。
-8. v1alpha5 与 v2.0.2 的冻结契约不变；新行为必须使用版本化的新 API / Artifact Contract。
-
-### 下一轮需要单独评审的具体问题
-
-- Interface Package 的物理格式：单一 manifest + catalogs + schema closure，还是可组合的多份 export？
-- Capability Catalog 是否独立于 ToolCatalog，还是作为 Interface Package 的独立 export kind？
-- Assurance Export 是否允许由不同权威独立发布，如何绑定到精确 Callable / Schema / Interface Package 版本？
-- dependencies.lock 由 Studio / CI Resolver 生成，Compiler 校验并嵌入哪些字段？
-- Development Artifact 的 unresolved obligations 如何编码，如何确保生产 Host 不会把它当成已授权 Artifact？
-- BuildRequest / BuildResult / Artifact Contract 需要怎样的新版本化边界？
-- Host 如何对接不同版本的 Runtime Provider，而不把 endpoint 或 credentials 写进 Skill Artifact？
-
-在这些问题完成评审前，示意文件名、字段和状态值均不构成冻结契约。
-
-## 10. 当前实现基线
-
-- CA-SL：connectionagent.io/v1alpha5，FROZEN。
-- CA Skill Compiler：v2.0.2，RELEASED。
-- Compiler v2.0.2 当前仍按冻结 v1alpha5 BuildRequest / trusted dependency / assurance / deployment 输入执行静态闭合检查。
-- 本文提出的 Interface-only Development Build、Capability Catalog 拆分和外部 Runtime Admission 边界均 **NOT IMPLEMENTED**。
-
-当前 Compiler 仍然是静态编译器，不执行 Skill，也不拥有 Package 管理、Provider 部署、Qualification 或真实 E2E。
+冻结的 [v1alpha5 Artifact 契约](compiler-artifact-v1alpha5.md) 及 [v2.0.2 机器契约](../../contracts/v1alpha5/README.md) 保持现有结果含义。新产物不得声明冻结契约的 `FULL_LANGUAGE_VALIDATION` 状态；须列出已执行检查与因缺失保证材料而延期的检查；延期检查按原规则完成后方可执行。现有 fixture、严格构建和生产接入继续按各自已发布契约验收。本文仅供评审，当前没有新的构建模式或 MAS qualification。
