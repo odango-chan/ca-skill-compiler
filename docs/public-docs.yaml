@@ -1,0 +1,72 @@
+apiVersion: connectionagent.io/v1alpha2
+kind: PublicDocsManifest
+component: ca-skill-compiler
+title:
+  zh: CA Skill Compiler
+  en: CA Skill Compiler
+
+sources:
+  - kind: markdown
+    path: README.md
+    role: overview
+    language: en
+    publish: [metadata, body]
+  - kind: markdown
+    path: contracts/v1alpha5/README.md
+    role: v1alpha5-contract-overview
+    language: en
+    publish: [metadata, body]
+
+releases:
+  - releaseId: ca-skill-compiler-v2-0-2
+    releaseRecord:
+      path: docs/releases/ca-skill-compiler-v2.0.2.md
+      ref: 7ade25d59e5bd81c552e60df8c7101f101472271
+    contracts:
+      - contractId: compiler-api-build-request
+        version: v1alpha5
+        lifecycleStatus: FROZEN
+        source:
+          ref: e98a7b26acabfa2a5e1587974ab9be5742e70bf7
+        artifacts:
+          - kind: json-schema
+            path: contracts/v1alpha5/build-request.schema.json
+            mediaType: application/schema+json
+            publish: [download, render]
+
+      - contractId: compiler-api-build-result
+        version: v1alpha5
+        lifecycleStatus: FROZEN
+        source:
+          ref: e98a7b26acabfa2a5e1587974ab9be5742e70bf7
+        artifacts:
+          - kind: json-schema
+            path: contracts/v1alpha5/build-result.schema.json
+            mediaType: application/schema+json
+            publish: [download, render]
+
+      - contractId: compiler-api-dependency-inspection
+        version: v1alpha5
+        lifecycleStatus: FROZEN
+        source:
+          ref: e98a7b26acabfa2a5e1587974ab9be5742e70bf7
+        artifacts:
+          - kind: json-schema
+            path: contracts/v1alpha5/dependency-inspection.schema.json
+            mediaType: application/schema+json
+            publish: [download, render]
+          - kind: other
+            path: contracts/v1alpha5/dependency-snapshot-digest-vectors.json
+            mediaType: application/json
+            publish: [download, render]
+
+      - contractId: compiler-artifact-manifest
+        version: v1alpha5
+        lifecycleStatus: FROZEN
+        source:
+          ref: e98a7b26acabfa2a5e1587974ab9be5742e70bf7
+        artifacts:
+          - kind: json-schema
+            path: contracts/v1alpha5/artifact-manifest.schema.json
+            mediaType: application/schema+json
+            publish: [download, render]
