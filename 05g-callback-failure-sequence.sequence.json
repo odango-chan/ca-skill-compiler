@@ -1,0 +1,360 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "05g · Callback / Failure / UNKNOWN 与 Reconcile（SCP-only）",
+    "subtitle": "F11 · 目标业务时序 · callback 命中原始 occurrence；未知副作用只做 exact-original proof，不盲重派",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "docs/architecture/archify/05g-callback-failure-sequence.html"
+  },
+  "participants": [
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "scp",
+      "type": "external",
+      "label": "SCP",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "CA-Agent Host",
+      "sublabel": "CA-Agent · SBI Ingress / Resource Router / URI Map"
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "Host Durable Run / Occurrence Store",
+      "sublabel": "CA-Agent · callback URI / generation / commit record"
+    },
+    {
+      "id": "runtime",
+      "type": "backend",
+      "label": "Host Runtime",
+      "sublabel": "CA-Agent · Run / Procedure / Postcondition"
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "Client Tools Provider",
+      "sublabel": "CA Client Tools · 固定 Owner / SBI Egress"
+    },
+    {
+      "id": "smf",
+      "type": "backend",
+      "label": "OpenAMSM SMF",
+      "sublabel": "OpenAMSM · SM Context / GSM / OES / N4 Owner"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 634,
+      "label": "BRANCH A · valid failure callback → exact original occurrence"
+    },
+    {
+      "from": 566,
+      "to": 890,
+      "label": "BRANCH B · duplicate / late / stale / invalid callback"
+    },
+    {
+      "from": 822,
+      "to": 1178,
+      "label": "BRANCH C · timeout / restart → UNKNOWN → exact-original Reconcile"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01",
+      "from": "amf",
+      "to": "scp",
+      "y": 168,
+      "label": "Namf_Communication_N1N2TransferFailureNotification",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m02",
+      "from": "scp",
+      "to": "host",
+      "y": 200,
+      "label": "Verified callback URI + NF identity / scope",
+      "variant": "default"
+    },
+    {
+      "id": "m03",
+      "from": "host",
+      "to": "store",
+      "y": 232,
+      "label": "Lookup exact Session / Run / operation occurrence",
+      "variant": "default"
+    },
+    {
+      "id": "m04",
+      "from": "store",
+      "to": "host",
+      "y": 264,
+      "label": "Original Run + generation + Owner correlation",
+      "variant": "return"
+    },
+    {
+      "id": "m05",
+      "from": "host",
+      "to": "runtime",
+      "y": 296,
+      "label": "Validate occurrence identity / expected generation",
+      "variant": "default"
+    },
+    {
+      "id": "m06",
+      "from": "runtime",
+      "to": "toolsLane",
+      "y": 328,
+      "label": "Deliver failure event to original Owner occurrence",
+      "variant": "security"
+    },
+    {
+      "id": "m07",
+      "from": "toolsLane",
+      "to": "smf",
+      "y": 360,
+      "label": "Fixed Owner-private callback",
+      "variant": "security"
+    },
+    {
+      "id": "m08",
+      "from": "smf",
+      "to": "toolsLane",
+      "y": 392,
+      "label": "Authoritative Owner disposition",
+      "variant": "return"
+    },
+    {
+      "id": "m09",
+      "from": "toolsLane",
+      "to": "runtime",
+      "y": 424,
+      "label": "Outcome / UNKNOWN",
+      "variant": "return"
+    },
+    {
+      "id": "m10",
+      "from": "runtime",
+      "to": "store",
+      "y": 456,
+      "label": "Commit matched result before Run resumes",
+      "variant": "default"
+    },
+    {
+      "id": "m11",
+      "from": "store",
+      "to": "runtime",
+      "y": 488,
+      "label": "Durable commit receipt",
+      "variant": "return"
+    },
+    {
+      "id": "m12",
+      "from": "runtime",
+      "to": "host",
+      "y": 520,
+      "label": "Resume exact original Run or safe-stop",
+      "variant": "return"
+    },
+    {
+      "id": "m13",
+      "from": "host",
+      "to": "scp",
+      "y": 552,
+      "label": "Paired callback protocol response",
+      "variant": "return"
+    },
+    {
+      "id": "m14",
+      "from": "scp",
+      "to": "amf",
+      "y": 584,
+      "label": "Callback response",
+      "variant": "return"
+    },
+    {
+      "id": "m15",
+      "from": "amf",
+      "to": "scp",
+      "y": 616,
+      "label": "[ALT · duplicate / late] repeated Failure Notification",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m16",
+      "from": "scp",
+      "to": "host",
+      "y": 648,
+      "label": "Callback URI / same or stale generation",
+      "variant": "default"
+    },
+    {
+      "id": "m17",
+      "from": "host",
+      "to": "store",
+      "y": 680,
+      "label": "Idempotency + occurrence lookup",
+      "variant": "default"
+    },
+    {
+      "id": "m18",
+      "from": "store",
+      "to": "host",
+      "y": 712,
+      "label": "Duplicate / stale / wrong Session / invalid scope",
+      "variant": "return"
+    },
+    {
+      "id": "m19",
+      "from": "host",
+      "to": "store",
+      "y": 744,
+      "label": "Record rejected / replayed callback; no Owner mutation",
+      "variant": "default"
+    },
+    {
+      "id": "m20",
+      "from": "host",
+      "to": "scp",
+      "y": 776,
+      "label": "Appropriate protocol response",
+      "variant": "return"
+    },
+    {
+      "id": "m21",
+      "from": "scp",
+      "to": "amf",
+      "y": 808,
+      "label": "Response",
+      "variant": "return"
+    },
+    {
+      "id": "m22",
+      "from": "host",
+      "to": "runtime",
+      "y": 840,
+      "label": "[ALT · timeout / Owner restart] unresolved pending operation",
+      "variant": "default"
+    },
+    {
+      "id": "m23",
+      "from": "runtime",
+      "to": "store",
+      "y": 872,
+      "label": "Persist UNKNOWN · NOT_COMMITTED is not proven",
+      "variant": "default"
+    },
+    {
+      "id": "m24",
+      "from": "runtime",
+      "to": "toolsLane",
+      "y": 904,
+      "label": "Authorized exact-original Reconcile · read-only proof query",
+      "variant": "security"
+    },
+    {
+      "id": "m25",
+      "from": "toolsLane",
+      "to": "smf",
+      "y": 936,
+      "label": "Owner proof query · never replay mutation",
+      "variant": "security"
+    },
+    {
+      "id": "m26",
+      "from": "smf",
+      "to": "toolsLane",
+      "y": 968,
+      "label": "Proof / no proof / unavailable",
+      "variant": "return"
+    },
+    {
+      "id": "m27",
+      "from": "toolsLane",
+      "to": "runtime",
+      "y": 1000,
+      "label": "Reconcile evidence",
+      "variant": "return"
+    },
+    {
+      "id": "m28",
+      "from": "runtime",
+      "to": "store",
+      "y": 1032,
+      "label": "Commit proof if matched; otherwise retain OUTCOME_UNKNOWN",
+      "variant": "default"
+    },
+    {
+      "id": "m29",
+      "from": "store",
+      "to": "runtime",
+      "y": 1064,
+      "label": "Resolved / unresolved durable state",
+      "variant": "return"
+    },
+    {
+      "id": "m30",
+      "from": "runtime",
+      "to": "host",
+      "y": 1096,
+      "label": "Resume only with proof; otherwise remain UNKNOWN",
+      "variant": "return"
+    },
+    {
+      "id": "m31",
+      "from": "host",
+      "to": "scp",
+      "y": 1128,
+      "label": "Appropriate callback / resource response",
+      "variant": "return"
+    },
+    {
+      "id": "m32",
+      "from": "scp",
+      "to": "amf",
+      "y": 1160,
+      "label": "Response",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Callback 关联规则",
+      "items": [
+        "AMF callback 的真实目的地由已登记 callback URI 决定；它经 SCP 到 Host，不把 callback 伪装成普通 N1N2MessageTransfer 请求",
+        "关联键必须命中原始 Session、Run、Owner occurrence 与 generation；新的 Run 不能接管旧 callback",
+        "同一 Callback 的重复 / 迟到 / 错 Session / 错 Scope 只记录并返回协议响应，不重复触发 Owner Mutation"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "UNKNOWN 与 Reconcile",
+      "items": [
+        "Timeout 或 Owner restart 不能证明 NOT_COMMITTED；Host / Runtime 必须持久化 UNKNOWN",
+        "只有授权的 exact-original Reconcile 才能查询原 Mutation 的证明；查询是只读，不重新执行 Mutation",
+        "有匹配 proof 才能恢复原 Run；没有 proof 或无法查证则保留 OUTCOME_UNKNOWN"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "回调类型与证据",
+      "items": [
+        "本图主线为 Namf_Communication_N1N2TransferFailureNotification；同一 Host Callback Router 还按各自 callback URI 处理 SM Context Status / AMF Status 类通知",
+        "HTTP 2xx / N1N2 transfer accepted 不代表 RAN 已采用 N2，也不代表 NAS 成功",
+        "Owner receipt、SMF Resource Commit、RAN adoption 与 UE user-plane Postcondition 是不同层次的证据"
+      ]
+    }
+  ]
+}
