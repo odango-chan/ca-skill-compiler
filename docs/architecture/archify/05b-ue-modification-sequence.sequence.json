@@ -88,7 +88,7 @@
     },
     {
       "from": 1498,
-      "to": 1782,
+      "to": 1846,
       "label": "BRANCH B · pending N2 result returns to original occurrence"
     }
   ],
@@ -158,35 +158,35 @@
       "variant": "default"
     },
     {
-      "id": "m09",
-      "from": "runtime",
+      "from": "host",
       "to": "tools",
-      "y": 424,
-      "label": "m0 · SC.UPDATE_SM_CONTEXT",
-      "variant": "emphasis"
+      "label": "Original N1/N2 artifactRef (if present) · private binary binding",
+      "variant": "security",
+      "id": "m09",
+      "y": 424
     },
     {
-      "id": "m10",
       "from": "tools",
       "to": "smf",
-      "y": 456,
-      "label": "m0 Owner context update",
-      "variant": "security"
+      "label": "Deliver original NAS / N2 bytes unchanged to Owner handler",
+      "variant": "security",
+      "id": "m10",
+      "y": 456
     },
     {
       "id": "m11",
       "from": "runtime",
       "to": "tools",
       "y": 488,
-      "label": "m2 · CA.UPDATE_CHARGING（optional）",
-      "variant": "default"
+      "label": "m0 · SC.UPDATE_SM_CONTEXT",
+      "variant": "emphasis"
     },
     {
       "id": "m12",
       "from": "tools",
       "to": "smf",
       "y": 520,
-      "label": "m2 optional charging update",
+      "label": "m0 Owner context update",
       "variant": "security"
     },
     {
@@ -194,310 +194,326 @@
       "from": "runtime",
       "to": "tools",
       "y": 552,
-      "label": "m3 · UPN.MODIFY_UP_SESSION",
-      "variant": "emphasis"
+      "label": "m2 · CA.UPDATE_CHARGING（optional）",
+      "variant": "default"
     },
     {
       "id": "m14",
       "from": "tools",
       "to": "smf",
       "y": 584,
-      "label": "m3 Owner N4 modification",
+      "label": "m2 optional charging update",
       "variant": "security"
     },
     {
       "id": "m15",
-      "from": "smf",
-      "to": "upf",
+      "from": "runtime",
+      "to": "tools",
       "y": 616,
-      "label": "PFCP Session Modification Request (Type 52)",
-      "variant": "default"
+      "label": "m3 · UPN.MODIFY_UP_SESSION",
+      "variant": "emphasis"
     },
     {
       "id": "m16",
-      "from": "upf",
+      "from": "tools",
       "to": "smf",
       "y": 648,
-      "label": "PFCP Session Modification Response (Type 53)",
-      "variant": "return"
+      "label": "m3 Owner N4 modification",
+      "variant": "security"
     },
     {
       "id": "m17",
       "from": "smf",
-      "to": "tools",
+      "to": "upf",
       "y": 680,
-      "label": "m3 result · n4_seid",
-      "variant": "return"
+      "label": "PFCP Session Modification Request (Type 52)",
+      "variant": "default"
     },
     {
       "id": "m18",
-      "from": "runtime",
-      "to": "tools",
-      "y": 712,
-      "label": "m4 · SSM.SIGNAL_UE_AN",
-      "variant": "emphasis"
-    },
-    {
-      "id": "m19",
-      "from": "tools",
-      "to": "smf",
-      "y": 744,
-      "label": "m4 Owner AN signaling operation",
-      "variant": "security"
-    },
-    {
-      "id": "m20",
-      "from": "smf",
-      "to": "host",
-      "y": 776,
-      "label": "OpenAMSM private Namf Relay request",
-      "variant": "security"
-    },
-    {
-      "id": "m21",
-      "from": "host",
-      "to": "tools",
-      "y": 808,
-      "label": "Fixed Namf egress",
-      "variant": "security"
-    },
-    {
-      "id": "m22",
-      "from": "tools",
-      "to": "scp",
-      "y": 840,
-      "label": "Namf_Communication_N1N2MessageTransfer",
-      "variant": "emphasis"
-    },
-    {
-      "id": "m23",
-      "from": "scp",
-      "to": "amf",
-      "y": 872,
-      "label": "N1/N2 modification information",
-      "variant": "emphasis"
-    },
-    {
-      "id": "m24",
-      "from": "amf",
-      "to": "ue",
-      "y": 904,
-      "label": "N1 NAS / N2 RAN modification",
-      "variant": "default"
-    },
-    {
-      "id": "m25",
-      "from": "ue",
-      "to": "amf",
-      "y": 936,
-      "label": "N1 / N2 modification response",
-      "variant": "return"
-    },
-    {
-      "id": "m26",
-      "from": "amf",
-      "to": "scp",
-      "y": 968,
-      "label": "Nsmf_PDUSession_UpdateSMContext · N1/N2 result",
-      "variant": "emphasis"
-    },
-    {
-      "id": "m27",
-      "from": "scp",
-      "to": "host",
-      "y": 1000,
-      "label": "Existing Host Location",
-      "variant": "default"
-    },
-    {
-      "id": "m28",
-      "from": "host",
-      "to": "runtime",
-      "y": 1032,
-      "label": "correlate exact m4 occurrence / generation",
-      "variant": "default"
-    },
-    {
-      "id": "m29",
-      "from": "runtime",
-      "to": "tools",
-      "y": 1064,
-      "label": "continue original m4 Owner operation",
-      "variant": "security"
-    },
-    {
-      "id": "m30",
-      "from": "tools",
-      "to": "smf",
-      "y": 1096,
-      "label": "Owner-private N1/N2 result update",
-      "variant": "security"
-    },
-    {
-      "id": "m31",
-      "from": "smf",
-      "to": "tools",
-      "y": 1128,
-      "label": "AN tunnel TEID / IP + authoritative result",
-      "variant": "return"
-    },
-    {
-      "id": "m32",
-      "from": "tools",
-      "to": "runtime",
-      "y": 1160,
-      "label": "m4 result adopted",
-      "variant": "return"
-    },
-    {
-      "id": "m33",
-      "from": "runtime",
-      "to": "tools",
-      "y": 1192,
-      "label": "m5 · UPN.MODIFY_UP_SESSION（uses m3 + m4 outputs）",
-      "variant": "emphasis"
-    },
-    {
-      "id": "m34",
-      "from": "tools",
-      "to": "smf",
-      "y": 1224,
-      "label": "m5 Owner N4 follow-up",
-      "variant": "security"
-    },
-    {
-      "id": "m35",
-      "from": "smf",
-      "to": "upf",
-      "y": 1256,
-      "label": "PFCP Session Modification Request (Type 52 · AN F-TEID)",
-      "variant": "default"
-    },
-    {
-      "id": "m36",
       "from": "upf",
       "to": "smf",
-      "y": 1288,
+      "y": 712,
       "label": "PFCP Session Modification Response (Type 53)",
       "variant": "return"
     },
     {
-      "id": "m37",
+      "id": "m19",
       "from": "smf",
       "to": "tools",
-      "y": 1320,
-      "label": "m5 n3_synced / Owner result",
+      "y": 744,
+      "label": "m3 result · n4_seid",
       "variant": "return"
     },
     {
-      "id": "m38",
+      "id": "m20",
+      "from": "runtime",
+      "to": "tools",
+      "y": 776,
+      "label": "m4 · SSM.SIGNAL_UE_AN",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m21",
+      "from": "tools",
+      "to": "smf",
+      "y": 808,
+      "label": "m4 Owner AN signaling operation",
+      "variant": "security"
+    },
+    {
+      "id": "m22",
+      "from": "smf",
+      "to": "host",
+      "y": 840,
+      "label": "OpenAMSM private Namf Relay request",
+      "variant": "security"
+    },
+    {
+      "id": "m23",
+      "from": "host",
+      "to": "tools",
+      "y": 872,
+      "label": "Fixed Namf egress",
+      "variant": "security"
+    },
+    {
+      "id": "m24",
+      "from": "tools",
+      "to": "scp",
+      "y": 904,
+      "label": "Namf_Communication_N1N2MessageTransfer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m25",
+      "from": "scp",
+      "to": "amf",
+      "y": 936,
+      "label": "N1/N2 modification information",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m26",
+      "from": "amf",
+      "to": "ue",
+      "y": 968,
+      "label": "N1 NAS / N2 RAN modification",
+      "variant": "default"
+    },
+    {
+      "id": "m27",
+      "from": "ue",
+      "to": "amf",
+      "y": 1000,
+      "label": "N1 / N2 modification response",
+      "variant": "return"
+    },
+    {
+      "id": "m28",
+      "from": "amf",
+      "to": "scp",
+      "y": 1032,
+      "label": "Nsmf_PDUSession_UpdateSMContext · N1/N2 result",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m29",
+      "from": "scp",
+      "to": "host",
+      "y": 1064,
+      "label": "Existing Host Location",
+      "variant": "default"
+    },
+    {
+      "id": "m30",
+      "from": "host",
+      "to": "runtime",
+      "y": 1096,
+      "label": "correlate exact m4 occurrence / generation",
+      "variant": "default"
+    },
+    {
+      "id": "m31",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1128,
+      "label": "continue original m4 Owner operation",
+      "variant": "security"
+    },
+    {
+      "id": "m32",
+      "from": "tools",
+      "to": "smf",
+      "y": 1160,
+      "label": "Owner-private N1/N2 result update",
+      "variant": "security"
+    },
+    {
+      "id": "m33",
+      "from": "smf",
+      "to": "tools",
+      "y": 1192,
+      "label": "AN tunnel TEID / IP + authoritative result",
+      "variant": "return"
+    },
+    {
+      "id": "m34",
       "from": "tools",
       "to": "runtime",
+      "y": 1224,
+      "label": "m4 result adopted",
+      "variant": "return"
+    },
+    {
+      "id": "m35",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1256,
+      "label": "m5 · UPN.MODIFY_UP_SESSION（uses m3 + m4 outputs）",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m36",
+      "from": "tools",
+      "to": "smf",
+      "y": 1288,
+      "label": "m5 Owner N4 follow-up",
+      "variant": "security"
+    },
+    {
+      "id": "m37",
+      "from": "smf",
+      "to": "upf",
+      "y": 1320,
+      "label": "PFCP Session Modification Request (Type 52 · AN F-TEID)",
+      "variant": "default"
+    },
+    {
+      "id": "m38",
+      "from": "upf",
+      "to": "smf",
       "y": 1352,
-      "label": "Modify Procedure outcome",
+      "label": "PFCP Session Modification Response (Type 53)",
       "variant": "return"
     },
     {
       "id": "m39",
-      "from": "runtime",
-      "to": "host",
+      "from": "smf",
+      "to": "tools",
       "y": 1384,
-      "label": "Response obligation + final Session state",
+      "label": "m5 n3_synced / Owner result",
       "variant": "return"
     },
     {
       "id": "m40",
-      "from": "host",
-      "to": "scp",
+      "from": "tools",
+      "to": "runtime",
       "y": 1416,
-      "label": "Nsmf UpdateSMContext response",
+      "label": "Modify Procedure outcome",
       "variant": "return"
     },
     {
       "id": "m41",
-      "from": "scp",
-      "to": "amf",
+      "from": "runtime",
+      "to": "host",
       "y": 1448,
-      "label": "UpdateSMContext response",
+      "label": "Response obligation + final Session state",
       "variant": "return"
     },
     {
       "id": "m42",
-      "from": "amf",
+      "from": "host",
       "to": "scp",
       "y": 1480,
-      "label": "[ALT · correlated N2 result] Nsmf_PDUSession_UpdateSMContext · PDU_RES_MOD_RSP",
-      "variant": "emphasis"
-    },
-    {
-      "id": "m43",
-      "from": "scp",
-      "to": "host",
-      "y": 1512,
-      "label": "Existing Host Location · same Session",
-      "variant": "default"
-    },
-    {
-      "id": "m44",
-      "from": "host",
-      "to": "runtime",
-      "y": 1544,
-      "label": "match existing Owner Pending occurrence",
-      "variant": "default"
-    },
-    {
-      "id": "m45",
-      "from": "runtime",
-      "to": "tools",
-      "y": 1576,
-      "label": "route to original occurrence · no new Modify Run",
-      "variant": "security"
-    },
-    {
-      "id": "m46",
-      "from": "tools",
-      "to": "smf",
-      "y": 1608,
-      "label": "original Owner N2 result handler",
-      "variant": "security"
-    },
-    {
-      "id": "m47",
-      "from": "smf",
-      "to": "tools",
-      "y": 1640,
-      "label": "adopted result / safe outcome",
-      "variant": "return"
-    },
-    {
-      "id": "m48",
-      "from": "tools",
-      "to": "runtime",
-      "y": 1672,
-      "label": "resume original Run",
-      "variant": "return"
-    },
-    {
-      "id": "m49",
-      "from": "runtime",
-      "to": "host",
-      "y": 1704,
-      "label": "paired response for this Update request",
-      "variant": "return"
-    },
-    {
-      "id": "m50",
-      "from": "host",
-      "to": "scp",
-      "y": 1736,
       "label": "Nsmf UpdateSMContext response",
       "variant": "return"
     },
     {
-      "id": "m51",
+      "id": "m43",
       "from": "scp",
       "to": "amf",
+      "y": 1512,
+      "label": "UpdateSMContext response",
+      "variant": "return"
+    },
+    {
+      "id": "m44",
+      "from": "amf",
+      "to": "scp",
+      "y": 1544,
+      "label": "[ALT · correlated N2 result] Nsmf_PDUSession_UpdateSMContext · PDU_RES_MOD_RSP",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m45",
+      "from": "scp",
+      "to": "host",
+      "y": 1576,
+      "label": "Existing Host Location · same Session",
+      "variant": "default"
+    },
+    {
+      "id": "m46",
+      "from": "host",
+      "to": "runtime",
+      "y": 1608,
+      "label": "match existing Owner Pending occurrence",
+      "variant": "default"
+    },
+    {
+      "id": "m47",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1640,
+      "label": "route to original occurrence · no new Modify Run",
+      "variant": "security"
+    },
+    {
+      "id": "m48",
+      "from": "tools",
+      "to": "smf",
+      "y": 1672,
+      "label": "original Owner N2 result handler",
+      "variant": "security"
+    },
+    {
+      "id": "m49",
+      "from": "smf",
+      "to": "tools",
+      "y": 1704,
+      "label": "adopted result / safe outcome",
+      "variant": "return"
+    },
+    {
+      "id": "m50",
+      "from": "tools",
+      "to": "runtime",
+      "y": 1736,
+      "label": "resume original Run",
+      "variant": "return"
+    },
+    {
+      "id": "m51",
+      "from": "runtime",
+      "to": "host",
       "y": 1768,
+      "label": "paired response for this Update request",
+      "variant": "return"
+    },
+    {
+      "id": "m52",
+      "from": "host",
+      "to": "scp",
+      "y": 1800,
+      "label": "Nsmf UpdateSMContext response",
+      "variant": "return"
+    },
+    {
+      "id": "m53",
+      "from": "scp",
+      "to": "amf",
+      "y": 1832,
       "label": "UpdateSMContext response",
       "variant": "return"
     }

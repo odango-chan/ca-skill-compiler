@@ -98,14 +98,14 @@
     {
       "id": "m04",
       "from": "host",
-      "to": "toolsLane",
+      "to": "tools",
       "y": 264,
       "label": "Existing Session resource update · no new Skill Run",
       "variant": "default"
     },
     {
       "id": "m05",
-      "from": "toolsLane",
+      "from": "tools",
       "to": "smf",
       "y": 296,
       "label": "OpenAMSM private smContextUpdateSync（非 3GPP Nsmf）",
@@ -130,14 +130,14 @@
     {
       "id": "m08",
       "from": "smf",
-      "to": "toolsLane",
+      "to": "tools",
       "y": 392,
       "label": "N2 setup info / error + N2 attachment",
       "variant": "return"
     },
     {
       "id": "m09",
-      "from": "toolsLane",
+      "from": "tools",
       "to": "host",
       "y": 424,
       "label": "Typed result + original N2 attachment",
@@ -194,14 +194,14 @@
     {
       "id": "m16",
       "from": "host",
-      "to": "toolsLane",
+      "to": "tools",
       "y": 648,
-      "label": "Correlate existing Session / AN setup occurrence",
+      "label": "Original N2 attachment + correlate existing Session / AN setup occurrence",
       "variant": "default"
     },
     {
       "id": "m17",
-      "from": "toolsLane",
+      "from": "tools",
       "to": "smf",
       "y": 680,
       "label": "N2 result to OpenAMSM handler",
@@ -210,14 +210,14 @@
     {
       "id": "m18",
       "from": "smf",
-      "to": "toolsLane",
+      "to": "tools",
       "y": 712,
       "label": "AN state adopted / final Owner result",
       "variant": "return"
     },
     {
       "id": "m19",
-      "from": "toolsLane",
+      "from": "tools",
       "to": "host",
       "y": 744,
       "label": "Existing Session update result",
@@ -258,14 +258,14 @@
     {
       "id": "m24",
       "from": "host",
-      "to": "toolsLane",
+      "to": "tools",
       "y": 904,
       "label": "Authorized Owner handover update · no Create",
       "variant": "default"
     },
     {
       "id": "m25",
-      "from": "toolsLane",
+      "from": "tools",
       "to": "smf",
       "y": 936,
       "label": "OpenAMSM Owner handover / N4 handling",
@@ -290,14 +290,14 @@
     {
       "id": "m28",
       "from": "smf",
-      "to": "toolsLane",
+      "to": "tools",
       "y": 1032,
       "label": "hoState=COMPLETED / CANCELLED · authoritative result",
       "variant": "return"
     },
     {
       "id": "m29",
-      "from": "toolsLane",
+      "from": "tools",
       "to": "host",
       "y": 1064,
       "label": "Handover state + N2 attachment",

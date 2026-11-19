@@ -94,7 +94,7 @@
     },
     {
       "from": 1914,
-      "to": 2134,
+      "to": 2198,
       "label": "F02 · s11 / s13 and paired response"
     }
   ],
@@ -156,442 +156,458 @@
       "variant": "default"
     },
     {
+      "from": "host",
+      "to": "tools",
+      "label": "Original N1 artifactRef · Owner-private binary binding",
+      "variant": "security",
       "id": "m08",
+      "y": 392
+    },
+    {
+      "from": "tools",
+      "to": "smf",
+      "label": "Deliver original N1 bytes to GSM Handler; not the typed projection",
+      "variant": "security",
+      "id": "m09",
+      "y": 424
+    },
+    {
+      "id": "m10",
       "from": "runtime",
       "to": "tools",
-      "y": 392,
+      "y": 456,
       "label": "s1 / s2 / s3 · Establishment OES dispatch",
       "variant": "emphasis"
     },
     {
-      "id": "m09",
+      "id": "m11",
       "from": "tools",
       "to": "smf",
-      "y": 424,
+      "y": 488,
       "label": "s1 SC.VALIDATE_SUBSCRIPTION → s2 SAA.SECONDARY_AUTH（required=0; SKIPPED）→ s3 SC.CREATE_SM_CONTEXT",
       "variant": "security"
     },
     {
-      "id": "m10",
+      "id": "m12",
       "from": "smf",
       "to": "scp",
-      "y": 456,
+      "y": 520,
       "label": "Nudm_SDM_Get（s1）",
       "variant": "default"
     },
     {
-      "id": "m11",
+      "id": "m13",
       "from": "scp",
       "to": "nf",
-      "y": 488,
+      "y": 552,
       "label": "UDM SDM request",
       "variant": "default"
     },
     {
-      "id": "m12",
+      "id": "m14",
       "from": "nf",
       "to": "scp",
-      "y": 520,
+      "y": 584,
       "label": "UDM SDM response",
       "variant": "return"
     },
     {
-      "id": "m13",
+      "id": "m15",
       "from": "scp",
       "to": "smf",
-      "y": 552,
+      "y": 616,
       "label": "s1 subscription result",
       "variant": "return"
     },
     {
-      "id": "m14",
+      "id": "m16",
       "from": "smf",
       "to": "tools",
-      "y": 584,
+      "y": 648,
       "label": "s3 Owner smContextRef + session keys",
       "variant": "return"
     },
     {
-      "id": "m15",
+      "id": "m17",
       "from": "tools",
       "to": "runtime",
-      "y": 616,
+      "y": 680,
       "label": "s1–s3 validated Owner outcomes",
       "variant": "return"
     },
     {
-      "id": "m16",
+      "id": "m18",
       "from": "runtime",
       "to": "host",
-      "y": 648,
+      "y": 712,
       "label": "建立 Host Location ↔ Owner-private ref 持久映射",
       "variant": "default"
     },
     {
-      "id": "m17",
+      "id": "m19",
       "from": "host",
       "to": "scp",
-      "y": 680,
-      "label": "201 Created + Host Location",
-      "variant": "emphasis"
-    },
-    {
-      "id": "m18",
-      "from": "scp",
-      "to": "amf",
-      "y": 712,
-      "label": "201 Created + Host Location",
-      "variant": "emphasis"
-    },
-    {
-      "id": "m19",
-      "from": "runtime",
-      "to": "tools",
       "y": 744,
-      "label": "s3r / s3p · UECM registration + SM Policy create",
+      "label": "201 Created + Host Location",
       "variant": "emphasis"
     },
     {
       "id": "m20",
+      "from": "scp",
+      "to": "amf",
+      "y": 776,
+      "label": "201 Created + Host Location",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m21",
+      "from": "runtime",
+      "to": "tools",
+      "y": 808,
+      "label": "s3r / s3p · UECM registration + SM Policy create",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m22",
       "from": "tools",
       "to": "smf",
-      "y": 776,
+      "y": 840,
       "label": "SC.REGISTER_UECM + PA.CREATE_SM_POLICY",
       "variant": "security"
     },
     {
-      "id": "m21",
+      "id": "m23",
       "from": "smf",
       "to": "scp",
-      "y": 808,
+      "y": 872,
       "label": "Nudm_UECM_Registration + Npcf_SMPolicyControl_Create",
       "variant": "default"
     },
     {
-      "id": "m22",
+      "id": "m24",
       "from": "scp",
       "to": "nf",
-      "y": 840,
+      "y": 904,
       "label": "UDM / PCF SBI requests",
       "variant": "default"
     },
     {
-      "id": "m23",
+      "id": "m25",
       "from": "nf",
       "to": "scp",
-      "y": 872,
+      "y": 936,
       "label": "UDM / PCF results",
       "variant": "return"
     },
     {
-      "id": "m24",
+      "id": "m26",
       "from": "scp",
       "to": "smf",
-      "y": 904,
+      "y": 968,
       "label": "s3r / s3p results",
       "variant": "return"
-    },
-    {
-      "id": "m25",
-      "from": "runtime",
-      "to": "tools",
-      "y": 936,
-      "label": "s4 / s5 · UPS.DECIDE_ANCHOR + IAM.ALLOCATE_ADDRESS",
-      "variant": "default"
-    },
-    {
-      "id": "m26",
-      "from": "tools",
-      "to": "smf",
-      "y": 968,
-      "label": "SMF-local anchor selection + address allocation",
-      "variant": "security"
     },
     {
       "id": "m27",
       "from": "runtime",
       "to": "tools",
       "y": 1000,
-      "label": "s6u · PA.UPDATE_SM_POLICY",
-      "variant": "emphasis"
+      "label": "s4 / s5 · UPS.DECIDE_ANCHOR + IAM.ALLOCATE_ADDRESS",
+      "variant": "default"
     },
     {
       "id": "m28",
       "from": "tools",
       "to": "smf",
       "y": 1032,
-      "label": "Owner policy update",
+      "label": "SMF-local anchor selection + address allocation",
       "variant": "security"
     },
     {
       "id": "m29",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1064,
+      "label": "s6u · PA.UPDATE_SM_POLICY",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m30",
+      "from": "tools",
+      "to": "smf",
+      "y": 1096,
+      "label": "Owner policy update",
+      "variant": "security"
+    },
+    {
+      "id": "m31",
       "from": "smf",
       "to": "scp",
-      "y": 1064,
+      "y": 1128,
       "label": "Npcf_SMPolicyControl_Update",
       "variant": "default"
     },
     {
-      "id": "m30",
+      "id": "m32",
       "from": "scp",
       "to": "nf",
-      "y": 1096,
+      "y": 1160,
       "label": "PCF policy update",
       "variant": "default"
     },
     {
-      "id": "m31",
+      "id": "m33",
       "from": "nf",
       "to": "scp",
-      "y": 1128,
+      "y": 1192,
       "label": "PCF policy update result",
       "variant": "return"
     },
     {
-      "id": "m32",
+      "id": "m34",
       "from": "scp",
       "to": "smf",
-      "y": 1160,
+      "y": 1224,
       "label": "s6u result",
       "variant": "return"
     },
     {
-      "id": "m33",
+      "id": "m35",
       "from": "runtime",
       "to": "tools",
-      "y": 1192,
+      "y": 1256,
       "label": "s7 / s8 · CA.CREATE_CHARGING + UPN.CREATE_UP_SESSION",
       "variant": "default"
     },
     {
-      "id": "m34",
+      "id": "m36",
       "from": "tools",
       "to": "smf",
-      "y": 1224,
+      "y": 1288,
       "label": "Owner charging step + N4 session creation",
       "variant": "security"
     },
     {
-      "id": "m35",
+      "id": "m37",
       "from": "smf",
       "to": "upf",
-      "y": 1256,
+      "y": 1320,
       "label": "PFCP Session Establishment Request (Type 50)",
       "variant": "default"
     },
     {
-      "id": "m36",
+      "id": "m38",
       "from": "upf",
       "to": "smf",
-      "y": 1288,
+      "y": 1352,
       "label": "PFCP Session Establishment Response (Type 51)",
       "variant": "return"
     },
     {
-      "id": "m37",
+      "id": "m39",
       "from": "smf",
       "to": "tools",
-      "y": 1320,
+      "y": 1384,
       "label": "s8 N4 result",
       "variant": "return"
     },
     {
-      "id": "m38",
+      "id": "m40",
       "from": "tools",
       "to": "runtime",
-      "y": 1352,
+      "y": 1416,
       "label": "s3r–s8 Owner outcomes",
       "variant": "return"
     },
     {
-      "id": "m39",
+      "id": "m41",
       "from": "runtime",
       "to": "tools",
-      "y": 1384,
+      "y": 1448,
       "label": "s10 · SSM.SIGNAL_UE_AN (OWNER_DEFERRED)",
       "variant": "emphasis"
     },
     {
-      "id": "m40",
+      "id": "m42",
       "from": "tools",
       "to": "smf",
-      "y": 1416,
+      "y": 1480,
       "label": "s10 Owner operation",
       "variant": "security"
     },
     {
-      "id": "m41",
+      "id": "m43",
       "from": "smf",
       "to": "host",
-      "y": 1448,
+      "y": 1512,
       "label": "OpenAMSM private Namf Relay request",
       "variant": "security"
     },
     {
-      "id": "m42",
+      "id": "m44",
       "from": "host",
       "to": "tools",
-      "y": 1480,
+      "y": 1544,
       "label": "Fixed Namf egress",
       "variant": "security"
     },
     {
-      "id": "m43",
+      "id": "m45",
       "from": "tools",
       "to": "scp",
-      "y": 1512,
+      "y": 1576,
       "label": "Namf_Communication_N1N2MessageTransfer",
       "variant": "emphasis"
     },
     {
-      "id": "m44",
+      "id": "m46",
       "from": "scp",
       "to": "amf",
-      "y": 1544,
+      "y": 1608,
       "label": "N1/N2 setup information",
       "variant": "emphasis"
     },
     {
-      "id": "m45",
+      "id": "m47",
       "from": "amf",
       "to": "ue",
-      "y": 1576,
+      "y": 1640,
       "label": "N1/N2 forwarded to UE / gNB",
       "variant": "default"
     },
     {
-      "id": "m46",
+      "id": "m48",
       "from": "ue",
       "to": "amf",
-      "y": 1608,
+      "y": 1672,
       "label": "N2 PDU Session Resource Setup Response",
       "variant": "return"
     },
     {
-      "id": "m47",
+      "id": "m49",
       "from": "amf",
       "to": "scp",
-      "y": 1640,
+      "y": 1704,
       "label": "Nsmf_PDUSession_UpdateSMContext · operationId=UpdateSmContext · PDU_RES_SETUP_RSP",
       "variant": "emphasis"
     },
     {
-      "id": "m48",
+      "id": "m50",
       "from": "scp",
       "to": "host",
-      "y": 1672,
+      "y": 1736,
       "label": "Existing Host Location",
       "variant": "default"
     },
     {
-      "id": "m49",
+      "id": "m51",
       "from": "host",
       "to": "runtime",
-      "y": 1704,
+      "y": 1768,
       "label": "按 Session / generation 匹配原 s10 occurrence",
       "variant": "default"
     },
     {
-      "id": "m50",
+      "id": "m52",
       "from": "runtime",
       "to": "tools",
-      "y": 1736,
+      "y": 1800,
       "label": "继续原始 s10 Owner operation",
       "variant": "security"
     },
     {
-      "id": "m51",
+      "id": "m53",
       "from": "tools",
       "to": "smf",
-      "y": 1768,
+      "y": 1832,
       "label": "Owner-private N2 result update",
       "variant": "security"
     },
     {
-      "id": "m52",
+      "id": "m54",
       "from": "smf",
       "to": "tools",
-      "y": 1800,
+      "y": 1864,
       "label": "AN result adopted · tunnel / F-TEID",
       "variant": "return"
     },
     {
-      "id": "m53",
+      "id": "m55",
       "from": "tools",
       "to": "runtime",
-      "y": 1832,
+      "y": 1896,
       "label": "恢复同一 Run，不创建第二个 Skill Invocation",
       "variant": "return"
     },
     {
-      "id": "m54",
+      "id": "m56",
       "from": "runtime",
       "to": "tools",
-      "y": 1864,
+      "y": 1928,
       "label": "s11 · UPN.MODIFY_UP_SESSION",
       "variant": "emphasis"
     },
     {
-      "id": "m55",
+      "id": "m57",
       "from": "tools",
       "to": "smf",
-      "y": 1896,
+      "y": 1960,
       "label": "s11 Owner N4 update",
       "variant": "security"
     },
     {
-      "id": "m56",
+      "id": "m58",
       "from": "smf",
       "to": "upf",
-      "y": 1928,
+      "y": 1992,
       "label": "PFCP Session Modification Request (Type 52)",
       "variant": "default"
     },
     {
-      "id": "m57",
+      "id": "m59",
       "from": "upf",
       "to": "smf",
-      "y": 1960,
-      "label": "PFCP Session Modification Response (Type 53)",
-      "variant": "return"
-    },
-    {
-      "id": "m58",
-      "from": "runtime",
-      "to": "tools",
-      "y": 1992,
-      "label": "s13 · SE.EMIT_EVENTS",
-      "variant": "default"
-    },
-    {
-      "id": "m59",
-      "from": "tools",
-      "to": "smf",
       "y": 2024,
-      "label": "s13 local event outcome",
+      "label": "PFCP Session Modification Response (Type 53)",
       "variant": "return"
     },
     {
       "id": "m60",
       "from": "runtime",
-      "to": "host",
+      "to": "tools",
       "y": 2056,
-      "label": "Goal / Postcondition 与响应义务",
-      "variant": "return"
+      "label": "s13 · SE.EMIT_EVENTS",
+      "variant": "default"
     },
     {
       "id": "m61",
-      "from": "host",
-      "to": "scp",
+      "from": "tools",
+      "to": "smf",
       "y": 2088,
-      "label": "Paired UpdateSMContext response",
+      "label": "s13 local event outcome",
       "variant": "return"
     },
     {
       "id": "m62",
+      "from": "runtime",
+      "to": "host",
+      "y": 2120,
+      "label": "Goal / Postcondition 与响应义务",
+      "variant": "return"
+    },
+    {
+      "id": "m63",
+      "from": "host",
+      "to": "scp",
+      "y": 2152,
+      "label": "Paired UpdateSMContext response",
+      "variant": "return"
+    },
+    {
+      "id": "m64",
       "from": "scp",
       "to": "amf",
-      "y": 2120,
+      "y": 2184,
       "label": "UpdateSMContext response",
       "variant": "return"
     }

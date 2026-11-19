@@ -114,14 +114,14 @@
     {
       "id": "m06",
       "from": "runtime",
-      "to": "toolsLane",
+      "to": "tools",
       "y": 328,
       "label": "Deliver failure event to original Owner occurrence",
       "variant": "security"
     },
     {
       "id": "m07",
-      "from": "toolsLane",
+      "from": "tools",
       "to": "smf",
       "y": 360,
       "label": "Fixed Owner-private callback",
@@ -130,14 +130,14 @@
     {
       "id": "m08",
       "from": "smf",
-      "to": "toolsLane",
+      "to": "tools",
       "y": 392,
       "label": "Authoritative Owner disposition",
       "variant": "return"
     },
     {
       "id": "m09",
-      "from": "toolsLane",
+      "from": "tools",
       "to": "runtime",
       "y": 424,
       "label": "Outcome / UNKNOWN",
@@ -258,14 +258,14 @@
     {
       "id": "m24",
       "from": "runtime",
-      "to": "toolsLane",
+      "to": "tools",
       "y": 904,
       "label": "Authorized exact-original Reconcile · read-only proof query",
       "variant": "security"
     },
     {
       "id": "m25",
-      "from": "toolsLane",
+      "from": "tools",
       "to": "smf",
       "y": 936,
       "label": "Owner proof query · never replay mutation",
@@ -274,14 +274,14 @@
     {
       "id": "m26",
       "from": "smf",
-      "to": "toolsLane",
+      "to": "tools",
       "y": 968,
       "label": "Proof / no proof / unavailable",
       "variant": "return"
     },
     {
       "id": "m27",
-      "from": "toolsLane",
+      "from": "tools",
       "to": "runtime",
       "y": 1000,
       "label": "Reconcile evidence",
