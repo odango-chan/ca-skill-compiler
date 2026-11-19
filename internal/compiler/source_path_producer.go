@@ -43,11 +43,7 @@ func validateProducerSourcePaths(req BuildRequest, skill *SkillAST, identity dep
 				if !strings.HasPrefix(value.Value, "context.") {
 					reachability := reachabilityCache[value.Value]
 					if reachability == nil {
-						producerID := value.Value
-						if index := strings.Index(producerID, "."); index > 0 {
-							producerID = producerID[:index]
-						}
-						reachability = producerKeyReachability(skill, producerID)
+						reachability = producerKeyReachability(skill, value.Value)
 						reachabilityCache[value.Value] = reachability
 					}
 					diagnostics = append(diagnostics, checkProducerPath(value, nodeID, stage, registry, outputSchemas, dominators, reachability, procedurePath)...)
@@ -82,11 +78,7 @@ func validateProducerSourcePaths(req BuildRequest, skill *SkillAST, identity dep
 					if !strings.HasPrefix(value.Value, "context.") {
 						reachability := reachabilityCache[value.Value]
 						if reachability == nil {
-							producerID := value.Value
-							if index := strings.Index(producerID, "."); index > 0 {
-								producerID = producerID[:index]
-							}
-							reachability = producerKeyReachability(skill, producerID)
+							reachability = producerKeyReachability(skill, value.Value)
 							reachabilityCache[value.Value] = reachability
 						}
 						diagnostics = append(diagnostics, checkProducerPath(value, nodeID, stageName, registry, outputSchemas, dominators, reachability, procedurePath)...)
@@ -161,7 +153,7 @@ func checkProducerPath(value *yaml.Node, consumerID, consumerStage string, regis
 		return diagnostics
 	}
 	if producerID != consumerID {
-		committed, other := nonSucceededProducerPath(producerID, consumerID, reachability)
+		committed, other := nonSucceededProducerPath(consumerID, reachability)
 		if committed && output.effect == "MUTATION" && !output.recoverable {
 			addSourcePathDiagnostic(&diagnostics, "error", "C_STATIC", "RECONCILE_OUTPUT_UNAVAILABLE", procedurePath, value,
 				"Producer output is only reachable through its COMMITTED path and no recoverable success output is declared")

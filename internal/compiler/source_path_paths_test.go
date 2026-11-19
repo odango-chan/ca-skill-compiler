@@ -2,7 +2,10 @@ package compiler
 
 // WP6 per-path availability: a producer output read on a non-SUCCEEDED path.
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func pathAvailabilityFixture(t *testing.T) BuildRequest {
 	t.Helper()
@@ -50,5 +53,63 @@ func TestProducerOutputNotAvailableOnNonSucceededPath(t *testing.T) {
 	diagnostics := Check(pathAvailabilityFixture(t))
 	if !hasCode(diagnostics, "SOURCE_NOT_AVAILABLE") {
 		t.Fatalf("output read on NOT_COMMITTED path accepted: %+v", diagnostics)
+	}
+}
+
+func TestProducerOutputAfterPostcondition(t *testing.T) {
+	const downstream = `  verify:
+    postcondition:
+      predicates:
+        - predicate: example.ue.registered
+          arguments: [inspect-registration.observation.output]
+      routes:
+        PASS: SUCCEEDED
+        FAIL: FAILED
+        UNKNOWN: UNRESOLVED
+`
+	for _, test := range []struct {
+		name   string
+		bypass string
+	}{
+		{name: "postcondition PASS preserves output"},
+		{name: "observation failure bypass still rejects output", bypass: "observation"},
+		{name: "precondition failure bypass still rejects output", bypass: "precondition"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			fixture := wp3aBaseFixture(t)
+			procedure := string(fixture.files[wp3aProcedurePath])
+			procedure = strings.Replace(procedure, "PASS: SUCCEEDED", "PASS: verify", 1)
+			switch test.bypass {
+			case "observation":
+				procedure = strings.Replace(procedure, "FAILED: FAILED", "FAILED: verify", 1)
+			case "precondition":
+				procedure = strings.Replace(procedure, "    observation:", `    precondition:
+      predicates:
+        - predicate: example.request.valid
+          arguments: [context.ueRef]
+      routes:
+        FAIL: verify
+        UNKNOWN: UNRESOLVED
+    observation:`, 1)
+				fixture.files[wp3aPredicatesPath] = append(fixture.files[wp3aPredicatesPath], []byte(`
+  example.request.valid:
+    parameters:
+      - ueRef: string
+    evaluator:
+      type: cel
+      expression: ueRef != ""
+`)...)
+			}
+			fixture.files[wp3aProcedurePath] = []byte(procedure + downstream)
+			result := Build(wp3cRequest(t, fixture, wp3cBaseBundle(t)))
+			if test.bypass != "" {
+				assertFailureAtomic(t, result)
+				if !hasCode(result.Diagnostics, "SOURCE_NOT_AVAILABLE") {
+					t.Fatalf("failed producer route was not diagnosed: %+v", result.Diagnostics)
+				}
+			} else if !result.Success || len(result.OutputFiles) == 0 {
+				t.Fatalf("postcondition PASS did not carry producer output: %+v", result.Diagnostics)
+			}
+		})
 	}
 }
