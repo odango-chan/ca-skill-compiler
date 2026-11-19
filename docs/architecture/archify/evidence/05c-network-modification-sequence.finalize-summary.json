@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05c-network-modification-sequence.sequence.json",
+    "sha256": "469e34f0c99d70659f75de005f07590ccc903f2345f78009a11cf8625ce811b2",
+    "bytes": 6861
+  },
+  "artifact": {
+    "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05c-network-modification-sequence.html",
+    "sha256": "6025e3fe1523132fbf22b60c075c0e3a9deabed015bab31f3720258f2bd3ce10",
+    "bytes": 850695
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.archify\\workflow-ca-sl-toolchain-scp-20261119\\fix-05c-network-modification-sequence\\05c-network-modification-sequence.finalize.json",
+    "summaryReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.archify\\workflow-ca-sl-toolchain-scp-20261119\\fix-05c-network-modification-sequence\\05c-network-modification-sequence.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.archify\\workflow-ca-sl-toolchain-scp-20261119\\fix-05c-network-modification-sequence\\05c-network-modification-sequence.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-19T05:40:48.674Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 5447,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

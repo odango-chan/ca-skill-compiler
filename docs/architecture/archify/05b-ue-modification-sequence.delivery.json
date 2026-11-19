@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "aa271d26-f8c4-4f5a-be1e-bbb4be644865",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05b-ue-modification-sequence.sequence.json",
+  "output": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05b-ue-modification-sequence.html",
+  "specification": {
+    "sha256": "e135aa55f1b26f1cda5096eaae7f996310c27b50c502fa5509cdf552cd884b19",
+    "bytes": 8256
+  },
+  "artifact": {
+    "sha256": "888346351a0507b047884bcf0592f438b86800997cee560d913fe174bc46bd7d",
+    "bytes": 856460
+  }
+}

@@ -1,0 +1,385 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "05b · UE / RAN 发起 Session Modification（SCP-only）",
+    "subtitle": "F03 + F04 设计时序 · CA-SL v1alpha5 无 Modify Skill · 目标设计，非 E2E 证据",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "docs/architecture/archify/05b-ue-modification-sequence.html"
+  },
+  "participants": [
+    {
+      "id": "ue",
+      "type": "external",
+      "label": "UE / gNB"
+    },
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF"
+    },
+    {
+      "id": "scp",
+      "type": "cloud",
+      "label": "SCP"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "CA-Agent Host"
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "Client Tools"
+    },
+    {
+      "id": "smf",
+      "type": "backend",
+      "label": "OpenAMSM SMF"
+    },
+    {
+      "id": "pcf",
+      "type": "external",
+      "label": "PCF"
+    },
+    {
+      "id": "upf",
+      "type": "external",
+      "label": "UPF"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 470,
+      "label": "Ingress 分类"
+    },
+    {
+      "from": 478,
+      "to": 700,
+      "label": "业务 Modify（DESIGN）"
+    },
+    {
+      "from": 708,
+      "to": 900,
+      "label": "N4 / PCF 更新"
+    },
+    {
+      "from": 908,
+      "to": 1118,
+      "label": "N1/N2 与响应"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01",
+      "from": "ue",
+      "to": "amf",
+      "y": 168,
+      "label": "N1 PDU Session Modification Request 0xC9",
+      "variant": "default"
+    },
+    {
+      "id": "m02",
+      "from": "amf",
+      "to": "scp",
+      "y": 200,
+      "label": "Nsmf_PDUSession_UpdateSMContext",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m03",
+      "from": "scp",
+      "to": "host",
+      "y": 232,
+      "label": "已有 Host SM Context Location",
+      "variant": "default"
+    },
+    {
+      "id": "m04",
+      "from": "host",
+      "to": "tools",
+      "y": 264,
+      "label": "原始 N1/N2 attachmentRef（只读）",
+      "variant": "default"
+    },
+    {
+      "id": "m05",
+      "from": "tools",
+      "to": "host",
+      "y": 296,
+      "label": "typed 投影：N1 Type / n2SmInfoType",
+      "variant": "return"
+    },
+    {
+      "id": "m06",
+      "from": "host",
+      "to": "tools",
+      "y": 328,
+      "label": "Ingress 分类：既有 pending 或业务 Modify",
+      "variant": "default"
+    },
+    {
+      "id": "m07",
+      "from": "tools",
+      "to": "smf",
+      "y": 360,
+      "label": "Route to existing Owner occurrence",
+      "variant": "security"
+    },
+    {
+      "id": "m08",
+      "from": "smf",
+      "to": "tools",
+      "y": 392,
+      "label": "Owner N2 result adopted 或 UNKNOWN",
+      "variant": "return"
+    },
+    {
+      "id": "m09",
+      "from": "host",
+      "to": "tools",
+      "y": 424,
+      "label": "Start Modify Procedure（DESIGN）",
+      "variant": "dashed"
+    },
+    {
+      "id": "m10",
+      "from": "tools",
+      "to": "smf",
+      "y": 456,
+      "label": "m0 SC.UPDATE_SM_CONTEXT（DESIGN）",
+      "variant": "dashed"
+    },
+    {
+      "id": "m11",
+      "from": "smf",
+      "to": "tools",
+      "y": 488,
+      "label": "AGENT_STEP_NSMF_REJECTED（当前阻塞）",
+      "variant": "dashed"
+    },
+    {
+      "id": "m12",
+      "from": "tools",
+      "to": "host",
+      "y": 520,
+      "label": "业务 Update 被拒：阻塞，不重派",
+      "variant": "return"
+    },
+    {
+      "id": "m13",
+      "from": "smf",
+      "to": "scp",
+      "y": 552,
+      "label": "Npcf_SMPolicyControl_Update",
+      "variant": "default"
+    },
+    {
+      "id": "m14",
+      "from": "scp",
+      "to": "pcf",
+      "y": 584,
+      "label": "PCF 策略通知",
+      "variant": "default"
+    },
+    {
+      "id": "m15",
+      "from": "pcf",
+      "to": "scp",
+      "y": 616,
+      "label": "策略结果",
+      "variant": "return"
+    },
+    {
+      "id": "m16",
+      "from": "scp",
+      "to": "smf",
+      "y": 648,
+      "label": "PCF 结果",
+      "variant": "return"
+    },
+    {
+      "id": "m17",
+      "from": "smf",
+      "to": "upf",
+      "y": 680,
+      "label": "PFCP Modification Type 52",
+      "variant": "default"
+    },
+    {
+      "id": "m18",
+      "from": "upf",
+      "to": "smf",
+      "y": 712,
+      "label": "PFCP result",
+      "variant": "return"
+    },
+    {
+      "id": "m19",
+      "from": "smf",
+      "to": "host",
+      "y": 744,
+      "label": "私有 Namf Relay（m4 SSM）",
+      "variant": "security"
+    },
+    {
+      "id": "m20",
+      "from": "host",
+      "to": "tools",
+      "y": 776,
+      "label": "fixed Namf egress",
+      "variant": "security"
+    },
+    {
+      "id": "m21",
+      "from": "tools",
+      "to": "scp",
+      "y": 808,
+      "label": "Namf_Communication_N1N2MessageTransfer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m22",
+      "from": "scp",
+      "to": "amf",
+      "y": 840,
+      "label": "N1/N2 修改信息",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m23",
+      "from": "amf",
+      "to": "ue",
+      "y": 872,
+      "label": "N2 Session Modification Request",
+      "variant": "default"
+    },
+    {
+      "id": "m24",
+      "from": "ue",
+      "to": "amf",
+      "y": 904,
+      "label": "N2 Modification Response",
+      "variant": "return"
+    },
+    {
+      "id": "m25",
+      "from": "amf",
+      "to": "scp",
+      "y": 936,
+      "label": "Nsmf_PDUSession_UpdateSMContext",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m26",
+      "from": "scp",
+      "to": "host",
+      "y": 968,
+      "label": "回到同一 Host Location",
+      "variant": "default"
+    },
+    {
+      "id": "m27",
+      "from": "host",
+      "to": "tools",
+      "y": 1000,
+      "label": "correlated Owner update",
+      "variant": "default"
+    },
+    {
+      "id": "m28",
+      "from": "tools",
+      "to": "smf",
+      "y": 1032,
+      "label": "original Owner occurrence",
+      "variant": "security"
+    },
+    {
+      "id": "m29",
+      "from": "smf",
+      "to": "tools",
+      "y": 1064,
+      "label": "adopted result 或 OUTCOME_UNKNOWN",
+      "variant": "return"
+    },
+    {
+      "id": "m30",
+      "from": "host",
+      "to": "scp",
+      "y": 1096,
+      "label": "3GPP Update response",
+      "variant": "return"
+    },
+    {
+      "id": "m31",
+      "from": "scp",
+      "to": "amf",
+      "y": 1128,
+      "label": "response / ProblemDetails",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "amf",
+      "from": 190,
+      "to": 1136,
+      "type": "external"
+    },
+    {
+      "participant": "host",
+      "from": 226,
+      "to": 1136,
+      "type": "backend"
+    },
+    {
+      "participant": "tools",
+      "from": 258,
+      "to": 1136,
+      "type": "backend"
+    },
+    {
+      "participant": "smf",
+      "from": 354,
+      "to": 1136,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "当前源代码证据",
+      "items": [
+        "env-openamsm tools/nw-agent/plans/modify/pdu-mod-v3.yaml：m0 / m2 / m3 / m4 / m5 步骤均已定义",
+        "mas-facade.c 已存在 MAS 分派路径（dispatch exists）",
+        "nsmf-handler.c 在 agent_step 下拒绝普通业务 Update：AGENT_STEP_NSMF_REJECTED",
+        "ca-skills 尚无冻结的 v1alpha5 Modify Procedure（仅 Establishment 有）"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "未实现缺口（不得视为已接通）",
+      "items": [
+        "Host ingress 分类与私有事件桥接：NOT_IMPLEMENTED",
+        "Modify Skill：TBD（不虚构 Capability ID）",
+        "Owner Receipt / Reconcile：BLOCKED",
+        "业务 Modify 的 m0 当前被 agent_step 拒绝，本图虚线即为阻塞态"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "归属与下一步",
+      "items": [
+        "ca-skills W2：冻结 Modify Procedure",
+        "ca-client-tools W1：Owner binding 与 typed 投影",
+        "env-openamsm W4：Owner-private Modify lifecycle",
+        "ca-agent-demo W0 / W6：证据采集与受信事件桥接",
+        "总体状态：DESIGN / NOT_QUALIFIED"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 # 附页：最小示例、字段来源与跨图追踪
 
-> 配套图：`01-toolchain-panorama`、`02-offline-build`、`03-host-admission`、`04-scp-amf-smf`。
+> 配套图：`01-toolchain-panorama`、`02-offline-build`、`03-host-admission`、`04-scp-amf-smf`、
+> `05a-establishment-sequence`、`05a-ops-establishment-capabilities`、`05b`–`05g` 六张业务时序图。
+> 导航入口：[index.html](index.html)。
 > 状态：**设计附录（DESIGN / NOT IMPLEMENTED）**。现行基线是冻结的 CA-SL v1alpha5 与已发布的 Compiler v2.0.2；
 > 文中标注“设计草案”的 Schema、Manifest、锁字段均**不是**已发布契约，也不是 v2.0.2 的现行输出。
 > 本附录只服务评审，不构成 E2E 通过、Owner 恢复完成或生产资格结论。
@@ -235,35 +237,175 @@ OpenAMSM → Host Namf Relay → Client Tools → SCP → AMF    Namf N1N2
 | SCP 按调用方 NF 类型自动分流 | 图 4 SCP 标签 | 明确否定，未验证 |
 | Owner Pending 持久化 / Owner Recovery | 图 3 标签、图 4 标签 | 阻塞项 |
 
-## 7. 本轮范围与仍然 OPEN 的部分
+## 7. 05 系列：命名分层、Capability 追踪与业务盘点
 
-本目录交付的是**四张系统图 + 本附页**，对应绘图简报 §3 的 01–04。
+本目录现在交付的是**四张系统图 + 七张业务时序图 + 一张 Capability 追踪图 + 本附页**。
+七张时序图对应绘图简报 §3 “05”与 `05x` 复审要求。
 
-绘图期间，`docs/design/archify-redraw-brief-scp-only-20261119.zh-CN.md` 在评审分支上新增了两项要求：
+### 7.1 三层命名不可合并
 
-| 新增要求 | 出处 | 本轮状态 |
+图形中同一个动作会同时出现三种身份，**不得合并成一个 ID**：
+
+| 层 | 名称来源 | 示例 | 图形位置 |
+|---|---|---|---|
+| 3GPP SBI | TS 29.502 / 29.518 §5.2 的操作表 | `Nsmf_PDUSession_CreateSMContext` | 箭头主标签 |
+| OpenAPI | 实现里的 `operationId` + method + URI | `PostSmContexts` / `POST /nsmf-pdusession/v1/sm-contexts` | 卡片；不替代 Service Operation |
+| OpenAMSM 私有 | OpenAMSM 自有 OpenAPI | `Nsmf_MasOrchestration` / `masOrchestrationInvoke` / `smContextUpdateSync` | 箭头或卡片，**始终标为 Private API** |
+| CA-SL | `contract.yaml` 的 Capability ID + `mas::` 候选 Callable | `mas.sc.context.create` / `mas::SC.CREATE_SM_CONTEXT` | 05a-ops 左右两列 |
+| MAS 内部操作 | OpenAMSM OES 源码原名 | `SC.CREATE_SM_CONTEXT` / `UPN.MODIFY_UP_SESSION` / `SSM.SIGNAL_UE_AN` | OES step 列 |
+
+关键区分：**外部 `CreateSMContext` 对应整个 Establishment Skill，不等于内部的 `SC.CREATE_SM_CONTEXT`**。
+前者是一个 Nsmf Service Operation，后者是 13 步编排中的第 3 步。
+
+### 7.2 Establishment 13 × 13 Capability 追踪
+
+来源：`ca-skills` @05be9ee8 `assurance/procedure.yaml`（13 个 operation 节点）与
+`assurance/contract.yaml`（13 个 capability），对照 `ca-client-tools` @e2922ca4
+`contracts/mas-owner-candidate/v0.2.0/source-map.json`（13 个 stepId / capabilityCandidate / publicCallable）。
+**四个集合两两相等，差异 0。** 逐项见 `05a-ops-establishment-capabilities.html`。
+
+| # | OES Step | Skill Node ID | Capability ID | Callable Ref（= OpenAMSM MAS Operation 加 `mas::`） |
+|---|---|---|---|---|
+| 1 | s1 | `validate-sm-subscription` | `mas.sc.subscription.validate` | `mas::SC.VALIDATE_SUBSCRIPTION` |
+| 2 | s2 | `skip-secondary-authentication` | `mas.saa.secondary.auth` | `mas::SAA.SECONDARY_AUTH` |
+| 3 | s3 | `create-sm-context` | `mas.sc.context.create` | `mas::SC.CREATE_SM_CONTEXT` |
+| 4 | s3r | `register-uecm` | `mas.sc.uecm.register` | `mas::SC.REGISTER_UECM` |
+| 5 | s3p | `establish-sm-policy-association` | `mas.pa.sm.policy.create` | `mas::PA.CREATE_SM_POLICY` |
+| 6 | s4 | `select-upf-anchor` | `mas.ups.anchor.decide` | `mas::UPS.DECIDE_ANCHOR` |
+| 7 | s5 | `allocate-pdu-session-address` | `mas.iam.address.allocate` | `mas::IAM.ALLOCATE_ADDRESS` |
+| 8 | s6u | `modify-sm-policy-association` | `mas.pa.sm.policy.update` | `mas::PA.UPDATE_SM_POLICY` |
+| 9 | s7 | `execute-charging-step` | `mas.ca.charging.create` | `mas::CA.CREATE_CHARGING` |
+| 10 | s8 | `establish-n4-session` | `mas.upn.up.session.create` | `mas::UPN.CREATE_UP_SESSION` |
+| 11 | s10 | `signal-ue-and-access-network` | `mas.ssm.ue.an.signal` | `mas::SSM.SIGNAL_UE_AN` |
+| 12 | s11 | `modify-n4-session` | `mas.upn.up.session.modify` | `mas::UPN.MODIFY_UP_SESSION` |
+| 13 | s13 | `record-session-establishment-event` | `mas.se.events.emit` | `mas::SE.EMIT_EVENTS` |
+
+终态节点 `verify-pdu-session-establishment` 只聚合 13 个 postcondition predicate，
+**不是 MAS Tool**，单独绘制，不计入 13。
+
+全部 13 项都是**候选引用**：MAS ToolCatalog、输入输出 Schema、CapabilityContracts、
+Owner Receipt、Evidence Guarantee 均未发布，`source-map.json` 的 gates 全为 `BLOCKED`，
+`status = NOT_QUALIFIED`、`deployable = false`。
+
+### 7.3 业务 Feature 盘点（F01–F13）
+
+| 流程 | 业务 | 本图集 | 状态 |
+|---|---|---|---|
+| F01 | 初始建立 | 05a | 有冻结 v1alpha5 Procedure；链路未实现 |
+| F02 | 建立中的 N2 结果回传 | 05a（同一图的后半段） | 设计已定：**恢复原 s10 pending occurrence**，不新建 Modify Skill |
+| F03 | UE 请求修改 | 05b | 无冻结 v1alpha5 Procedure；`agent_step` 拒绝普通业务 Update |
+| F04 | RAN/AMF 请求修改 | 05b | 同上；部分 N2 结果 / upCnxState 分支例外 |
+| F05 | 网络/PCF 触发修改 | 05c | 受信 Owner 事件桥接未实现 |
+| F06 | UE 请求释放 | 05d | 无冻结 v1alpha5 Procedure；Release 被拒 |
+| F07 | AMF 请求释放 | 05d | 同上 |
+| F08 | 网络侧触发释放 | 05e | 触发路径与回调闭环未实现 |
+| F09 | Service Request / 用户面激活 | 05f | 操作既有 Session；`smContextUpdateSync` 已定义 |
+| F10 | Handover / Path Switch | 05f | 子场景按 Feature Profile 逐项验收，未全量支持 |
+| F11 | 失败通知 / 状态回调 / UNKNOWN | 05g | 回调 Router 与 occurrence 映射未实现 |
+| F12 | Retrieve SM Context / Send MO Data | **NOT_IMPLEMENTED** | 未绘图。OpenAPI 有 `RetrieveSmContext` / `SendMoData`，但无 Host 实现与 Skill 定义 |
+| F13 | AMF 状态/事件订阅、UE Reachability | **NOT_IMPLEMENTED** | 未绘图。属可选 Feature Profile，`Namf_EventExposure` / `Namf_MT` 未接入 |
+
+F12 / F13 在业务盘点中保留，但没有实现证据，因此**不虚构流程**、不单独成图。
+
+### 7.4 标准 Operation / operationId / OpenAMSM MAS Operation / Capability 对照
+
+| 标准 Operation（3GPP） | OpenAPI operationId | HTTP + URI | OpenAMSM MAS Operation | 关联 CA-SL Capability | 来源 |
+|---|---|---|---|---|---|
+| `Nsmf_PDUSession_CreateSMContext` | `PostSmContexts` | POST `/nsmf-pdusession/v1/sm-contexts` | `[s3] SC.CREATE_SM_CONTEXT`（整个 Skill 对应本操作，不是单步绑定） | 13 项建立 Capability 全体 | env-openamsm `TS29502_Nsmf_PDUSession.yaml` V19.5.0 |
+| `Nsmf_PDUSession_UpdateSMContext` | `UpdateSmContext` | POST `/nsmf-pdusession/v1/sm-contexts/{smContextRef}/modify` | `[s3] SC.UPDATE_SM_CONTEXT` / `[m0] SC.UPDATE_SM_CONTEXT`（按业务分类） | Establishment：`mas.sc.context.create` 结果续用；Modify：TBD | 同上 |
+| `Nsmf_PDUSession_ReleaseSMContext` | `ReleaseSmContext` | POST `/nsmf-pdusession/v1/sm-contexts/{smContextRef}/release` | `[r5] SC.RELEASE_SM_CONTEXT` | Modify/Release：TBD | 同上 |
+| `Nsmf_PDUSession_RetrieveSMContext` | `RetrieveSmContext` | POST `/nsmf-pdusession/v1/sm-contexts/{smContextRef}/retrieve` | 未定义 | NOT_IMPLEMENTED（F12） | 同上 |
+| `Nsmf_PDUSession_SendMOData` | `SendMoData` | POST `/nsmf-pdusession/v1/sm-contexts/{smContextRef}/send-mo-data` | 未定义 | NOT_IMPLEMENTED（F12） | 同上 |
+| `Namf_Communication_N1N2MessageTransfer` | `N1N2MessageTransfer` | POST `/namf-comm/v1/ue-contexts/{ueContextId}/n1-n2-messages` | `[s10] SSM.SIGNAL_UE_AN` / `[m4] SSM.SIGNAL_UE_AN` / `[r3] SSM.SIGNAL_UE_AN` | `mas.ssm.ue.an.signal`（候选复用） | env-openamsm `TS29518_Namf_Communication.yaml` V19.6.0 |
+| `Namf_Communication_N1N2TransferFailureNotification` | `N1N2TransferFailureNotification` | AMF 回送到 SMF 提供的 `n1n2FailureTxfNotifURI`（**不是**固定 `/n1-n2-messages` 集合资源） | 原 occurrence 的 Owner callback | —（不是 Skill Capability） | 同上 + flowbook §4.7 |
+| NAS：`PDU Session Establishment Request` | — | — | `[s3]` 前段输入 | — | TS 24.501 消息类型 `0xC1` |
+| NAS：`PDU Session Modification Request` | — | — | `[m0]` 前段输入 | — | `0xC9` |
+| NAS：`PDU Session Release Request` | — | — | `[r5]` 前段输入 | — | `0xD1` |
+| NAS：`PDU Session Release Command` / `Complete` | — | — | `[r3]` 信令 | — | `0xD3` / `0xD4` |
+| N2 SM：`n2SmInfoType=PDU_RES_SETUP_RSP` | — | — | `[s10]` 结果关联 | — | N2 SM 信息类型，**不是** NGAP Message / 不是 NGAP 数字消息 ID |
+| NGAP：`PDUSessionResourceSetupResponseTransfer` | — | — | — | — | NGAP **Transfer 载荷结构**，不是一条完整 NGAP Message |
+| PFCP：`Session Establishment Request` | — | — | `[s8] UPN.CREATE_UP_SESSION` | `mas.upn.up.session.create`（候选） | Type 50 |
+| PFCP：`Session Modification Request` | — | — | `[s11]` / `[m3]` / `[m5] UPN.MODIFY_UP_SESSION` | `mas.upn.up.session.modify`（候选） | Type 52 |
+| PFCP：`Session Deletion Request` | — | — | `[r2] UPN.DELETE_UP_SESSION` | TBD | Type 54 |
+| OpenAMSM 私有：`Nsmf_MasOrchestration` | `masOrchestrationInvoke` | POST `/nsmf-mas-orchestration/v1/invoke` | `stepId, mas, op` 组合，如 `[s3] SC.CREATE_SM_CONTEXT` | 见 7.2 | env-openamsm `Nsmf_MasOrchestration.yaml` v1.0.0 |
+| OpenAMSM 私有：`Nsmf_MasOrchestration` | `smContextUpdateSync` | POST `/nsmf-mas-orchestration/v1/sm-context-update-sync` | ACTIVATING 同步包 | — | 同上 |
+
+`Nsmf_MasOrchestration` 是 **OpenAMSM Private API**，不是 3GPP `Nsmf_PDUSession` Service。
+
+### 7.5 Modify / Release 的 Capability 对照（候选复用与 TBD）
+
+**Modify（`pdu-mod-v3.yaml`）**
+
+| Step | MAS Operation | Capability | 状态 |
+|---|---|---|---|
+| m0 | `SC.UPDATE_SM_CONTEXT` | TBD（无冻结 ID） | 候选复用需 Schema / Effect / Owner 校验 |
+| m2（可选） | `CA.UPDATE_CHARGING` | TBD | 可能为 marker/stub，不得推断真实 CHF 计费 |
+| m3 | `UPN.MODIFY_UP_SESSION` | `mas.upn.up.session.modify` | **候选复用**（待校验）；与 m5 是两个独立 Invocation |
+| m4 | `SSM.SIGNAL_UE_AN` | `mas.ssm.ue.an.signal` | **候选复用**（待校验）；与建立 s10 的 outcome / correlation 不可混淆 |
+| m5 | `UPN.MODIFY_UP_SESSION` | `mas.upn.up.session.modify` | **候选复用**；第二次独立 occurrence，不复用 m3 的 receipt（05c 中显式画为两条消息） |
+
+原 plan 不自动执行 `PA.UPDATE_SM_POLICY`，与建立阶段的 s6u 不同，不可照抄。
+
+**Release（`pdu-rel-v4.yaml`）**
+
+| Step | MAS Operation | Capability | 状态 |
+|---|---|---|---|
+| r1（可选） | `CA.DELETE_CHARGING` | TBD | 需证明实现，不得推断 CHF 已释放 |
+| r2 | `UPN.DELETE_UP_SESSION` | TBD | 需独立 Owner 结果与资源结算 |
+| r3 | `SSM.SIGNAL_UE_AN`（release=1） | `mas.ssm.ue.an.signal` | **候选复用**；需 Callback / Pending / timeout 合同 |
+| r4 | `PA.DELETE_SM_POLICY` | TBD | 精确资源关联 |
+| r5 | `SC.RELEASE_SM_CONTEXT` | TBD | Host 外部 URI Map 的结束与 tombstone |
+| r6 | `SE.EMIT_EVENTS` | `mas.se.events.emit` | 候选；**不是** 3GPP 状态 Notify 成功证据 |
+| r7（skip） | `SC.COMPENSATE_RELEASE` | 无（不是通用业务 Tool） | OES 补偿节点；不照搬 `compensate_then_replan_once`，只用授权的 exact-original Reconcile |
+
+外部 SBI、NAS Codec、N4/PFCP **不会**因为出现在图中就被列入 Skill Capability；
+Owner exact-original Reconcile 也不是通用业务 Tool。
+
+## 8. 规范版本差异（摘要）
+
+实现侧 OpenAPI 声明 **TS 29.502 V19.5.0 / TS 29.518 V19.6.0**；
+业务设计文档引用 **V19.7.0 / V19.8.0**，Stage 2 目标为 **TS 23.502 V19.9.0**。
+本图集只用已核对的实现版本标注 operationId 与 URI；目标版本的字段级差异**未核对（BLOCKED）**。
+同一版本内 `standard` 与 `modified` 的 path+operationId 集合完全一致（29.502：16 项；29.518：23 项）。
+完整审计见 [evidence/version-audit.md](evidence/version-audit.md)。
+
+## 9. 仍未闭合的部分（本轮）
+
+| 项 | 状态 | 说明 |
 |---|---|---|
-| `05a`–`05g` 一组 3GPP 风格业务生命周期时序图（Establishment / Modification / Release / Service Request / Handover / Callback），事实基线为 `ca-agent-demo` 的 `amf-smf-business-procedure-flowbook-scp-only.zh-CN.md` | 简报复审提交 `4747341`（§3 “05 — AMF–SMF 完整业务生命周期”） | **NOT DELIVERED**：本目录尚无 05a–05g；不得据本目录宣称业务生命周期已图示 |
-| 所有系统图与业务序列图显式绘制 CA-Agent / CA Client Tools / OpenAMSM / 外部 5GC 四个责任域分框 | 简报复审提交 `14704ff`（§3 “05x — 强制标识……”） | **PARTIAL**：图 4 已按纠错 #1 把 5GSM Codec 明确归到 CA Client Tools，并新增“责任域”卡片与 CA-Agent 接入域边框；但四个完整责任域边框（含 Client Tools / OpenAMSM / 外部 5GC 分框）尚未绘制 |
+| `05a`–`05g` 七张业务时序图 | **DELIVERED** | 全部通过 Archify 四道门，附 1440/2048 真实截图 |
+| Establishment 13 项 Capability 追踪 | **DELIVERED** | 13 对 13，差异 0 |
+| 四责任域矩形边框（图 04） | **PARTIAL** | Archify `region` 边界要求互不重叠紧凑矩形；Client Tools 节点位于 CA-Agent 矩形内的消息路径上。当前以 CA-Agent 区域边框 + 责任域卡片 + 节点标签表达，详见 README §5 |
+| UML `opt` / `alt` 组合片段 | **PARTIAL** | Archify 3.2.0 sequence 渲染器不支持该边框；改用命名 phase 段 + 标签前缀 + 卡片条件说明 |
+| `3gpp-openamsm-mas-naming-crosswalk-scp-only.zh-CN.md` | **BLOCKED（来源缺失）** | 该文件在指定分支与 main 上均不存在；命名改用 OpenAPI + inventory 重建，见 evidence/source-inventory.md §3 |
+| `mas-capability-traceability-scp-only.{zh-CN.md,json}` | **BLOCKED（来源缺失）** | 同上；追踪改用 contract.yaml + source-map.json 机械对照 |
+| F12 / F13 流程 | **NOT_IMPLEMENTED** | 无实现证据，未绘图 |
+| V19.7.0 / V19.8.0 差异核对 | **BLOCKED** | 本机无对应 OpenAPI 副本 |
 
 已按 05x 纠错修订的项：
 
 - 纠错 #1：Host SBI Decoder（只做 HTTP/2 / JSON / MIME / Content-ID）与 CA Client Tools 只读 5GSM Codec（类型化投影）分属不同节点、不同责任域。
-- 纠错 #3 / #4：图 4 中 UDM/PCF/CHF 与 UPF 是两个独立外部节点，UPF 标注 `N4 / PFCP`、`不经 SCP`。
-- 纠错 #2 / #5：`201 + Location` 由 Host 产生并沿 SCP 返回；Host → OpenAMSM 为受信私有绑定，不经 SCP 二次转发。
+- 纠错 #2：`201 + Host Location` 由 Host 产生并沿 SCP 返回；OpenAMSM 的 `smContextRef` 不是 AMF 可见 Location。
+- 纠错 #3 / #4：UDM/PCF/CHF 经 SCP，UPF 走 N4/PFCP 且不经 SCP，二者从不合并为一条线。
+- 纠错 #5：AMF→SCP→Host 为公开 Nsmf；OpenAMSM→Host 私有 Namf Relay→Client Tools→SCP→AMF 为 Namf；Host→OpenAMSM 为受信私有绑定。
+- 纠错 #6：F02 的 N2 回传继续原 s10 pending occurrence，不创建新 Modify Skill（05a 后半段）。
+- 纠错 #7：Modify/Release 的 OES Plan 存在但无 CA-SL Procedure，图中虚线 + `DESIGN` + 阻塞标注。
+- 纠错 #8：F12 / F13 在 §7.3 盘点中保留并标 `NOT_IMPLEMENTED`。
 
-其余 05x 纠错（#6–#8）主要作用于尚未交付的业务序列图；四张系统图未出现与之矛盾的内容。
-
-## 8. 复现方式
+## 10. 复现方式
 
 ```bash
-# 需要本机已安装的 Archify（v3.2.0）。以下路径相对于仓库根目录。
+# 需要本机已安装的 Archify（3.2.0）。以下路径相对于仓库根目录。
 ARCHIFY=<archify skill>/bin/archify.mjs
 
-node "$ARCHIFY" finalize architecture .archify/workflow-ca-sl-toolchain-scp-20261119/01-toolchain-panorama.architecture.json docs/architecture/archify/01-toolchain-panorama.html --quality showcase --json
-node "$ARCHIFY" finalize workflow     .archify/workflow-ca-sl-toolchain-scp-20261119/02-offline-build.workflow.json       docs/architecture/archify/02-offline-build.html      --quality showcase --json
-node "$ARCHIFY" finalize architecture .archify/workflow-ca-sl-toolchain-scp-20261119/03-host-admission.architecture.json  docs/architecture/archify/03-host-admission.html     --quality showcase --json
-node "$ARCHIFY" finalize architecture .archify/workflow-ca-sl-toolchain-scp-20261119/04-scp-amf-smf.architecture.json    docs/architecture/archify/04-scp-amf-smf.html        --quality showcase --json
+node "$ARCHIFY" finalize architecture docs/architecture/archify/01-toolchain-panorama.architecture.json docs/architecture/archify/01-toolchain-panorama.html --quality showcase --json
+node "$ARCHIFY" finalize workflow     docs/architecture/archify/02-offline-build.workflow.json         docs/architecture/archify/02-offline-build.html      --quality showcase --json
+node "$ARCHIFY" finalize architecture docs/architecture/archify/03-host-admission.architecture.json   docs/architecture/archify/03-host-admission.html     --quality showcase --json
+node "$ARCHIFY" finalize architecture docs/architecture/archify/04-scp-amf-smf.architecture.json      docs/architecture/archify/04-scp-amf-smf.html        --quality showcase --json
+node "$ARCHIFY" finalize sequence     docs/architecture/archify/05a-establishment-sequence.sequence.json docs/architecture/archify/05a-establishment-sequence.html --quality showcase --json
+node "$ARCHIFY" finalize architecture docs/architecture/archify/05a-ops-establishment-capabilities.architecture.json docs/architecture/archify/05a-ops-establishment-capabilities.html --quality showcase --json
+# 05b–05g 同构，按 <name>.sequence.json → <name>.html 替换
 ```
 
 可编辑源文件与 HTML 并列存放于 `docs/architecture/archify/`，便于评审直接修改与重渲染。
+验收记录见 [evidence/acceptance.md](evidence/acceptance.md)。

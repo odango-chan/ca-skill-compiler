@@ -1,0 +1,334 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "05e · 网络侧触发 Session Release（SCP-only）",
+    "subtitle": "F08 设计时序 · 受信 Owner 触发未实现 · 不得把取消当成功",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "docs/architecture/archify/05e-network-release-sequence.html"
+  },
+  "participants": [
+    {
+      "id": "pcf",
+      "type": "external",
+      "label": "PCF"
+    },
+    {
+      "id": "scp",
+      "type": "cloud",
+      "label": "SCP"
+    },
+    {
+      "id": "smf",
+      "type": "backend",
+      "label": "OpenAMSM SMF"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "CA-Agent Host"
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "Client Tools"
+    },
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF"
+    },
+    {
+      "id": "ue",
+      "type": "external",
+      "label": "UE / gNB"
+    },
+    {
+      "id": "upf",
+      "type": "external",
+      "label": "UPF"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 340,
+      "label": "alt 网络触发"
+    },
+    {
+      "from": 348,
+      "to": 600,
+      "label": "Release Run（DESIGN）"
+    },
+    {
+      "from": 608,
+      "to": 880,
+      "label": "资源结算"
+    },
+    {
+      "from": 888,
+      "to": 1180,
+      "label": "Namf 与回执"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01",
+      "from": "pcf",
+      "to": "scp",
+      "y": 168,
+      "label": "PCF 通知（经 SCP）",
+      "variant": "default"
+    },
+    {
+      "id": "m02",
+      "from": "scp",
+      "to": "smf",
+      "y": 200,
+      "label": "OpenAMSM callback URI",
+      "variant": "default"
+    },
+    {
+      "id": "m03",
+      "from": "smf",
+      "to": "host",
+      "y": 232,
+      "label": "受信 scoped release 触发（未实现）",
+      "variant": "dashed"
+    },
+    {
+      "id": "m04",
+      "from": "host",
+      "to": "tools",
+      "y": 264,
+      "label": "选择既有 Session 与 Release Run",
+      "variant": "dashed"
+    },
+    {
+      "id": "m05",
+      "from": "tools",
+      "to": "smf",
+      "y": 296,
+      "label": "r2 UPN.DELETE_UP_SESSION（DESIGN）",
+      "variant": "dashed"
+    },
+    {
+      "id": "m06",
+      "from": "smf",
+      "to": "upf",
+      "y": 328,
+      "label": "PFCP Deletion Type 54",
+      "variant": "default"
+    },
+    {
+      "id": "m07",
+      "from": "upf",
+      "to": "smf",
+      "y": 360,
+      "label": "PFCP result",
+      "variant": "return"
+    },
+    {
+      "id": "m08",
+      "from": "smf",
+      "to": "scp",
+      "y": 392,
+      "label": "Npcf_SMPolicyControl_Delete",
+      "variant": "default"
+    },
+    {
+      "id": "m09",
+      "from": "scp",
+      "to": "pcf",
+      "y": 424,
+      "label": "PCF 删除",
+      "variant": "default"
+    },
+    {
+      "id": "m10",
+      "from": "pcf",
+      "to": "scp",
+      "y": 456,
+      "label": "结果",
+      "variant": "return"
+    },
+    {
+      "id": "m11",
+      "from": "scp",
+      "to": "smf",
+      "y": 488,
+      "label": "结果",
+      "variant": "return"
+    },
+    {
+      "id": "m12",
+      "from": "smf",
+      "to": "host",
+      "y": 520,
+      "label": "私有 Namf Relay：N1/N2 释放",
+      "variant": "security"
+    },
+    {
+      "id": "m13",
+      "from": "host",
+      "to": "tools",
+      "y": 552,
+      "label": "fixed Namf egress",
+      "variant": "security"
+    },
+    {
+      "id": "m14",
+      "from": "tools",
+      "to": "scp",
+      "y": 584,
+      "label": "Namf_Communication_N1N2MessageTransfer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m15",
+      "from": "scp",
+      "to": "amf",
+      "y": 616,
+      "label": "释放信令",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m16",
+      "from": "amf",
+      "to": "ue",
+      "y": 648,
+      "label": "N1/N2 请求",
+      "variant": "default"
+    },
+    {
+      "id": "m17",
+      "from": "ue",
+      "to": "amf",
+      "y": 680,
+      "label": "完成",
+      "variant": "return"
+    },
+    {
+      "id": "m18",
+      "from": "amf",
+      "to": "scp",
+      "y": 712,
+      "label": "后续 Nsmf Update / Release",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m19",
+      "from": "scp",
+      "to": "host",
+      "y": 744,
+      "label": "Host Location",
+      "variant": "default"
+    },
+    {
+      "id": "m20",
+      "from": "host",
+      "to": "tools",
+      "y": 776,
+      "label": "correlated Owner finalization",
+      "variant": "default"
+    },
+    {
+      "id": "m21",
+      "from": "tools",
+      "to": "smf",
+      "y": 808,
+      "label": "exact original Owner context",
+      "variant": "security"
+    },
+    {
+      "id": "m22",
+      "from": "smf",
+      "to": "tools",
+      "y": 840,
+      "label": "completion 或 UNKNOWN",
+      "variant": "return"
+    },
+    {
+      "id": "m23",
+      "from": "host",
+      "to": "scp",
+      "y": 872,
+      "label": "结果",
+      "variant": "return"
+    },
+    {
+      "id": "m24",
+      "from": "scp",
+      "to": "amf",
+      "y": 904,
+      "label": "结果",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "scp",
+      "from": 196,
+      "to": 912,
+      "type": "cloud"
+    },
+    {
+      "participant": "smf",
+      "from": 200,
+      "to": 912,
+      "type": "backend"
+    },
+    {
+      "participant": "host",
+      "from": 232,
+      "to": 912,
+      "type": "backend"
+    },
+    {
+      "participant": "tools",
+      "from": 264,
+      "to": 912,
+      "type": "backend"
+    },
+    {
+      "participant": "amf",
+      "from": 616,
+      "to": 912,
+      "type": "external"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "当前源代码证据",
+      "items": [
+        "网络侧触发与 UE/AMF 发起释放不是同一个入口，不得伪造 Create 或无依据新建 SM Context",
+        "PCF 通知仍先经 SCP 落到 OpenAMSM，再进入 Owner 处理",
+        "SMF-local timer / decision 是 Owner 内部触发，不是外部业务入口",
+        "既有能力：Npcf_SMPolicyControl_Delete、PFCP Deletion Type 54、私有 Namf Relay 与 fixed Namf egress"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "未实现缺口（不得视为已接通）",
+      "items": [
+        "受信 scoped release trigger 到 Host：NOT_IMPLEMENTED",
+        "无冻结的 CA-SL v1alpha5 Release Procedure：DESIGN / NOT_IMPLEMENTED",
+        "callback / recovery 闭环未闭合，Host 无法证明同一 occurrence",
+        "cancellation 不得记录为成功；未知副作用不得重放"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "归属与下一步",
+      "items": [
+        "env-openamsm W4：Owner 触发、callback 与 agent_step Release 接线",
+        "ca-agent-demo W0/W6：Host Lifecycle Router、Release Run 与资源结算",
+        "ca-skills W3：冻结 Release Procedure 与受信触发契约",
+        "总体状态：DESIGN / NOT_QUALIFIED，本图不构成 E2E 证据"
+      ]
+    }
+  ]
+}

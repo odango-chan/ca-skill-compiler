@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "receiptId": "530dc6b6-c815-4c90-b520-bdc5545748dd",
+  "receiptId": "73ec9815-8645-42d4-a8a7-9e1527cfbca3",
   "status": "current",
   "command": "deliver",
   "type": "architecture",
-  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.archify\\workflow-ca-sl-toolchain-scp-20261119\\01-toolchain-panorama.architecture.json",
+  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\01-toolchain-panorama.architecture.json",
   "output": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\01-toolchain-panorama.html",
   "specification": {
     "sha256": "a8ff0981942e91becf35acf2f2ea3c99f6f9892a3126f97786a71b5e4aac9559",

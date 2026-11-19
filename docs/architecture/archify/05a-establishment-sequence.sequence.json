@@ -1,0 +1,429 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "05a · PDU Session Establishment 与 N2 结果回传（SCP-only）",
+    "subtitle": "F01 + F02 设计时序 · CA-SL v1alpha5 · OpenAMSM MAS policy-first · DESIGN / NOT_QUALIFIED",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "docs/architecture/archify/05a-establishment-sequence.html"
+  },
+  "participants": [
+    {
+      "id": "ue",
+      "type": "external",
+      "label": "UE / gNB"
+    },
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF"
+    },
+    {
+      "id": "scp",
+      "type": "cloud",
+      "label": "SCP"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "CA-Agent Host"
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "Client Tools"
+    },
+    {
+      "id": "smf",
+      "type": "backend",
+      "label": "OpenAMSM SMF"
+    },
+    {
+      "id": "nf",
+      "type": "external",
+      "label": "UDM / PCF"
+    },
+    {
+      "id": "upf",
+      "type": "external",
+      "label": "UPF"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 660,
+      "label": "F01 Create 与 201 Location"
+    },
+    {
+      "from": 666,
+      "to": 1040,
+      "label": "s3r–s8 Owner 资源"
+    },
+    {
+      "from": 1046,
+      "to": 1330,
+      "label": "s10 N1N2 Owner Pending"
+    },
+    {
+      "from": 1336,
+      "to": 1360,
+      "label": "F02 N2 结果回传"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01",
+      "from": "ue",
+      "to": "amf",
+      "y": 168,
+      "label": "N1 Establishment Request 0xC1",
+      "variant": "default"
+    },
+    {
+      "id": "m02",
+      "from": "amf",
+      "to": "scp",
+      "y": 200,
+      "label": "Nsmf_PDUSession_CreateSMContext",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m03",
+      "from": "scp",
+      "to": "host",
+      "y": 232,
+      "label": "Target-apiRoot = Host Nsmf"
+    },
+    {
+      "id": "m04",
+      "from": "host",
+      "to": "tools",
+      "y": 264,
+      "label": "原始 N1 artifactRef（只读）"
+    },
+    {
+      "id": "m05",
+      "from": "tools",
+      "to": "host",
+      "y": 296,
+      "label": "typed 投影：pti / PDU Type / SSC",
+      "variant": "return"
+    },
+    {
+      "id": "m06",
+      "from": "host",
+      "to": "tools",
+      "y": 328,
+      "label": "Start Run + s1–s8 dispatch"
+    },
+    {
+      "id": "m07",
+      "from": "tools",
+      "to": "smf",
+      "y": 360,
+      "label": "masOrchestrationInvoke s1/s2/s3",
+      "variant": "security"
+    },
+    {
+      "id": "m08",
+      "from": "smf",
+      "to": "scp",
+      "y": 392,
+      "label": "Nudm / Npcf 既有 SBI"
+    },
+    {
+      "id": "m09",
+      "from": "scp",
+      "to": "nf",
+      "y": 424,
+      "label": "NF SBI 请求"
+    },
+    {
+      "id": "m10",
+      "from": "nf",
+      "to": "scp",
+      "y": 456,
+      "label": "NF 响应",
+      "variant": "return"
+    },
+    {
+      "id": "m11",
+      "from": "scp",
+      "to": "smf",
+      "y": 488,
+      "label": "NF 结果",
+      "variant": "return"
+    },
+    {
+      "id": "m12",
+      "from": "smf",
+      "to": "upf",
+      "y": 520,
+      "label": "PFCP Establishment Type 50"
+    },
+    {
+      "id": "m13",
+      "from": "upf",
+      "to": "smf",
+      "y": 552,
+      "label": "PFCP result",
+      "variant": "return"
+    },
+    {
+      "id": "m14",
+      "from": "smf",
+      "to": "tools",
+      "y": 584,
+      "label": "s3 smContextRef + s8 结果",
+      "variant": "return"
+    },
+    {
+      "id": "m15",
+      "from": "tools",
+      "to": "host",
+      "y": 616,
+      "label": "same-Run step results",
+      "variant": "return"
+    },
+    {
+      "id": "m16",
+      "from": "host",
+      "to": "scp",
+      "y": 648,
+      "label": "201 + Host Location",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m17",
+      "from": "scp",
+      "to": "amf",
+      "y": 680,
+      "label": "201 + Host Location",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m18",
+      "from": "host",
+      "to": "tools",
+      "y": 712,
+      "label": "s10 SSM.SIGNAL_UE_AN"
+    },
+    {
+      "id": "m19",
+      "from": "tools",
+      "to": "smf",
+      "y": 744,
+      "label": "original s10 /invoke（DEFERRED）",
+      "variant": "security"
+    },
+    {
+      "id": "m20",
+      "from": "smf",
+      "to": "host",
+      "y": 776,
+      "label": "私有 Namf Relay",
+      "variant": "security"
+    },
+    {
+      "id": "m21",
+      "from": "host",
+      "to": "tools",
+      "y": 808,
+      "label": "fixed Namf egress",
+      "variant": "security"
+    },
+    {
+      "id": "m22",
+      "from": "tools",
+      "to": "scp",
+      "y": 840,
+      "label": "Namf_Communication_N1N2MessageTransfer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m23",
+      "from": "scp",
+      "to": "amf",
+      "y": 872,
+      "label": "N1/N2 建立信息",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m24",
+      "from": "amf",
+      "to": "ue",
+      "y": 904,
+      "label": "N2 Resource Setup Request"
+    },
+    {
+      "id": "m25",
+      "from": "ue",
+      "to": "amf",
+      "y": 936,
+      "label": "N2 Setup Response",
+      "variant": "return"
+    },
+    {
+      "id": "m26",
+      "from": "amf",
+      "to": "scp",
+      "y": 968,
+      "label": "Nsmf_PDUSession_UpdateSMContext",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m27",
+      "from": "scp",
+      "to": "host",
+      "y": 1000,
+      "label": "回到同一 Host Location"
+    },
+    {
+      "id": "m28",
+      "from": "host",
+      "to": "tools",
+      "y": 1032,
+      "label": "correlated Owner update"
+    },
+    {
+      "id": "m29",
+      "from": "tools",
+      "to": "smf",
+      "y": 1064,
+      "label": "original Owner Update handler",
+      "variant": "security"
+    },
+    {
+      "id": "m30",
+      "from": "smf",
+      "to": "tools",
+      "y": 1096,
+      "label": "adopted AN result / F-TEID 或 UNKNOWN",
+      "variant": "return"
+    },
+    {
+      "id": "m31",
+      "from": "tools",
+      "to": "host",
+      "y": 1128,
+      "label": "Resume exact original Run",
+      "variant": "return"
+    },
+    {
+      "id": "m32",
+      "from": "host",
+      "to": "tools",
+      "y": 1160,
+      "label": "s11 UPN.MODIFY_UP_SESSION"
+    },
+    {
+      "id": "m33",
+      "from": "tools",
+      "to": "smf",
+      "y": 1192,
+      "label": "fixed Owner operations",
+      "variant": "security"
+    },
+    {
+      "id": "m34",
+      "from": "smf",
+      "to": "upf",
+      "y": 1224,
+      "label": "PFCP Modification Type 52"
+    },
+    {
+      "id": "m35",
+      "from": "upf",
+      "to": "smf",
+      "y": 1256,
+      "label": "PFCP result",
+      "variant": "return"
+    },
+    {
+      "id": "m36",
+      "from": "host",
+      "to": "scp",
+      "y": 1288,
+      "label": "final state + paired response",
+      "variant": "return"
+    },
+    {
+      "id": "m37",
+      "from": "host",
+      "to": "scp",
+      "y": 1320,
+      "label": "paired Update response",
+      "variant": "return"
+    },
+    {
+      "id": "m38",
+      "from": "scp",
+      "to": "amf",
+      "y": 1352,
+      "label": "paired Update response",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "amf",
+      "from": 190,
+      "to": 1360,
+      "type": "external"
+    },
+    {
+      "participant": "host",
+      "from": 196,
+      "to": 1360,
+      "type": "backend"
+    },
+    {
+      "participant": "tools",
+      "from": 380,
+      "to": 1360,
+      "type": "backend"
+    },
+    {
+      "participant": "smf",
+      "from": 418,
+      "to": 1360,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "当前源代码证据",
+      "items": [
+        "CA-SL v1alpha5 Procedure：ca-skills examples/skills/establish-pdu-session-mas/assurance/procedure.yaml（13 个 Operation Node + 1 个终态 Postcondition）",
+        "OpenAMSM 私有入口：Nsmf_MasOrchestration.yaml v1.0.0 / masOrchestrationInvoke / smContextUpdateSync",
+        "OpenAMSM OES：pdu-internet-policy-first-v1.yaml；mas-facade.c 分派与 nsmf-handler.c 的 agent_step 分支存在",
+        "契约候选：ca-client-tools contracts/mas-owner-candidate/v0.2.0/source-map.json（13 项，NOT_QUALIFIED）"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "未实现缺口（不得视为已接通）",
+      "items": [
+        "Host 原生 HTTP/2 Nsmf Listener、SBI Decoder、Host URI Map：NOT_IMPLEMENTED",
+        "Client Tools 只读 5GSM Codec 接线：NOT_IMPLEMENTED（候选 Codec 仅见 ca-client-tools #18）",
+        "原始 N1 的 Owner-private 受信绑定：NOT_IMPLEMENTED，本图不画实线",
+        "Owner Pending 持久化与 Owner Recovery：BLOCKED（进程内 waiter，30 秒上限）"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "协议对照（已核对实现版本）",
+      "items": [
+        "Nsmf_PDUSession_CreateSMContext / operationId=PostSmContexts / POST /nsmf-pdusession/v1/sm-contexts",
+        "Nsmf_PDUSession_UpdateSMContext / operationId=UpdateSmContext / POST /nsmf-pdusession/v1/sm-contexts/{smContextRef}/modify",
+        "Namf_Communication_N1N2MessageTransfer / operationId=N1N2MessageTransfer / POST /namf-comm/v1/ue-contexts/{ueContextId}/n1-n2-messages",
+        "实现 OpenAPI：TS 29.502 V19.5.0、TS 29.518 V19.6.0；设计目标版本 V19.7.0 / V19.8.0 差异未核对",
+        "n2SmInfoType=PDU_RES_SETUP_RSP 是 N2 SM 信息类型；PDUSessionResourceSetupResponseTransfer 是 NGAP Transfer 载荷结构，不是一条完整 NGAP Message"
+      ]
+    }
+  ]
+}

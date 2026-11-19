@@ -1,0 +1,254 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "05g · Callback / Failure / UNKNOWN 与 Reconcile（SCP-only）",
+    "subtitle": "F11 设计时序 · 回调绑定原始 occurrence · 不盲重派未知副作用",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "docs/architecture/archify/05g-callback-failure-sequence.html"
+  },
+  "participants": [
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF"
+    },
+    {
+      "id": "scp",
+      "type": "cloud",
+      "label": "SCP"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "CA-Agent Host"
+    },
+    {
+      "id": "rt",
+      "type": "backend",
+      "label": "Host Runtime"
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "Client Tools"
+    },
+    {
+      "id": "smf",
+      "type": "backend",
+      "label": "OpenAMSM SMF"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 430,
+      "label": "失败通知命中原始 occurrence"
+    },
+    {
+      "from": 438,
+      "to": 700,
+      "label": "重复 / 迟到 / 超时"
+    },
+    {
+      "from": 708,
+      "to": 1050,
+      "label": "UNKNOWN 与授权 Reconcile"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01",
+      "from": "amf",
+      "to": "scp",
+      "y": 168,
+      "label": "Namf_Communication_N1N2TransferFailureNotification",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m02",
+      "from": "scp",
+      "to": "host",
+      "y": 200,
+      "label": "verified callback URI / NF 身份",
+      "variant": "default"
+    },
+    {
+      "id": "m03",
+      "from": "host",
+      "to": "rt",
+      "y": 232,
+      "label": "lookup 精确 occurrence",
+      "variant": "default"
+    },
+    {
+      "id": "m04",
+      "from": "rt",
+      "to": "host",
+      "y": 264,
+      "label": "命中原始 Run / 未命中",
+      "variant": "return"
+    },
+    {
+      "id": "m05",
+      "from": "host",
+      "to": "tools",
+      "y": 296,
+      "label": "失败事件送达原 Owner",
+      "variant": "default"
+    },
+    {
+      "id": "m06",
+      "from": "tools",
+      "to": "smf",
+      "y": 328,
+      "label": "fixed Owner-private callback",
+      "variant": "security"
+    },
+    {
+      "id": "m07",
+      "from": "smf",
+      "to": "tools",
+      "y": 360,
+      "label": "authoritative disposition",
+      "variant": "return"
+    },
+    {
+      "id": "m08",
+      "from": "tools",
+      "to": "rt",
+      "y": 392,
+      "label": "结果 或 UNKNOWN",
+      "variant": "return"
+    },
+    {
+      "id": "m09",
+      "from": "rt",
+      "to": "host",
+      "y": 424,
+      "label": "commit matched result 后才恢复",
+      "variant": "default"
+    },
+    {
+      "id": "m10",
+      "from": "amf",
+      "to": "scp",
+      "y": 456,
+      "label": "重复 / 迟到回调",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m11",
+      "from": "scp",
+      "to": "host",
+      "y": 488,
+      "label": "重复 callback",
+      "variant": "default"
+    },
+    {
+      "id": "m12",
+      "from": "host",
+      "to": "rt",
+      "y": 520,
+      "label": "记录 rejected / replayed",
+      "variant": "default"
+    },
+    {
+      "id": "m13",
+      "from": "rt",
+      "to": "host",
+      "y": 552,
+      "label": "stale / wrong session / invalid scope",
+      "variant": "return"
+    },
+    {
+      "id": "m14",
+      "from": "host",
+      "to": "scp",
+      "y": 584,
+      "label": "适当协议响应",
+      "variant": "return"
+    },
+    {
+      "id": "m15",
+      "from": "scp",
+      "to": "amf",
+      "y": 616,
+      "label": "响应",
+      "variant": "return"
+    },
+    {
+      "id": "m16",
+      "from": "host",
+      "to": "tools",
+      "y": 648,
+      "label": "超时 / Owner 重启：无法证明 NOT_COMMITTED",
+      "variant": "dashed"
+    },
+    {
+      "id": "m17",
+      "from": "tools",
+      "to": "smf",
+      "y": 680,
+      "label": "exact-original authorized Reconcile",
+      "variant": "security"
+    },
+    {
+      "id": "m18",
+      "from": "smf",
+      "to": "tools",
+      "y": 712,
+      "label": "proof 或 no proof",
+      "variant": "return"
+    },
+    {
+      "id": "m19",
+      "from": "tools",
+      "to": "host",
+      "y": 744,
+      "label": "resolved 或 OUTCOME_UNKNOWN",
+      "variant": "return"
+    },
+    {
+      "id": "m20",
+      "from": "host",
+      "to": "rt",
+      "y": 776,
+      "label": "记录 UNKNOWN，不盲重派",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "当前源代码证据",
+      "items": [
+        "AMF 的 Namf_Communication_N1N2TransferFailureNotification 是 Namf 回调，必须经 SCP 到达 Host，不能绕过 SCP",
+        "OpenAMSM SMF 侧已部分存在 callback 处理入口（固定 Owner-private 回调）",
+        "原始 pending occurrence 是唯一合法的关联目标；新的 Run 不可作为 callback 目标"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "未实现缺口（不得视为已接通）",
+      "items": [
+        "Host Callback Relay、occurrence map、durable Run commit：NOT_IMPLEMENTED",
+        "Owner Pending 是进程内 waiter，30 秒上限，无持久化恢复",
+        "因此 timeout 或 SMF 重启永远无法证明 NOT_COMMITTED",
+        "这与 05a 的 F02 缺口同源：N2 结果只能回到原 s10 pending occurrence"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "协议与判定规则",
+      "items": [
+        "只有经授权的 exact-original Reconcile 才能解除 unknown 副作用",
+        "proof query 只做查证，绝不重放 mutation",
+        "N1N2 transfer 的 2xx 既不代表 RAN 已采用 N2，也不代表 NAS 成功",
+        "整体 DESIGN / NOT_QUALIFIED；不得把 cancellation 当作成功"
+      ]
+    }
+  ]
+}

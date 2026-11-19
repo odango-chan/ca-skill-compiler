@@ -1,0 +1,320 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "05f · Service Request / Handover / Path Switch（SCP-only）",
+    "subtitle": "F09 + F10 设计时序 · 操作既有 Session，不重新创建 · 支持范围按子场景",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "docs/architecture/archify/05f-service-request-handover-sequence.html"
+  },
+  "participants": [
+    {
+      "id": "ue",
+      "type": "external",
+      "label": "UE / gNB"
+    },
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF"
+    },
+    {
+      "id": "scp",
+      "type": "cloud",
+      "label": "SCP"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "CA-Agent Host"
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "Client Tools"
+    },
+    {
+      "id": "smf",
+      "type": "backend",
+      "label": "OpenAMSM SMF"
+    },
+    {
+      "id": "upf",
+      "type": "external",
+      "label": "UPF"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 420,
+      "label": "alt upCnxState=ACTIVATING"
+    },
+    {
+      "from": 428,
+      "to": 700,
+      "label": "AN 建立与 N2 结果"
+    },
+    {
+      "from": 708,
+      "to": 980,
+      "label": "alt Handover / Path Switch"
+    },
+    {
+      "from": 988,
+      "to": 1200,
+      "label": "既有 Session 更新"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01",
+      "from": "ue",
+      "to": "amf",
+      "y": 168,
+      "label": "Service Request / N2 事件",
+      "variant": "default"
+    },
+    {
+      "id": "m02",
+      "from": "amf",
+      "to": "scp",
+      "y": 200,
+      "label": "Nsmf_PDUSession_UpdateSMContext",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m03",
+      "from": "scp",
+      "to": "host",
+      "y": 232,
+      "label": "既有 Host Location",
+      "variant": "default"
+    },
+    {
+      "id": "m04",
+      "from": "host",
+      "to": "tools",
+      "y": 264,
+      "label": "既有 Session 资源更新（不 Create）",
+      "variant": "default"
+    },
+    {
+      "id": "m05",
+      "from": "tools",
+      "to": "smf",
+      "y": 296,
+      "label": "smContextUpdateSync ACTIVATING",
+      "variant": "security"
+    },
+    {
+      "id": "m06",
+      "from": "smf",
+      "to": "upf",
+      "y": 328,
+      "label": "PFCP Modification（按需）",
+      "variant": "default"
+    },
+    {
+      "id": "m07",
+      "from": "upf",
+      "to": "smf",
+      "y": 360,
+      "label": "PFCP result",
+      "variant": "return"
+    },
+    {
+      "id": "m08",
+      "from": "smf",
+      "to": "tools",
+      "y": 392,
+      "label": "N2 setup info 或错误",
+      "variant": "return"
+    },
+    {
+      "id": "m09",
+      "from": "tools",
+      "to": "host",
+      "y": 424,
+      "label": "typed response + N2 attachment",
+      "variant": "return"
+    },
+    {
+      "id": "m10",
+      "from": "host",
+      "to": "scp",
+      "y": 456,
+      "label": "Nsmf Update response",
+      "variant": "return"
+    },
+    {
+      "id": "m11",
+      "from": "scp",
+      "to": "amf",
+      "y": 488,
+      "label": "UpdateSMContext response（含 N2 setup）",
+      "variant": "return"
+    },
+    {
+      "id": "m12",
+      "from": "amf",
+      "to": "ue",
+      "y": 520,
+      "label": "AN setup",
+      "variant": "default"
+    },
+    {
+      "id": "m13",
+      "from": "ue",
+      "to": "amf",
+      "y": 552,
+      "label": "AN setup result",
+      "variant": "return"
+    },
+    {
+      "id": "m14",
+      "from": "amf",
+      "to": "scp",
+      "y": 584,
+      "label": "Nsmf_PDUSession_UpdateSMContext",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m15",
+      "from": "scp",
+      "to": "host",
+      "y": 616,
+      "label": "既有 Host 资源",
+      "variant": "default"
+    },
+    {
+      "id": "m16",
+      "from": "host",
+      "to": "tools",
+      "y": 648,
+      "label": "correlate to existing Owner",
+      "variant": "default"
+    },
+    {
+      "id": "m17",
+      "from": "tools",
+      "to": "smf",
+      "y": 680,
+      "label": "N2 result to real handler",
+      "variant": "security"
+    },
+    {
+      "id": "m18",
+      "from": "smf",
+      "to": "tools",
+      "y": 712,
+      "label": "结果",
+      "variant": "return"
+    },
+    {
+      "id": "m19",
+      "from": "amf",
+      "to": "scp",
+      "y": 744,
+      "label": "Nsmf_PDUSession_UpdateSMContext",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m20",
+      "from": "scp",
+      "to": "host",
+      "y": 776,
+      "label": "Host Location 与既有 Session",
+      "variant": "default"
+    },
+    {
+      "id": "m21",
+      "from": "host",
+      "to": "tools",
+      "y": 808,
+      "label": "authorized Owner handover update",
+      "variant": "default"
+    },
+    {
+      "id": "m22",
+      "from": "tools",
+      "to": "smf",
+      "y": 840,
+      "label": "Owner-private Nsmf / N4 handling",
+      "variant": "security"
+    },
+    {
+      "id": "m23",
+      "from": "smf",
+      "to": "upf",
+      "y": 872,
+      "label": "PFCP FAR / F-TEID 更新",
+      "variant": "default"
+    },
+    {
+      "id": "m24",
+      "from": "upf",
+      "to": "smf",
+      "y": 904,
+      "label": "authoritative result",
+      "variant": "return"
+    },
+    {
+      "id": "m25",
+      "from": "smf",
+      "to": "tools",
+      "y": 936,
+      "label": "response",
+      "variant": "return"
+    },
+    {
+      "id": "m26",
+      "from": "host",
+      "to": "scp",
+      "y": 968,
+      "label": "3GPP Update response",
+      "variant": "return"
+    },
+    {
+      "id": "m27",
+      "from": "scp",
+      "to": "amf",
+      "y": 1000,
+      "label": "response",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "当前源代码证据",
+      "items": [
+        "OpenAMSM 源码存在 upCnxState ACTIVATING / DEACTIVATED 与 hoState COMPLETED / CANCELLED 分支",
+        "OpenAMSM 有 F-TEID 与 N4 修改分支：Modification 走 s11 / UPN.MODIFY_UP_SESSION 家族",
+        "Nsmf_MasOrchestration.yaml v1.0.0 定义 smContextUpdateSync，用于 ACTIVATING 同步路径（OpenAMSM Private API，非 3GPP Nsmf_PDUSession）"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "未实现缺口（不得视为已接通）",
+      "items": [
+        "Host 对既有 Session 的路由（existing-Session routing）：NOT_IMPLEMENTED",
+        "子场景支持范围必须逐案验证；分支存在不等于已支持，也不等于该 HO 子场景已通过",
+        "这些流程绝不调用 Create / s1 / s3，既有 SM Context 必须保持存在",
+        "整体 DESIGN / NOT_IMPLEMENTED，不得声称 F09 / F10 已端到端接通"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "归属与下一步",
+      "items": [
+        "ca-agent-demo = W0（Host 路由与既有 Session 关联）",
+        "env-openamsm = W4（SMF Owner 分支与 PFCP 修改）",
+        "ca-client-tools = W1（typed 投影与 Owner-private 绑定）",
+        "整体状态 DESIGN / NOT_QUALIFIED；子场景 feature-gated，按锁定规范与真实响应逐项放行"
+      ]
+    }
+  ]
+}

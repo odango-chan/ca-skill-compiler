@@ -1,0 +1,653 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "05a-ops · Establishment 13 个 Operation Node 的 Capability 追踪",
+    "subtitle": "Skill Node ID + Capability ID（左） → Callable Ref + OpenAMSM MAS Operation（右） · 13 对 13，差异 0 · 候选契约 NOT_QUALIFIED",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "output": "docs/architecture/archify/05a-ops-establishment-capabilities.html"
+  },
+  "components": [
+    {
+      "id": "n1",
+      "type": "backend",
+      "label": "s1 · validate-sm-subscription",
+      "sublabel": "mas.sc.subscription.validate",
+      "pos": [
+        50,
+        60
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c1",
+      "type": "database",
+      "label": "mas::SC.VALIDATE_SUBSCRIPTION",
+      "sublabel": "SC.VALIDATE_SUBSCRIPTION",
+      "pos": [
+        620,
+        60
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n2",
+      "type": "backend",
+      "label": "s2 · skip-secondary-authentication",
+      "sublabel": "mas.saa.secondary.auth",
+      "pos": [
+        50,
+        200
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c2",
+      "type": "database",
+      "label": "mas::SAA.SECONDARY_AUTH",
+      "sublabel": "SAA.SECONDARY_AUTH",
+      "pos": [
+        620,
+        200
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n3",
+      "type": "backend",
+      "label": "s3 · create-sm-context",
+      "sublabel": "mas.sc.context.create",
+      "pos": [
+        50,
+        340
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c3",
+      "type": "database",
+      "label": "mas::SC.CREATE_SM_CONTEXT",
+      "sublabel": "SC.CREATE_SM_CONTEXT",
+      "pos": [
+        620,
+        340
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n4",
+      "type": "backend",
+      "label": "s3r · register-uecm",
+      "sublabel": "mas.sc.uecm.register",
+      "pos": [
+        50,
+        480
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c4",
+      "type": "database",
+      "label": "mas::SC.REGISTER_UECM",
+      "sublabel": "SC.REGISTER_UECM",
+      "pos": [
+        620,
+        480
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n5",
+      "type": "backend",
+      "label": "s3p · establish-sm-policy-association",
+      "sublabel": "mas.pa.sm.policy.create",
+      "pos": [
+        50,
+        620
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c5",
+      "type": "database",
+      "label": "mas::PA.CREATE_SM_POLICY",
+      "sublabel": "PA.CREATE_SM_POLICY",
+      "pos": [
+        620,
+        620
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n6",
+      "type": "backend",
+      "label": "s4 · select-upf-anchor",
+      "sublabel": "mas.ups.anchor.decide",
+      "pos": [
+        50,
+        760
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c6",
+      "type": "database",
+      "label": "mas::UPS.DECIDE_ANCHOR",
+      "sublabel": "UPS.DECIDE_ANCHOR",
+      "pos": [
+        620,
+        760
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n7",
+      "type": "backend",
+      "label": "s5 · allocate-pdu-session-address",
+      "sublabel": "mas.iam.address.allocate",
+      "pos": [
+        50,
+        900
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c7",
+      "type": "database",
+      "label": "mas::IAM.ALLOCATE_ADDRESS",
+      "sublabel": "IAM.ALLOCATE_ADDRESS",
+      "pos": [
+        620,
+        900
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n8",
+      "type": "backend",
+      "label": "s6u · modify-sm-policy-association",
+      "sublabel": "mas.pa.sm.policy.update",
+      "pos": [
+        50,
+        1040
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c8",
+      "type": "database",
+      "label": "mas::PA.UPDATE_SM_POLICY",
+      "sublabel": "PA.UPDATE_SM_POLICY",
+      "pos": [
+        620,
+        1040
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n9",
+      "type": "backend",
+      "label": "s7 · execute-charging-step",
+      "sublabel": "mas.ca.charging.create",
+      "pos": [
+        50,
+        1180
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c9",
+      "type": "database",
+      "label": "mas::CA.CREATE_CHARGING",
+      "sublabel": "CA.CREATE_CHARGING",
+      "pos": [
+        620,
+        1180
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n10",
+      "type": "backend",
+      "label": "s8 · establish-n4-session",
+      "sublabel": "mas.upn.up.session.create",
+      "pos": [
+        50,
+        1320
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c10",
+      "type": "database",
+      "label": "mas::UPN.CREATE_UP_SESSION",
+      "sublabel": "UPN.CREATE_UP_SESSION",
+      "pos": [
+        620,
+        1320
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n11",
+      "type": "backend",
+      "label": "s10 · signal-ue-and-access-network",
+      "sublabel": "mas.ssm.ue.an.signal",
+      "pos": [
+        50,
+        1460
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c11",
+      "type": "database",
+      "label": "mas::SSM.SIGNAL_UE_AN",
+      "sublabel": "SSM.SIGNAL_UE_AN",
+      "pos": [
+        620,
+        1460
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n12",
+      "type": "backend",
+      "label": "s11 · modify-n4-session",
+      "sublabel": "mas.upn.up.session.modify",
+      "pos": [
+        50,
+        1600
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c12",
+      "type": "database",
+      "label": "mas::UPN.MODIFY_UP_SESSION",
+      "sublabel": "UPN.MODIFY_UP_SESSION",
+      "pos": [
+        620,
+        1600
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "n13",
+      "type": "backend",
+      "label": "s13 · record-session-establishment-event",
+      "sublabel": "mas.se.events.emit",
+      "pos": [
+        50,
+        1740
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "c13",
+      "type": "database",
+      "label": "mas::SE.EMIT_EVENTS",
+      "sublabel": "SE.EMIT_EVENTS",
+      "pos": [
+        620,
+        1740
+      ],
+      "size": [
+        500,
+        108
+      ]
+    },
+    {
+      "id": "post",
+      "type": "security",
+      "label": "verify-pdu-session-establishment",
+      "sublabel": "终态 Postcondition · 不是 MAS Tool",
+      "pos": [
+        50,
+        1880
+      ],
+      "size": [
+        500,
+        108
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "CA-SL v1alpha5 Procedure：Skill Node 与 Capability ID",
+      "wraps": [
+        "n1",
+        "n2",
+        "n3",
+        "n4",
+        "n5",
+        "n6",
+        "n7",
+        "n8",
+        "n9",
+        "n10",
+        "n11",
+        "n12",
+        "n13"
+      ],
+      "pad": 22
+    },
+    {
+      "kind": "region",
+      "label": "候选 Callable Ref 与 OpenAMSM MAS Operation（mas:: 前缀为契约占位，未发布）",
+      "wraps": [
+        "c1",
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c8",
+        "c9",
+        "c10",
+        "c11",
+        "c12",
+        "c13"
+      ],
+      "pad": 22
+    }
+  ],
+  "connections": [
+    {
+      "id": "e-n1-n2",
+      "from": "n1",
+      "to": "n2",
+      "label": "PASS",
+      "variant": "default"
+    },
+    {
+      "id": "e-n2-n3",
+      "from": "n2",
+      "to": "n3",
+      "variant": "default"
+    },
+    {
+      "id": "e-n3-n4",
+      "from": "n3",
+      "to": "n4",
+      "variant": "default"
+    },
+    {
+      "id": "e-n4-n5",
+      "from": "n4",
+      "to": "n5",
+      "variant": "default"
+    },
+    {
+      "id": "e-n5-n6",
+      "from": "n5",
+      "to": "n6",
+      "variant": "default"
+    },
+    {
+      "id": "e-n6-n7",
+      "from": "n6",
+      "to": "n7",
+      "variant": "default"
+    },
+    {
+      "id": "e-n7-n8",
+      "from": "n7",
+      "to": "n8",
+      "variant": "default"
+    },
+    {
+      "id": "e-n8-n9",
+      "from": "n8",
+      "to": "n9",
+      "variant": "default"
+    },
+    {
+      "id": "e-n9-n10",
+      "from": "n9",
+      "to": "n10",
+      "variant": "default"
+    },
+    {
+      "id": "e-n10-n11",
+      "from": "n10",
+      "to": "n11",
+      "label": "pending",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-n11-n12",
+      "from": "n11",
+      "to": "n12",
+      "label": "resume",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-n12-n13",
+      "from": "n12",
+      "to": "n13",
+      "variant": "default"
+    },
+    {
+      "id": "e-n13-post",
+      "from": "n13",
+      "to": "post",
+      "label": "verified",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-n1-c1",
+      "from": "n1",
+      "to": "c1",
+      "label": "s1",
+      "variant": "default"
+    },
+    {
+      "id": "e-n2-c2",
+      "from": "n2",
+      "to": "c2",
+      "label": "s2",
+      "variant": "default"
+    },
+    {
+      "id": "e-n3-c3",
+      "from": "n3",
+      "to": "c3",
+      "label": "s3",
+      "variant": "default"
+    },
+    {
+      "id": "e-n4-c4",
+      "from": "n4",
+      "to": "c4",
+      "label": "s3r",
+      "variant": "default"
+    },
+    {
+      "id": "e-n5-c5",
+      "from": "n5",
+      "to": "c5",
+      "label": "s3p",
+      "variant": "default"
+    },
+    {
+      "id": "e-n6-c6",
+      "from": "n6",
+      "to": "c6",
+      "label": "s4",
+      "variant": "default"
+    },
+    {
+      "id": "e-n7-c7",
+      "from": "n7",
+      "to": "c7",
+      "label": "s5",
+      "variant": "default"
+    },
+    {
+      "id": "e-n8-c8",
+      "from": "n8",
+      "to": "c8",
+      "label": "s6u",
+      "variant": "default"
+    },
+    {
+      "id": "e-n9-c9",
+      "from": "n9",
+      "to": "c9",
+      "label": "s7",
+      "variant": "default"
+    },
+    {
+      "id": "e-n10-c10",
+      "from": "n10",
+      "to": "c10",
+      "label": "s8",
+      "variant": "default"
+    },
+    {
+      "id": "e-n11-c11",
+      "from": "n11",
+      "to": "c11",
+      "label": "s10",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-n12-c12",
+      "from": "n12",
+      "to": "c12",
+      "label": "s11",
+      "variant": "default"
+    },
+    {
+      "id": "e-n13-c13",
+      "from": "n13",
+      "to": "c13",
+      "label": "s13",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "13 × 13 对照结果：差异 0（按集合机械核对）",
+      "items": [
+        "左列来源：ca-skills examples/skills/establish-pdu-session-mas/assurance/procedure.yaml 的 13 个 operation 节点",
+        "右列来源：ca-client-tools contracts/mas-owner-candidate/v0.2.0/source-map.json 的 13 个 stepId 与 publicCallable",
+        "Capability ID 来源：同目录 contract.yaml 的 capabilities 列表（13 项，与节点顺序一致）",
+        "核对维度：stepId / capabilityCandidate / publicCallable / 节点 tool 字段；四个集合两两相等",
+        "终态 verify-pdu-session-establishment 只含 postcondition，不计入 13"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "三层命名不可合并（读图规则）",
+      "items": [
+        "3GPP 网络协议层用标准 Service Operation，例如 Nsmf_PDUSession_CreateSMContext",
+        "OpenAMSM 私有层用真实 MAS 名称：Nsmf_MasOrchestration / masOrchestrationInvoke / smContextUpdateSync",
+        "CA-SL 层用真实 Capability ID 与 mas:: 候选 Callable，例如 mas.sc.context.create → mas::SC.CREATE_SM_CONTEXT",
+        "三层通过本图的横向连线关联，不合并成同一个 ID",
+        "OpenAMSM Private API 不是 3GPP Nsmf_PDUSession Service"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "未实现 / 未发布边界",
+      "items": [
+        "MAS ToolCatalog、Callable ID、输入输出 Schema、CapabilityContracts 均未发布，全部为候选引用",
+        "13 个 Operation 的 Owner Receipt / Evidence Guarantee 未发布，source-map gates 全为 BLOCKED",
+        "s2 固定 required=0，仅返回 SKIPPED，不是动态二次认证决策",
+        "s7 为 NOT_IMPL_skip 存根：charging_ref=\"1\" 是步骤完成标记，不是计费预留",
+        "s10 的 /invoke 持有 HTTP 请求直到后续 AMF UpdateSMContext，受 30 秒 Provider 上限约束"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "复核来源与不可越界声明",
+      "items": [
+        "ca-skills 05be9ee8（examples/skills/establish-pdu-session-mas，v1alpha5 正式评审示例）",
+        "env-openamsm 594dec78（Nsmf_MasOrchestration.yaml v1.0.0；plans/establish/pdu-internet-policy-first-v1.yaml）",
+        "ca-client-tools e2922ca4（contracts/mas-owner-candidate/v0.2.0，状态 NOT_QUALIFIED / deployable=false）",
+        "本图只做静态追踪，不代表 Compiler Link 通过、Host 准入或任何 E2E 结果"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "a02cce79-7189-4f01-9cea-98d9d197a543",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05a-ops-establishment-capabilities.architecture.json",
+  "output": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05a-ops-establishment-capabilities.html",
+  "specification": {
+    "sha256": "9b058c40612be99e83d01fee79ee48ac06508119748cf41695afdc51390d417c",
+    "bytes": 13446
+  },
+  "artifact": {
+    "sha256": "2730c37fa861a8351d4beee1d4f4bf5b244001b94eef48b9d23bb5c3cc90595a",
+    "bytes": 888226
+  }
+}

@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "receiptId": "a3ae71d4-1dbc-4758-ae10-44378091ccc4",
+  "receiptId": "f388e760-de4d-4a1f-9f9b-b32919f02fe6",
   "status": "current",
   "command": "deliver",
   "type": "architecture",
-  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.archify\\workflow-ca-sl-toolchain-scp-20261119\\04-scp-amf-smf.architecture.json",
+  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\04-scp-amf-smf.architecture.json",
   "output": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\04-scp-amf-smf.html",
   "specification": {
     "sha256": "e0f65aef3c919ba7efbd97e641c678e17b89764b8389eb79322442093288c925",

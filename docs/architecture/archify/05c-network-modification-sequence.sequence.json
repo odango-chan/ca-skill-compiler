@@ -1,0 +1,327 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "05c · 网络 / PCF 触发 Session Modification（SCP-only）",
+    "subtitle": "F05 设计时序 · 不重建 Session · 受信 Owner 事件桥接未实现",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "docs/architecture/archify/05c-network-modification-sequence.html"
+  },
+  "participants": [
+    {
+      "id": "pcf",
+      "type": "external",
+      "label": "PCF"
+    },
+    {
+      "id": "scp",
+      "type": "cloud",
+      "label": "SCP"
+    },
+    {
+      "id": "smf",
+      "type": "backend",
+      "label": "OpenAMSM SMF"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "CA-Agent Host"
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "Client Tools"
+    },
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF"
+    },
+    {
+      "id": "ue",
+      "type": "external",
+      "label": "UE / gNB"
+    },
+    {
+      "id": "upf",
+      "type": "external",
+      "label": "UPF"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 250,
+      "label": "PCF 通知经 SCP"
+    },
+    {
+      "from": 258,
+      "to": 470,
+      "label": "受信事件与 Modify Run"
+    },
+    {
+      "from": 478,
+      "to": 690,
+      "label": "Namf N1/N2"
+    },
+    {
+      "from": 698,
+      "to": 912,
+      "label": "结果关联"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01",
+      "from": "pcf",
+      "to": "scp",
+      "y": 168,
+      "label": "Npcf_SMPolicyControl_Notify",
+      "variant": "default"
+    },
+    {
+      "id": "m02",
+      "from": "scp",
+      "to": "smf",
+      "y": 200,
+      "label": "OpenAMSM callback URI",
+      "variant": "default"
+    },
+    {
+      "id": "m03",
+      "from": "smf",
+      "to": "host",
+      "y": 232,
+      "label": "受信 scoped 事件（未实现）",
+      "variant": "dashed"
+    },
+    {
+      "id": "m04",
+      "from": "host",
+      "to": "tools",
+      "y": 264,
+      "label": "Locate Session + Modify Run（DESIGN）",
+      "variant": "dashed"
+    },
+    {
+      "id": "m05",
+      "from": "tools",
+      "to": "smf",
+      "y": 296,
+      "label": "m0 SC.UPDATE_SM_CONTEXT（DESIGN）",
+      "variant": "dashed"
+    },
+    {
+      "id": "m06",
+      "from": "smf",
+      "to": "tools",
+      "y": 328,
+      "label": "当前 Owner 状态",
+      "variant": "return"
+    },
+    {
+      "id": "m07",
+      "from": "tools",
+      "to": "smf",
+      "y": 360,
+      "label": "m3 UPN.MODIFY_UP_SESSION（DESIGN）",
+      "variant": "dashed"
+    },
+    {
+      "id": "m08",
+      "from": "smf",
+      "to": "upf",
+      "y": 392,
+      "label": "PFCP Modification Type 52",
+      "variant": "default"
+    },
+    {
+      "id": "m09",
+      "from": "upf",
+      "to": "smf",
+      "y": 424,
+      "label": "PFCP result",
+      "variant": "return"
+    },
+    {
+      "id": "m10",
+      "from": "tools",
+      "to": "smf",
+      "y": 456,
+      "label": "m4 SSM.SIGNAL_UE_AN（DESIGN）",
+      "variant": "dashed"
+    },
+    {
+      "id": "m11",
+      "from": "smf",
+      "to": "host",
+      "y": 488,
+      "label": "私有 Namf Relay：N1N2 请求",
+      "variant": "security"
+    },
+    {
+      "id": "m12",
+      "from": "host",
+      "to": "tools",
+      "y": 520,
+      "label": "fixed Namf egress",
+      "variant": "security"
+    },
+    {
+      "id": "m13",
+      "from": "tools",
+      "to": "scp",
+      "y": 552,
+      "label": "Namf_Communication_N1N2MessageTransfer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m14",
+      "from": "scp",
+      "to": "amf",
+      "y": 584,
+      "label": "N1/N2 修改信息",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m15",
+      "from": "amf",
+      "to": "ue",
+      "y": 616,
+      "label": "转发 NAS / RAN 修改",
+      "variant": "default"
+    },
+    {
+      "id": "m16",
+      "from": "ue",
+      "to": "amf",
+      "y": 648,
+      "label": "N1/N2 响应",
+      "variant": "return"
+    },
+    {
+      "id": "m17",
+      "from": "amf",
+      "to": "scp",
+      "y": 680,
+      "label": "Nsmf_PDUSession_UpdateSMContext",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m18",
+      "from": "scp",
+      "to": "host",
+      "y": 712,
+      "label": "Host Location",
+      "variant": "default"
+    },
+    {
+      "id": "m19",
+      "from": "host",
+      "to": "tools",
+      "y": 744,
+      "label": "correlate to original Owner",
+      "variant": "default"
+    },
+    {
+      "id": "m20",
+      "from": "tools",
+      "to": "smf",
+      "y": 776,
+      "label": "exact original occurrence",
+      "variant": "security"
+    },
+    {
+      "id": "m21",
+      "from": "smf",
+      "to": "tools",
+      "y": 808,
+      "label": "m5 UPN.MODIFY_UP_SESSION（DESIGN）",
+      "variant": "dashed"
+    },
+    {
+      "id": "m22",
+      "from": "tools",
+      "to": "host",
+      "y": 840,
+      "label": "resume same operation 或 UNKNOWN",
+      "variant": "return"
+    },
+    {
+      "id": "m23",
+      "from": "host",
+      "to": "scp",
+      "y": 872,
+      "label": "最终响应",
+      "variant": "return"
+    },
+    {
+      "id": "m24",
+      "from": "scp",
+      "to": "amf",
+      "y": 904,
+      "label": "响应",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "scp",
+      "from": 158,
+      "to": 912,
+      "type": "cloud"
+    },
+    {
+      "participant": "smf",
+      "from": 194,
+      "to": 912,
+      "type": "backend"
+    },
+    {
+      "participant": "host",
+      "from": 226,
+      "to": 912,
+      "type": "backend"
+    },
+    {
+      "participant": "tools",
+      "from": 258,
+      "to": 912,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "当前源代码证据",
+      "items": [
+        "PCF 通知经既有 SCP 路径到达 OpenAMSM（Npcf_SMPolicyControl 回调入口存在）",
+        "pdu-mod-v3.yaml 无 PA.UPDATE_SM_POLICY 步骤（对照 Establishment 的 s6u 已具备）",
+        "OpenAMSM 内已有 Namf 作为 producer 的代码路径"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "未实现缺口（不得视为已接通）",
+      "items": [
+        "Host 受信 scoped 事件桥接：NOT_IMPLEMENTED（虚线即此缺口）",
+        "ca-skills 尚无冻结的 v1alpha5 Modify Procedure",
+        "agent_step 对普通业务 Update 的拒绝仍然生效",
+        "步骤顺序随 QoS / AN 结果变化，不得当作单一固定路径"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "归属与下一步",
+      "items": [
+        "ca-agent-demo W0 / W6：事件证据与桥接判定",
+        "env-openamsm W4：Owner-private Modify lifecycle",
+        "ca-skills W2：冻结 Modify Procedure",
+        "总体状态：DESIGN / NOT_QUALIFIED"
+      ]
+    }
+  ]
+}

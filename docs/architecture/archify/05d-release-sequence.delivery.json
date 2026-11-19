@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "f00e8f19-0003-4a35-9927-ac9d65989538",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05d-release-sequence.sequence.json",
+  "output": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05d-release-sequence.html",
+  "specification": {
+    "sha256": "33f457ed16b8e5781f16e4826096c2b48cc1528df2c5eb511619b14bf8f07383",
+    "bytes": 8111
+  },
+  "artifact": {
+    "sha256": "42219294808dcfa118f577e3e88552ba1fb6b3b64a417ae560a32781f3733e6b",
+    "bytes": 854514
+  }
+}

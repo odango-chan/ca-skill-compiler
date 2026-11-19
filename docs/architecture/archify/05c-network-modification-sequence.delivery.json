@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "f847f250-3e7c-4583-9f42-a2f37a17de7d",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05c-network-modification-sequence.sequence.json",
+  "output": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05c-network-modification-sequence.html",
+  "specification": {
+    "sha256": "469e34f0c99d70659f75de005f07590ccc903f2345f78009a11cf8625ce811b2",
+    "bytes": 6861
+  },
+  "artifact": {
+    "sha256": "6025e3fe1523132fbf22b60c075c0e3a9deabed015bab31f3720258f2bd3ce10",
+    "bytes": 850695
+  }
+}
