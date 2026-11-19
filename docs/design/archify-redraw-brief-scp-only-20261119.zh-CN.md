@@ -141,6 +141,39 @@ request:
 
 请从同一 `session-demo` 的外部 Create 开始，向现有 Session 的 Update、Release、Service Request 延展，并在附页说明一个 Nsmf UpdateSMContext API 为什么会触发不同业务流程。每张图下面附 2–4 行“当前源代码证据 / 未实现缺口 / 下一步归属仓”，不要编造 E2E PASS。
 
+### 05x — 强制标识 CA-Agent 与 OpenAMSM 的系统归属（本轮审图补充）
+
+所有 04 系统架构图与 05a–05g 业务序列图，必须显式绘制**代码责任域和协议跨域边界**；不要只在参与者姓名中放一个括号。
+
+| 责任域（分区名称） | 应包含的节点 / Lifeline | 必须排除 |
+|---|---|---|
+| **CA-Agent — Host + Runtime（ca-agent-demo）** | Nsmf HTTP/2 Listener、SBI JSON/MIME Decoder、Ingress/Callback Router、Host Artifact Store、Host SM Context URI Map、Generic CA-SL Runtime/Run Journal、Skill Artifact 的加载/执行 | 原始 NAS 权威状态机、OpenAMSM MAS Facade、PFCP/N4 |
+| **CA Client Tools — 独立共享 Provider（ca-client-tools）** | 只读 5GSM Codec、固定 MAS/Nsmf/Namf SBI Egress、Payload/Owner-private Binary Binder | AMF-facing HTTP/2 Listener、SM Context 业务状态、3GPP N4 Handler |
+| **OpenAMSM — SMF Owner（env-openamsm/upstream/openamsm）** | MAS Facade/Operator、OES 计划参考、GSM/NAS Handler、SMF Session/Policy/Charging/UP 资源 Owner、SBI 消费方、PFCP Client、Namf 业务请求生产者 | CA-SL Runtime、Host URI Map、AMF-facing Nsmf apiRoot |
+| **5GC 外部参与者** | UE、gNB、AMF、SCP、NRF、UDM、PCF、CHF、UPF | 不得归入 CA-Agent / OpenAMSM 代码域；UPF 是外部 Peer，即使由 SMF 控制也不能画进 SMF 进程 |
+
+上述是**代码和职责归属**，不表示实际进程部署方式。Client Tools 可独立共部署或部署为 Provider，须从代码/部署配置验证，不能凭分区假设 Client Tools 与 CA-Agent 共进程。
+
+**八项强制审图纠错：**
+
+1. Host 的 SBI Decoder 只做 HTTP/2、JSON、MIME、Content-ID 校验；**Client Tools 的 5GSM Codec** 才做只读 NAS 投影；**OpenAMSM GSM Handler** 才执行权威 NAS 业务逻辑。三者不可合并为一个“解码”节点。
+2. 初始 s3 返回的 OpenAMSM 内部 smContextRef **不是**对 AMF 的 Location。**CA-Agent Host** 持久映射并生成 `201 + Host Location`，沿 SCP 返回。
+3. CA-Agent 不是整个 SMF。它不执行 Nudm/Npcf/N4 或 PFCP Session Establishment/Modification/Deletion；**OpenAMSM 执行**，UPF 作为外部 N4 Peer。
+4. OpenAMSM → UDM/PCF/CHF 的 SBI 走 SCP；OpenAMSM SMF → UPF 的 **PFCP/N4 不走 SCP**。不能把 UDM、PCF、UPF 画在一个“其他 NF”生命线下，尤其不能画成同一种通信协议。
+5. AMF→SCP→CA-Agent Host 为公开 Nsmf；OpenAMSM→CA-Agent Host 私有 Namf Relay→Client Tools→SCP→AMF 为 Namf；AMF callback→SCP→CA-Agent Host→原 Owner/Run。Host→OpenAMSM MAS 是受信私有调用（显式例外），不能经 SCP 再选回 Host。
+6. CA-SL Skill 是**Runtime 读取执行的 Artifact**，不是独立的分布式网元；F02 N2 结果回传继续原 s10 pending，不再创建一个 Modify Skill。
+7. Modify/Release 对应的 OpenAMSM OES Plan 已有源码，但 ca-skills 尚未有对应的可执行 v1alpha5 Procedure；`agent_step` 普通 business Update / Release 仍拒绝。当前为**目标设计**，虚线、文字和验收状态必须同时表达。
+8. 有 7 个业务图并不等于 F01–F13 都已经单独图示；F12 Retrieve/SendMOData、F13 可选 Event/Reachability 必须放入 Feature 盘点/按支持情况单独绘图，缺源码则标 NOT_IMPLEMENTED，不把可选流程凭空画成已实现。
+
+**跨域序列图布局**：推荐自左向右 `UE/RAN, AMF, SCP | CA-Agent Host/Runtime | CA Client Tools | OpenAMSM SMF | UDM/PCF/UPF`；用 Archify 原生 Group/Swimlane/Container 表达 CA-Agent、CA Client Tools、OpenAMSM、外部 5GC。若真实 Archify Skill 不支持一个可编辑 JSON 中的分组，采用分图/组边框加明显标签，但不能用仅靠颜色的区分。
+
+每个跨域消息箭头必须命名接口或数据：`Nsmf Create/Update/Release`、`SBI JSON/multipart`、`typed Provider invoke`、`Owner-private MAS /invoke`、`Namf N1N2`、`N4/PFCP`、`201 Host Location`、`raw N1 Owner binding（未实现）`。用实线表示已经由真实源码验证的调用，用虚线表示待实施接口；整个系统的目标端到端时序必须标为 DESIGN/NOT_QUALIFIED，而不能因为局部 Handler 源码存在就说 E2E PASS。
+
+**新核对后的权威流程文档**：
+[ca-agent-demo AMF–SMF 业务流程全集和责任域复审](https://github.com/odango-chan/ca-agent-demo/blob/docs/mas-v1alpha5-temporal-e2e-review-20261118/docs/design/amf-smf-business-procedure-flowbook-scp-only.zh-CN.md)
+（里面已用 Mermaid box 标出 CA-Agent / CA Client Tools / OpenAMSM / External，并修正原七图中的 SBI 与 N4 混线、Release Complete 命名等问题）。
+[分域后的总架构图](https://github.com/odango-chan/ca-agent-demo/blob/docs/mas-v1alpha5-temporal-e2e-review-20261118/docs/design/host-sbi-http2-decoded-skill-architecture.zh-CN.md)。
+
 ## 4. 表现方式
 
 - 文档风格：类似 3GPP/OASIS/系统架构评审资料，非宣传海报；白底/浅灰底、深灰线条、最多一种低饱和度强调色。
