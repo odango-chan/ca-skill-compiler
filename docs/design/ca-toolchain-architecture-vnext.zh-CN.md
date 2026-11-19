@@ -188,5 +188,23 @@ flowchart TD
 
 隔离 Host 只有在显式 opt-in 且测试策略允许时，才可接收 Development Artifact；生产 Host 必须拒收 Development Artifact。通过准入后，派发、恢复前复核、结算和 Reconcile 仍须按原始 Operation occurrence 执行。UNKNOWN 只能进入经授权的 exact-original Reconcile，不得盲目重试。
 
-原三张图的可编辑 Archify JSON 与 HTML 目前只在评审工作区生成，第四张 SCP SBI 图尚待重绘；在这些源文件正式进入仓库前，本节作为其语义和命名基线。不要在仓库文档中使用某台开发机的绝对 Windows 路径作为共享链接。
+## 8. 成图与可编辑源
+
+本节语义已按 scp-only 简报重绘为四张正式图，可编辑源与离线 HTML 并列存放在仓库目录
+[`docs/architecture/archify/`](../architecture/archify/05-appendix-minimal-examples.zh-CN.md)：
+
+| 图 | 离线 HTML | 可编辑源 | 图表类型 |
+|---|---|---|---|
+| 01 工具链全景 | `01-toolchain-panorama.html` | `01-toolchain-panorama.architecture.json` | architecture |
+| 02 离线编译与链接 | `02-offline-build.html` | `02-offline-build.workflow.json` | workflow |
+| 03 Host Admission 与执行 | `03-host-admission.html` | `03-host-admission.architecture.json` | architecture |
+| 04 SCP-only AMF–SMF SBI | `04-scp-amf-smf.html` | `04-scp-amf-smf.architecture.json` | architecture |
+
+字段来源、最小示例、跨图摘要追踪表与逐条一致性核对见
+[附页 05](../architecture/archify/05-appendix-minimal-examples.zh-CN.md)。图中统一案例为 `session-demo`，
+`sha256:…mas` / `…ctx` / `…artifact` / `…provider` 只是追踪占位符。
+
+这些图是设计评审材料，不是实现完成或 E2E 通过的证据：Development Build、Host 原生 SBI 入口、
+Owner-private 原始 N1 输入、NRF 单一发布者与 Owner Recovery 均未实现或未验收，图中以虚线、
+“未实现”标签或明确的 NOT_IMPLEMENTED 说明表达。不要在仓库文档中使用某台开发机的绝对 Windows 路径作为共享链接。
 

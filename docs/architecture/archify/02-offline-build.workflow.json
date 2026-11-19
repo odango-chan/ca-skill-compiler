@@ -1,0 +1,296 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "离线编译与链接：从源码到 NOT_ADMITTED 产物",
+    "subtitle": "下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 案例 session-demo",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "output": "docs/architecture/archify/02-offline-build.html"
+  },
+  "lanes": [
+    {
+      "id": "input",
+      "label": "输入（离线：无 Registry、无凭据、无部署授权）"
+    },
+    {
+      "id": "build",
+      "label": "离线编译器"
+    },
+    {
+      "id": "artifact",
+      "label": "产物"
+    },
+    {
+      "id": "fail",
+      "label": "失败与阻断",
+      "variant": "exception"
+    }
+  ],
+  "mainPath": [
+    "req",
+    "compile",
+    "link",
+    "eval",
+    "assemble",
+    "manifest",
+    "artifact"
+  ],
+  "nodes": [
+    {
+      "id": "req",
+      "lane": "input",
+      "col": 0,
+      "type": "external",
+      "label": "构建请求",
+      "sublabel": "session-demo 源码 + 锁 + 快照",
+      "tag": "profile=DEVELOPMENT"
+    },
+    {
+      "id": "snaps",
+      "lane": "input",
+      "col": 1,
+      "type": "database",
+      "label": "Interface 快照",
+      "sublabel": "Callable · Schema · Capability · Ingress",
+      "tag": "sha256:…mas / sha256:…ctx"
+    },
+    {
+      "id": "assure_in",
+      "lane": "input",
+      "col": 3,
+      "type": "security",
+      "label": "Assurance Export（可选）",
+      "sublabel": "缺失时只记录义务",
+      "tag": "签发在 Compiler 之外"
+    },
+    {
+      "id": "compile",
+      "lane": "build",
+      "col": 1,
+      "type": "backend",
+      "label": "① Compile",
+      "sublabel": "SKILL.md + Procedure 源",
+      "tag": "v1alpha5 静态规则"
+    },
+    {
+      "id": "link",
+      "lane": "build",
+      "col": 2,
+      "type": "backend",
+      "label": "② Interface Link",
+      "sublabel": "闭包固定 + 类型绑定",
+      "tag": "缺接口即失败"
+    },
+    {
+      "id": "eval",
+      "lane": "build",
+      "col": 3,
+      "type": "backend",
+      "label": "③ 义务评估",
+      "sublabel": "静态声明 + 已有描述符",
+      "tag": "不推断部署状态"
+    },
+    {
+      "id": "assemble",
+      "lane": "build",
+      "col": 4,
+      "type": "backend",
+      "label": "④ Artifact 组装",
+      "sublabel": "规范化 · 逐字节摘要",
+      "tag": "确定性"
+    },
+    {
+      "id": "manifest",
+      "lane": "artifact",
+      "col": 4,
+      "type": "database",
+      "label": "manifest + obligations.json",
+      "sublabel": "逐条义务与状态",
+      "tag": "未来字段：设计草案"
+    },
+    {
+      "id": "artifact",
+      "lane": "artifact",
+      "col": 5,
+      "type": "database",
+      "label": "Linked Development Artifact",
+      "sublabel": "sha256:…artifact",
+      "tag": "LINKED / BUILT / NOT_ADMITTED"
+    },
+    {
+      "id": "link_fail",
+      "lane": "fail",
+      "col": 2,
+      "type": "security",
+      "label": "Link FAIL",
+      "sublabel": "缺 Interface / Callable / Schema",
+      "tag": "原子返回 · 无产物"
+    },
+    {
+      "id": "no_art",
+      "lane": "fail",
+      "col": 3,
+      "type": "security",
+      "label": "没有产物",
+      "sublabel": "BuildResult 只带诊断",
+      "tag": "不得进入 Host"
+    },
+    {
+      "id": "unresolved",
+      "lane": "fail",
+      "col": 4,
+      "type": "messagebus",
+      "label": "义务 UNRESOLVED",
+      "sublabel": "缺 Evidence / Assurance",
+      "tag": "不阻断 Build"
+    },
+    {
+      "id": "host_stop",
+      "lane": "fail",
+      "col": 5,
+      "type": "security",
+      "label": "Host 拒绝派发",
+      "sublabel": "开发产物只进隔离测试",
+      "tag": "生产 Host 一律拒绝"
+    }
+  ],
+  "edges": [
+    {
+      "id": "req-compile",
+      "from": "req",
+      "to": "compile",
+      "label": "源码 + 锁",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "snaps-link",
+      "from": "snaps",
+      "to": "link",
+      "label": "精确快照",
+      "variant": "emphasis"
+    },
+    {
+      "id": "compile-link",
+      "from": "compile",
+      "to": "link",
+      "label": "静态 AST",
+      "variant": "default",
+      "role": "main"
+    },
+    {
+      "id": "link-eval",
+      "from": "link",
+      "to": "eval",
+      "label": "链接记录",
+      "variant": "default",
+      "role": "main"
+    },
+    {
+      "id": "eval-assemble",
+      "from": "eval",
+      "to": "assemble",
+      "label": "义务清单",
+      "variant": "default",
+      "role": "main"
+    },
+    {
+      "id": "assemble-manifest",
+      "from": "assemble",
+      "to": "manifest",
+      "label": "义务记录",
+      "variant": "default",
+      "role": "main"
+    },
+    {
+      "id": "manifest-artifact",
+      "from": "manifest",
+      "to": "artifact",
+      "label": "文件清单",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "assure-eval",
+      "from": "assure_in",
+      "to": "eval",
+      "label": "可选输入",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "link-reject",
+      "from": "link",
+      "to": "link_fail",
+      "label": "闭包不成立",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "reject-noart",
+      "from": "link_fail",
+      "to": "no_art",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "eval-unresolved",
+      "from": "eval",
+      "to": "unresolved",
+      "label": "缺 Evidence",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "unresolved-manifest",
+      "from": "unresolved",
+      "to": "manifest",
+      "label": "记为未决义务",
+      "variant": "dashed"
+    },
+    {
+      "id": "artifact-stop",
+      "from": "artifact",
+      "to": "host_stop",
+      "label": "NOT_ADMITTED",
+      "variant": "dashed",
+      "role": "branch"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "session-demo 追踪摘要（占位标记，非真实校验和）",
+      "items": [
+        "MAS 源：sha256:…mas",
+        "Context 接口：sha256:…ctx",
+        "Linked Artifact：sha256:…artifact",
+        "Runtime Provider：sha256:…provider"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Procedure 局部节选（不可独立编译，完整字段见 ca-skills v1alpha5 源）",
+      "items": [
+        "start: validate-sm-subscription",
+        "nodes:",
+        "  validate-sm-subscription:",
+        "    operation:",
+        "      tool: mas::SC.VALIDATE_SUBSCRIPTION",
+        "      arguments:",
+        "        psi: context.request.pduSessionId",
+        "        dnn: context.request.dnn"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "本图边界",
+      "items": [
+        "Deployment Grant 不是离线构建输入，只交 Host Admission",
+        "Compiler 不访问 Registry、不部署 Provider、不签发授权",
+        "本图为设计提案；Compiler v2.0.2 尚无此 Development Build 入口"
+      ]
+    }
+  ]
+}

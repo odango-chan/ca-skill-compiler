@@ -1,0 +1,499 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "SCP-only AMF–SMF SBI 系统架构：Host 接管接口，OpenAMSM 保留 SMF 业务",
+    "subtitle": "设计提案（DESIGN PROPOSAL / NOT IMPLEMENTED）· CA-SL v1alpha5 冻结 · 案例 session-demo",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "output": "docs/architecture/archify/04-scp-amf-smf.html"
+  },
+  "components": [
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF",
+      "sublabel": "Nsmf 消费者（真实 / Mock）",
+      "tag": "不存在直连 Host 的正式路径",
+      "pos": [
+        100,
+        40
+      ],
+      "size": [
+        220,
+        80
+      ]
+    },
+    {
+      "id": "nrf",
+      "type": "cloud",
+      "label": "NRF · NF Service Profile",
+      "sublabel": "Nsmf 服务发布与发现",
+      "tag": "单一受控发布者尚未验收",
+      "pos": [
+        860,
+        40
+      ],
+      "size": [
+        260,
+        80
+      ]
+    },
+    {
+      "id": "scp",
+      "type": "cloud",
+      "label": "SCP",
+      "sublabel": "3GPP 间接通信：H1 / H2 / H3 的唯一网络入口",
+      "tag": "按 Target-apiRoot 路由，不按调用方 NF 类型猜",
+      "pos": [
+        100,
+        180
+      ],
+      "size": [
+        940,
+        68
+      ]
+    },
+    {
+      "id": "listener",
+      "type": "backend",
+      "label": "Host HTTP/2 SBI Listener",
+      "sublabel": "AMF-facing Nsmf apiRoot",
+      "tag": "TLS / h2c + 原始请求 ID",
+      "pos": [
+        400,
+        300
+      ],
+      "size": [
+        260,
+        80
+      ]
+    },
+    {
+      "id": "urimap",
+      "type": "database",
+      "label": "Host SM Context URI Map",
+      "sublabel": "Host 外部 URI ↔ Owner 内部 URI",
+      "tag": "201 Location 始终指向 Host",
+      "pos": [
+        740,
+        300
+      ],
+      "size": [
+        300,
+        80
+      ]
+    },
+    {
+      "id": "decoder",
+      "type": "backend",
+      "label": "SBI Decoder",
+      "sublabel": "JSON + multipart + Content-ID",
+      "tag": "附件按 scope 引用",
+      "pos": [
+        400,
+        420
+      ],
+      "size": [
+        260,
+        80
+      ]
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "Host Artifact Store",
+      "sublabel": "原始 N1 / N2 + 摘要",
+      "tag": "原始字节不出 Host",
+      "pos": [
+        90,
+        420
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "codec",
+      "type": "backend",
+      "label": "5GSM 只读 Codec",
+      "sublabel": "结构化 projection",
+      "tag": "不创建 Session",
+      "pos": [
+        90,
+        540
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "ctx",
+      "type": "backend",
+      "label": "Typed Host Context",
+      "sublabel": "字段来源 + 身份 + 关联",
+      "tag": "已校验的请求投影",
+      "pos": [
+        400,
+        540
+      ],
+      "size": [
+        260,
+        80
+      ]
+    },
+    {
+      "id": "router",
+      "type": "backend",
+      "label": "Host SM Context Router",
+      "sublabel": "Update / Release / Callback",
+      "tag": "不新建 Skill",
+      "pos": [
+        740,
+        540
+      ],
+      "size": [
+        300,
+        80
+      ]
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "Client Tools",
+      "sublabel": "固定 SBI / MAS egress",
+      "tag": "provider/v2：只发出站请求",
+      "pos": [
+        740,
+        660
+      ],
+      "size": [
+        300,
+        80
+      ]
+    },
+    {
+      "id": "skill",
+      "type": "backend",
+      "label": "CA-SL Skill",
+      "sublabel": "establish-pdu-session-mas",
+      "tag": "只接收类型化字段",
+      "pos": [
+        400,
+        660
+      ],
+      "size": [
+        260,
+        80
+      ]
+    },
+    {
+      "id": "runtime",
+      "type": "backend",
+      "label": "Host Runtime / Temporal",
+      "sublabel": "同一 Run 继续执行",
+      "tag": "不恢复 Owner waiter",
+      "pos": [
+        400,
+        780
+      ],
+      "size": [
+        260,
+        80
+      ]
+    },
+    {
+      "id": "openamsm",
+      "type": "backend",
+      "label": "OpenAMSM SMF",
+      "sublabel": "Owner-private apiRoot + 真实 5GSM",
+      "tag": "内部 Owner 端点，不对 AMF 发布",
+      "pos": [
+        740,
+        780
+      ],
+      "size": [
+        300,
+        90
+      ]
+    },
+    {
+      "id": "relay",
+      "type": "backend",
+      "label": "Host Namf Relay Ingress",
+      "sublabel": "接收 Owner 的 Namf 请求",
+      "tag": "Host 内部受信入口",
+      "pos": [
+        400,
+        900
+      ],
+      "size": [
+        260,
+        80
+      ]
+    },
+    {
+      "id": "peers",
+      "type": "external",
+      "label": "UDM / PCF / CHF / NRF",
+      "sublabel": "OpenAMSM 既有出站（本地配置经 SCP）",
+      "tag": "不经 Host",
+      "pos": [
+        740,
+        1030
+      ],
+      "size": [
+        300,
+        80
+      ]
+    },
+    {
+      "id": "upf",
+      "type": "external",
+      "label": "UPF",
+      "sublabel": "N4 / PFCP",
+      "tag": "不经 SCP",
+      "pos": [
+        1060,
+        900
+      ],
+      "size": [
+        140,
+        80
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Host 5GC SBI 接入层：HTTP/2 + 解码 + 原始附件",
+      "wraps": [
+        "listener",
+        "decoder",
+        "store",
+        "codec",
+        "ctx"
+      ],
+      "pad": 20
+    }
+  ],
+  "connections": [
+    {
+      "id": "amf-scp",
+      "from": "amf",
+      "to": "scp",
+      "label": "Nsmf 入站",
+      "variant": "emphasis"
+    },
+    {
+      "id": "amf-cb",
+      "from": "amf",
+      "to": "scp",
+      "label": "Namf 回调",
+      "variant": "security"
+    },
+    {
+      "id": "scp-amf",
+      "from": "scp",
+      "to": "amf",
+      "label": "Namf N1N2",
+      "variant": "emphasis"
+    },
+    {
+      "id": "nrf-scp",
+      "from": "nrf",
+      "to": "scp",
+      "label": "服务发现",
+      "variant": "dashed"
+    },
+    {
+      "id": "scp-listener",
+      "from": "scp",
+      "to": "listener",
+      "label": "Nsmf 转发",
+      "variant": "emphasis"
+    },
+    {
+      "id": "listener-scp",
+      "from": "listener",
+      "to": "scp",
+      "label": "201 + Location",
+      "variant": "emphasis"
+    },
+    {
+      "id": "listener-decoder",
+      "from": "listener",
+      "to": "decoder",
+      "label": "MIME 校验",
+      "variant": "default"
+    },
+    {
+      "id": "decoder-store",
+      "from": "decoder",
+      "to": "store",
+      "label": "原始附件",
+      "variant": "default"
+    },
+    {
+      "id": "store-codec",
+      "from": "store",
+      "to": "codec",
+      "label": "只读引用",
+      "variant": "default"
+    },
+    {
+      "id": "codec-ctx",
+      "from": "codec",
+      "to": "ctx",
+      "label": "解码字段",
+      "variant": "default"
+    },
+    {
+      "id": "decoder-ctx",
+      "from": "decoder",
+      "to": "ctx",
+      "label": "JSON 字段",
+      "variant": "default"
+    },
+    {
+      "id": "ctx-skill",
+      "from": "ctx",
+      "to": "skill",
+      "label": "Create 请求",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ctx-router",
+      "from": "ctx",
+      "to": "router",
+      "label": "非 Create",
+      "variant": "default"
+    },
+    {
+      "id": "skill-runtime",
+      "from": "skill",
+      "to": "runtime",
+      "label": "Procedure",
+      "variant": "emphasis"
+    },
+    {
+      "id": "runtime-tools",
+      "from": "runtime",
+      "to": "tools",
+      "label": "MAS 调用",
+      "variant": "emphasis"
+    },
+    {
+      "id": "router-tools",
+      "from": "router",
+      "to": "tools",
+      "label": "Nsmf 转发",
+      "variant": "default"
+    },
+    {
+      "id": "router-map",
+      "from": "router",
+      "to": "urimap",
+      "label": "外部↔Owner",
+      "variant": "default"
+    },
+    {
+      "id": "tools-openamsm",
+      "from": "tools",
+      "to": "openamsm",
+      "label": "Owner 私有绑定",
+      "variant": "security"
+    },
+    {
+      "id": "tools-scp",
+      "from": "tools",
+      "to": "scp",
+      "label": "正式 Namf（经 SCP）",
+      "variant": "emphasis"
+    },
+    {
+      "id": "openamsm-relay",
+      "from": "openamsm",
+      "to": "relay",
+      "label": "私有中继",
+      "variant": "security"
+    },
+    {
+      "id": "relay-tools",
+      "from": "relay",
+      "to": "tools",
+      "label": "待发送 Namf",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "openamsm-peers",
+      "from": "openamsm",
+      "to": "peers",
+      "label": "既有 SBI（经 SCP）",
+      "variant": "default"
+    },
+    {
+      "id": "openamsm-upf",
+      "from": "openamsm",
+      "to": "upf",
+      "label": "N4 / PFCP",
+      "variant": "default"
+    },
+    {
+      "id": "store-openamsm",
+      "from": "store",
+      "to": "openamsm",
+      "label": "原始 N1（未实现）",
+      "variant": "dashed",
+      "fromSide": "left",
+      "toSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "session-demo：AMF 经 SCP 发来的 Create（结构示意，非完整报文）",
+      "items": [
+        "POST /nsmf-pdusession/v1/sm-contexts  HTTP/2",
+        "JSON：pduSessionId=10，dnn=internet，sNssai={sst:1}",
+        "JSON：n1SmMsg = { contentId: \"n1-part\" }",
+        "multipart 附件 n1-part：原始 N1 NAS 字节",
+        "SCP 的下一跳是 Host apiRoot；AMF 不直连 Host"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "解码后交给 Skill 的类型化请求（示意，非 CA-SL 语法）",
+      "items": [
+        "request.pduSessionId = 10（来自 SBI JSON）",
+        "request.dnn = internet（来自 SBI JSON）",
+        "request.sNssai.sst = 1（来自 SBI JSON）",
+        "request.pti / requestedPduSessionType / requestedSscMode（来自 NAS 解码）",
+        "每个字段保留来源，原始 N1 不进 Skill 参数"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "N1 的两条路径必须分开",
+      "items": [
+        "路径 A（已设计）：原始 N1 → Artifact Store → 只读 Codec → 类型化字段 → Skill",
+        "路径 B（未实现，虚线）：原始 N1 → Owner-private 绑定 → OpenAMSM GSM Handler",
+        "只做路径 A 不能宣称 NAS 语义保真的 E2E"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "路由闭环与已知缺口",
+      "items": [
+        "Create 的 201 Location 指向 Host；后续 Update / Release 仍回到同一 Host 资源",
+        "Host → Owner 是同一逻辑 SMF 的内部受信绑定，不再经 SCP 形成环路",
+        "OpenAMSM 仍是唯一 Nsmf 服务发布者；Host 与 Owner 冲突注册未验收",
+        "Owner Pending、Reconcile proof、NRF 双地址策略均未完成"
+      ]
+    }
+  ]
+}

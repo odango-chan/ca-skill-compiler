@@ -1,0 +1,480 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "CA-SL 工具链全景：发布、离线构建与 Host 准入",
+    "subtitle": "下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 贯穿案例 session-demo",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "output": "docs/architecture/archify/01-toolchain-panorama.html"
+  },
+  "components": [
+    {
+      "id": "iface_pub",
+      "type": "backend",
+      "label": "Interface Publisher",
+      "sublabel": "类型 / OpenAPI / Owner 契约",
+      "pos": [
+        80,
+        50
+      ],
+      "size": [
+        190,
+        70
+      ]
+    },
+    {
+      "id": "iface_pkg",
+      "type": "backend",
+      "label": "Interface Package",
+      "sublabel": "Callable · Schema · Capability · Ingress",
+      "tag": "sha256:…mas",
+      "pos": [
+        320,
+        50
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "resolver",
+      "type": "cloud",
+      "label": "External Resolver",
+      "sublabel": "Studio / CI / 调用方",
+      "pos": [
+        610,
+        50
+      ],
+      "size": [
+        200,
+        70
+      ]
+    },
+    {
+      "id": "lock",
+      "type": "database",
+      "label": "dependencies.lock",
+      "sublabel": "精确快照 + 闭包",
+      "tag": "sha256:…ctx",
+      "pos": [
+        860,
+        50
+      ],
+      "size": [
+        210,
+        80
+      ]
+    },
+    {
+      "id": "cap_catalog",
+      "type": "database",
+      "label": "Capability Catalog",
+      "sublabel": "能力身份 + Callable 成员",
+      "tag": "随 Interface Package 发布",
+      "pos": [
+        320,
+        160
+      ],
+      "size": [
+        240,
+        70
+      ]
+    },
+    {
+      "id": "build_req",
+      "type": "external",
+      "label": "BuildRequest",
+      "sublabel": "源码 + 锁 + 精确快照",
+      "tag": "profile=DEVELOPMENT",
+      "pos": [
+        860,
+        270
+      ],
+      "size": [
+        210,
+        80
+      ]
+    },
+    {
+      "id": "compile",
+      "type": "backend",
+      "label": "Compile",
+      "sublabel": "v1alpha5 静态校验",
+      "tag": "无网络",
+      "pos": [
+        610,
+        270
+      ],
+      "size": [
+        200,
+        70
+      ]
+    },
+    {
+      "id": "link",
+      "type": "backend",
+      "label": "Interface Link",
+      "sublabel": "闭包固定 + 类型绑定",
+      "tag": "缺接口即失败",
+      "pos": [
+        350,
+        270
+      ],
+      "size": [
+        200,
+        70
+      ]
+    },
+    {
+      "id": "artifact",
+      "type": "database",
+      "label": "Linked Skill Artifact",
+      "sublabel": "sha256:…artifact",
+      "tag": "NOT_ADMITTED",
+      "pos": [
+        80,
+        270
+      ],
+      "size": [
+        220,
+        90
+      ]
+    },
+    {
+      "id": "prov_bind",
+      "type": "backend",
+      "label": "Runtime Provider 绑定",
+      "sublabel": "Provider 独立发版 + 实例映射",
+      "tag": "sha256:…provider",
+      "pos": [
+        60,
+        410
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "assurance",
+      "type": "security",
+      "label": "Assurance Export",
+      "sublabel": "签发者 / 范围 / 摘要",
+      "tag": "可缺失 → UNRESOLVED",
+      "pos": [
+        60,
+        510
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "admission",
+      "type": "security",
+      "label": "Host Admission",
+      "sublabel": "材料求交 · 默认拒绝 · 绑定 Invocation",
+      "tag": "开发 / 生产策略不同",
+      "pos": [
+        380,
+        430
+      ],
+      "size": [
+        320,
+        130
+      ]
+    },
+    {
+      "id": "grant",
+      "type": "security",
+      "label": "Deployment Grant",
+      "sublabel": "部署方签发：环境 / 主体 / Scope",
+      "tag": "只交 Host，不进 Compiler",
+      "pos": [
+        800,
+        410
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "invocation",
+      "type": "external",
+      "label": "Invocation Context",
+      "sublabel": "NF 身份 / SM Context / 时限",
+      "tag": "AMF 经 SCP 入站",
+      "pos": [
+        800,
+        510
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "dispatch",
+      "type": "backend",
+      "label": "派发与恢复前复核",
+      "sublabel": "身份 · Scope · 撤销",
+      "tag": "Invocation 级决定",
+      "pos": [
+        380,
+        640
+      ],
+      "size": [
+        320,
+        90
+      ]
+    },
+    {
+      "id": "provider_inst",
+      "type": "backend",
+      "label": "固定 Typed Provider",
+      "sublabel": "按绑定选择，不重新随机",
+      "pos": [
+        800,
+        640
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "reconcile",
+      "type": "messagebus",
+      "label": "受控 Reconcile",
+      "sublabel": "保留原尝试标识 · 不盲重试",
+      "tag": "UNKNOWN 唯一出口",
+      "pos": [
+        380,
+        790
+      ],
+      "size": [
+        320,
+        90
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "① 发布与依赖准备：接口包与 Provider 包各自定版",
+      "wraps": [
+        "iface_pub",
+        "iface_pkg",
+        "resolver",
+        "lock",
+        "cap_catalog"
+      ],
+      "pad": 18
+    },
+    {
+      "kind": "region",
+      "label": "② 离线编译与链接：只接收源码、锁与精确快照",
+      "wraps": [
+        "build_req",
+        "compile",
+        "link",
+        "artifact"
+      ],
+      "pad": 16
+    },
+    {
+      "kind": "security-group",
+      "label": "③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED",
+      "wraps": [
+        "prov_bind",
+        "assurance",
+        "admission",
+        "grant",
+        "invocation",
+        "dispatch",
+        "provider_inst",
+        "reconcile"
+      ],
+      "pad": 18
+    }
+  ],
+  "connections": [
+    {
+      "id": "pub-pkg",
+      "from": "iface_pub",
+      "to": "iface_pkg",
+      "label": "发布",
+      "variant": "emphasis"
+    },
+    {
+      "id": "pkg-resolver",
+      "from": "iface_pkg",
+      "to": "resolver",
+      "label": "分发",
+      "variant": "default"
+    },
+    {
+      "id": "resolver-lock",
+      "from": "resolver",
+      "to": "lock",
+      "label": "锁定",
+      "variant": "default"
+    },
+    {
+      "id": "pkg-catalog",
+      "from": "iface_pkg",
+      "to": "cap_catalog",
+      "label": "导出",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "catalog-link",
+      "from": "cap_catalog",
+      "to": "link",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "lock-req",
+      "from": "lock",
+      "to": "build_req",
+      "label": "锁 + 快照",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "req-compile",
+      "from": "build_req",
+      "to": "compile",
+      "label": "源码",
+      "variant": "emphasis"
+    },
+    {
+      "id": "compile-link",
+      "from": "compile",
+      "to": "link",
+      "label": "AST",
+      "variant": "default"
+    },
+    {
+      "id": "link-artifact",
+      "from": "link",
+      "to": "artifact",
+      "label": "链接",
+      "variant": "emphasis"
+    },
+    {
+      "id": "artifact-admission",
+      "from": "artifact",
+      "to": "admission",
+      "label": "产物 + 闭包",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          190,
+          388
+        ],
+        [
+          540,
+          388
+        ],
+        [
+          540,
+          430
+        ]
+      ]
+    },
+    {
+      "id": "bind-admission",
+      "from": "prov_bind",
+      "to": "admission",
+      "label": "绑定",
+      "variant": "default"
+    },
+    {
+      "id": "assurance-admission",
+      "from": "assurance",
+      "to": "admission",
+      "label": "保证",
+      "variant": "security"
+    },
+    {
+      "id": "grant-admission",
+      "from": "grant",
+      "to": "admission",
+      "label": "授权",
+      "variant": "security"
+    },
+    {
+      "id": "invocation-admission",
+      "from": "invocation",
+      "to": "admission",
+      "label": "调用",
+      "variant": "security"
+    },
+    {
+      "id": "admission-dispatch",
+      "from": "admission",
+      "to": "dispatch",
+      "label": "准入通过",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "dispatch-provider",
+      "from": "dispatch",
+      "to": "provider_inst",
+      "label": "固定实例",
+      "variant": "emphasis"
+    },
+    {
+      "id": "dispatch-reconcile",
+      "from": "dispatch",
+      "to": "reconcile",
+      "label": "UNKNOWN",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三条路径各自定版（session-demo 贯穿）",
+      "items": [
+        "接口：Interface Package（含 Capability Catalog）→ 锁 + 精确快照，只有锁进 Compiler",
+        "实现：Runtime Provider Package 不进 Compiler，只以精确接口键进入 Host 绑定",
+        "授权：Deployment Grant 由部署方独立签发，Resolver 与 Compiler 都看不到"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "什么时候才允许执行",
+      "items": [
+        "构建成功不等于可执行：产物一律 NOT_ADMITTED",
+        "隔离开发 Host 需显式 opt-in + 实测 Grant；生产 Host 一律拒收 DEVELOPMENT",
+        "结果未知时保留原尝试并走受控 Reconcile，不把重试当作成功"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "本轮设计未包含",
+      "items": [
+        "Compiler v2.0.2 没有本图的新 Development Build 入口",
+        "Capability Catalog 与 Deployment Grant 不是同一份数据",
+        "Provider 实例与凭据只驻留在 Host / Provider 边界"
+      ]
+    }
+  ]
+}
