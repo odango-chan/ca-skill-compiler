@@ -195,6 +195,26 @@ request:
 
 **交付必做静态校验**：从 Procedure 抽取所有 `operation.tool` 和 Node ID，从 `contract.yaml` 读取 `capabilities`，使用受信 ToolCatalog 或明确标记的候选 Source Map 逐项比对。当前基线 13 对 13，差异为 0。未来真实接口发布时用正式 Catalog 重新验收，不能用本次候选映射冒充正式链接。
 
+### 05z — 统一 3GPP 标准消息名与 OpenAMSM 自有 MAS Operation
+
+**本次新增的唯一命名对照基线：**
+[3GPP ↔ OpenAMSM ↔ CA-SL 命名和消息对照](https://github.com/odango-chan/ca-agent-demo/blob/docs/mas-v1alpha5-temporal-e2e-review-20261118/docs/design/3gpp-openamsm-mas-naming-crosswalk-scp-only.zh-CN.md)。
+
+**必须统一全部 05a–05g 流程图和图 04：**
+
+- **AMF ↔ Host 的公开 3GPP SBI**：箭头使用 `Nsmf_PDUSession_CreateSMContext`、`Nsmf_PDUSession_UpdateSMContext`、`Nsmf_PDUSession_ReleaseSMContext`，次要标识给出 OpenAPI `PostSmContexts`、`UpdateSmContext`、`ReleaseSmContext`、`POST /nsmf-pdusession/v1/...`。
+- **OpenAMSM → Host Relay → SCP → AMF**：外部最终发送箭头用 `Namf_Communication_N1N2MessageTransfer`，OpenAPI ID `N1N2MessageTransfer`。Failure Callback 用 `Namf_Communication_N1N2TransferFailureNotification`，实际 URI 来自 `n1n2FailureTxfNotifURI`，不可误画成 AMF 调固定 `/n1-n2-messages` 集合资源。
+- **5GSM NAS**：按源码显示 `PDU Session Establishment Request (0xC1)`、`Modification Request (0xC9)`、`Release Request (0xD1)`、`Release Command (0xD3)`、`Release Complete (0xD4)` 等；不发明所谓“NAS Operation ID”。
+- **N2 SM**：`n2SmInfoType=PDU_RES_SETUP_RSP`、`PDU_RES_MOD_RSP` 等与其 NGAP Transfer 结构名称分开；`PDUSessionResourceSetupResponseTransfer` 是载荷 Transfer 结构，而不是一条完整的 AMF↔gNB NGAP Message。
+- **N4/PFCP**：`PFCP Session Establishment Request (50)`、`Session Modification Request (52)`、`Session Deletion Request (54)`，由 OpenAMSM SMF → 外部 UPF，不经过 SCP。
+- **CA-Agent → OpenAMSM Mode C**：明确是 OpenAMSM 私有 `Nsmf_MasOrchestration` / `masOrchestrationInvoke`，其请求 `stepId, mas, op` 组合为 `[s3] SC.CREATE_SM_CONTEXT`、`[m0] SC.UPDATE_SM_CONTEXT`、`[r5] SC.RELEASE_SM_CONTEXT` 等。**不可以把私有 `Nsmf_MasOrchestration` 画成 3GPP 标准 Nsmf Service**。
+- **Skill 层**：精确绑定 `Skill Node ID → Capability ID → Callable Ref → OES Step / Owner Op`；建立有 13 条真实示例 Capability，Modify/Release 新 Capability 不明处填 `TBD`。尤其外部 Create 对应整个 Skill，不能硬绑定为单独的内部 `SC.CREATE_SM_CONTEXT`。
+- **版本**：目前直接核对的 OpenAMSM 内置 Release 19 OpenAPI 是 TS 29.502 **V19.5.0** 和 TS 29.518 **V19.6.0**；项目另外引用的 V19.7.0/V19.8.0 若作为最终版本须 diff 后再宣称一致。不要混用版本或伪造 ID。
+
+图上用**标准主标签 + 第二行简短实现标识**，将长 `operationId` / URL / 十六进制 Message Type 放到附页或 tooltip，不要把一整页 ID 全塞进一条消息箭头。
+
+若需要内部代码统一命名，**本任务不修改运行时代码，也不重命名冻结 CA-SL ID**；统一的是可审查的协议/业务词表与映射，后续迁移应另评审 versioned 接口。正式产物附页添加“标准 Operation / OpenAPI operationId / OpenAMSM MAS Operation / Skill Capability / Source”对照表。
+
 ## 4. 表现方式
 
 - 文档风格：类似 3GPP/OASIS/系统架构评审资料，非宣传海报；白底/浅灰底、深灰线条、最多一种低饱和度强调色。
