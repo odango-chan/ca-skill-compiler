@@ -174,6 +174,27 @@ request:
 （里面已用 Mermaid box 标出 CA-Agent / CA Client Tools / OpenAMSM / External，并修正原七图中的 SBI 与 N4 混线、Release Complete 命名等问题）。
 [分域后的总架构图](https://github.com/odango-chan/ca-agent-demo/blob/docs/mas-v1alpha5-temporal-e2e-review-20261118/docs/design/host-sbi-http2-decoded-skill-architecture.zh-CN.md)。
 
+### 05y — 强制精确标注 CA-SL Capability，而不只是 MAS Operation 名
+
+**新的核对基线（必须先读取）：**
+- [13 个 Establishment Capability 的精确追踪表](https://github.com/odango-chan/ca-agent-demo/blob/docs/mas-v1alpha5-temporal-e2e-review-20261118/docs/design/mas-capability-traceability-scp-only.zh-CN.md)
+- [机器可读 Source-to-Capability 矩阵](https://github.com/odango-chan/ca-agent-demo/blob/docs/mas-v1alpha5-temporal-e2e-review-20261118/docs/design/mas-capability-traceability-scp-only.json)
+- CA-SL 原始依据：`ca-skills/examples/skills/establish-pdu-session-mas/assurance/contract.yaml` 与 `procedure.yaml`
+- Owner 候选：`ca-client-tools/contracts/mas-owner-candidate/v0.2.0/source-map.json`
+
+**协议时序和 Skill 执行必须分为两个层次**：
+
+1. 05a–05g 仍然画 3GPP 风格跨网元消息，Mode C 调用箭头标 OES Step（如 `s10`），必要时带核心 Capability；不必在每条网络消息箭头上塞满 13 个 ID。
+2. 增加 **05a-ops — Establishment Skill Capability 执行子图**：每个真正的 CA-SL Operation Node 明确标注 `Skill Node ID`、`Capability ID`、`operation.tool Callable`、`OpenAMSM OES Step`，确保可对照 13 项；最终 Postcondition 单独标注“没有 MAS Tool/Capability”。
+3. Modify/Release 流程附加能力对照：OpenAMSM 的 m0/m2/m3/m4/m5 和 r1–r7 都按源码列出，其中已有 Capability（如 `mas.upn.up.session.modify`、`mas.ssm.ue.an.signal`）仅能标“候选复用，待 Schema/Effect/Owner 校验”。没有 Capability ID 的新 Owner 操作标 **TBD / 未定义**，绝对不要自行发明稳定 ID。
+4. `m3`、`m5` 即使复用一个 Capability，也必须显示**两个独立 Invocation/Owner Operation occurrence**；不要把它们画成一个节点。
+5. Host Nsmf、Namf、NAS Codec、SCP、N4/PFCP 是协议或内部 Owner 资源边界，**不能因为图中出现就自动把它们列入该 Skill 的 13 个 Capability**。Owner exact-original Reconcile 也不是通用业务 Tool。
+6. 设计矩阵中的候选接口不得绘为已经正式发布的 Capability Catalog / Grant；Client Tools PR #17 仍开放，Owner/Deployment 正式证明另行验收。
+
+建议增加文件：`05a-ops-establishment-capabilities.html` 和对应可编辑 Archify JSON；`06-appendix-minimal-examples.zh-CN.md` 添加 Capability 对照表和源文件/Schema 追溯。
+
+**交付必做静态校验**：从 Procedure 抽取所有 `operation.tool` 和 Node ID，从 `contract.yaml` 读取 `capabilities`，使用受信 ToolCatalog 或明确标记的候选 Source Map 逐项比对。当前基线 13 对 13，差异为 0。未来真实接口发布时用正式 Catalog 重新验收，不能用本次候选映射冒充正式链接。
+
 ## 4. 表现方式
 
 - 文档风格：类似 3GPP/OASIS/系统架构评审资料，非宣传海报；白底/浅灰底、深灰线条、最多一种低饱和度强调色。
@@ -193,6 +214,7 @@ request:
 - `03-host-admission.html` + `.architecture.json`
 - `04-scp-amf-smf.html` + `.architecture.json`
 - `05a-establishment-sequence.html` + 可编辑 Archify Workflow JSON
+- `05a-ops-establishment-capabilities.html` + 可编辑 Archify JSON（13 个 Capability / Callable / Node ID 逐条对照）
 - `05b-ue-modification-sequence.html` + 可编辑 Archify Workflow JSON
 - `05c-network-modification-sequence.html` + 可编辑 Archify Workflow JSON
 - `05d-release-sequence.html` + 可编辑 Archify Workflow JSON
