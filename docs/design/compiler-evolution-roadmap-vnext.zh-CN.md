@@ -17,7 +17,7 @@
 
 V0–V5 是工具链交付顺序，G0–G5 是 MAS 验收门槛。G3 可独立于 G1 推进，最终联调仍需 G2 和 G3 同时满足。Mock AMF 经本地 NRF/SCP 验证完整 SBI 路径；直接调用 handler 单独记录。Mock AMF 不解决复合 SSM 的 30 秒限制、恢复句柄或 Owner Commit Proof。G5 的现场结论与生产 qualification 分别评估。
 
-首轮 Compiler 实现及验收见 [DeepSeek Harness 任务](compiler-development-build-harness.zh-CN.md)。V0 评审期间可用预生成锁准备离线样例和旧入口基线。正式 MAS G1 需要通过 G0 的接口输入。
+首轮 Compiler 实现及验收见 [DeepSeek Harness 任务](compiler-development-build-harness.zh-CN.md)。试验分支按[实施契约](compiler-development-build-pilot.zh-CN.md)和预生成样例直接开工。公开产物契约在 V0 定版后对外使用。正式 MAS G1 需要通过 G0 的接口输入。
 
 ## 2. 兼容和迁移
 

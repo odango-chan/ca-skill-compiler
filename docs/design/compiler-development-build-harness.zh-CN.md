@@ -1,15 +1,15 @@
 # CA Skill Compiler 首轮实现任务
 
-本文供 DeepSeek Harness 在 [Compiler #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 评审后执行。架构依据见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，交付顺序见[演进路线](compiler-evolution-roadmap-vnext.zh-CN.md)。本轮目标是用完整的接口快照在离线环境生成可复验的 Development Artifact。在没有 Evidence、Deployment Grant 或 Provider 时，成功结果为 `LINKED / BUILT / NOT_ADMITTED`。
+**状态：可以交接。** 本轮按 [Compiler #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 中的[实施契约](compiler-development-build-pilot.zh-CN.md)提交试验实现。架构依据见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，交付顺序见[演进路线](compiler-evolution-roadmap-vnext.zh-CN.md)。本轮目标是用完整的接口快照在离线环境生成可复验的 Development Artifact。在没有 Evidence、Deployment Grant 或 Provider 时，成功结果为 `LINKED / BUILT / NOT_ADMITTED`。
 
 ## 可直接交给 DeepSeek Harness 的 Goal
 
-> 在 `odango-chan/ca-skill-compiler` 实现一个可验证的 Development Build 垂直切片。先读 Compiler #48 的架构和本页，确认评审后的接口包、锁和 Build/Verify 契约，以 v2.0.2 发布提交 `e98a7b26acabfa2a5e1587974ab9be5742e70bf7` 建立旧入口黄金基线。复用现有 Go 静态检查与确定性装配能力。完成离线接口闭包链接、Evidence 义务生成、开发产物 Verify，以及 Native CLI / Go-WASM / Chromium Worker 测试。在独立实现分支提交，交付 draft PR、测试证据和 MAS G0/G1 实际状态。保持 CA-SL v1alpha5 及冻结入口的既有行为。合入与发布另走仓库流程。
+> 在 `odango-chan/ca-skill-compiler` 实现一个可验证的 Development Build 垂直切片。从当前 main 新建实现分支。用本页链接的实施契约和请求样例开工，以 v2.0.2 发布提交 `e98a7b26acabfa2a5e1587974ab9be5742e70bf7` 建立旧入口黄金基线。复用现有 Go 静态检查与确定性装配能力。完成离线接口闭包链接、Evidence 义务生成、开发产物 Verify，以及 Native CLI / Go-WASM / Chromium Worker 测试。在独立实现分支提交，交付 draft PR、测试证据和 MAS G0/G1 实际状态。保持 CA-SL v1alpha5 及冻结入口的既有行为。在 Draft PR 记录所使用的设计提交 SHA。公开契约冻结与合入另行评审。
 
 ## 开工前核对
 
-- 记录 #48 的评审提交，并列出拟实现的 API 标识、必填字段、文件布局、义务适用性和 Verify 输入。若 V0 仍在评审，可先做本地独立样例及旧入口基线，公开线格式与入口以上述契约定版为准。
-- 第一份样例由测试侧提供精确快照和预生成锁，至少涵盖两个根别名与一个传递包、一个可变更状态的 Callable、一条消费外部 Evidence 的路径，以及有 Wait 或 Trigger 的 Ingress 引用。使用完全声明的合成接口，标记 fixture 的包身份和来源。正式 MAS 接口包可随后复用同一验收入口。
+- 从[实施契约](compiler-development-build-pilot.zh-CN.md)复制精确入口和请求形状。源分支取当前 main，设计提交与实现提交分别记录。
+- 用[首个正例请求](fixtures/registration-development-request.json)做 Native/WASM 共用的验收输入。它覆盖两个根别名、传递 Schema 和外部 Evidence 消费。Mutation/Reconcile 补用 `internal/compiler/evidence_recovery_test.go` 的 `recoveryFixture`，Wait/Ingress 补用 `web/parity-v1alpha5/trusted-build-request.json` 和同目录 `valid-procedure.yaml`。将上述严格输入显式打包为测试接口快照，保留原始 Skill 语义。
 - 新模式只接收源码、精确快照、锁和可选 Assurance 描述。Resolver 的版本选择、下载与来源核验属于调用方。开发构建目标保持 `connectionagent.io/v1alpha5`。
 
 ## 实现顺序
@@ -19,7 +19,7 @@
 | 1. 旧入口基线 | 从 v2.0.2 运行 `Check`、`Build`、`InspectDependencies`、`VerifyBuildResult` 的代表性正反例，保存诊断、退出码与产物文件摘要。后续在新代码上用相同输入比对。 |
 | 2. 离线 Link | 按已锁定的根与传递边复算快照摘要，验证包、导出、Schema 片段、Effect、Capability 成员和 Ingress 闭包。沿用现有快照摘要向量。明确报告包、导出或使用位置。缺接口或闭包不一致时，构建失败且无产物。 |
 | 3. 按检查生成义务 | 对每条适用规则及消费位置记录结果。缺失可外补材料为 `UNRESOLVED`。有效结构和绑定的描述为 `DESCRIPTOR_PRESENT`。语言静态约束失败、提供的描述损坏或目标不符则阻断构建。先提交检查清单，再覆盖普通 Evidence 消费、Commit Proof、Reconcile 与特定路径充分性。 |
-| 4. Build 与 Verify | 对规范化锁、链接记录、义务和产物文件生成确定性摘要。装配后自验。Verify 复验产物字节和精确快照闭包，并核对义务覆盖。单纯复算 manifest 摘要仅证明字节一致性。提交至少一个在重新计算外层摘要后仍会被拒绝的遗漏义务负例。若产物缺少重验义务覆盖所需的消费信息，提交契约补充供评审。 |
+| 4. Build 与 Verify | 对规范化锁、链接记录、义务和产物文件生成确定性摘要。装配后自验。Verify 复验产物字节和精确快照闭包，并核对义务覆盖。单纯复算 manifest 摘要仅证明字节一致性。提交至少一个在重新计算外层摘要后仍会被拒绝的遗漏义务负例。复验用原始请求重跑核心并校对完整产物字节。 |
 | 5. 入口及回归 | 在 Native 与 WASM 入口显式选择新契约。新旧入口交叉传错版本均失败。以真实 Chromium Worker 比对成功样例的完整产物字节和失败样例的结构化诊断。 |
 
 首轮需区分三类结果：
@@ -47,6 +47,12 @@ git diff --check
 ```
 
 记录源提交和工具版本、每项退出码、fixture 锁与产物摘要、重复构建及跨入口比对结果。若 GitHub Actions 因账单无法执行且本地门禁全部通过，记录 `LOCAL_ACCEPTANCE_PASS` 与 `CI_UNAVAILABLE`。
+
+## 交接前已验证的基线
+
+使用经发布 SHA256SUMS 核对的 v2.0.2 Linux amd64 二进制。取 `tests/conformance/v1alpha4/fixtures/dependency-identity/base` 的 `files/` 和 `snapshots/`，移除 fixture 的 `snapshots/unreferenced-extra/`，从 `web/parity-success` 复制 `trusted.json` 和 `capability/`。在项目目录外写产物。对同一输入运行发布版 `check`、`inspect` 和两次 `build`，均退出 0。两次三文件产物逐字节一致，manifest SHA-256 为 `96d79739d94b29800fce7aea7ee2aab6fa35480b47776fe7bf5948b92bdbe60b`。删除 `ca/evidence-guarantees.yaml` 后严格 Check/Build 退出 1 并报 `EVIDENCE_GUARANTEE_LINK_INVALID`。把新的 Development 请求送入旧 CLI 退出 2。两个负例均未创建产物目录。
+
+独立复算新请求的三份快照摘要和 manifest 文件摘要，核对两个根、一个传递依赖边和原始源码字节。摘要程序已对照仓库的三个冻结向量。首轮 Development Build、Verify 和跨执行环境测试由 Harness 实现并实跑。
 
 ## MAS 验收边界
 

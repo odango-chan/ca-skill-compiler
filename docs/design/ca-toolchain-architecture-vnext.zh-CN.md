@@ -65,7 +65,7 @@ flowchart LR
 
 `dependencies.lock` 由 Resolver 生成。首版字段为版本身份、根别名指向的包键、`packages[]`。包键为 `{packageId,version,snapshotDigest}`，每项另记录每条直接依赖的本地别名和目标包键。Compiler 接收锁和精确快照，按 manifest 核验格式、声明、路径、摘要、依赖约束与边，并遍历至固定点。拒绝缺包、多余输入、歧义别名、冲突 Schema ID、同一 ID/版本异摘要、首版包依赖环和外部未锁定引用。Schema 内部递归继续遵循冻结语言支持的规则，解析时按规范 URI 和片段去重。首版每个包 ID 在同一图中只允许一个版本，遇到冲突由 Resolver 显式报错；禁止 Compiler 隐式选版本、下载或回退。
 
-Artifact 完整嵌入规范化锁、已绑定导出与闭包摘要。快照本身由交付方按锁提供；离线 Verify 先验证产物清单与文件，再用提供的精确快照重验接口闭包。仅可访问 Artifact 时可做完整性校验，Host 最终准入必须完成闭包验证。锁文件不含下载地址、凭据或部署数据。
+Artifact 完整嵌入规范化锁、已绑定导出与闭包摘要。快照本身由交付方按锁提供；离线 Verify 先验证产物清单与文件，再以原始构建请求重验接口闭包和义务覆盖。仅可访问 Artifact 时可做完整性校验。Host 最终准入必须完成闭包验证和适用的冻结保证检查。锁文件不含下载地址、凭据或部署数据。
 
 ### 3.3 Runtime Provider Package 与绑定
 
@@ -80,6 +80,8 @@ Assurance Export 独立版本化和签发。最小绑定为接口包键、Callab
 Deployment Grant 单独签名，至少含 `grantId`、签发者、环境及策略版本、主体、Artifact 摘要、允许的接口能力和 Callable、Provider 实现或实例范围、资源 Scope、有效期和撤销引用。Host 将 Skill 请求、Catalog 成员、Grant 范围和 Invocation 上下文求交；任一必需绑定缺失、过期、撤销、签发权限不明或范围不匹配即拒绝。Catalog 不携带授权数据，Resolver 不把 Grant 交给 Compiler。
 
 ## 4. Development Build 契约
+
+Compiler 首个 Draft PR 的具体入口、复验方式与样例见[实施契约](compiler-development-build-pilot.zh-CN.md)。试验实现可独立于公开契约定版推进。
 
 提案使用独立契约族，首版以 `connectionagent.io/<kind>/v1alpha1` 标识，其中 Build 相关 kind 为 `compiler-development-build-request`、`compiler-development-build-result`、`compiler-development-artifact`，输入 kind 为 `interface-package`、`interface-dependency-lock`、`assurance-export`。Provider 和 Grant 自有 `runtime-provider-package` 与 `deployment-grant` 版本。产品版本、语言目标、线格式版本和包发布版本独立。调用方显式选择新入口与契约版本；任何未知版本或不匹配的入口拒绝处理。
 
