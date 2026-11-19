@@ -1,6 +1,12 @@
 name: Archify sequence diagrams
 
 on:
+  push:
+    branches:
+      - docs/toolchain-architecture-vnext-20261119
+    paths:
+      - "docs/architecture/archify/*.sequence.json"
+      - ".github/workflows/archify-sequences.yml"
   pull_request:
     paths:
       - "docs/architecture/archify/*.sequence.json"
