@@ -21,7 +21,7 @@ releases:
   - releaseId: ca-skill-compiler-v2-0-2
     releaseRecord:
       path: docs/releases/ca-skill-compiler-v2.0.2.md
-      ref: 7ade25d59e5bd81c552e60df8c7101f101472271
+      ref: 15f2740004641521e8fe93f1f29a0279faacf5b2
     contracts:
       - contractId: compiler-api-build-request
         version: v1alpha5
