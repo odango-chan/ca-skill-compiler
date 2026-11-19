@@ -235,7 +235,26 @@ OpenAMSM → Host Namf Relay → Client Tools → SCP → AMF    Namf N1N2
 | SCP 按调用方 NF 类型自动分流 | 图 4 SCP 标签 | 明确否定，未验证 |
 | Owner Pending 持久化 / Owner Recovery | 图 3 标签、图 4 标签 | 阻塞项 |
 
-## 7. 复现方式
+## 7. 本轮范围与仍然 OPEN 的部分
+
+本目录交付的是**四张系统图 + 本附页**，对应绘图简报 §3 的 01–04。
+
+绘图期间，`docs/design/archify-redraw-brief-scp-only-20261119.zh-CN.md` 在评审分支上新增了两项要求：
+
+| 新增要求 | 出处 | 本轮状态 |
+|---|---|---|
+| `05a`–`05g` 一组 3GPP 风格业务生命周期时序图（Establishment / Modification / Release / Service Request / Handover / Callback），事实基线为 `ca-agent-demo` 的 `amf-smf-business-procedure-flowbook-scp-only.zh-CN.md` | 简报复审提交 `4747341`（§3 “05 — AMF–SMF 完整业务生命周期”） | **NOT DELIVERED**：本目录尚无 05a–05g；不得据本目录宣称业务生命周期已图示 |
+| 所有系统图与业务序列图显式绘制 CA-Agent / CA Client Tools / OpenAMSM / 外部 5GC 四个责任域分框 | 简报复审提交 `14704ff`（§3 “05x — 强制标识……”） | **PARTIAL**：图 4 已按纠错 #1 把 5GSM Codec 明确归到 CA Client Tools，并新增“责任域”卡片与 CA-Agent 接入域边框；但四个完整责任域边框（含 Client Tools / OpenAMSM / 外部 5GC 分框）尚未绘制 |
+
+已按 05x 纠错修订的项：
+
+- 纠错 #1：Host SBI Decoder（只做 HTTP/2 / JSON / MIME / Content-ID）与 CA Client Tools 只读 5GSM Codec（类型化投影）分属不同节点、不同责任域。
+- 纠错 #3 / #4：图 4 中 UDM/PCF/CHF 与 UPF 是两个独立外部节点，UPF 标注 `N4 / PFCP`、`不经 SCP`。
+- 纠错 #2 / #5：`201 + Location` 由 Host 产生并沿 SCP 返回；Host → OpenAMSM 为受信私有绑定，不经 SCP 二次转发。
+
+其余 05x 纠错（#6–#8）主要作用于尚未交付的业务序列图；四张系统图未出现与之矛盾的内容。
+
+## 8. 复现方式
 
 ```bash
 # 需要本机已安装的 Archify（v3.2.0）。以下路径相对于仓库根目录。

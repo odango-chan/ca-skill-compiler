@@ -119,7 +119,7 @@
       "type": "backend",
       "label": "5GSM 只读 Codec",
       "sublabel": "结构化 projection",
-      "tag": "不创建 Session",
+      "tag": "CA Client Tools · 只读，不建 Session",
       "pos": [
         90,
         540
@@ -268,12 +268,10 @@
   "boundaries": [
     {
       "kind": "region",
-      "label": "Host 5GC SBI 接入层：HTTP/2 + 解码 + 原始附件",
+      "label": "CA-Agent · Host SBI 接入与解码",
       "wraps": [
         "listener",
         "decoder",
-        "store",
-        "codec",
         "ctx"
       ],
       "pad": 20
@@ -493,6 +491,16 @@
         "Host → Owner 是同一逻辑 SMF 的内部受信绑定，不再经 SCP 形成环路",
         "OpenAMSM 仍是唯一 Nsmf 服务发布者；Host 与 Owner 冲突注册未验收",
         "Owner Pending、Reconcile proof、NRF 双地址策略均未完成"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "责任域（代码与职责归属，不是进程部署）",
+      "items": [
+        "CA-Agent（ca-agent-demo）：Listener、SBI Decoder、Artifact Store、Typed Context、Router、URI Map、Runtime、Namf Relay",
+        "CA Client Tools（ca-client-tools）：只读 5GSM Codec、固定 MAS/Nsmf/Namf Egress；可独立部署，不是 AMF 入站 Listener",
+        "OpenAMSM（env-openamsm）：SMF Owner、GSM/NAS Handler、Session/Policy/Charging 状态、PFCP Client、Namf 请求生产方",
+        "外部 5GC：AMF、SCP、NRF、UDM/PCF/CHF、UPF（UPF 是 N4 Peer，不在 SMF 进程内）"
       ]
     }
   ]
