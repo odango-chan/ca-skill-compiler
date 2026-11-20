@@ -1,4 +1,4 @@
-package compiler
+﻿package compiler
 
 // Development Build offline interface linking.
 //
@@ -337,14 +337,6 @@ func (scope *developmentLinkScope) resolveCapabilityMember(ownerKey DevelopmentP
 		kind:       callable.kind,
 		effect:     callable.effect,
 	}, nil
-}
-
-func targetCallablePackage(scope *developmentLinkScope, member developmentCapabilityMemberRef) string {
-	records := scope.callables[member.callableID]
-	if len(records) == 1 {
-		return records[0].packageKey.PackageID
-	}
-	return ""
 }
 
 func (scope *developmentLinkScope) declaresCallable(key DevelopmentPackageKey, id string) bool {
@@ -844,3 +836,4 @@ func (env *developmentEnvironment) extendIdentity(identity dependencyIdentityRes
 	sort.Strings(identity.Closure)
 	return identity
 }
+
