@@ -18,7 +18,7 @@
 ## 2. 逐图四道门结果
 
 `finalize` 一次调用依次执行 `validate` / `deliver` / 严格 `check` / 真实浏览器 `browser-check`。
-05a–05g 的结果来自 2026-11-20 GitHub Actions run [#44660862083](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44660862083)；
+05a–05g 的结果来自 2026-11-20 GitHub Actions run [#44663313398](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44663313398)；
 01–04 与 05a-ops 的结果沿用未修改源文件的既有验收回执。
 
 | 图 | 类型 | validate | deliver | check | browser-check | diagnostics | artifact sha256（前 16 位） | 本轮 |
@@ -27,14 +27,14 @@
 | 02-offline-build | workflow | PASS | PASS | PASS | PASS | 0 | `e135ca29a1e0f907` | 保留既有证据 |
 | 03-host-admission | architecture | PASS | PASS | PASS | PASS | 0 | `b9480171e3afbc81` | 保留既有证据 |
 | 04-scp-amf-smf | architecture | PASS | PASS | PASS | PASS | 0 | `50caeee35c765713` | 保留既有证据 |
-| 05a-establishment-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `3cf05b2997ad9278` | **2026-11-20 刷新** |
+| 05a-establishment-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `9fa7d9f575e7981f` | **2026-11-20 刷新** |
 | 05a-ops-establishment-capabilities | architecture | PASS | PASS | PASS | PASS | 0 | `2730c37fa861a835` | 保留既有证据 |
-| 05b-ue-modification-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `623993b7714abb46` | **2026-11-20 刷新** |
-| 05c-network-modification-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `a4ccd845ab49dba` | **2026-11-20 刷新** |
-| 05d-release-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `9ac2a50cb5b76dcb` | **2026-11-20 刷新** |
-| 05e-network-release-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `d7cebc4eb4bdb220` | **2026-11-20 刷新** |
-| 05f-service-request-handover-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `e9f57e3773d4302d` | **2026-11-20 刷新** |
-| 05g-callback-failure-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `b5ea01393e4096ab` | **2026-11-20 刷新** |
+| 05b-ue-modification-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `481d755d6ad38134` | **2026-11-20 刷新** |
+| 05c-network-modification-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `3e905f274ccd919a` | **2026-11-20 刷新** |
+| 05d-release-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `ca7abf6b85ce337a` | **2026-11-20 刷新** |
+| 05e-network-release-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `c6179200c8d3204d` | **2026-11-20 刷新** |
+| 05f-service-request-handover-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `bb8e44d84354f196` | **2026-11-20 刷新** |
+| 05g-callback-failure-sequence | sequence | PASS | PASS | PASS | PASS | 0 | `f0c8d52e36d70572` | **2026-11-20 刷新** |
 
 **结果：12 张图均有四道门 PASS 回执；本轮重新执行的 05a–05g 为 7/7 PASS，全部 `diagnostics: []`。**
 
@@ -45,7 +45,8 @@
 
 本轮对 05a–05g 执行 `visual-check --require-provenance`，每张图均生成四张真实 Chromium 截图：
 1440×900 light / dark，以及 2048×1320 light / dark。所有截图、接触表和 JSON 回执均提交在
-`evidence/sequence-vnext/`。
+`evidence/sequence-vnext/`。上一版 `sequence-vnext/` 与旧 `browser-check` 回执已保留在
+`evidence/history/44663313398/`，不与当前 provenance 文件混用。
 
 | 图 | 1440×900 | 2048×1320 | visual-check |
 |---|---|---|---|

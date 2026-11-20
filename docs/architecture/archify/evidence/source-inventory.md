@@ -6,11 +6,13 @@
 
 | 仓库 | 引用 | 提交 | 用途 |
 |---|---|---|---|
-| `odango-chan/ca-skill-compiler` | 本分支 `docs/toolchain-architecture-vnext-20261119`（PR #48） | `fb64d14`（本次提交前） | 图形、简报、文档落点 |
+| `odango-chan/ca-skill-compiler` | 本分支 `docs/toolchain-architecture-vnext-20261119`（PR #48） | `fd40ad0a`（本轮图形源与工作流输入） | 图形、简报、文档落点 |
 | `odango-chan/ca-agent-demo` | 分支 `docs/mas-v1alpha5-temporal-e2e-review-20261118`（PR #217） | `6168912e` | 业务流程全集、SBI 接口全集、Host 架构、边界文档 |
 | `odango-chan/ca-skills` | `main` | `05be9ee8` | v1alpha5 正式评审示例 `establish-pdu-session-mas` |
 | `odango-chan/ca-client-tools` | `feat/nas5gsm-codec-20261119` | `e2922ca4` | MAS Owner 候选契约 `v0.2.0`（NOT_QUALIFIED） |
 | `odango-chan/env-openamsm` | `main` | `594dec78` | OpenAMSM OpenAPI、OES plans、Nsmf handler |
+
+本轮 05a–05g 的源文件与工作流输入提交为 `fd40ad0a381473440ff6bae0a2a8d98f7c534810`；GitHub Actions run [#44663313398](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44663313398) 生成 HTML 与浏览器证据后，产物提交为 `2cb58957909b74286cfaf56726b2fc66028df991`。
 
 ## 2. 逐文件 SHA-256（前 16 位）
 
