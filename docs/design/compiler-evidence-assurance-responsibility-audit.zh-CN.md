@@ -36,6 +36,8 @@ Development Build 只产出**两类互不替代**的 Requirement。二者都是 
 
 两类 Requirement 必须分别成文件、分别计算、分别校验。`Host Admission Requirement` 只覆盖派发前可验证的外部事实：`OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`、Deployment Grant、Provider Binding、当前 Invocation 授权。
 
+其中只有前四类会由 Compiler 依据源码/接口位置写成 `host-admission-requirements.json` 条目；Deployment Grant、Provider Binding 与当前 Invocation 授权由 Host 按其独立信任根在派发时校验，**不是** Compiler 可识别、可定位或可伪造的产物字段。`runtime-execution-requirements.json` 同理只记录 Compiler 能定位的执行期保证位置，不记录实际执行结果。
+
 `Runtime Execution Requirement` 是独立的一类，只有两个 kind：
 
 | kind | 含义 | 执行期必须真正发生的事 |
@@ -66,7 +68,7 @@ Development Build 只产出**两类互不替代**的 Requirement。二者都是 
 - `subjects` 按元素 JCS 字节稳定排序并去重；每项 `schemaIds` 排序去重，Schema 字节由锁与闭包固定。
 - 相同 Producer / 消费在多条等价控制流边复现时去重。
 - `EVIDENCE_INDEPENDENCE_TRUST` 记录另带可选的 `independence` 明细（见 2.3）。
-- `requirementId` = `sha256:` + SHA-256(`CA-SKILL-DEVELOPMENT-HOST-REQUIREMENT\0v1\0` + 类型化键的 JCS 字节)，**包含 `independence` 明细**。因此不同组、不同成员或不同域对必然得到不同 ID；删改明细无法靠复算外层摘要掩盖。
+- `requirementId` = `sha256:` + SHA-256(`CA-SKILL-DEVELOPMENT-HOST-REQUIREMENT\0v1\0` + 类型化键的 JCS 字节)，**包含 `independence` 明细**。因此不同组、不同成员或不同域对必然得到不同 ID；删改明细无法靠复算外层摘要掩盖。两类文件共用该摘要域前缀；类别由 `kind`、所在文件与 `status` 三者共同判定，不能只靠摘要前缀。
 - 文件内容为按 `requirementId` 排序的 JCS JSON 数组；`status` 按 2.1 固定。
 
 ### 2.3 Independence 明细与多组规则
