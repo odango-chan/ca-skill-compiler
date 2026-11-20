@@ -6,7 +6,7 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "4ea0a0ab-2f79-410d-99b3-6623b0bd8b6d",
+  "deliveryReceiptId": "5b3a4bdc-8edd-46b8-8510-cccf221bd0c3",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05e-network-release-sequence.html",
     "sha256": "c6179200c8d3204d6f8105f5fbb9099c03310d6e2b744cb1208f18d31a195cd8",
@@ -921,8 +921,8 @@
         "file": "05e-network-release-sequence.visual-check.2048x1320.light.png"
       },
       {
-        "sha256": "e190dd19a2dc088a41ca91acadd265134b45d554be83e4703a6c1c7694ef954a",
-        "bytes": 210566,
+        "sha256": "eeda53b568fb248e8ca26105df9c4348b87230fbe6e3627805dc8f93300e24df",
+        "bytes": 210574,
         "file": "05e-network-release-sequence.visual-check.2048x1320.dark.png"
       }
     ]

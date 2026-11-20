@@ -6,7 +6,7 @@
   "status": "pass",
   "visualReview": "not-requested",
   "provenance": "current",
-  "deliveryReceiptId": "8c505baa-3334-468c-a60d-37ee13a01d80",
+  "deliveryReceiptId": "a71f5160-710c-4e41-b9fe-57098392a886",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05g-callback-failure-sequence.html",
     "sha256": "f0c8d52e36d7057251f2eb6cc033f74054de3d9d01770ba4aa25278c7a421039",

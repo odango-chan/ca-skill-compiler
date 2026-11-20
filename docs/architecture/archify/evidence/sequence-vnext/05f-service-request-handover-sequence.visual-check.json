@@ -6,7 +6,7 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "82b426a6-0d9e-47c5-bd10-f1c90ca11f15",
+  "deliveryReceiptId": "facdf964-976e-4a59-8da3-102b85b85f5e",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.html",
     "sha256": "bb8e44d84354f196723c8c2cc7519461ceb72f1b4b2d1300edacb08a06bfcb88",

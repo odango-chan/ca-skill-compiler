@@ -6,7 +6,7 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "8c505baa-3334-468c-a60d-37ee13a01d80",
+  "deliveryReceiptId": "a71f5160-710c-4e41-b9fe-57098392a886",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05g-callback-failure-sequence.html",
     "sha256": "f0c8d52e36d7057251f2eb6cc033f74054de3d9d01770ba4aa25278c7a421039",
@@ -911,8 +911,8 @@
         "file": "05g-callback-failure-sequence.visual-check.1440x900.light.png"
       },
       {
-        "sha256": "164fb046b054315a5156ce5d9734eb0545151a516b687178bdf13374a9a47209",
-        "bytes": 172351,
+        "sha256": "8c317e6addbccc78384784eeb0d6799d575520d7f4865b8f3fa3fd84b47a592b",
+        "bytes": 172348,
         "file": "05g-callback-failure-sequence.visual-check.1440x900.dark.png"
       },
       {
@@ -921,8 +921,8 @@
         "file": "05g-callback-failure-sequence.visual-check.2048x1320.light.png"
       },
       {
-        "sha256": "6cbb2c8fc8969e83905cfd3ea6116626d56bd327a59cafab59b819ae4092a9d8",
-        "bytes": 203132,
+        "sha256": "a8dc2d63c8a8a4b9e59d86f3584bfa54d50baf719f3cf3b90da59dc38e18235f",
+        "bytes": 203142,
         "file": "05g-callback-failure-sequence.visual-check.2048x1320.dark.png"
       }
     ]
