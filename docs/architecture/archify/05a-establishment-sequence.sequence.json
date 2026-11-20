@@ -7,7 +7,11 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05a-establishment-sequence.html"
+    "output": "docs/architecture/archify/05a-establishment-sequence.html",
+    "viewBox": [
+      1084,
+      2232
+    ]
   },
   "participants": [
     {
@@ -472,7 +476,7 @@
       "from": "ue",
       "to": "amf",
       "y": 1640,
-      "label": "N2 PDU Session Resource Setup Response",
+      "label": "PDU Resource Setup Response",
       "variant": "return"
     },
     {
@@ -620,7 +624,8 @@
       "items": [
         "原始 N1 由 Host Artifact Store 保留；只读 Codec 产生 Typed projection，供 Host / Skill 使用",
         "原始 N1 仍通过受信 Owner-private binary binding 交给 OpenAMSM GSM Handler；Typed projection 不能替代原始 NAS",
-        "UDM / PCF SBI 经 SCP；OpenAMSM ↔ UPF 的 N4 / PFCP 直连，不经过 SCP"
+        "UDM / PCF SBI 经 SCP；OpenAMSM ↔ UPF 的 N4 / PFCP 直连，不经过 SCP",
+        "NGAP message：PDU Session Resource Setup Response；图中短标签为 PDU Resource Setup Response"
       ]
     },
     {

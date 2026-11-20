@@ -7,7 +7,11 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05c-network-modification-sequence.html"
+    "output": "docs/architecture/archify/05c-network-modification-sequence.html",
+    "viewBox": [
+      1084,
+      1400
+    ]
   },
   "participants": [
     {
@@ -338,7 +342,7 @@
       "from": "smf",
       "to": "upf",
       "y": 1128,
-      "label": "PFCP Session Modification Request (Type 52 · AN F-TEID)",
+      "label": "PFCP Session Modification Request (Type 52)",
       "variant": "default"
     },
     {
@@ -407,7 +411,8 @@
       "items": [
         "按 OES：m0 → m2（optional）→ m3 → m4 → m5",
         "PCF notification 已代表策略侧事件；不重复画一个无依据的 Npcf Update",
-        "m4 的 N1/N2 结果经 SCP 回到 Host，再按 exact occurrence 交还 OpenAMSM；m5 才消费 AN tunnel 信息"
+        "m4 的 N1/N2 结果经 SCP 回到 Host，再按 exact occurrence 交还 OpenAMSM；m5 才消费 AN tunnel 信息",
+        "m5 的 PFCP Session Modification Request（Type 52）使用 m4 返回的 AN F-TEID / tunnel endpoint"
       ]
     },
     {

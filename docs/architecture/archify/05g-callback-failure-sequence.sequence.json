@@ -7,7 +7,11 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05g-callback-failure-sequence.html"
+    "output": "docs/architecture/archify/05g-callback-failure-sequence.html",
+    "viewBox": [
+      1084,
+      1240
+    ]
   },
   "participants": [
     {
@@ -188,7 +192,7 @@
       "from": "amf",
       "to": "scp",
       "y": 616,
-      "label": "[ALT · duplicate / late] repeated Failure Notification",
+      "label": "Duplicate / late Failure Notification",
       "variant": "emphasis"
     },
     {

@@ -7,7 +7,11 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05d-release-sequence.html"
+    "output": "docs/architecture/archify/05d-release-sequence.html",
+    "viewBox": [
+      1084,
+      1592
+    ]
   },
   "participants": [
     {
@@ -280,7 +284,7 @@
       "from": "amf",
       "to": "ue",
       "y": 872,
-      "label": "PDU Session Release Command (5GSM 0xD3)",
+      "label": "Release Command (5GSM 0xD3)",
       "variant": "default"
     },
     {
@@ -288,7 +292,7 @@
       "from": "ue",
       "to": "amf",
       "y": 904,
-      "label": "PDU Session Release Complete (5GSM 0xD4)",
+      "label": "Release Complete (5GSM 0xD4)",
       "variant": "return"
     },
     {
@@ -451,7 +455,8 @@
       "items": [
         "UE 请求释放：PDU Session Release Request (0xD1) 经 Nsmf_PDUSession_UpdateSMContext 携带 N1",
         "AMF 请求释放：Nsmf_PDUSession_ReleaseSMContext；不伪造成 HTTP DELETE",
-        "两个入口都定位同一个已存在 Host Location / Owner Session，不创建新 SM Context"
+        "两个入口都定位同一个已存在 Host Location / Owner Session，不创建新 SM Context",
+        "UE NAS exchange 还包括 PDU Session Release Command（0xD3）与 PDU Session Release Complete（0xD4）；箭头使用短标签"
       ]
     },
     {

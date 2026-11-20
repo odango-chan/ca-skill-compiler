@@ -7,7 +7,11 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05f-service-request-handover-sequence.html"
+    "output": "docs/architecture/archify/05f-service-request-handover-sequence.html",
+    "viewBox": [
+      1084,
+      1208
+    ]
   },
   "participants": [
     {
@@ -164,7 +168,7 @@
       "from": "amf",
       "to": "ue",
       "y": 520,
-      "label": "N2 PDU Session Resource Setup Request",
+      "label": "PDU Resource Setup Request",
       "variant": "default"
     },
     {
@@ -172,7 +176,7 @@
       "from": "ue",
       "to": "amf",
       "y": 552,
-      "label": "N2 PDU Session Resource Setup Response",
+      "label": "PDU Resource Setup Response",
       "variant": "return"
     },
     {
@@ -327,7 +331,8 @@
       "items": [
         "F09：upCnxState=ACTIVATING，Host 路由到已有 SM Context；Owner 返回 N2 setup 信息，AMF 完成 AN setup 后再回传 PDU_RES_SETUP_RSP",
         "F10：按 hoState / N2 handover / PATH_SWITCH_REQ 识别 handover generation，OpenAMSM 更新已有用户面路径",
-        "两个分支都不调用 Establishment 的 s1 / s3，不创建第二个 SM Context"
+        "两个分支都不调用 Establishment 的 s1 / s3，不创建第二个 SM Context",
+        "NGAP exchange：PDU Session Resource Setup Request / PDU Session Resource Setup Response；图中使用 PDU Resource Setup Request / Response 短标签"
       ]
     },
     {

@@ -7,7 +7,11 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05b-ue-modification-sequence.html"
+    "output": "docs/architecture/archify/05b-ue-modification-sequence.html",
+    "viewBox": [
+      1084,
+      1880
+    ]
   },
   "participants": [
     {
@@ -378,7 +382,7 @@
       "from": "smf",
       "to": "upf",
       "y": 1288,
-      "label": "PFCP Session Modification Request (Type 52 · AN F-TEID)",
+      "label": "PFCP Session Modification Request (Type 52)",
       "variant": "default"
     },
     {
@@ -527,7 +531,8 @@
       "items": [
         "m0 SC.UPDATE_SM_CONTEXT → m2 CA.UPDATE_CHARGING（可选）→ m3 UPN.MODIFY_UP_SESSION → m4 SSM.SIGNAL_UE_AN → m5 UPN.MODIFY_UP_SESSION",
         "m3 与 m5 是两次独立 Mutation occurrence；m5 使用 m3 的 n4_seid 与 m4 的 AN tunnel TEID / IP",
-        "既有 PCC 已由 PCF notification / local TFT 更新；本流程不额外虚构 PA.UPDATE_SM_POLICY"
+        "既有 PCC 已由 PCF notification / local TFT 更新；本流程不额外虚构 PA.UPDATE_SM_POLICY",
+        "m5 的 PFCP Session Modification Request（Type 52）使用 m4 返回的 AN F-TEID / tunnel endpoint；完整 PFCP message name 见箭头标签"
       ]
     },
     {
