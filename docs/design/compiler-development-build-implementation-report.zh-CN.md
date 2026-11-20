@@ -1,18 +1,19 @@
 # Development Build 最终架构一致性收敛：实现与验收报告
 
-**状态：PR #51 最终评审版（不再称 Draft）。** 本页记录 `feat/compiler-development-build-20261120` 上实现与 [PR #48 架构基线](https://github.com/odango-chan/ca-skill-compiler/pull/48) 的一致性证据。PR #51 保持 OPEN、READY FOR FINAL REVIEW；它不冻结公开契约、不合并、不发布。
+**状态（2026-11-20）：Development Build 已评审通过并随 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 合并到 `main`（`1d7ea81`），依赖的架构 [PR #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 已合并（`22860a2`）。** 本页保留合并前实现分支、固定 SHA、测试与责任审计证据作为历史记录；未另行打 Tag、发布新版本或获得生产 Qualification。MAS G0/G1 仍 NOT_RUN。
 
 本轮为 Compiler 最终收敛，只修复三个 P1：Capability 静态需求进入 Artifact、统一 Package-scoped Schema Resolver、多 Skill Lock Root 并集验证。未扩大 Compiler 职责，未修改 EvidenceDescriptor 设计、CA-SL v1alpha5 语言语义或 v2.0.2 已发布入口与 Artifact。
 
 | 项 | 值 |
 |---|---|
 | 设计契约提交（PR #48 设计内容） | `551a0bba3455cfe4e7dbeede274b686a523316d6` |
-| 本报告对应的 PR #48 最终 HEAD | `27324bcf273ae640acdf27637f9a7de89ed2ffe0` |
+| 本报告当时固定的 PR #48 设计参考 HEAD（后续仅补 CI 安全修复） | `27324bcf273ae640acdf27637f9a7de89ed2ffe0` |
 | 本报告对应的 PR #51 实现 HEAD | `2e2a5840d2972f17c46c1cb1a6249ab9c50df58e` |
 | 权威职责基线（固定到 PR #48 最终 HEAD） | [`compiler-evidence-assurance-responsibility-audit.zh-CN.md`](https://github.com/odango-chan/ca-skill-compiler/blob/27324bcf273ae640acdf27637f9a7de89ed2ffe0/docs/design/compiler-evidence-assurance-responsibility-audit.zh-CN.md) |
-| 产品版本 / 语言目标 | CA Skill Compiler v2.0.0（未改）/ `connectionagent.io/v1alpha5`（未改） |
+| 已发布产品 / 语言目标 | CA Skill Compiler v2.0.2（未改）/ `connectionagent.io/v1alpha5`（未改） |
 | 冻结入口 | v2.0.2 BuildRequest / BuildResult / Artifact 逐字节未改 |
 | MAS G0 / G1 | **NOT_RUN** |
+| 合并检查点（不代表新版本 Release） | #48 `22860a26717a5a87d5af42c4674eec77ab4f7021`；#51 `1d7ea81c4b163b09add0314ecf949505128e3546` |
 
 职责基线只由 PR #48 维护：本分支不再保留该文档的副本，避免两个 PR 各自维护相互冲突的职责矩阵；上文链接固定在 PR #48 的最终 HEAD 上。
 
