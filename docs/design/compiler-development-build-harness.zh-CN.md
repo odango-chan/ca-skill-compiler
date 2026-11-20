@@ -19,7 +19,7 @@
 |---|---|
 | 1. 旧入口基线 | 从 v2.0.2 运行 `Check`、`Build`、`InspectDependencies`、`VerifyBuildResult` 的代表性正反例，保存诊断、退出码与产物文件摘要。后续在新代码上用相同输入比对。 |
 | 2. 离线 Link | 按已锁定的根与传递边复算快照摘要，验证包、导出、Schema 片段、Effect、Capability 成员、EvidenceDescriptor 和 Ingress 闭包。沿用现有快照摘要向量。明确报告包、导出或使用位置。缺接口或闭包不一致时，构建失败且无产物。 |
-| 3. 静态 Evidence 语义 + 两类 Requirement | 完整执行冻结的 Evidence 语言语义：声明/引用、Descriptor 形状、Producer/Consumer、SourcePath、Schema 类型、Independence 静态部分（逐组展开）、Mutation/Commit Proof/Reconcile 静态约束、Ingress 导出身份。Descriptor 缺失或非法即失败。静态检查通过后，仅把 Compiler 能定位的派发前外部事实记为 `OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`；Deployment Grant、Provider Binding、Invocation 授权由 Host 在派发时校验但不写成条目。把只能在执行期产生的真实结果记为 `COMMIT_PROOF`、`RECONCILE` 的 Runtime Execution Requirement。`COMMIT_PROOF` / `RECONCILE` 不得写进 Host Admission 文件，也不得声称在 Build 或派发前可满足。 |
+| 3. 静态 Evidence 语义 + 两类 Requirement | 完整执行冻结的 Evidence 语言语义：声明/引用、Descriptor 形状、Producer/Consumer、SourcePath、Schema 类型、Independence 静态部分（逐组展开）、Mutation/Commit Proof/Reconcile 静态约束、Ingress 导出身份。Descriptor 缺失、重复、非法或与引用不符即失败。每个被 Predicate 消费的 Descriptor 的 `authority` 与其他跨包导出一样生成独立的 `OWNER_TRUST`，不能被 `EVIDENCE_DOMAIN_TRUST` / `EVIDENCE_FACT_TRUST` 替代；Producer 输出 Schema 经其 Callable 唯一解析并与 Predicate 参数 Schema 比对。静态检查通过后，仅把 Compiler 能定位的派发前外部事实记为 `OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`；Deployment Grant、Provider Binding、Invocation 授权由 Host 在派发时校验但不写成条目。把只能在执行期产生的真实结果记为 `COMMIT_PROOF`、`RECONCILE` 的 Runtime Execution Requirement。`COMMIT_PROOF` / `RECONCILE` 不得写进 Host Admission 文件，也不得声称在 Build 或派发前可满足。 |
 | 4. Build 与 Verify | 对规范化锁、链接记录、两类 Requirement 和产物文件生成确定性摘要。装配后自验。Verify 复验产物字节和精确快照闭包，并逐项核对两个 Requirement 文件（JCS、排序、重新推导 requirementId、kind 所属类别、status、覆盖完整）。单纯复算 manifest 摘要仅证明字节一致性。提交至少一个在重新计算外层摘要后仍会被拒绝的删改 requirement 负例。复验用原始请求重跑核心并校对完整产物字节。 |
 | 5. 入口及回归 | 在 Native 与 WASM 入口显式选择新契约。新旧入口交叉传错版本均失败。以真实 Chromium Worker 比对成功样例的完整产物字节和失败样例的结构化诊断。 |
 
@@ -31,7 +31,7 @@
 | 删除传递包、类型或片段、Capability 成员、必须的 Ingress 导出、EvidenceDescriptor 或 Effect；Ingress 导出身份不成立 | 构建失败，无产物。 |
 | 提供错误绑定的 Descriptor、替换锁定快照、删除必需 requirement、或声明需要外部域/事实/独立性授权 | 静态结构失败在 Build 阶段拒绝；纯外部信任缺失不阻止 Build，但保留 Host Admission Requirement。通过完整性检查的产物仍需要 Host 验证准入材料。 |
 
-### 八项定向测试用例
+### 定向测试用例
 
 | # | 用例 | 通过判据 |
 |---|---|---|
@@ -44,6 +44,10 @@
 | 7 | 含 Mutation / Reconcile 的请求 | `COMMIT_PROOF`、`RECONCILE` 只出现在 `runtime-execution-requirements.json`（`RUNTIME_EXECUTION_REQUIRED`），不出现在 `host-admission-requirements.json` |
 | 8 | Ingress 导出身份负例：导出 ID 不存在或重复、导出 path 漂移、存在未导出的 operation、`metadata.owner` 与 publisher 不符、`artifactBindings`/`schemaBindings` 指向错误 | 分别 Build 失败并给出稳定诊断 |
 | 9 | 同一 Descriptor 被单个 Predicate、多个 Predicate、同一 `requires` 列表的多个序号、`requires` 与 `independence` 双重要用 | 每个真实位置各一条 Requirement，`selector` 精确到 `/predicates/<predicate>/evidence/requires/<parameter>/<index>` 或 `/predicates/<predicate>/evidence/independence/<group>/members/<member>/guarantee`；位置变化时 `requirementId` 随之变化；相同输入字节重复 Build 逐字节一致 |
+| 10 | 被消费的 Descriptor 声明 `authority`，以及同时声明 `sourceIdentity` / `factIdentity` | 每个真实消费位置一条 `OWNER_TRUST`，Subject 保留精确 Package Key、Export ID 与锁定快照路径；Owner / Domain / Fact 三条 Requirement 互不替代且 ID 不同 |
+| 11 | 同一 Guarantee 由多个 Producer 提供、Producer 输出 Schema 位于传递锁定包 | 每个 Producer 精确匹配其 Callable 与 `provides.path`；输出 Schema 恰好解析一次并与 Predicate 参数 Schema 比对；Descriptor 只产生一条 `OWNER_TRUST` |
+| 12 | 删除 Descriptor 的 `OWNER_TRUST` 并重封全部外层摘要 | Verify 失败（以原始请求重建并逐字节比较） |
+| 13 | 静态 Descriptor 缺失 vs 实际 Runtime Evidence / Attestation / Grant 缺失 | 前者 Build FAIL 无产物；后者 Build 成功、状态固定 `NOT_ADMITTED`，且两类 Requirement 保留 |
 
 增加一组同版异摘要、重复符号和未锁外部引用的负例。验证重排输入后的产物字节一致。以静态契约完整但外部信任缺失的请求为基线，增加信任材料后核对 Requirement 状态变化。构建入口按定版契约拒绝未知字段。Grant 和 Provider 由 Host 接收。
 

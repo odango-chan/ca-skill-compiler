@@ -9,12 +9,12 @@
 | Evidence 声明与引用解析（`predicates.yaml` 的 `requires` / `independence`） | `validateEvidenceRequirements`、`collectDependencyReferences` 解析并检查别名/参数绑定 | Compiler（语言语义） | 保留 |
 | Predicate Evidence 参数绑定、SourcePath、数据流、Schema 类型 | 继承静态流水线 `validatePredicateEvidence`、`validateSourcePath*`、`predicate_argument_typing` 等 | Compiler（语言语义） | 保留 |
 | Evidence Descriptor 物理文档（authority/fact/producers/scope/correlation/factValue/selection/freshness） | Development 首轮放在独立 `assurance[]` 输入 | Interface Contract | **移入 Interface Package 的正式导出**，由 Dependency Lock 固定；删除 `assurance[]` |
-| Evidence Descriptor 结构、Producer 身份/路径、Producer-Consumer 关系、Schema 引用 | `parseEvidenceDescriptor` + `validateEvidenceDescriptorReference` + `validateHostRecoveryDualProducer` | Compiler（静态接口语义） | 保留；作为 Declared Export 参与 Link，缺失即拒绝 Build |
+| Evidence Descriptor 结构、Producer 身份/路径、Producer-Consumer 关系、Schema 引用 | `parseEvidenceDescriptor` + `validateEvidenceDescriptorReference` + `validateHostRecoveryDualProducer` | Compiler（静态接口语义） | 保留；作为 Declared Export 参与 Link，缺失即拒绝 Build；Producer 输出 Schema 通过其 Callable 解析，Descriptor 不复制接口 Schema |
 | Evidence Independence 静态结构（成员存在、组形状、sourceIdentity 声明） | `validateIndependenceGroups`（源结构）+ `validateEvidenceIndependenceGroup`（声明形状） | Compiler | 保留静态部分，并按组展开为精确 Requirement |
 | Evidence Independence 的域授权与域对独立性 | `IndependentDomains` 信任输入 | Assurance / Host Admission | 移出 Compiler BuildRequest；转为 `EVIDENCE_INDEPENDENCE_TRUST` Host Admission Requirement |
 | CommonFact 命名空间/事实授权 | `EvidenceTrustBindings` 信任输入 | Assurance / Host Admission | 移出；转为 `EVIDENCE_FACT_TRUST` Host Admission Requirement |
 | sourceIdentity 域的真实来源与真实性 | 原 `assurance` 校验隐含 | Assurance / Host Admission | 移出；转为 `EVIDENCE_DOMAIN_TRUST`；Compiler 只检查声明形状 |
-| Owner 真实身份、签发权限、授权链 | 首轮以包 `publisher` 建立接口身份并生成 `OWNER_TRUST` | Host Admission（Owner / Deployment Authority） | 包声明身份仍用于静态一致性；真实信任判定移出，转为 `OWNER_TRUST` Host Admission Requirement |
+| Owner 真实身份、签发权限、授权链 | 以包 `publisher` / Descriptor `authority` 建立接口身份，并按真实消费位置生成 `OWNER_TRUST` | Host Admission（Owner / Deployment Authority） | 包声明身份仍用于静态一致性；真实信任判定移出，转为 `OWNER_TRUST` Host Admission Requirement。EvidenceDescriptor 自身的 Owner Trust 不能被 `EVIDENCE_DOMAIN_TRUST` / `EVIDENCE_FACT_TRUST` 替代 |
 | 运行时 Evidence 的 Correlation / Freshness 实值 | 无（Compiler 从不读取运行记录） | Runtime / Host | 明确不进入 BuildRequest；声明形状仍由 Compiler 检查 |
 | Mutation 静态约束（Effect、receipt/proof Schema、bind、path、failure class、资源责任） | `mutation_contracts.go`、`mutation_positive.go`、`reconcile_contracts.go` | Compiler | 保留 |
 | Mutation 是否真实提交、Commit Proof 是否可信 | 首轮记为待决义务 | Runtime / Host | 静态约束保留；真实判定转为 `COMMIT_PROOF` Runtime Execution Requirement |
@@ -108,10 +108,14 @@ independence {
 
 同一个 EvidenceDescriptor 同时声明 `sourceIdentity` 与 `factIdentity` 时，**同时**产生 `EVIDENCE_DOMAIN_TRUST` 与 `EVIDENCE_FACT_TRUST` 两条独立 Requirement，任一条都不得覆盖另一条。语义上无序的输入（文件顺序、快照顺序、锁与映射顺序）不得改变产物字节或 Requirement 集合；Predicate 在 `predicates` 映射中的顺序同样不承载语义。但 `requires` 列表中的真实序号属于源码位置本身：列表顺序变化导致序号变化时，允许对应 `requirementId` 与产物摘要变化，不得为了错误的顺序无关性而丢失真实位置。
 
+**Owner Trust 独立于 Domain / Fact Trust。** 每个实际消费的 EvidenceDescriptor 都按其 `authority` 与锁定快照路径产生自己的 `OWNER_TRUST`；`EVIDENCE_DOMAIN_TRUST` 只授权 `sourceIdentity` 的来源域，`EVIDENCE_FACT_TRUST` 只授权 CommonFact。三者是三个不同的外部事实，任何一条都不得被另一条替代，也不得因为 Descriptor 已声明 `sourceIdentity` / `factIdentity` 就省略 Owner 身份验证。Descriptor 的 `OWNER_TRUST` 同样使用真实消费位置（`requires` 参数序号或 Independence 成员位置），而不是粗粒度的 `evidence` 块指针。
+
 ### 2.5 静态失败与外部缺失的分界
 
-- 声明或引用的静态结构非法（Descriptor 缺失、重复、结构非法、Producer/路径不匹配、Independence 组形状非法、Ingress 导出身份不成立、Mutation/Reconcile 静态契约不成立）⇒ **Build FAIL，无产物**。不得用任何「未决」状态豁免。
+- 声明或引用的静态结构非法（Descriptor 缺失、重复、结构非法、Producer/路径不匹配、Producer 输出 Schema 无法解析或与 Predicate 参数 Schema 不兼容、Independence 组形状非法、Ingress 导出身份不成立、Mutation/Reconcile 静态契约不成立）⇒ **Build FAIL，无产物**。不得用任何「未决」状态豁免。
 - 静态结构成立、仅缺外部授权或外部事实 ⇒ **Build 成功**，对应可定位位置记入两类 Requirement 文件。缺 Deployment Grant、Provider Binding、Invocation 授权不进入 Compiler 输入，也不阻止 Build，更不写成条目。
+- **「静态 Descriptor 缺失」与「运行时 Evidence 缺失」不是同一种缺失。** 前者意味着源码引用所需的接口契约不闭合，是静态可判定的 Build FAIL；后者意味着外部信任/执行记录尚未产生，Build 仍成功、状态恒为 `NOT_ADMITTED`。Development Build 可以用合成但精确的 Interface 快照补齐静态 Descriptor，但不能用实际 Runtime Evidence 或 Assurance Attestation 填补静态接口缺口，因为这两类材料从不进入 BuildRequest。
+- **静态 Descriptor 齐备不代表真实 Evidence 已被验证。** Compiler 只证明证据保证的声明者、Producer/provides.path、事实与 Scope/Correlation/Selection/Freshness 的静态语义；实际来源、时效、运行时 Scope 与 Correlation 由 Runtime 对具体 Invocation 验证，外部信任材料由 Host Admission 验证。
 
 ## 3. Compiler 输入契约与静态/外部边界
 
@@ -179,7 +183,7 @@ Runtime / Provider 执行期 ─────────────► COMMIT_P
 
 - Evidence 引用的 Alias、Guarantee ExportId、Predicate 参数绑定。
 - Descriptor 的 authority/fact/producers/scope/correlation/factValue/selection/freshness 形状与静态引用根。
-- Producer 身份与 ToolCatalog Callable、`provides.path` 的唯一匹配。
+- Producer 身份与 `CallableCatalog` 导出中 Callable 的精确匹配、`provides.path` 的唯一匹配（`ToolCatalog` 只是该导出载荷的冻结逻辑 `kind`）。
 - Producer/Consumer 关系与 Host-recoverable Mutation 双 Producer 要求。
 - Independence 组成员存在、参数绑定、sourceIdentity 声明形状、组形状与组序号。
 - IngressCatalog 导出身份（§3.3 七条）。
@@ -206,7 +210,7 @@ Verify 必须同时检查**两个** Requirement 文件：
 
 1. 两份文件都必须严格解码：拒绝未知字段、非数组文档、重复 Requirement 与未按 `requirementId` 排序的条目。
 2. 规范化 JCS、逐条从**统一摘要域**重新推导 `requirementId`、`kind` 与所在文件类别一致、`status` 正确、`subjects` / `independence` 已规范化、覆盖完整。
-3. `location` 必须是该 kind 的真实位置：Independence 恰好指向一个组 JSON Pointer，Evidence 信任要求指向 `location.node` 所指 Predicate 的 Evidence 块内；粗粒度、悬空或借用其他 Predicate 的位置一律拒绝。
+3. `location` 必须是该 kind 的真实位置：Independence 恰好指向一个组 JSON Pointer，Evidence 信任要求（含 Descriptor 的 `OWNER_TRUST`）指向 `location.node` 所指 Predicate 的 Evidence 中真实引用位置；粗粒度、悬空或借用其他 Predicate 的位置一律拒绝。
 4. 以原始请求重建全部产物并**逐字节**比较每个产物文件；不能只依赖外层摘要。
 
 因此：删除任意一条 Host 或 Runtime Requirement、把 `COMMIT_PROOF` 移入 Host 文件、把 `OWNER_TRUST` 移入 Runtime 文件、改动 `status` / `requirementId` / `location` / independence 成员 / `domainPairs`，即使重新封装 manifest 摘要仍然失败；改动 Procedure、Lock 或 Descriptor 同样失败。

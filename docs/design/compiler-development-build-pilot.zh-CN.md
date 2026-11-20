@@ -33,12 +33,14 @@ Compiler 不接收 Owner 信任根、Assurance Attestation、真实 Evidence、D
 
 - Evidence 声明、引用解析、Predicate 参数绑定。
 - Evidence Descriptor 结构、authority/fact/producers/scope/correlation/factValue/selection/freshness 的静态形状。
-- Producer 身份与 trusted ToolCatalog Callable、`provides.path` 的唯一匹配；Producer 与 Consumer 关系。
+- Producer 身份与 `CallableCatalog` 导出中 Callable 的精确匹配、`provides.path` 的唯一匹配（`ToolCatalog` 只是该导出载荷的冻结逻辑 `kind`）；Producer 的输出 Schema 经其 Callable 唯一解析，可位于锁定的传递包中，必须恰好解析一次并与 Predicate 参数 Schema 比对；Producer 与 Consumer 关系仍然静态判定。
 - SourcePath、数据流、Schema 类型与 `$ref` 闭包。
 - Independence 组成员存在、组形状、sourceIdentity 声明形状及静态可判定冲突。
 - Mutation / Commit Proof / Reconcile 的静态约束、路由、恢复与重试可达性。
 
 **Descriptor 缺失或非法即失败。** 不得以任何「未决」状态替代冻结语言要求的静态检查，也不得在冻结校验执行后按错误码过滤后放行。
+
+**静态 Descriptor 与运行时 Evidence 是两种不同的缺失。** Development Build 可以缺少**实际** Runtime Evidence、Assurance Attestation 与 Deployment Grant：三者都不是 Compiler 输入，缺失只体现为 `NOT_ADMITTED` 及两类 Requirement。它不能缺少源码引用所需的**静态** `EvidenceDescriptor` 导出：缺失、重复、结构非法或与引用不符都意味着接口契约不闭合，Build 直接失败且不产生 Artifact。Compiler 不承担 Runtime Evidence 的真实性、时效性、运行时 Scope 与 Correlation 验证，也不在其产物中声明这些事实已成立。
 
 只有需要外部权威材料才能判定的事实在静态检查通过后记录为 Requirement；Requirement 分成**两类、两个文件**，互不替代：
 
@@ -53,7 +55,7 @@ Host Admission Requirement 恰好只有四类 kind：`OWNER_TRUST`、`EVIDENCE_D
 
 | kind | 记录时机 | 仍立即完成的静态检查 |
 |---|---|---|
-| `OWNER_TRUST` | 每个实际使用的跨包导出及其声明 Owner，按消费位置绑定 | 精确包键、导出声明、Owner 字段以及无歧义解析 |
+| `OWNER_TRUST` | 每个实际使用的跨包导出及其声明 Owner，按消费位置绑定；**包含每个被 Predicate 消费的 EvidenceDescriptor 的 `authority`**，并与 Domain / Fact Trust 各自独立 | 精确包键、导出声明、Owner 字段以及无歧义解析；Descriptor 的 Owner 不能被 `EVIDENCE_DOMAIN_TRUST` / `EVIDENCE_FACT_TRUST` 替代 |
 | `EVIDENCE_DOMAIN_TRUST` | 静态合法的 Descriptor 声明了 `sourceIdentity`，需要外部域授权 | Descriptor 结构、sourceIdentity 形状、Producer 匹配 |
 | `EVIDENCE_FACT_TRUST` | 静态合法的 Descriptor 声明了 `factIdentity`，需要外部 CommonFact 授权 | Descriptor 结构、factIdentity 形状、Producer 匹配 |
 | `EVIDENCE_INDEPENDENCE_TRUST` | 每个 Independence Group 静态结构成立且跨多个声明域，需要 IndependentDomains 授权 | 成员存在、组结构、sourceIdentity 声明、组序号 |

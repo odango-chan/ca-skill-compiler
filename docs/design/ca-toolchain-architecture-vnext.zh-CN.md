@@ -55,12 +55,17 @@ flowchart LR
 
 | Export kind | 内容 |
 |---|---|
-| CallableCatalog | 命名空间下的 Callable ID、kind、Effect、输入/输出及相关错误、结果 Schema 引用 |
+| CallableCatalog | 命名空间下的 Callable ID、kind、Effect、输入/输出及相关错误、结果 Schema 引用。它是 Interface Package 的 **export kind**；其载荷的冻结逻辑 `kind` 是 `ToolCatalog`，二者不是两个并列导出类型。本文后续「Callable」均指某个 `CallableCatalog` 导出中的 Callable 记录 |
 | Schema | 固定 dialect、规范 Schema ID 和内容路径；外部引用只能进入已锁定快照 |
 | CapabilityCatalog | `capabilityId`、所属 Interface Package、精确 Callable 成员；独立 export kind，可与 CallableCatalog 同包发布 |
 | IngressCatalog | 保留已发布 Ingress Operation 契约，固定 Operation、协议版本、标准化事件、响应及引用的 Schema；供 Trigger / Wait 和响应边界链接 |
+| EvidenceDescriptor | 正式导出的 Evidence 保证（Guarantee）声明：`authority/fact/producers/scope/correlation/factValue/selection/freshness` 与可选 `sourceIdentity/factIdentity`。`id` 是保证 ID，`path` 是原逻辑 Evidence 文档；该导出只绑定 Producer Callable 的 `provides.path`，**不得重复维护 Callable 的接口 Schema**，也不得复制 Predicate 的保证定义 |
 
 IngressCatalog 的导出身份由 `package.json` 精确绑定到载荷：`apiVersion`/`kind` 一致、导出 ID 恰好等于一个真实 `spec.operations[].id`、导出 path 等于实际 catalog 文件、Operation ID 唯一、`metadata.owner` 等于包 `publisher`、每个声明的 operation 在同一路径都有精确导出（无未导出 operation、无 id/path 漂移），且 `artifactBindings`/`schemaBindings` 指向精确的包或依赖快照路径与已声明 Schema 身份。文件存在或 `apiVersion` 正确本身不构成合法导出。
+
+**CallableCatalog 与 EvidenceDescriptor 的唯一权威关系。** CallableCatalog 发布 Callable 的身份、kind、Effect、Input / Output / Receipt Schema、Outcome 与 Callable 契约；EvidenceDescriptor 只发布「哪些 Producer 以哪个 `provides.path` 提供该 Guarantee」以及事实、Scope、Correlation、Selection、Freshness 语义；Predicate 只引用 Guarantee ID 与参数绑定。三者不得重复声明同一语义：Descriptor 不内嵌第二份 Callable 接口 Schema，Predicate 不复制 Owner 的保证定义。Producer 的输出 Schema 仍由该 Producer 的 Callable 唯一持有，Compiler 通过 Callable 解析并与 Predicate 参数 Schema 比对。
+
+EvidenceDescriptor 是实际被 Predicate 消费的跨包正式导出，因此其 `authority` 与其他导出一样受 §4 Owner Trust 约束：每个真实消费位置产生一条 `OWNER_TRUST` Host Admission Requirement，并保留精确 Dependency Alias、Package Key、Export ID、声明 Owner 与锁定快照路径。`EVIDENCE_DOMAIN_TRUST` / `EVIDENCE_FACT_TRUST` 分别授权来源域与 CommonFact，**不能替代** Descriptor 自身的 Owner 身份验证。
 
 跨包 Capability 成员使用声明过的依赖别名和精确 Callable ID。Subject Context、Observation、错误/结果、声明中引用的 Receipt / Reconcile 类型，以及 Wait 输出和响应映射所需类型均进入 Schema 闭包。保证材料可缺失；源码方面必需的声明、明确的 Effect、接口符号和类型仍须通过静态检查。发布过程可组合多个源 export，Resolver 与 Compiler 交接时每个发布版本只有一个权威快照。
 
@@ -109,6 +114,15 @@ flowchart TD
 ~~~
 
 Evidence 语义必须在 Compiler 内完整执行：声明与引用解析、Descriptor 结构、Producer/Consumer 关系、Predicate 参数绑定、SourcePath、数据流、Schema 类型、Independence 的静态可判定部分，以及 Mutation/Commit Proof/Reconcile 的静态约束。Descriptor 缺失、重复、结构非法或与引用不符，按冻结语言规则拒绝 Build；不得以任何「未决」状态替代静态检查。
+
+**静态 Descriptor 缺失与运行时 Evidence 缺失是两种完全不同的情况，不能互换。**
+
+| 情形 | 事实性质 | 结果 |
+|---|---|---|
+| 源码引用的 `EvidenceDescriptor`（以及 Callable / Schema）缺失、重复、非法或与引用不符 | 接口契约不闭合，静态可判定的语言/接口错误 | **Build FAIL，无 Artifact**；不得用 Requirement、运行时记录或「未决」状态豁免 |
+| 实际 Runtime Evidence、Assurance Attestation、Deployment Grant 缺失 | 外部信任或执行期事实尚未产生，不影响静态契约是否成立 | **Build 仍可成功**，执行状态固定 `NOT_ADMITTED`；缺失事实分别记为 Host Admission / Runtime Execution Requirement |
+
+Development Build 可以用**合成但精确**的 Interface Package 快照补齐源码引用所需的静态 Descriptor；它不能拿实际 Runtime Evidence 或 Assurance Attestation 填补静态接口缺口——这两类材料根本不进入 BuildRequest。反过来，静态 Descriptor 齐备也不代表任何真实 Evidence 已被验证：Compiler 只证明「保证被谁、以哪个路径、按什么静态语义声明」，实际的来源、时效、Scope 与 Correlation 由 Runtime 对具体 Invocation 验证，Host Admission 对外部信任材料验证。
 
 只有需要外部权威材料才能判定的事实在静态检查通过后记录为 Requirement，并分成两类、写成两个文件：
 
@@ -169,6 +183,7 @@ flowchart TD
 |---|---|---|---|---|---|
 | 语言静态校验与确定性产物 | **负责**（唯一实现） | 提供精确快照 | 复核产物完整性 | 不参与 | 不参与 |
 | EvidenceDescriptor 静态结构、Producer/路径、Schema 闭包 | **负责** | **以正式导出声明并固定字节** | 不重复解析语言规则 | 不参与 | 不参与 |
+| EvidenceDescriptor 声明 Owner（`authority`）与 `OWNER_TRUST` | 只做静态一致性检查并按真实消费位置记录 | 以正式导出声明 `authority` 并固定快照路径 | **验证 Owner 身份**；不得用 `EVIDENCE_DOMAIN_TRUST` / `EVIDENCE_FACT_TRUST` 替代 | 不参与 | 承担 Owner 身份与签发权限 |
 | Independence 组静态结构与逐组 Requirement | **负责**（一组一条） | 声明成员与域 | 验证域授权与域对独立性 | 不参与 | 授权 IndependentDomains 与域对 |
 | Owner 真实身份与签发权限 | 只记录包声明身份 | 声明 `publisher` / Owner 字段 | **验证** | 不参与 | 签发并承担 |
 | sourceIdentity / factIdentity 的真实来源与授权 | 只检查声明形状 | 声明 | **验证** domain / fact 信任 | 提供运行记录 | 授权 CommonFact / 域 |
