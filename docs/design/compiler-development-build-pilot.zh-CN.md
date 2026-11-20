@@ -47,7 +47,7 @@ Compiler 不接收 Owner 信任根、Assurance Attestation、真实 Evidence、D
 | Host Admission Requirement | 派发前可验证的外部事实 | `host-admission-requirements.json` | `HOST_VERIFICATION_REQUIRED` |
 | Runtime Execution Requirement | 只能在执行期产生的真实结果 | `runtime-execution-requirements.json` | `RUNTIME_EXECUTION_REQUIRED` |
 
-**Host Admission Requirement 的 kind 与记录时机**（仅这七项外部事实）：
+**Host Admission Requirement 的 kind 与记录时机**（Compiler 可定位并写入产物的四类外部事实）：
 
 | kind | 记录时机 | 仍立即完成的静态检查 |
 |---|---|---|
@@ -55,9 +55,8 @@ Compiler 不接收 Owner 信任根、Assurance Attestation、真实 Evidence、D
 | `EVIDENCE_DOMAIN_TRUST` | 静态合法的 Descriptor 声明了 `sourceIdentity`，需要外部域授权 | Descriptor 结构、sourceIdentity 形状、Producer 匹配 |
 | `EVIDENCE_FACT_TRUST` | 静态合法的 Descriptor 声明了 `factIdentity`，需要外部 CommonFact 授权 | Descriptor 结构、factIdentity 形状、Producer 匹配 |
 | `EVIDENCE_INDEPENDENCE_TRUST` | 每个 Independence Group 静态结构成立且跨多个声明域，需要 IndependentDomains 授权 | 成员存在、组结构、sourceIdentity 声明、组序号 |
-| Deployment Grant | 每条需要环境授权的 Invocation 路径 | Grant 不进入 Compiler；此处仅记录缺少派发前环境授权 |
-| Provider Binding | 每条需要固定 Provider 实例的派发路径 | 接口键与兼容范围静态一致，实例绑定由 Host 固定 |
-| Invocation 授权 | 每次派发/恢复路径 | 不读取调用方凭据；仅记录派发前授权待验 |
+
+此外，**Deployment Grant**、**Provider Binding** 与**当前 Invocation 授权**属于 Host Admission 在派发时按其独立信任根校验的外部事实，但 Compiler 既无法从源码定位、也不把它们写成 Requirement 条目：它们不进入 `host-admission-requirements.json`，不进入 BuildRequest，也不改变编译产物。Host 必须在准入时补齐并重新校验。
 
 **Runtime Execution Requirement 的 kind**（仅这两项，且都不是可在 Build 或派发前满足的 Host Admission Requirement）：
 

@@ -19,7 +19,7 @@
 |---|---|
 | 1. 旧入口基线 | 从 v2.0.2 运行 `Check`、`Build`、`InspectDependencies`、`VerifyBuildResult` 的代表性正反例，保存诊断、退出码与产物文件摘要。后续在新代码上用相同输入比对。 |
 | 2. 离线 Link | 按已锁定的根与传递边复算快照摘要，验证包、导出、Schema 片段、Effect、Capability 成员、EvidenceDescriptor 和 Ingress 闭包。沿用现有快照摘要向量。明确报告包、导出或使用位置。缺接口或闭包不一致时，构建失败且无产物。 |
-| 3. 静态 Evidence 语义 + 两类 Requirement | 完整执行冻结的 Evidence 语言语义：声明/引用、Descriptor 形状、Producer/Consumer、SourcePath、Schema 类型、Independence 静态部分（逐组展开）、Mutation/Commit Proof/Reconcile 静态约束、Ingress 导出身份。Descriptor 缺失或非法即失败。静态检查通过后，仅把派发前的外部事实记为 `OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`、Deployment Grant、Provider Binding、Invocation 授权；把只能在执行期产生的真实结果记为 `COMMIT_PROOF`、`RECONCILE` 的 Runtime Execution Requirement。`COMMIT_PROOF` / `RECONCILE` 不得写进 Host Admission 文件，也不得声称在 Build 或派发前可满足。 |
+| 3. 静态 Evidence 语义 + 两类 Requirement | 完整执行冻结的 Evidence 语言语义：声明/引用、Descriptor 形状、Producer/Consumer、SourcePath、Schema 类型、Independence 静态部分（逐组展开）、Mutation/Commit Proof/Reconcile 静态约束、Ingress 导出身份。Descriptor 缺失或非法即失败。静态检查通过后，仅把 Compiler 能定位的派发前外部事实记为 `OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`；Deployment Grant、Provider Binding、Invocation 授权由 Host 在派发时校验但不写成条目。把只能在执行期产生的真实结果记为 `COMMIT_PROOF`、`RECONCILE` 的 Runtime Execution Requirement。`COMMIT_PROOF` / `RECONCILE` 不得写进 Host Admission 文件，也不得声称在 Build 或派发前可满足。 |
 | 4. Build 与 Verify | 对规范化锁、链接记录、两类 Requirement 和产物文件生成确定性摘要。装配后自验。Verify 复验产物字节和精确快照闭包，并逐项核对两个 Requirement 文件（JCS、排序、重新推导 requirementId、kind 所属类别、status、覆盖完整）。单纯复算 manifest 摘要仅证明字节一致性。提交至少一个在重新计算外层摘要后仍会被拒绝的删改 requirement 负例。复验用原始请求重跑核心并校对完整产物字节。 |
 | 5. 入口及回归 | 在 Native 与 WASM 入口显式选择新契约。新旧入口交叉传错版本均失败。以真实 Chromium Worker 比对成功样例的完整产物字节和失败样例的结构化诊断。 |
 

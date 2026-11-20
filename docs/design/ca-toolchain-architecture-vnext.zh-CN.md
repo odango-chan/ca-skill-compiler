@@ -114,8 +114,10 @@ Evidence 语义必须在 Compiler 内完整执行：声明与引用解析、Desc
 
 | 类别 | 覆盖范围 | 产物文件 | 固定状态 |
 |---|---|---|---|
-| **Host Admission Requirement** | 派发前可验证的**外部事实**：`OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`、Deployment Grant、Provider Binding、当前 Invocation 授权 | `host-admission-requirements.json` | `HOST_VERIFICATION_REQUIRED` |
+| **Host Admission Requirement** | 派发前可验证、且 Compiler 能从源码/接口精确定位的**外部事实**：`OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST` | `host-admission-requirements.json` | `HOST_VERIFICATION_REQUIRED` |
 | **Runtime Execution Requirement** | 只能在**执行期**发生的真实结果：`COMMIT_PROOF`（实际 Mutation 提交与证明核验）、`RECONCILE`（`UNKNOWN` 后对精确原尝试的恢复与实际结论） | `runtime-execution-requirements.json` | `RUNTIME_EXECUTION_REQUIRED` |
+
+Deployment Grant、Provider Binding 与当前 Invocation 授权同样属于 Host Admission 在派发时校验的外部事实，但 Compiler 无法从源码定位它们，因此**不写成 Requirement 条目、不进入 BuildRequest、不进入任一 Requirement 文件**；Host 必须在准入时以独立信任根补齐并重新校验。
 
 `COMMIT_PROOF` 与 `RECONCILE` 不是可在 Build 或派发前满足的 Host Admission Requirement；它们的真实提交证据与恢复结论永不进入已编译产物，Compiler 也不预测或伪造。Runtime / Host 必须分别区分「运行时机制支持检查」（Contract、Schema、path、READ Callable、路由与重试结构是否就位）与「实际执行结果」（这一次到底提交/恢复了什么）。
 

@@ -98,7 +98,7 @@ independence {
 ### 2.5 静态失败与外部缺失的分界
 
 - 声明或引用的静态结构非法（Descriptor 缺失、重复、结构非法、Producer/路径不匹配、Independence 组形状非法、Ingress 导出身份不成立、Mutation/Reconcile 静态契约不成立）⇒ **Build FAIL，无产物**。不得用任何「未决」状态豁免。
-- 静态结构成立、仅缺外部授权或外部事实 ⇒ **Build 成功**，对应位置记入两类 Requirement 文件。缺 Deployment Grant、Provider Binding、Invocation 授权不进入 Compiler 输入，也不阻止 Build。
+- 静态结构成立、仅缺外部授权或外部事实 ⇒ **Build 成功**，对应可定位位置记入两类 Requirement 文件。缺 Deployment Grant、Provider Binding、Invocation 授权不进入 Compiler 输入，也不阻止 Build，更不写成条目。
 
 ## 3. Compiler 输入契约与静态/外部边界
 

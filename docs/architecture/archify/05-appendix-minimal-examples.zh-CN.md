@@ -94,7 +94,7 @@ nodes:
 }
 ```
 
-- `HOST_VERIFICATION_REQUIRED` 只覆盖派发前可验证的外部事实（`OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`、Deployment Grant、Provider Binding、Invocation 授权）。
+- `HOST_VERIFICATION_REQUIRED` 只覆盖 Compiler 能定位并写入产物的派发前外部事实（`OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`）；Deployment Grant、Provider Binding、Invocation 授权由 Host 派发时校验，但不写成条目，也不进入产物。
 - `RUNTIME_EXECUTION_REQUIRED` 只覆盖执行期才产生的真实结果（`COMMIT_PROOF`：实际提交与证明核验；`RECONCILE`：`UNKNOWN` 后精确原尝试的恢复与实际结论）。它们**不是**可在 Build 或派发前满足的 Host Admission Requirement，真实结果也不回写产物。
 - 两种状态都不是执行授权。静态结构非法是 Build FAIL；只有外部授权缺失才是 Host Requirement。
 
@@ -103,18 +103,19 @@ nodes:
 ### 2.3 Artifact manifest（设计草案）
 
 ```jsonc
-// 设计草案（compiler-development-artifact / v1alpha1）：不是 v2.0.2 的现行产物
+// 设计草案（compiler-development-artifact / v1alpha1）：字段与实际实现一致
 {
   "apiVersion": "connectionagent.io/compiler-development-artifact/v1alpha1",
   "languageTarget": "connectionagent.io/v1alpha5",
-  "generator": { "product": "ca-skill-compiler", "version": "vNext (proposal)" },
   "profile": "DEVELOPMENT",
+  "generator": { "name": "ca-skill-compiler", "version": "vNext (proposal)" },
+  "executionStatus": "NOT_ADMITTED",
   "sourceDigest": "sha256:…mas",
-  "dependencyLock": { "roots": ["mas", "ctx"] },
-  "procedures": ["establish-pdu-session-mas"],
-  "links": { "callables": ["mas::SC.VALIDATE_SUBSCRIPTION"], "ingress": [], "capabilityCatalog": "sha256:…mas" },
-  "requirements": ["host-admission-requirements.json", "runtime-execution-requirements.json"],
-  "executionState": "NOT_ADMITTED"
+  "targets": ["establish-pdu-session-mas"],
+  "lock": { "apiVersion": "connectionagent.io/interface-dependency-lock/v1alpha1", "roots": ["mas", "ctx"], "packages": [] },
+  "links": [{ "skill": "establish-pdu-session-mas", "package": { "packageId": "urn:…mas", "version": "1.0.0", "snapshotDigest": "sha256:…" }, "exportKind": "operation", "exportId": "SC.VALIDATE_SUBSCRIPTION" }],
+  "requirements": { "hostAdmission": "host-admission-requirements.json", "runtimeExecution": "runtime-execution-requirements.json" },
+  "files": [{ "path": "host-admission-requirements.json", "sha256": "sha256:…" }]
 }
 ```
 
