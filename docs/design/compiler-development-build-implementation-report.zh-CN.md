@@ -2,11 +2,14 @@
 
 **状态：PR #51 最终评审版（不再称 Draft）。** 本页记录 `feat/compiler-development-build-20261120` 上实现与 [PR #48 架构基线](https://github.com/odango-chan/ca-skill-compiler/pull/48) 的一致性证据。PR #51 保持 OPEN、READY FOR FINAL REVIEW；它不冻结公开契约、不合并、不发布。
 
+本轮为 Compiler 最终收敛，只修复三个 P1：Capability 静态需求进入 Artifact、统一 Package-scoped Schema Resolver、多 Skill Lock Root 并集验证。未扩大 Compiler 职责，未修改 EvidenceDescriptor 设计、CA-SL v1alpha5 语言语义或 v2.0.2 已发布入口与 Artifact。
+
 | 项 | 值 |
 |---|---|
 | 设计契约提交（PR #48 设计内容） | `551a0bba3455cfe4e7dbeede274b686a523316d6` |
-| 本报告对应的 PR #48 最终 HEAD | `5a0340eec26aea6fad744d99743631995a4355d9` |
-| 权威职责基线（固定到该 SHA） | [`compiler-evidence-assurance-responsibility-audit.zh-CN.md`](https://github.com/odango-chan/ca-skill-compiler/blob/5a0340eec26aea6fad744d99743631995a4355d9/docs/design/compiler-evidence-assurance-responsibility-audit.zh-CN.md) |
+| 本报告对应的 PR #48 最终 HEAD | `27324bcf273ae640acdf27637f9a7de89ed2ffe0` |
+| 本报告对应的 PR #51 实现 HEAD | `2e2a5840d2972f17c46c1cb1a6249ab9c50df58e` |
+| 权威职责基线（固定到 PR #48 最终 HEAD） | [`compiler-evidence-assurance-responsibility-audit.zh-CN.md`](https://github.com/odango-chan/ca-skill-compiler/blob/27324bcf273ae640acdf27637f9a7de89ed2ffe0/docs/design/compiler-evidence-assurance-responsibility-audit.zh-CN.md) |
 | 产品版本 / 语言目标 | CA Skill Compiler v2.0.0（未改）/ `connectionagent.io/v1alpha5`（未改） |
 | 冻结入口 | v2.0.2 BuildRequest / BuildResult / Artifact 逐字节未改 |
 | MAS G0 / G1 | **NOT_RUN** |
@@ -112,6 +115,118 @@
 - 正例（同时声明两类身份）：`sourceIdentity` + `factIdentity` 使 `OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST` 三条并存，ID 互异。
 - 反例：把 Descriptor 的 `authority` 改成未授权 Owner ⇒ `DEPENDENCY_OWNER_MISMATCH`；Producer 不存在 / Owner 不符 / Outcome 非 `SUCCEEDED` / `provides.path` 不匹配 ⇒ `EVIDENCE_GUARANTEE_LINK_INVALID`；未声明依赖别名 ⇒ Build FAIL；删除 `OWNER_TRUST` 或改粗粒度 selector 后重封全部外层摘要 ⇒ `VerifyDevelopment` 仍拒绝。
 
+### 1.9 Capability Grant 进入最终 Artifact（P1-1）
+
+**根因。** `validateDevelopmentCapabilityLinking()` 已能解析 Skill 的 `capabilities`、定位 CapabilityCatalog、验证 Callable 成员与 Grant 覆盖，但结果中的 Grants/Capabilities 只用于诊断：Compiler 验证了 Skill 选择了哪个 Capability，却没有把选择交给 Host。Host 只能重新读取 SKILL 源码或从 Callable 集合反推，静态链接不完整。
+
+**最终实现。**
+
+- `manifest.json` 新增 `capabilityRequirements[]`。每条记录：
+
+  ```
+  { skill,
+    capabilityId,
+    catalog { key { packageId, version, snapshotDigest }, owner, exportId, sourcePath, pointer },
+    callables [ { key { packageId, version, snapshotDigest }, owner, exportId, kind, effect, sourcePath } ],
+    declaration { path, pointer } }
+  ```
+
+- `capabilityId` 来自 Skill 的声明；`catalog` 是实际绑定的 CapabilityCatalog 导出，`key` 为精确 Package Key，`owner` 取自**锁定 Package manifest 的 `publisher`**（不采用 Catalog 文件内自声明），`exportId`/`sourcePath`/`pointer` 为精确导出身份与 `/capabilities/<index>` 位置。
+- `callables[]` 保留该 Capability 实际包含的全部成员，每项带自己的 Package Key、Export ID、SourcePath、Kind 与 Effect。
+- `declaration` 是 Skill 原始声明位置：`skills/<skill>/assurance/contract.yaml` + `/capabilities/<index>`。
+- 多个 Capability 包含同一 Callable 时，只记录 Skill 实际声明的那一条；不按 Callable 反推、不把所有匹配项都当成授权需求。
+- Skill 声明的 Capability 找不到唯一锁定 Catalog 时 Build FAIL（`CAPABILITY_MAPPING_MISSING`），不再静默丢弃。
+- CapabilityCatalog 发布者身份按既有 `OWNER_TRUST` 语义记录一条 Host Admission Requirement：`location` 为 Skill 的 `/capabilities/<index>` 声明位置，`subjects[0]` 为 Catalog 的 Package Key、Export ID 与 SourcePath。Host 仍负责真实 Owner 信任与准入；Deployment Grant 不进入 Artifact。
+- 该字段是 manifest 的一部分，随 manifest 摘要与逐字节重建验证；Verify 另做结构校验（Package Key/Export/Owner/SourcePath/Pointer/Callable/声明位置必须完整、Kind/Effect 合法、成员不重复、按规范化身份排序）。
+
+**正向样例（即 `tests/golden/development-capability-requirements-v1.json` 的黄金基线）：**
+
+```json
+{"skill":"verify-ue-registration","capabilityId":"example.registration-read",
+ "catalog":{"key":{"packageId":"urn:example:ca:tools","version":"1.0.0","snapshotDigest":"sha256:0f41…"},
+            "owner":"example-ue-owner","exportId":"example.registration-read",
+            "sourcePath":"capabilities.json","pointer":"/capabilities/0"},
+ "callables":[{"key":{"packageId":"urn:example:ca:tools","version":"1.0.0","snapshotDigest":"sha256:0f41…"},
+               "owner":"example-ue-owner","exportId":"ue.registration.current",
+               "kind":"observation","effect":"READ","sourcePath":"tool-catalog.yaml"}],
+ "declaration":{"path":"skills/verify-ue-registration/assurance/contract.yaml","pointer":"/capabilities/0"}}
+```
+
+Host 直接读取 Artifact 即可得到 Skill 请求的 Capability、精确 Catalog Package/Owner/导出与成员，无需读取原始 SKILL 源码；该记录是静态需求，不是部署授权。
+
+### 1.10 统一 Package-scoped Schema Resolver（P1-2）
+
+**根因。** 带 Alias 的 `$ref` 直接使用 `scope.env.rootByAlias[alias]`，只适用于 Skill 的 Root Alias；Interface Package 自己的 `packageAliases` 无法参与。同时 `producerOutputSchemas` 的全局 `$id` fallback 与 `hasSchema()` 的闭包全局接受，允许使用「已锁定但当前 Package 未声明依赖」的 Schema——这是依赖边界错误，也解释了 `Skill → A → B → C` 链无法通过 B 自己的别名解析 C。
+
+**最终实现（单一解析入口）。**
+
+- `development_link.go` 新增 `developmentSchemaContext` 与唯一入口 `resolveSchemaReference`；`resolveSchemaInPackage` 固定「本包 → 本包声明的直接依赖」两段解析。
+- 规则：Skill 源使用 Skill Contract 声明的根别名；Interface Package 内的 Schema 使用该 Package manifest 声明的直接依赖别名；绝对 `$id` 只解析到声明文档所属 Package 自身或其直接依赖；被引用 Schema 内的后续 `$ref` 按该 Schema 所属 Package 重新确定作用域。全局 `$id` 只用于身份识别，绝不作为跨 Package 依赖的授权。
+- `validateDevelopmentSchemaClosure` 用该入口遍历 Context/Request Schema 与每个 Callable 的完整 Schema；失败诊断包含当前 Package、Alias、SourcePath 与 `$ref` 的 JSON Pointer。
+- `schema_registry.go` 增加可选 Development 语义：`schemaResource.packageKey` + `resolveReferenceFrom()`。Development 下所有继承的 Schema 入口（Closure、Context root、SourcePath、参数/脚本/Predicate/Mutation typing、Producer 输出）共用该入口；frozen v1alpha5 的 `development == nil` 分支逐字节保持原行为。
+- `source_path_producer.go` 的 Producer 输出 Schema 在 Development 下不再做全局 `$id` fallback：只按 Callable 所属 Package 的依赖作用域解析；嵌套 `$ref` 跟踪所属 Package。
+- JSON Schema 编译视图仅在 Development 下移除已证明的 Alias 限定符（`alias::uri` → `uri`），供 San 引擎编译；冻结入口从不改写。
+- 删除 `scope.hasSchema()` 的全局接受路径与 `resolveDevelopmentSchemaRef()` 对 `rootByAlias` 的直接依赖。
+
+**测试矩阵。**
+
+| # | 用例 | 结果 |
+|---|---|---|
+| 1 | Skill Root Alias（`contextSchema`/`requestSchema` 引用根包） | PASS |
+| 2 | Package 自身 Schema 引用（fixture `tools` 内） | PASS |
+| 3 | Package 直接依赖 Schema（`tools → types`） | PASS |
+| 4 | `Skill → A → B → C`，B 用自身别名引用 C，Schema 内继续解析 | PASS |
+| 5 | A 未声明 C，但 C 在 Lock Closure，A 用绝对 `$id` 引用 C | FAIL（`SCHEMA_MISSING`） |
+| 6 | 未声明 Alias | FAIL（`SCHEMA_MISSING`） |
+| 7 | Alias 指向不导出该 Schema 的 Package | FAIL（`SCHEMA_MISSING`） |
+| 8 | 非法相对引用 | FAIL（`SCHEMA_MISSING`） |
+| 9 | 重复 Schema 身份 | FAIL（`DEVELOPMENT_LOCK_INVALID`） |
+
+### 1.11 多 Skill 共用 Lock 的 Root 并集验证（P1-3）
+
+**根因。** `validateDevelopmentRootsAgainstContracts()` 对每个选中 Skill 都要求「整个 BuildRequest 的所有 Lock Roots 都被当前 Skill 声明」。多 Skill 共用一个 Lock 时，这等价于要求每个 Skill 声明其他 Skill 的依赖，语义错误。
+
+**最终实现。**
+
+- 先求根依赖并集：`R = D(S1) ∪ … ∪ D(Sn)`，再验证：
+  1. 每个 Skill 声明的 Alias 存在对应 Lock Root；
+  2. 每个 Alias 解析到与其声明一致的 Stable Package ID；
+  3. 每个 Root 至少被一个选中 Skill 声明（无未引用 Root）；
+  4. 同一 Alias 不得跨 Skill 绑定不同 Package 身份；
+  5. Lock Closure 等于 `R` 的传递依赖闭包（现有 reachability 准入强制，无缺失传递依赖、无不可达 Package）。
+- 单 Skill 行为保持不变。
+
+**测试矩阵。**
+
+| # | 用例 | 结果 |
+|---|---|---|
+| 1 | 两个 Skill、不同 Root、共同 Lock | PASS（逐字节可复验） |
+| 2 | 缺少 Skill A 的 Root | FAIL（`DEVELOPMENT_LOCK_INVALID`） |
+| 3 | Alias 对应错误 Package ID | FAIL |
+| 4 | 存在未被任何 Skill 引用的额外 Root | FAIL |
+| 5 | Lock Closure 缺少传递依赖 | FAIL |
+| 6 | 同名 Alias 跨 Skill 指向不同 Package | FAIL |
+| 7 | 单 Skill 正例 | PASS（不回退） |
+| 8 | 多 Skill 输入顺序重排 | 产物逐字节一致 |
+
+### 1.12 本轮修改文件
+
+| 文件 | 修改 | 原因 |
+|---|---|---|
+| `internal/compiler/development_artifact.go` | 新增 `capabilityRequirements` 记录类型、manifest 字段、确定性排序与规范化 | Capability 静态需求必须成为 Artifact 完整性的一部分 |
+| `internal/compiler/development_obligations.go` | 生成 Capability 需求；声明了却无唯一 Catalog 时失败；记录精确声明位置 | 不把 Skill 的选择丢在诊断里 |
+| `internal/compiler/development_semantics.go` | 汇总 Capability 需求并记录 Catalog `OWNER_TRUST` | 复用既有 Owner Trust 语义，不新造信任模型 |
+| `internal/compiler/development_build.go` | Verify 结构校验 Capability 需求；Capability `OWNER_TRUST` 精确位置校验 | 重封外层摘要也不能绕过语义校验 |
+| `internal/compiler/development_link.go` | 统一 Package-scoped Schema Resolver；删除全局 `hasSchema()`/`rootByAlias` 解析路径 | 依赖边界错误 |
+| `internal/compiler/schema_registry.go` | Development 可选语义：Package key、`resolveReferenceFrom`、编译视图去 Alias 限定符 | 所有 Schema 入口共用同一规则 |
+| `internal/compiler/source_path_producer.go` | Development 下删除全局 `$id` fallback，嵌套 `$ref` 跟踪所属 Package | 关闭绕过路径 |
+| `internal/compiler/development_request.go` | Root 并集、跨 Skill 别名身份一致、未引用 Root 检查 | 多 Skill 共享 Lock 的正确语义 |
+| `internal/compiler/api.go` | 私有 `development` 字段，仅为内部请求携带 resolver | 冻结入口不设置它，行为不变 |
+| `internal/compiler/development_capability_artifact_test.go` | 正例、精确选择、缺失 Catalog、12 项篡改矩阵 | 锁定 P1-1 |
+| `internal/compiler/development_schema_scope_test.go` | A→B→C 正例 + 5 类反例 + 测试包图构造器 | 锁定 P1-2 |
+| `internal/compiler/development_multi_skill_test.go` | 并集正例、5 类反例、重排确定性、单 Skill 回归 | 锁定 P1-3 |
+| `tests/golden/development-capability-requirements-v1.json` | Capability 需求黄金基线 | 新字段有对应基线 |
+
 ## 2. 架构与实现差异清单
 
 | 架构契约（PR #48） | 实现（PR #51） | 差异 |
@@ -119,7 +234,10 @@
 | 输入只有源码、精确 Interface Package 快照、Dependency Lock；无 `assurance[]` / 可选 Assurance Export | `DevelopmentBuildRequest` 只有 `files/lock/snapshots`；`DevelopmentAssurance` 类型已删除 | 无 |
 | `EvidenceDescriptor` 是正式导出，缺失/重复/非法/Producer 不匹配即 FAIL | `EvidenceDescriptor` 导出索引 + 静态链接；失败即无产物 | 无 |
 | 每个被消费的 Descriptor `authority` 与其他跨包导出一样受 Owner Trust 约束，且不能被 Domain/Fact Trust 替代 | `ownerLinking.Exports` 保留 Descriptor 的声明 Owner 与精确 SourcePath；`recordOwnerTrustRequirements` 按真实消费位置记录 `OWNER_TRUST` | 无（本轮修正） |
-| Producer 输出 Schema 由 Producer 的 Callable 唯一持有并参与 Predicate 参数 Schema 比对 | `producerOutputSchemas` 先按 alias 限定、再按稳定 `$id` 在锁定闭包内唯一解析；不兼容即 `PREDICATE_TYPE_MISMATCH` | 无（本轮修正） |
+| Producer 输出 Schema 由 Producer 的 Callable 唯一持有并参与 Predicate 参数 Schema 比对 | Development 下按 Callable 所属 Package 的依赖作用域解析，不做全局 `$id` fallback；不兼容即 `PREDICATE_TYPE_MISMATCH` | 无（本轮按 Package-scoped 规则收敛） |
+| Skill 的 Capability 选择进入 Artifact，Host 不读 SKILL 源码（PR #48 §3.1/§4） | manifest `capabilityRequirements[]` 记录精确 Catalog Package/Owner/Export/SourcePath/Pointer、Callable 成员与 Skill 声明位置；Verify 覆盖篡改 | 无（本轮修正） |
+| Schema 解析遵守 Package Dependency（PR #48 §3.2） | 单一 Package-scoped Resolver；全局 `$id` 仅识别身份 | 无（本轮修正） |
+| 多 Skill 共用 Lock 使用 Root 并集（PR #48 §3.2） | `validateDevelopmentRootsAgainstContracts` 先求并集再验证 | 无（本轮修正） |
 | Host Admission 四类 kind + `HOST_VERIFICATION_REQUIRED` | `host-admission-requirements.json` 仅接受四类 | 无 |
 | Runtime 两类 kind + `RUNTIME_EXECUTION_REQUIRED` | `runtime-execution-requirements.json` 仅接受两类 | 无 |
 | 两类共用统一摘要域 `CA-SKILL-DEVELOPMENT-REQUIREMENT\0v1\0`，`kind` 参与类型化键 | `developmentRequirementDigestDomain` 已统一；`kind` 在 `developmentRequirementKey` 内参与 JCS 摘要 | 无（本轮修正） |
@@ -136,20 +254,23 @@
 
 ## 3. 测试报告（实际执行）
 
-环境：Windows；Go **go1.26.6 windows/amd64**；Node **v24.18.0**；Google Chrome **158.0.8127.37**；Archify 渲染器 **3.2.0**。
+环境：Windows；Go **go1.26.6 windows/amd64**；Node **v24.18.0**；Google Chrome **158.0.8127.37**。
 
 | 门禁 | 命令 | 结果 |
 |---|---|---|
 | 单元/集成 | `GOWORK=off go test ./... -count=1` | PASS（全部包：compiler / yamlast / ingresscatalog / parity / projectinput / cmd） |
 | 静态检查 | `GOWORK=off go vet ./...` | PASS（exit 0，无输出） |
 | Native build | `CGO_ENABLED=0 GOWORK=off go build ./...` | PASS（exit 0） |
-| Go/WASM build | `CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm` | PASS（exit 0） |
+| Go/WASM build | `CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm` | PASS（exit 0，33,753,984 bytes） |
 | CLI E2E | `GOWORK=off go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | PASS（12 个子测试全部通过） |
-| Chromium Worker parity | `CHROMIUM_PARITY=1 GOWORK=off go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | PASS（Development 5 文件逐字节一致；重排输入逐字节一致；失败诊断一致） |
+| Chromium Worker parity | `CHROMIUM_PARITY=1 GOWORK=off go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | PASS（真实 Chromium Worker；Development 5 文件逐字节一致；重排输入逐字节一致；失败诊断一致） |
 | 空白/编码 | `git diff --check` | PASS（exit 0） |
-| v2.0.2 黄金基线 | `GOWORK=off go test ./internal/compiler -count=1 -run "TestLegacyEntryGoldenBaseline\|TestDependencySnapshotDigestGoldenVectors" -v` | PASS（旧入口行为与 `tests/golden/legacy-entry-v2.0.2.json` 完全一致；三个冻结摘要向量一致） |
+| v2.0.2 黄金基线 | `GOWORK=off go test ./internal/compiler -count=1 -run "TestLegacyEntryGoldenBaseline" -v` | PASS（与 `tests/golden/legacy-entry-v2.0.2.json` 完全一致） |
+| Capability 黄金基线 | `GOWORK=off go test ./internal/compiler -count=1 -run TestDevelopmentCapabilityGoldenBaseline -v` | PASS（与 `tests/golden/development-capability-requirements-v1.json` 逐字节一致） |
+| 重复构建/重排 | `TestDevelopmentBuildPositiveFixture`、`TestDevelopmentBuildIsReorderingInvariant`、`TestDevelopmentMultiSkillReorderingInvariant` | PASS（相同输入逐字节一致；无序输入重排后逐字节一致） |
+| GitHub Actions | run [44717886662](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44717886662)（PR #51 实现提交 `2e2a584`） | PASS（`v1alpha5-integration` job success，1m10s：focused 测试、全量测试、vet、Native/WASM build、CLI E2E、真实 Chromium Worker parity、diff check 全部通过） |
 
-> 本轮执行环境使用 danger-full-access 文件策略（Archify 需要启动真实 Chromium 子进程）；Go 缓存仍为默认位置。命令与 AGENTS.md 列出的可复现门禁一致。
+> 本轮在 Windows + danger-full-access 文件策略下执行；Chromium 为真实浏览器 Worker，不是 Native 结果替代。CI 结果是实际 GitHub Actions 运行，不是本地结果冒充；PR #48 只改 `docs/design/**`，现有 workflow 的 path filter（`internal/compiler/**` 等，或 Archify 的 `docs/architecture/archify/*.sequence.json`）不覆盖该路径，因此其最终提交 `27324bc` **不触发** check（NOT_RUN），不写成 PASS。
 
 专项测试（`internal/compiler/development_requirements_test.go`、`development_locations_test.go` 等）：
 
@@ -174,17 +295,21 @@
 | 17 | Owner Trust 不被 Domain / Fact Trust 替代 | `TestDevelopmentEvidenceDescriptorOwnerTrustIsNotReplacedByDomainOrFact`（三条 Requirement ID 互异） |
 | 18 | 无实际 Runtime Evidence / Attestation 的静态 Build | `TestDevelopmentBuildNeedsNoRuntimeEvidenceOrAttestation`（请求信封无这些字段、Build 成功、`NOT_ADMITTED`） |
 | 19 | 多 Owner 快照缺少 Descriptor 精确归属 | `TestWP3B010MultiOwnerEvidenceGuaranteeMissingAttribution`（`DEPENDENCY_EXPORT_OWNER_UNVERIFIED`） |
+| 20 | Capability 静态需求进入 Artifact 且精确选择 | `TestDevelopmentCapabilityRequirementInArtifact`、`TestDevelopmentCapabilitySelectionIsExact`、`TestDevelopmentCapabilityGoldenBaseline`、`TestDevelopmentCapabilityDeclarationIsRequired` |
+| 21 | Capability 字段篡改（重封摘要后） | `TestDevelopmentVerifyRejectsCapabilityTampering`（删除需求、Capability ID、Catalog Key/Owner/Export/SourcePath/Pointer、Callable、声明位置，12 个子用例） |
+| 22 | Package-scoped Schema 解析正反例 | `TestDevelopmentSchemaResolverPackageChain`、`…RejectsUndeclaredGlobalID`、`…RejectsUndeclaredAlias`、`…RejectsWrongPackage`、`…RejectsIllegalRelativeRef`、`…RejectsAmbiguousIdentity` |
+| 23 | 多 Skill 共用 Lock | `TestDevelopmentMultiSkillSharedLockPasses`、`…MissingRootFails`、`…WrongPackageFails`、`…ExtraRootFails`、`…AliasIdentityConflictFails`、`…BrokenClosureFails`、`…ReorderingInvariant`、`TestDevelopmentSingleSkillRootsUnchanged` |
 
-CI：本轮实现提交 `1a7c7bdaaf9d5079304a22e1e4d6aa454dc0f61e` 的 `v1alpha5-integration` 运行
-<https://github.com/odango-chan/ca-skill-compiler/actions/runs/44710540260>（job PASS，1m6s，全部门禁步骤通过）。
-PR #48 分支只改文档与职责边界文字，现有 workflow 的 path filter 不覆盖 `docs/**`，因此其最终提交 `5a0340eec26aea6fad744d99743631995a4355d9` **不触发**任何 check（NOT_RUN，不是 PASS）；职责/流程没有变化，Archify 图不重绘，上一轮已提交的回执保持有效。
+CI：本轮实现提交 `2e2a5840d2972f17c46c1cb1a6249ab9c50df58e` 的 `v1alpha5-integration` 运行
+<https://github.com/odango-chan/ca-skill-compiler/actions/runs/44717886662>（job PASS，全部门禁步骤通过）。
+PR #48 分支只改架构/实施契约文字，现有 workflow 的 path filter 不覆盖 `docs/**`，因此其最终提交 `27324bcf273ae640acdf27637f9a7de89ed2ffe0` **不触发**任何 check（NOT_RUN，不是 PASS）；本轮流程图的阶段与边界未变化，故未重绘 Archify 图，上一轮已提交的目视回执保持有效，人工签字仍为 PENDING。
 
 ## 4. 已知限制
 
 - MAS **G0 = NOT_RUN**（没有通过 G0 的真实精确接口快照），**G1 = NOT_RUN**。本报告不宣称 MAS 通过。
-- 所有正例仍为 Compiler 自有的**合成 Interface Package 快照**，不代表真实 Owner 发布或产品资格。
+- 所有正例仍为 Compiler 自有的**合成 Interface Package 快照**，不代表真实 Owner 发布或产品资格。CapabilityCatalog 的 Publisher 也是合成值；其真实签发权限仍由 Host `OWNER_TRUST` 验证。
 - Development profile 的 Owner 归属来自每个包的单一 `publisher`，因此 Development 路径本身不构造多 Owner 快照；多 Owner 下 Descriptor 缺少精确归属的负例在共享的 owner-linking 层（`TestWP3B010MultiOwnerEvidenceGuaranteeMissingAttribution`）验证。真实多 Owner Interface Package 发布仍待 Provider/Owner 侧材料。
-- PR #48 本轮只改职责与边界文字：职责/流程未变，故未重绘 Archify 图 01–03，既有图与截图检查保持原样；仅文档提交换了 HEAD。
+- PR #48 本轮只改契约文字（Capability 静态需求、Package-scoped Schema、Root 并集）：流程阶段与边界未变，故未重绘 Archify 图 01–03，既有图与截图检查保持原样；仅文档提交换了 HEAD。
 - Owner 正式发布（真实 Owner 签名、真实 Interface Package 发布记录）**尚未完成**；本实现只消费调用方提供的精确快照与锁。
 - Development Artifact 恒为 `NOT_ADMITTED`；生产 Host 必须拒收 `DEVELOPMENT` profile。
 - 真实 Commit Proof、实际 Reconcile、运行时 Evidence、Deployment Grant、Provider Binding 与 Invocation 授权仍由 Host/Runtime 负责，本实现只记录其静态位置与契约。
@@ -193,7 +318,7 @@ PR #48 分支只改文档与职责边界文字，现有 workflow 的 path filter
 
 ## 5. 最终职责矩阵（摘要）
 
-本节的完整权威版本只由 PR #48 的[职责审计](https://github.com/odango-chan/ca-skill-compiler/blob/a76ea350d981d945631b04f07a0bc61c83f525a8/docs/design/compiler-evidence-assurance-responsibility-audit.zh-CN.md)（固定在最终 HEAD）与架构文档 §6 维护；下表只是便于实现评审的摘要，不构成第二份职责来源。
+本节的完整权威版本只由 PR #48 的[职责审计](https://github.com/odango-chan/ca-skill-compiler/blob/27324bcf273ae640acdf27637f9a7de89ed2ffe0/docs/design/compiler-evidence-assurance-responsibility-audit.zh-CN.md)（固定在最终 HEAD）与架构文档 §6 维护；下表只是便于实现评审的摘要，不构成第二份职责来源。
 
 | 责任 | Compiler | Interface Package | Host Admission | Runtime / Provider | Owner / Assurance Authority |
 |---|---|---|---|---|---|
@@ -202,6 +327,7 @@ PR #48 分支只改文档与职责边界文字，现有 workflow 的 path filter
 | EvidenceDescriptor 的 Owner 身份（`authority`） | 只做静态一致性并记录 `OWNER_TRUST` | 以正式导出声明 | 验证 `OWNER_TRUST`，不得用 Domain/Fact Trust 替代 | — | 承担 |
 | Owner 真实身份、签发权限 | 不判定 | 声明 `publisher` | 验证 `OWNER_TRUST` | — | 承担 |
 | IndependentDomains / CommonFact 授权 | 只检查声明形状 | — | 验证两类 TRUST | — | 授权 |
+| Capability 静态选择与 Catalog Owner | 记录精确 Capability 需求（Package/Owner/Export/成员/声明位置）与 `OWNER_TRUST` | 以 `publisher` 发布 CapabilityCatalog | 验证 Owner 与部署授权 | — | 承担发布者身份 |
 | Independence 组静态结构与域对枚举 | 执行 | 提供 Descriptor | 验证 `EVIDENCE_INDEPENDENCE_TRUST` | — | 授权域对 |
 | Mutation / Commit Proof / Reconcile 静态契约 | 执行 | 提供 Callable/Schema | 复核 | 实际执行 | — |
 | 实际提交、实际恢复结论 | 不产生、不伪造 | — | 不足以满足 | 产生并验证 `COMMIT_PROOF` / `RECONCILE` | — |
