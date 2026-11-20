@@ -370,7 +370,7 @@ func (semantics *developmentSemantics) recordIndependenceRequirements(skill *Ski
 			Location: DevelopmentRequirementLocation{
 				Skill: skill.Name, Path: "skills/" + skill.Name + "/assurance/predicates.yaml",
 				Node: detail.Predicate, Stage: "evidence",
-				Selector: "/predicates/" + detail.Predicate + "/evidence/independence/" + itoa(detail.GroupIndex),
+				Selector: "/predicates/" + v1alpha5JSONPointerToken(detail.Predicate) + "/evidence/independence/" + itoa(detail.GroupIndex),
 			},
 			Subjects:     subjects,
 			Independence: detail,
@@ -504,9 +504,9 @@ func developmentReferenceLocations(skill *SkillAST) map[string][]DevelopmentRequ
 					}
 				}
 			}
-			for _, reference := range collectEvidenceGuaranteeReferences(predicate.Evidence, predicatesPath) {
+			for _, reference := range collectEvidenceGuaranteeReferences(predicateID, predicate.Evidence, predicatesPath) {
 				add(reference.alias, "evidenceGuarantee", reference.exportID, DevelopmentRequirementLocation{
-					Skill: skill.Name, Path: predicatesPath, Node: predicateID, Stage: "evidence", Selector: "/predicates/" + predicateID + "/evidence",
+					Skill: skill.Name, Path: predicatesPath, Node: predicateID, Stage: "evidence", Selector: reference.selector,
 				})
 			}
 		}

@@ -15,6 +15,7 @@ package compiler
 // digest after deleting a requirement or editing a Procedure therefore fails.
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -202,7 +203,9 @@ func verifyDevelopmentArtifactFiles(result DevelopmentBuildResult) error {
 		return fmt.Errorf("Development manifest is not JCS canonical")
 	}
 	var manifest developmentArtifactManifest
-	if err := json.Unmarshal(manifestBytes, &manifest); err != nil {
+	manifestDecoder := json.NewDecoder(bytes.NewReader(manifestBytes))
+	manifestDecoder.DisallowUnknownFields()
+	if err := manifestDecoder.Decode(&manifest); err != nil {
 		return fmt.Errorf("Development manifest cannot be decoded: %w", err)
 	}
 	if manifest.APIVersion != DevelopmentArtifactAPIVersion {
@@ -294,8 +297,13 @@ func verifyDevelopmentRequirementDocument(raw []byte, class string) error {
 		return fmt.Errorf("Development %s requirements document is not JCS canonical", label)
 	}
 	var requirements []DevelopmentHostRequirement
-	if err := json.Unmarshal(raw, &requirements); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&requirements); err != nil {
 		return fmt.Errorf("Development %s requirements document cannot be decoded: %w", label, err)
+	}
+	if requirements == nil {
+		return fmt.Errorf("Development %s requirements document must be a JSON array", label)
 	}
 	if len(requirements) > maxDevelopmentRequirements {
 		return fmt.Errorf("Development %s requirements document exceeds the requirement count limit", label)
@@ -319,6 +327,9 @@ func verifyDevelopmentRequirementDocument(raw []byte, class string) error {
 		if !developmentRequirementIsNormalized(requirement, key) {
 			return fmt.Errorf("Development requirement is not normalized: %s", requirement.RequirementID)
 		}
+		if err := verifyDevelopmentRequirementLocation(requirement); err != nil {
+			return err
+		}
 		if requirement.Kind == DevelopmentRequirementIndependence {
 			if key.Independence == nil {
 				return fmt.Errorf("Development independence requirement has no group identity: %s", requirement.RequirementID)
@@ -340,6 +351,42 @@ func verifyDevelopmentRequirementDocument(raw []byte, class string) error {
 		want := "sha256:" + hex.EncodeToString(sum[:])
 		if requirement.RequirementID != want {
 			return fmt.Errorf("Development requirement identity does not match its typed key: %s", requirement.RequirementID)
+		}
+	}
+	return nil
+}
+
+// verifyDevelopmentRequirementLocation enforces that the recorded source position
+// is the one the contract fixes for its kind: an Independence requirement points
+// at exactly one group JSON Pointer, and an Evidence trust requirement points
+// inside the Evidence block of the Predicate named by location.node. A record
+// whose location is coarse, dangling or borrowed from another Predicate is
+// rejected without consulting the original request.
+func verifyDevelopmentRequirementLocation(requirement DevelopmentHostRequirement) error {
+	location := requirement.Location
+	if location.Skill == "" || location.Path == "" {
+		return fmt.Errorf("Development requirement has an incomplete source location: %s", requirement.RequirementID)
+	}
+	switch requirement.Kind {
+	case DevelopmentRequirementIndependence:
+		group := requirement.Independence
+		if group == nil {
+			return fmt.Errorf("Development independence requirement has no group identity: %s", requirement.RequirementID)
+		}
+		if location.Node == "" || location.Stage != "evidence" {
+			return fmt.Errorf("Development independence requirement has no source Predicate stage: %s", requirement.RequirementID)
+		}
+		want := "/predicates/" + v1alpha5JSONPointerToken(location.Node) + "/evidence/independence/" + itoa(group.GroupIndex)
+		if location.Selector != want {
+			return fmt.Errorf("Development independence requirement selector %q is not the exact group position", location.Selector)
+		}
+	case DevelopmentRequirementEvidenceDomain, DevelopmentRequirementEvidenceFact:
+		if location.Node == "" || location.Stage != "evidence" {
+			return fmt.Errorf("Development evidence trust requirement has no source Predicate stage: %s", requirement.RequirementID)
+		}
+		wantPrefix := "/predicates/" + v1alpha5JSONPointerToken(location.Node) + "/evidence/"
+		if !strings.HasPrefix(location.Selector, wantPrefix) {
+			return fmt.Errorf("Development evidence trust requirement selector %q is not an exact Evidence position", location.Selector)
 		}
 	}
 	return nil

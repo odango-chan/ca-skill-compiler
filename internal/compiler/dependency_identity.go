@@ -40,6 +40,11 @@ type dependencyReference struct {
 	exportID   string
 	path       string
 	node       *yaml.Node
+	// selector is the exact RFC 6901 JSON Pointer of the reference inside path.
+	// It is empty only for reference positions whose enclosing document shape is
+	// not pointer-addressable; every Evidence guarantee reference fills it with
+	// the real parameter key and list index.
+	selector string
 }
 
 type dependencyIdentityResult struct {
@@ -201,7 +206,7 @@ func collectDependencyReferences(skill *SkillAST) []dependencyReference {
 				continue
 			}
 			references = append(references, collectPredicateParameterReferences(predicate.Parameters, predicatesPath)...)
-			references = append(references, collectEvidenceGuaranteeReferences(predicate.Evidence, predicatesPath)...)
+			references = append(references, collectEvidenceGuaranteeReferences(predicateID, predicate.Evidence, predicatesPath)...)
 		}
 	}
 	base := "skills/" + skill.Name + "/schemas/"
@@ -231,26 +236,52 @@ func collectPredicateParameterReferences(parameters *yaml.Node, predicatesPath s
 	return references
 }
 
-func collectEvidenceGuaranteeReferences(evidence *yaml.Node, predicatesPath string) []dependencyReference {
+// collectEvidenceGuaranteeReferences scans the two released Evidence positions
+// that can carry a qualified guarantee reference:
+//
+//	/predicates/<predicate>/evidence/requires/<parameter>/<index>
+//	/predicates/<predicate>/evidence/independence/<group>/members/<member>/guarantee
+//
+// Each reference keeps its own exact JSON Pointer, so the same Descriptor
+// referenced from several positions yields one reference per position instead of
+// a single collapsed "somewhere under evidence" location. The predicate ID,
+// parameter key and list indices are never guessed: they come from the parsed
+// v1alpha5 Evidence AST.
+func collectEvidenceGuaranteeReferences(predicateID string, evidence *yaml.Node, predicatesPath string) []dependencyReference {
 	references := make([]dependencyReference, 0)
 	evidence = unalias(evidence)
 	if evidence == nil || evidence.Kind != yaml.MappingNode {
 		return references
 	}
+	base := "/predicates/" + v1alpha5JSONPointerToken(predicateID) + "/evidence"
 	requires := unalias(child(evidence, "requires"))
 	if requires != nil && requires.Kind == yaml.MappingNode {
 		for i := 0; i+1 < len(requires.Content); i += 2 {
-			for _, guarantee := range sequence(requires.Content[i+1]) {
+			parameter := unalias(requires.Content[i])
+			if parameter == nil || parameter.Kind != yaml.ScalarNode {
+				continue
+			}
+			prefix := base + "/requires/" + v1alpha5JSONPointerToken(parameter.Value)
+			for index, guarantee := range sequence(requires.Content[i+1]) {
 				if alias, exportID, ok := splitQualifiedReference(guarantee); ok && validExportID(exportID) {
-					references = append(references, dependencyReference{alias: alias, exportKind: "evidenceGuarantee", exportID: exportID, path: predicatesPath, node: unalias(guarantee)})
+					references = append(references, dependencyReference{
+						alias: alias, exportKind: "evidenceGuarantee", exportID: exportID,
+						path: predicatesPath, node: unalias(guarantee), selector: prefix + "/" + itoa(index),
+					})
 				}
 			}
 		}
 	}
-	for _, group := range sequence(child(evidence, "independence")) {
-		for _, member := range sequence(child(group, "members")) {
-			if alias, exportID, ok := splitQualifiedReference(child(member, "guarantee")); ok && validExportID(exportID) {
-				references = append(references, dependencyReference{alias: alias, exportKind: "evidenceGuarantee", exportID: exportID, path: predicatesPath, node: unalias(child(member, "guarantee"))})
+	for groupIndex, group := range sequence(child(evidence, "independence")) {
+		prefix := base + "/independence/" + itoa(groupIndex) + "/members/"
+		for memberIndex, member := range sequence(child(group, "members")) {
+			guarantee := child(member, "guarantee")
+			if alias, exportID, ok := splitQualifiedReference(guarantee); ok && validExportID(exportID) {
+				references = append(references, dependencyReference{
+					alias: alias, exportKind: "evidenceGuarantee", exportID: exportID,
+					path: predicatesPath, node: unalias(guarantee),
+					selector: prefix + itoa(memberIndex) + "/guarantee",
+				})
 			}
 		}
 	}

@@ -72,7 +72,12 @@ const (
 	DevelopmentRequirementCommitProof    = "COMMIT_PROOF"
 	DevelopmentRequirementReconcile      = "RECONCILE"
 
-	developmentRequirementDigestDomain     = "CA-SKILL-DEVELOPMENT-HOST-REQUIREMENT\x00v1\x00"
+	// developmentRequirementDigestDomain is the single typed-key digest domain for
+	// BOTH requirement classes. The domain is deliberately class-neutral: the
+	// class is decided by kind, owning document and status together, never by a
+	// digest prefix. A Host-specific domain would make Runtime Execution
+	// requirements look like part of the Host Admission namespace.
+	developmentRequirementDigestDomain     = "CA-SKILL-DEVELOPMENT-REQUIREMENT\x00v1\x00"
 	developmentManifestFileName            = "manifest.json"
 	developmentRequirementsFileName        = "host-admission-requirements.json"
 	developmentRuntimeRequirementsFileName = "runtime-execution-requirements.json"
