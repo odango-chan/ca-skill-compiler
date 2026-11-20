@@ -20,7 +20,8 @@ or Runtime dispatch.
 | DependencyInspection API | `connectionagent.io/compiler-dependency-inspection/v1alpha5` |
 | Artifact API | `connectionagent.io/compiler-artifact/v1alpha5` |
 | Static validation scope | `FULL_LANGUAGE_VALIDATION` (Compiler-owned obligations only) |
-| Product qualification | **NOT_QUALIFIED** (real Owner, Deployment, Host, Runtime, 5GC and MAS evidence is external) |
+| Compiler acceptance boundary | **Independent** — static Compiler correctness / parity / deterministic artifacts / product release only; see [scope and acceptance](docs/COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md) |
+| External system qualification | Owner / Deployment / Host / Runtime / 5GC / MAS: **not a Compiler release gate** |
 | Development Build on `main` | **MERGED / UNRELEASED** — [architecture #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) and [implementation #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) |
 | Development artifact execution | **NOT_ADMITTED**; production Host must reject the `DEVELOPMENT` profile |
 
@@ -38,7 +39,7 @@ immutable historical release. It is documented under
 
 The next-generation **Compile → Interface Link → Build → Verify** development profile is now implemented on `main`. It consumes CA-SL v1alpha5 Skill source, exact Interface Package snapshots and a Dependency Lock, resolves package-scoped Schema references, and emits a deterministic artifact with static `capabilityRequirements[]` and separate Host Admission / Runtime Execution requirement files. It does **not** accept or verify actual Deployment Grants, Runtime Evidence, Provider Bindings or Commit Proof. Those remain Host / Runtime responsibilities.
 
-The code is available from the merged source branch; **it is not included in the published v2.0.2 release** and is not a production admission format. Development artifacts are always `NOT_ADMITTED`. MAS G0/G1 and real Owner/Provider acceptance are **NOT_RUN / pending**, and product qualification remains **NOT_QUALIFIED**.
+The code is available from the merged source branch; **it is not included in the published v2.0.2 release** and is not a production admission format. Development artifacts are always `NOT_ADMITTED`, by design; this is not a Compiler failure. Formal MAS G0/G1 and real Owner/Provider/Host qualification are tracked by their respective integration owners, **not as Compiler completion or release gates**. The real MAS-source offline static regression is tracked separately in [Issue #53](https://github.com/odango-chan/ca-skill-compiler/issues/53).
 
 ```bash
 skillc build-development --request <DEVELOPMENT_REQUEST.json> --out <DIR> --json
@@ -194,8 +195,7 @@ Acceptance commands and recorded results are in
   dependencies, authorize deployment or qualify a product.
 - External responsibilities are recorded in
   [docs/known-limitations-v1alpha5.md](docs/known-limitations-v1alpha5.md).
-- Real Owner, Deployment, Host, Runtime, 5GC and MAS evidence remains
-  **NOT_QUALIFIED**.
+- Real Owner, Deployment, Host, Runtime, 5GC and MAS qualification belongs to external systems; its status is **not a Compiler static-validation failure or release prerequisite**. See the [responsibility and acceptance boundary](docs/COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md).
 - Historical v1alpha4 documentation and fixtures are retained for traceability
   and are marked as historical; they are not current compiler targets.
 

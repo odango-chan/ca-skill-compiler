@@ -4,6 +4,8 @@
 >
 > 现行冻结语言仍为 CA-SL v1alpha5，已发布产品仍为 Compiler v2.0.2。本页是下一代接口链接与 Artifact 生命周期的设计基线；其评审阶段的 SHA、图形验收记录与 `PENDING` 项为历史证据，正文中如有“等待最终评审”的表述，应以本状态块为准。实现与证据见 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 和[实现报告](compiler-development-build-implementation-report.zh-CN.md)。MAS G0/G1 未运行、正式 Owner/Provider 发布与真实 Host Admission 仍待完成。
 
+> **Compiler 交付边界**：下文 Owner 正式发布、Provider、Qualification、Host Admission 与 Runtime 是端到端工具链的职责设计，不是 Compiler 独立完成、合并或发版的共同门槛。Compiler 可以使用调用方提供的、静态闭合并锁定的测试快照完成离线构建；它不验证外部签发者真实性或允许运行。详见[独立验收边界](../COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md)与[真实 MAS 源码离线回归 #53](https://github.com/odango-chan/ca-skill-compiler/issues/53)。
+
 ## 1. 已批准的原则
 
 1. Capability Catalog 定义能力身份与 Callable 成员关系；Deployment Grant 由部署方签发，授权具体环境中的使用。

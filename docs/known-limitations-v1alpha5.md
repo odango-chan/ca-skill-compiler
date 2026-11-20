@@ -2,7 +2,7 @@
 
 **Language status:** FROZEN / RELEASED.
 **Compiler static validation status:** `FULL_LANGUAGE_VALIDATION` — every Compiler-owned EW/IN case and every released Compiler-owned static semantic obligation is implemented and tested locally.
-**Product qualification:** NOT_QUALIFIED (Owner / Deployment / Integration Adapter / Host / Runtime / 5GC / MAS).
+**External integration / production qualification (informational only):** NOT_QUALIFIED (Owner / Deployment / Integration Adapter / Host / Runtime / 5GC / MAS). **This is not a Compiler static-validation or release blocker.** See [Compiler-only acceptance](COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md).
 
 Normative authorities:
 
