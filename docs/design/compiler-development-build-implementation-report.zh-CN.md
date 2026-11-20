@@ -133,7 +133,9 @@
 | 10 | 修改 Procedure / Lock / Descriptor 后 Verify FAIL | `TestDevelopmentVerifyRejectsSourceChanges`、`TestDevelopmentVerifyRejectsRequirementClassMigration` |
 | 11 | Native / WASM / Chromium 结果一致 | Chromium parity 门禁（build/status/diagnostics/artifactDigest/outputFiles 全部一致） |
 
-CI：PR #51 的 checks 页面 <https://github.com/odango-chan/ca-skill-compiler/pull/51/checks>。PR #48 的文档与图无关 CI 见其 checks 页面。
+CI：实现提交 `cf1fbd045df0c64c40fe2d14ad1d5f3673c1d493` 的 GitHub Actions 运行
+<https://github.com/odango-chan/ca-skill-compiler/actions/runs/44698833073>（job `v1alpha5-integration`，PASS，1m8s）。
+PR #48 分支只改文档与图形，现有 workflow 的 path filter 不覆盖 `docs/**`，因此其最终提交**不触发**任何 check（NOT_RUN，不是 PASS）；该分支的四道 Archify 门与截图检查为本地实际执行结果。
 
 ## 4. 已知限制
 
