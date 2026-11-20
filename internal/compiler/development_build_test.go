@@ -644,3 +644,43 @@ func requestSkillName(t *testing.T, request DevelopmentBuildRequest) string {
 	t.Fatal("request has no Skill package")
 	return ""
 }
+
+func TestDevelopmentWaitIngressNegative(t *testing.T) {
+	raw, err := os.ReadFile(filepath.Join("..", "..", "web", "parity-v1alpha5", "trusted-build-request.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacy, err := DecodeBuildRequestJSON(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := developmentRequestFromLegacy(t, legacy)
+	// Rename the exported Ingress Operation so the package export index no longer
+	// matches the catalog payload identity.
+	request = modifyDevelopmentPackageFile(t, request, "urn:example:package:smf-integration", "ingress/catalog.yaml",
+		bytes.Replace(mustDevelopmentPackageFile(t, request, "urn:example:package:smf-integration", "ingress/catalog.yaml"),
+			[]byte("id: nsmf-pdusession.update-sm-context"), []byte("id: nsmf-pdusession.unknown"), 1))
+	result := BuildDevelopment(request)
+	if result.Success {
+		t.Fatal("invalid IngressCatalog export identity must fail the Development Build")
+	}
+	if len(result.OutputFiles) != 0 {
+		t.Fatal("failed Ingress Development Build produced an artifact")
+	}
+}
+
+func mustDevelopmentPackageFile(t *testing.T, request DevelopmentBuildRequest, packageID, path string) []byte {
+	t.Helper()
+	for _, snapshot := range request.Snapshots {
+		if snapshot.Key.PackageID != packageID {
+			continue
+		}
+		for _, file := range snapshot.Files {
+			if file.Path == path {
+				return file.Bytes
+			}
+		}
+	}
+	t.Fatalf("package %s has no file %s", packageID, path)
+	return nil
+}
