@@ -1,6 +1,6 @@
 # CA Skill Compiler 下一阶段演进路线
 
-> **状态（2026-11-20）：Development Build 首轮已实现并合入 `main`（架构 #48、实现 #51）；后续 Owner/Provider 正式发布、Host Admission、MAS G0–G5 与生产 Qualification 仍未交付。**
+> **状态（2026-11-20）：Compiler Development Build 首轮已实现并合入 `main`（架构 #48、实现 #51）。** Owner/Provider 正式发布、Host Admission、MAS G0–G5、生产 Qualification 是**外部系统各自的交付轨道，不是 Compiler 的剩余完成或独立发版门槛**。Compiler 自身验收边界见[独立验收规则](../COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md)。
 >
 > 已发布产品仍为 Compiler v2.0.2、冻结语言仍为 CA-SL v1alpha5。v2.1.x 只是候选产品规划，不能因源码已合并就宣称新版本已发布。本页后续尚未实施的阶段与验收门槛保持有效，契约见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，MAS G0–G5 见 [ca-agent-demo #217](https://github.com/odango-chan/ca-agent-demo/pull/217)。
 
@@ -9,15 +9,15 @@
 | 阶段 | 责任与交付 | 依赖与退出标准 |
 |---|---|---|
 | V0 — 契约评审 | Compiler、Skills、Host 与 Provider Owner 核对接口快照、锁、两类 Requirement、独立发布、授权与准入 | 对照冻结规范逐项标记静态检查和外部要求；批准新入口、正反样例和生产拒绝规则后定版 |
-| V1 — 接口发布 | ca-client-tools / Owner 发布 MAS Interface Package；ca-context 维护方提供 Subject Context；相关 Owner 提供实际引用的 Ingress 导出 | V0；以 13 Operation、25 候选 Schema 为输入，退出以实际可达闭包、精确 Effect、稳定 ID 和不可变快照为准；对应 G0 |
-| V2 — 锁定与分发 | Studio / CI / 调用方实现外部 Resolver、签名信任检查、锁生成和快照准备 | V0 可并行，V1 真实样例用于验收；锁可离线重放，显式报告约束冲突与传递依赖缺失 |
-| V3 — 开发构建 | Compiler 实现显式版本化 Development Build / Verify；按 Host Admission 与 Runtime Execution 两类记录 Requirement | V1 + V2；接口完整时无 Evidence、Grant、Provider 也能生成并 Verify；Native / WASM / Chromium Worker 字节一致；对应 G1 |
+| V1 — 外部正式接口发布（MAS 轨道） | ca-client-tools / Owner 发布 MAS Interface Package；ca-context 提供 Subject Context；相关 Owner 提供 Ingress 导出 | 这是 MAS 正式 G0 的输入准备条件，**不是 Compiler Build / Release 的必要条件**；Compiler 能以格式正确、静态语义完整且锁定的测试快照做离线构建 |
+| V2 — 外部 Resolver 与锁分发 | Studio / CI / 调用方准备精确快照与 Lock；调用方单独进行可信发行源验证 | 可与 Compiler 并行；Compiler 只接受输入并静态核对锁与包闭包，不负责 Registry/签名信任根；合成测试快照允许独立复验 |
+| V3 — Compiler Development Build（已合并） | Compiler 显式版本化 Build / Verify；按 Host Admission 与 Runtime Execution 两类记录 Requirement | **Compiler 自身已实现并合并**；离线测试只需调用方提供语义完整、锁定的接口快照（可为合成测试材料），不依赖 V1 的正式 Owner 发布。正式 MAS G1 是单独跨仓验收，不能用合成 PASS 冒充 |
 | V4 — Host Admission | ca-agent-demo 增加显式新产物入口，复用现有 Procedure Runtime；ca-client-tools 独立发布 Provider | 可与 V3 并行设计；G2 验收要求真实 V3 产物、同摘要闭包重验、精确 Provider Binding、测试授权、拒绝与恢复用例；G3 是独立运行时门槛 |
 | V5 — MAS 集成 | ca-agent-demo + ca-client-tools + env-openamsm 验收 Provider、Mock AMF，再验证真实 AMF / UERANSIM | G4 依赖 G0–G3 和独立 Provider；G5 依赖 G4、持久化 Owner continuation、真实协议关联、可信 Evidence 及目标授权；各阶段分别记录实际证据 |
 
-V0–V5 是工具链交付顺序，G0–G5 是 MAS 验收门槛。G3 可独立于 G1 推进，最终联调仍需 G2 和 G3 同时满足。Mock AMF 经本地 NRF/SCP 验证完整 SBI 路径；直接调用 handler 单独记录。Mock AMF 不解决复合 SSM 的 30 秒限制、恢复句柄或 Owner Commit Proof。G5 的现场结论与生产 qualification 分别评估。
+V0–V5 是多个仓库的工具链交付分工，**并不是 Compiler 的一组联合发布门槛**；G0–G5 是 MAS 跨仓验收门槛。G3 可独立于 G1 推进，最终联调仍需 G2 和 G3 同时满足。Mock AMF 经本地 NRF/SCP 验证完整 SBI 路径；直接调用 handler 单独记录。Mock AMF 不解决复合 SSM 的 30 秒限制、恢复句柄或 Owner Commit Proof。G5 的现场结论与生产 qualification 分别评估。
 
-首轮 Compiler 实现及验收见 [DeepSeek Harness 任务](compiler-development-build-harness.zh-CN.md)。试验分支按[实施契约](compiler-development-build-pilot.zh-CN.md)和预生成样例直接开工。公开产物契约在 V0 定版后对外使用。正式 MAS G1 需要通过 G0 的接口输入。
+首轮 Compiler 实现已合并，实施记录见[Harness 存档](compiler-development-build-harness.zh-CN.md)与[实施契约](compiler-development-build-pilot.zh-CN.md)。真实三套 MAS 源码的离线 Compiler 集成回归由 [Compiler #53](https://github.com/odango-chan/ca-skill-compiler/issues/53) 单独验收；其测试快照 PASS 不自动升级为正式 MAS G0/G1。独立产品发布仍需 Compiler 自己的构建、回归与发布证据。
 
 ## 2. 兼容和迁移
 
@@ -36,9 +36,9 @@ V0–V5 是工具链交付顺序，G0–G5 是 MAS 验收门槛。G3 可独立�
 | Requirement 两类分离 | 仅缺外部授权时 Build 成功并写入 `host-admission-requirements.json`（`HOST_VERIFICATION_REQUIRED`）；`COMMIT_PROOF` / `RECONCILE` 只出现在 `runtime-execution-requirements.json`（`RUNTIME_EXECUTION_REQUIRED`），不出现在 Host Admission 文件；二者都不表示执行授权 |
 | 独立性多组 | 多组、多根、多域对各生成独立 `EVIDENCE_INDEPENDENCE_TRUST`，`selector` 精确到 `/predicates/<predicate>/evidence/independence/<index>`；不使用 `env.roots[0]` 或全局布尔值；同一 Descriptor 同时声明 sourceIdentity/factIdentity 时两条记录互不覆盖 |
 | 篡改与重封 | 删除一条 Requirement 后重新封装外层摘要仍被拒绝；编辑 Procedure、Lock、Descriptor 或 Requirement 均导致 Verify 失败 |
-| Provider 独立发版 | Interface 先发布即可构建；同一接口摘要的第二个 Provider 需单独证明兼容并重新 Admission；只有范围匹配、协议不合或映射歧义均拒绝 |
-| 授权与恢复 | 无 Grant、错误环境或主体、错 Scope、已撤销、生产接收开发产物、未知 API / Artifact 均失败；恢复复核身份与权限；`UNKNOWN` 保留原尝试，不盲重试 |
+| Provider 独立发版（外部集成） | Interface 发布与 Provider 版本可独立演进；Provider 兼容、实施映射与 Admission 由 Host / Provider 复验，不属于 Compiler 通过条件 |
+| 授权与恢复（Host / Runtime） | Grant、Scope、撤销、生产拒绝 DEVELOPMENT 和 `UNKNOWN` 后原尝试恢复是 Host / Runtime 的专项验收；Compiler 仅保证静态契约与 Development `NOT_ADMITTED` 字段 |
 | 基线与迁移 | v2.0.2 冻结输入、输出与诊断基线不变；已发布产物和授权继续按原入口验收；回滚能封住新派发并保留未结算 Invocation |
 | MAS 跨仓库 | G0 记录实际闭包，G1 记录开发产物，G2/G3 证明拒绝与可恢复运行，G4 验证真实 Provider / Mock AMF 路径，G5 记录真实 AMF / UERANSIM 和用户面证据 |
 
-以上是后续交付门槛。当前评审验证文档和契约提案；代码验收、G0–G5 实跑与生产资格均待交付，MAS G0 / G1 仍为 **NOT_RUN**。
+以上验收矩阵跨越多个责任域，**不能被解释成 Compiler 自身 Release Gate**。Compiler 的 Development 实现与合成快照测试已按 PR #51 记录 PASS；真实 MAS 离线源回归见 #53（未实跑前标 NOT_RUN），正式 MAS G0/G1 保持 **NOT_RUN**，后续 Host / Production 资格由各自仓库单独验证。
