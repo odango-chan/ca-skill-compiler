@@ -29,7 +29,7 @@
 
 1. Capability Catalog 和 Deployment Grant 分离；前者属于 Interface Package 的导出契约，后者由部署方交给 Host。
 2. Interface Package 与 Runtime Provider 独立发布；Compiler 只使用精确 Interface snapshots，不承担发布/注册/安装。
-3. 缺少 Evidence / Assurance 时，**下一代设计**允许生成 Linked Development Artifact，`UNRESOLVED / NOT_ADMITTED`；但缺少 Interface/Callable/Schema 时 Link 失败、**没有 Artifact**。该特性尚未实装于 Compiler v2.0.2。
+3. 缺少 Evidence / Assurance 时，**下一代设计**允许生成 Linked Development Artifact，并保留 `NOT_ADMITTED` 与两类 Requirement（派发前外部事实 → `host-admission-requirements.json`；执行期真实结果 → `runtime-execution-requirements.json`）；但缺少 Interface/Callable/Schema 或静态结构非法时 Link 失败、**没有 Artifact**。该特性尚未实装于 Compiler v2.0.2。
 4. Host 使用冻结的 CA-SL v1alpha5 与单一通用 Runtime；MAS 是示例，通用 Runtime 不能硬编码 MAS 或 OpenAMSM。
 5. **所有后续 H1/H2/H3 网络集成和 E2E 测试必须使用 SCP。** H0 离线单测不代表网络拓扑。不要再绘无 SCP、AMF 直连 Host、Direct Mock Relay 作为正式测试分支。
 6. AMF → SCP → Host 的 Nsmf 正式 SBI；OpenAMSM → Host **内部私有** Namf Relay → Client Tools → SCP → AMF；AMF callbacks → SCP → Host。OpenAMSM SMF → UDM/PCF/CHF/NRF 的 SBI 仍经既有 SCP/NRF；N4/PFCP 独立于 SCP。
@@ -50,11 +50,11 @@
 
 ### 02 — 离线构建（Compile → Link → Build）
 
-依次显示 YAML/Procedure 源、Interface Package、dependencies.lock、Compile、Interface Link、Assurance evaluation、Artifact assembly、manifest / obligations.json。
+依次显示 YAML/Procedure 源、Interface Package、dependencies.lock、Compile、Interface Link、Requirement 分类（Host Admission 与 Runtime Execution 两类）、Artifact assembly、manifest + 两个 Requirement 文件。
 
 **必须有两个分叉：**
-- 缺 Interface：Link FAIL → no artifact。
-- Interface 闭合、Evidence 缺失：Build PASS（设计态）→ Linked Artifact + `UNRESOLVED` obligations → `NOT_ADMITTED`。
+- 缺 Interface 或静态结构非法：Link FAIL → no artifact。
+- Interface 闭合、仅缺外部授权：Build PASS（设计态）→ Linked Artifact + `host-admission-requirements.json` / `runtime-execution-requirements.json` → `NOT_ADMITTED`。`COMMIT_PROOF` / `RECONCILE` 只在 runtime 文件里，不可画成 Build 就能满足。
 
 使用小型源码窗，给外行展示真正的 Procedure 片段、字段对应关系，譬如：
 
@@ -73,7 +73,7 @@ nodes:
 
 ### 03 — Host Admission 和 Runtime
 
-展示 Artifact + Provider Binding + Assurance + Deployment Grant + Invocation Context 五种入站材料，Host Admission 及允许/拒绝分支，进入通用 Runtime 后的固定 Typed Provider、Owner Operation、UNKNOWN/Reconcile。说明开发 Artifact 只可在显式隔离测试策略下准入；生产 Host 严格拒绝无资格产物。调度和 Owner Pending 分开画，不把 Temporal 当成 SMF Owner waiter。
+展示 Artifact + Provider Binding + Owner / Evidence 权威材料（四类 TRUST）+ Deployment Grant + Invocation Context 五种入站材料，Host Admission 及允许/拒绝分支，进入通用 Runtime 后的固定 Typed Provider、Owner Operation、UNKNOWN/Reconcile。说明开发 Artifact 只可在显式隔离测试策略下准入；生产 Host 严格拒绝无资格产物。`COMMIT_PROOF` / `RECONCILE` 是执行期要求，派发前只检查机制是否就位，不画成 Host 准入材料。调度和 Owner Pending 分开画，不把 Temporal 当成 SMF Owner waiter。
 
 不把 SCP 放到离线编译区；SCP 只出现在真实 NF 通信一侧。
 

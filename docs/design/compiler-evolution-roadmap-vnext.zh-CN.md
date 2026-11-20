@@ -8,10 +8,10 @@
 
 | 阶段 | 责任与交付 | 依赖与退出标准 |
 |---|---|---|
-| V0 — 契约评审 | Compiler、Skills、Host 与 Provider Owner 核对接口快照、锁、义务、独立发布、授权与准入 | 对照冻结规范逐项标记静态检查和外部义务；批准新入口、正反样例和生产拒绝规则后定版 |
+| V0 — 契约评审 | Compiler、Skills、Host 与 Provider Owner 核对接口快照、锁、两类 Requirement、独立发布、授权与准入 | 对照冻结规范逐项标记静态检查和外部要求；批准新入口、正反样例和生产拒绝规则后定版 |
 | V1 — 接口发布 | ca-client-tools / Owner 发布 MAS Interface Package；ca-context 维护方提供 Subject Context；相关 Owner 提供实际引用的 Ingress 导出 | V0；以 13 Operation、25 候选 Schema 为输入，退出以实际可达闭包、精确 Effect、稳定 ID 和不可变快照为准；对应 G0 |
 | V2 — 锁定与分发 | Studio / CI / 调用方实现外部 Resolver、签名信任检查、锁生成和快照准备 | V0 可并行，V1 真实样例用于验收；锁可离线重放，显式报告约束冲突与传递依赖缺失 |
-| V3 — 开发构建 | Compiler 实现显式版本化 Development Build / Verify；记录义务与静态验证范围 | V1 + V2；接口完整时无 Evidence、Grant、Provider 也能生成并 Verify；Native / WASM / Chromium Worker 字节一致；对应 G1 |
+| V3 — 开发构建 | Compiler 实现显式版本化 Development Build / Verify；按 Host Admission 与 Runtime Execution 两类记录 Requirement | V1 + V2；接口完整时无 Evidence、Grant、Provider 也能生成并 Verify；Native / WASM / Chromium Worker 字节一致；对应 G1 |
 | V4 — Host Admission | ca-agent-demo 增加显式新产物入口，复用现有 Procedure Runtime；ca-client-tools 独立发布 Provider | 可与 V3 并行设计；G2 验收要求真实 V3 产物、同摘要闭包重验、精确 Provider Binding、测试授权、拒绝与恢复用例；G3 是独立运行时门槛 |
 | V5 — MAS 集成 | ca-agent-demo + ca-client-tools + env-openamsm 验收 Provider、Mock AMF，再验证真实 AMF / UERANSIM | G4 依赖 G0–G3 和独立 Provider；G5 依赖 G4、持久化 Owner continuation、真实协议关联、可信 Evidence 及目标授权；各阶段分别记录实际证据 |
 
@@ -31,12 +31,14 @@ V0–V5 是工具链交付顺序，G0–G5 是 MAS 验收门槛。G3 可独立�
 
 | 检查 | 预期证据 |
 |---|---|
-| 接口闭合与确定性 | 无 Evidence、Grant、Provider 的完整接口可以生成 `LINKED / BUILT / NOT_ADMITTED`；重排输入、跨 Native / WASM / Chromium Worker 重建一致；离线 Verify 能检查精确快照和所有义务 |
-| 依赖与类型负例 | 缺传递包或 Schema 片段、版本冲突、同版异摘要、未锁引用、重复符号、缺失 Capability 成员、未知 Effect、Wait / Ingress / 响应绑定缺失，均失败且无产物 |
-| Assurance | 缺失外部材料按义务记录 `UNRESOLVED`；结构有效仅为 `DESCRIPTOR_PRESENT`；矛盾、错误绑定或篡改导致构建或校验失败；越权签名、过期或重放 Evidence 在 Host 阻断 |
+| 接口闭合与确定性 | 无 Evidence、Grant、Provider 的完整接口可以生成 `LINKED / BUILT / NOT_ADMITTED`；重排输入、跨 Native / WASM / Chromium Worker 重建一致；离线 Verify 能检查精确快照、两个 Requirement 文件与全部产物字节 |
+| 依赖与类型负例 | 缺传递包或 Schema 片段、版本冲突、同版异摘要、未锁引用、重复符号、缺失 Capability 成员、未知 Effect、Wait / Ingress / 响应绑定缺失、Ingress 导出身份不成立（id 不存在/重复、path 漂移、未导出 operation、binding 错误），均失败且无产物 |
+| Requirement 两类分离 | 仅缺外部授权时 Build 成功并写入 `host-admission-requirements.json`（`HOST_VERIFICATION_REQUIRED`）；`COMMIT_PROOF` / `RECONCILE` 只出现在 `runtime-execution-requirements.json`（`RUNTIME_EXECUTION_REQUIRED`），不出现在 Host Admission 文件；二者都不表示执行授权 |
+| 独立性多组 | 多组、多根、多域对各生成独立 `EVIDENCE_INDEPENDENCE_TRUST`，`selector` 精确到 `/predicates/<predicate>/evidence/independence/<index>`；不使用 `env.roots[0]` 或全局布尔值；同一 Descriptor 同时声明 sourceIdentity/factIdentity 时两条记录互不覆盖 |
+| 篡改与重封 | 删除一条 Requirement 后重新封装外层摘要仍被拒绝；编辑 Procedure、Lock、Descriptor 或 Requirement 均导致 Verify 失败 |
 | Provider 独立发版 | Interface 先发布即可构建；同一接口摘要的第二个 Provider 需单独证明兼容并重新 Admission；只有范围匹配、协议不合或映射歧义均拒绝 |
 | 授权与恢复 | 无 Grant、错误环境或主体、错 Scope、已撤销、生产接收开发产物、未知 API / Artifact 均失败；恢复复核身份与权限；`UNKNOWN` 保留原尝试，不盲重试 |
 | 基线与迁移 | v2.0.2 冻结输入、输出与诊断基线不变；已发布产物和授权继续按原入口验收；回滚能封住新派发并保留未结算 Invocation |
 | MAS 跨仓库 | G0 记录实际闭包，G1 记录开发产物，G2/G3 证明拒绝与可恢复运行，G4 验证真实 Provider / Mock AMF 路径，G5 记录真实 AMF / UERANSIM 和用户面证据 |
 
-以上是后续交付门槛。当前评审验证文档和契约提案；代码验收、G0–G5 实跑与生产资格均待交付。
+以上是后续交付门槛。当前评审验证文档和契约提案；代码验收、G0–G5 实跑与生产资格均待交付，MAS G0 / G1 仍为 **NOT_RUN**。
