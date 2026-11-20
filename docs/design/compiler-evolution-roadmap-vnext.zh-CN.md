@@ -1,8 +1,8 @@
 # CA Skill Compiler 下一阶段演进路线
 
-> **状态：三项架构原则已批准，契约与路线待评审，尚未实现。**
+> **状态（2026-11-20）：Development Build 首轮已实现并合入 `main`（架构 #48、实现 #51）；后续 Owner/Provider 正式发布、Host Admission、MAS G0–G5 与生产 Qualification 仍未交付。**
 >
-> 现行基线为 CA-SL v1alpha5 和 Compiler v2.0.2。v2.1.x 是产品规划候选；API、Artifact 与各发布包独立定版。契约见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，MAS G0–G5 验收见 [ca-agent-demo #217](https://github.com/odango-chan/ca-agent-demo/pull/217)。
+> 已发布产品仍为 Compiler v2.0.2、冻结语言仍为 CA-SL v1alpha5。v2.1.x 只是候选产品规划，不能因源码已合并就宣称新版本已发布。本页后续尚未实施的阶段与验收门槛保持有效，契约见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，MAS G0–G5 见 [ca-agent-demo #217](https://github.com/odango-chan/ca-agent-demo/pull/217)。
 
 ## 1. 交付顺序与退出条件
 
