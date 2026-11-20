@@ -7,7 +7,7 @@
 ## 1. 已批准的原则
 
 1. Capability Catalog 定义能力身份与 Callable 成员关系；Deployment Grant 由部署方签发，授权具体环境中的使用。
-2. 接口闭合时，Evidence 缺失仍可完成 Development Build。产物保留显式义务，在 Host Admission 成功前禁止执行。
+2. 接口与静态 EvidenceDescriptor 闭合时，即使缺少运行时 Evidence、Assurance Attestation 或 Deployment Grant 仍可完成 Development Build。产物保留显式 Host Admission Requirement，在 Host Admission 成功前禁止执行。静态 Descriptor 缺失或非法仍是 Build 失败。
 3. Interface Package 与 Runtime Provider Package 各自发布、定版和回滚。Provider 以精确接口身份声明兼容性。
 
 Compile 验证源码与语言静态规则，Interface Link 固定接口和类型闭包，Build 生成确定性产物，Qualification 由外部验证机构给出特定组合的保证结论，Host Admission 针对具体 Invocation 决定是否允许执行。
@@ -27,7 +27,7 @@ flowchart LR
     C --> ART["Linked Skill Artifact"]
     RP --> DEP["Deployment inventory"]
     EA["Owner / Evidence Authority"] --> AE["Assurance Export"]
-    AE -->|Optional static descriptors| C
+    AE -->|Static EvidenceDescriptor exports fixed by lock| C
     AE -->|Verified claims| H["Host Admission"]
     ART --> H
     DEP --> H
@@ -75,39 +75,41 @@ Provider manifest 提供 Provider ID / 版本、实现摘要、运行时协议�
 
 ### 3.4 Assurance Export 与 Deployment Grant
 
-Assurance Export 独立版本化和签发。最小绑定为接口包键、Callable ID、相关 Schema 闭包摘要、义务类型及策略范围；实现相关声明另绑定 Provider 实现摘要，结论关联目标环境时另绑定环境和适用期。独立 Evidence Authority 可签发其被委派的 Evidence 声明；Owner 的 Commit Proof / Reconcile 保证须由相应 Owner 或其经验证授权的签发者承担。结构正确只意味着可供 Host 验证。实跑 Evidence 另按 Invocation、原 Operation、主体、来源和新鲜度验证。HTTP 成功响应不构成 Commit Proof。
+Assurance Export 独立版本化和签发。最小绑定为接口包键、Callable ID、相关 Schema 闭包摘要、义务类型及策略范围；实现相关声明另绑定 Provider 实现摘要，结论关联目标环境时另绑定环境和适用期。独立 Evidence Authority 可签发其被委派的 Evidence 声明；Owner 的 Commit Proof / Reconcile 保证须由相应 Owner 或其经验证授权的签发者承担。结构正确只意味着可供 Host 验证。实跑 Evidence 另按 Invocation、原 Operation、主体、来源和新鲜度验证。HTTP 成功响应不构成 Commit Proof。Assurance Export 不进入 Compiler BuildRequest；Compiler 只接收以 Interface Package 导出声明的静态 EvidenceDescriptor。
 
 Deployment Grant 单独签名，至少含 `grantId`、签发者、环境及策略版本、主体、Artifact 摘要、允许的接口能力和 Callable、Provider 实现或实例范围、资源 Scope、有效期和撤销引用。Host 将 Skill 请求、Catalog 成员、Grant 范围和 Invocation 上下文求交；任一必需绑定缺失、过期、撤销、签发权限不明或范围不匹配即拒绝。Catalog 不携带授权数据，Resolver 不把 Grant 交给 Compiler。
 
 ## 4. Development Build 契约
 
-Compiler 首个 Draft PR 的具体入口、复验方式与样例见[实施契约](compiler-development-build-pilot.zh-CN.md)。试验实现可独立于公开契约定版推进。
+Compiler 首个 Draft PR 的具体入口、复验方式与样例见[实施契约](compiler-development-build-pilot.zh-CN.md)。Evidence / Assurance 的职责拆分见[职责审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。试验实现可独立于公开契约定版推进。
 
-提案使用独立契约族，首版以 `connectionagent.io/<kind>/v1alpha1` 标识，其中 Build 相关 kind 为 `compiler-development-build-request`、`compiler-development-build-result`、`compiler-development-artifact`，输入 kind 为 `interface-package`、`interface-dependency-lock`、`assurance-export`。Provider 和 Grant 自有 `runtime-provider-package` 与 `deployment-grant` 版本。产品版本、语言目标、线格式版本和包发布版本独立。调用方显式选择新入口与契约版本；任何未知版本或不匹配的入口拒绝处理。
+提案使用独立契约族，首版以 `connectionagent.io/<kind>/v1alpha1` 标识，其中 Build 相关 kind 为 `compiler-development-build-request`、`compiler-development-build-result`、`compiler-development-artifact`，输入 kind 为 `interface-package`、`interface-dependency-lock`。Evidence Descriptor 是 Interface Package 的正式导出（`EvidenceDescriptor`），不是独立 Assurance 输入。Provider 和 Grant 自有 `runtime-provider-package` 与 `deployment-grant` 版本。产品版本、语言目标、线格式版本和包发布版本独立。调用方显式选择新入口与契约版本；任何未知版本或不匹配的入口拒绝处理。
 
 | 契约 | 提案字段与规则 |
 |---|---|
-| BuildRequest | `apiVersion`、`languageTarget=connectionagent.io/v1alpha5`、`profile=DEVELOPMENT`、源码文件、Interface 快照、锁、可选 Assurance Export |
-| BuildResult | `apiVersion`、Source / Interface Link / Artifact 状态、结构化诊断、静态保证记录、Artifact 文件清单及摘要；失败原子返回无产物 |
-| Artifact | `apiVersion`、语言目标、生成器版本、`profile=DEVELOPMENT`、源码摘要、规范化锁、Procedure、Callable / Ingress 链接、义务记录、文件摘要；执行状态固定 `NOT_ADMITTED` |
+| BuildRequest | `apiVersion`、`languageTarget=connectionagent.io/v1alpha5`、`profile=DEVELOPMENT`、源码文件、Interface 快照（含 EvidenceDescriptor 与 Ingress/Schema 导出）、Dependency Lock |
+| BuildResult | `apiVersion`、Source / Interface Link / Artifact 状态、结构化诊断、Host Admission Requirement 记录、Artifact 文件清单及摘要；失败原子返回无产物 |
+| Artifact | `apiVersion`、语言目标、生成器版本、`profile=DEVELOPMENT`、源码摘要、规范化锁、Procedure、Callable / Ingress 链接、Host Admission Requirement 记录、文件摘要；执行状态固定 `NOT_ADMITTED` |
 
 ~~~mermaid
 flowchart TD
-    IN["Source + lock + exact snapshots + optional Assurance Export"] --> S["Compile and validate v1alpha5 source"]
-    S --> L["Link Callable, Schema, Capability and Ingress closure"]
-    L --> A["Validate static contracts and supplied Assurance descriptors"]
-    A --> O["Emit complete obligation list"]
+    IN["Source + lock + exact snapshots (including EvidenceDescriptor exports)"] --> S["Compile and validate v1alpha5 source"]
+    S --> L["Link Callable, Schema, Capability, EvidenceDescriptor and Ingress closure"]
+    L --> A["Validate statically decidable Evidence, Mutation and Reconcile semantics"]
+    A --> O["Record Host Admission requirements for external trust facts"]
     O --> B["Assemble and verify deterministic Development Artifact"]
     B --> DONE["LINKED / BUILT / NOT_ADMITTED"]
     S -->|Invalid source| X["Diagnostics / no Artifact"]
     L -->|Incomplete or inconsistent interface| X
-    A -->|Malformed, contradictory or wrong target| X
+    A -->|Malformed, contradictory or missing static contract| X
     B -->|Assembly or verification failure| X
 ~~~
 
-义务记录从静态链接后的 Skill 声明及已知的保证适用规则生成。每条记录含确定性 `obligationId`（由类型、来源位置与绑定身份计算）、`kind`（如 `OWNER_TRUST`、`COMMIT_PROOF`、`RECONCILE`、`EVIDENCE_GUARANTEE`）、稳定的 Node/Stage 或 Skill 范围、包键、适用的 Callable 与 Schema 摘要、所需保证及 `status`。缺失材料为 `UNRESOLVED` 并带原因；材料静态匹配为 `DESCRIPTOR_PRESENT` 并附材料摘要。两者都需 Host 核验。必需语法声明缺失、静态约束不成立或已提供描述损坏是错误。冻结规范 §17.2 / G.3 要求的 Evidence 描述符链接和逐路径充分性检查，在材料缺失时明确记为待验证义务（含对应规则及消费路径）。Compiler 仍执行可判定的检查；提供材料后若违反绑定、独立性、Scope、Correlation 或 Freshness 约束，即失败。Host 在派发前须以受信材料逐项完成适用的冻结规则检查，并将校验结果绑定到 Artifact 和目标 Provider；隔离策略只能改变受信权威与额外环境要求，不能免除冻结语言要求。Provider Binding、环境授权及 Invocation 资格单独记录为 `NOT_CHECKED`；Build 不推断部署状态。
+Evidence 语义必须在 Compiler 内完整执行：声明与引用解析、Descriptor 结构、Producer/Consumer 关系、Predicate 参数绑定、SourcePath、数据流、Schema 类型、Independence 的静态可判定部分，以及 Mutation/Commit Proof/Reconcile 的静态约束。Descriptor 缺失、重复、结构非法或与引用不符，按冻结语言规则拒绝 Build；不得用 `UNRESOLVED` 替代静态检查。
 
-产物采用 JCS JSON、排序路径及稳定顺序；对 manifest 之外的每个产物文件逐字节求摘要，Artifact 身份由含版本域的规范 manifest 摘要给出，manifest 不包含自身摘要。相同源码字节、快照、描述与生成器版本应产生同一产物。Verify 还检查必需义务与链接记录一致、覆盖完整。产物禁止嵌入 endpoint、凭据、主体私有数据、Grant 或可执行授权令牌。
+只有需要外部权威材料才能判定的事实在静态检查通过后记录为 **Host Admission Requirement**（`OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`、`COMMIT_PROOF`、`RECONCILE`），状态固定 `HOST_VERIFICATION_REQUIRED`。每条记录含确定性 `requirementId`（由 kind、来源位置与绑定身份计算）、稳定 Node/Stage 或 Skill 范围、包键、适用 Callable 与 Schema 摘要。这些记录是 Host 在派发前必须补齐的外部事实，不是 Compiler 的通过结论，也不表示 Build 失败。Compiler 不内建 Assurance Engine、签名验证、信任根或运行时 Evidence 检查；Owner 的真实身份、Assurance 签发者可信性、真实 Evidence 来源/Freshness/Correlation、实际 Commit Proof 和 Invocation 资格均属于 Owner、Assurance Authority、Host / Runtime。
+
+产物采用 JCS JSON、排序路径及稳定顺序；对 manifest 之外的每个产物文件逐字节求摘要，Artifact 身份由含版本域的规范 manifest 摘要给出，manifest 不包含自身摘要。相同源码字节、快照与生成器版本应产生同一产物。Verify 还检查 Host Admission Requirement 与链接记录一致、覆盖完整。产物禁止嵌入 endpoint、凭据、主体私有数据、Grant 或可执行授权令牌。
 
 ## 5. Host Admission、Qualification 与运行生命周期
 
@@ -167,13 +169,13 @@ flowchart TD
 |---|---|---|---|
 | Compile | SKILL.md、Procedure / Predicate source | 语言解析与静态校验 | 编译后的 Skill IR / 诊断 |
 | Resolve Interface Link | dependencies.lock、Interface Package snapshots | Callable、Schema、Capability、Ingress 闭包解析 | 精确链接记录 |
-| Evaluate obligations | 可选 Assurance Export、静态声明 | 计算保证材料的存在性与适用范围 | obligations.json |
+| Evaluate obligations | 锁定的 EvidenceDescriptor 导出、静态声明 | 执行完整 Evidence 静态语义并计算外部待决项 | host-admission-requirements.json |
 | Assemble Artifact | 源摘要、锁、链接记录、义务记录 | 规范化、完整性验证、确定性打包 | manifest + Linked Skill Artifact |
 
 错误边界：
 
-- 缺少或冲突的 Interface / Schema / Callable：Link 失败，**不得产生 Artifact**。
-- 接口闭合但缺 Evidence：仍可产生 Development Artifact；相应义务为 \`UNRESOLVED\`，执行状态为 \`NOT_ADMITTED\`。
+- 缺少或冲突的 Interface / Schema / Callable / EvidenceDescriptor：Link 失败，**不得产生 Artifact**。
+- 接口与静态 Descriptor 闭合但缺运行时 Evidence、Assurance Attestation 或 Deployment Grant：仍可产生 Development Artifact；相应外部事实记为 Host Admission Requirement，执行状态为 \`NOT_ADMITTED\`。
 - Deployment Grant 不进入离线 Build 输入；它属于部署方与 Host Admission 的交接材料。
 
 ### 7.3 Host 准入与执行
