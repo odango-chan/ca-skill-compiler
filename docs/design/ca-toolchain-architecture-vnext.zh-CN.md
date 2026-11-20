@@ -69,11 +69,17 @@ EvidenceDescriptor 是实际被 Predicate 消费的跨包正式导出，因此�
 
 跨包 Capability 成员使用声明过的依赖别名和精确 Callable ID。Subject Context、Observation、错误/结果、声明中引用的 Receipt / Reconcile 类型，以及 Wait 输出和响应映射所需类型均进入 Schema 闭包。保证材料可缺失；源码方面必需的声明、明确的 Effect、接口符号和类型仍须通过静态检查。发布过程可组合多个源 export，Resolver 与 Compiler 交接时每个发布版本只有一个权威快照。
 
+**Capability 的静态选择与 Catalog Owner 归属。** CapabilityCatalog 的 Owner 身份取自锁定 Package manifest 的 `publisher` 与既有 Owner Linking 机制；Catalog 文件内自行声明的 Owner 不作为信任依据。Skill 的 `capabilities` 声明是静态授权需求的唯一来源：Compiler 必须把被声明 Capability 的精确身份（CapabilityCatalog Package Key、Owner、Export ID、SourcePath 与 JSON Pointer、Callable 成员）写入 Development Artifact，而不是只保存 Callable 集合、由 Callable 反推 Capability、或让 Host 重新读取 SKILL 源码猜测。Catalog 发布者身份是否真实由 Host 按 `OWNER_TRUST` 语义验证；Deployment Grant 始终属于部署方与 Host，既不进入 Artifact，也不与静态 Capability 需求混同。
+
 ### 3.2 依赖锁与闭包
 
 `dependencies.lock` 由 Resolver 生成。首版字段为版本身份、根别名指向的包键、`packages[]`。包键为 `{packageId,version,snapshotDigest}`，每项另记录每条直接依赖的本地别名和目标包键。Compiler 接收锁和精确快照，按 manifest 核验格式、声明、路径、摘要、依赖约束与边，并遍历至固定点。拒绝缺包、多余输入、歧义别名、冲突 Schema ID、同一 ID/版本异摘要、首版包依赖环和外部未锁定引用。Schema 内部递归继续遵循冻结语言支持的规则，解析时按规范 URI 和片段去重。首版每个包 ID 在同一图中只允许一个版本，遇到冲突由 Resolver 显式报错；禁止 Compiler 隐式选版本、下载或回退。
 
 Artifact 完整嵌入规范化锁、已绑定导出与闭包摘要。快照本身由交付方按锁提供；离线 Verify 先验证产物清单与文件，再以原始构建请求重验接口闭包和两类 Requirement 覆盖，并逐字节比对全部产物文件。仅可访问 Artifact 时可做完整性校验。Host 最终准入必须完成闭包验证和适用的冻结保证检查。锁文件不含下载地址、凭据或部署数据。
+
+**Package-scoped Schema 解析。** Schema 的 `$ref` 只在其声明文档所属 Package 的作用域内解析：Skill 源使用 Skill Contract 声明的根别名；Interface Package 内的 Schema 使用该 Package manifest 自己声明的直接依赖别名。绝对 `$id` 只能解析到声明文档所在的 Package 自身或其声明的直接依赖；被引用 Schema 内的后续 `$ref` 按该 Schema 所属 Package 重新确定作用域，不沿用最初 Skill 的根别名。全局 `$id` 只用于 Schema 身份识别，不能作为跨越 Package 依赖的解析授权——即使目标 Schema 已存在于 Lock Closure，只要当前 Package 未声明对应直接依赖，引用即失败。所有 Schema 解析入口共享同一套规则，不得在不同模块各自实现解析或回退。
+
+**多 Skill 共用 Lock。** 设选中 Skill 集合为 `S = {S1, …, Sn}`，各自声明的根依赖集合为 `D1, …, Dn`，则要求的 Root 集合是并集 `R = D1 ∪ … ∪ Dn`；不得要求每个 Skill 声明其他 Skill 的依赖。每个声明的别名必须解析到唯一且与其 Stable Package ID 一致的 Lock Root；同一别名不得在不同 Skill 中绑定不同 Package 身份；每个 Lock Root 必须至少被一个选中 Skill 声明，不允许未被任何选中 Skill 引用的额外 Root；Lock Closure 必须等于该 Root 集合的传递依赖闭包，既不得缺少传递依赖，也不得引入不可达 Package。
 
 ### 3.3 Runtime Provider Package 与绑定
 
@@ -97,7 +103,9 @@ Compiler 首个 Development Build 的实现已由 [PR #51](https://github.com/od
 |---|---|
 | BuildRequest | `apiVersion`、`languageTarget=connectionagent.io/v1alpha5`、`profile=DEVELOPMENT`、源码文件、Interface 快照（含 EvidenceDescriptor 与 Ingress/Schema 导出）、Dependency Lock。输入只有这三类，没有 `assurance[]`，也没有可选的 Assurance Export |
 | BuildResult | `apiVersion`、Source / Interface Link / Artifact 状态、结构化诊断、两类 Requirement 记录、Artifact 文件清单及摘要；失败原子返回无产物 |
-| Artifact | `apiVersion`、语言目标、生成器版本、`profile=DEVELOPMENT`、源码摘要、规范化锁、Procedure、Callable / Ingress 链接、两类 Requirement 记录、文件摘要；执行状态固定 `NOT_ADMITTED` |
+| Artifact | `apiVersion`、语言目标、生成器版本、`profile=DEVELOPMENT`、源码摘要、规范化锁、Procedure、Callable / Ingress 链接、Capability 静态需求 `capabilityRequirements[]`、两类 Requirement 记录、文件摘要；执行状态固定 `NOT_ADMITTED` |
+
+Artifact manifest 的 `capabilityRequirements[]` 逐条记录 Skill 的静态 Capability 选择：`skill`、`capabilityId`、`catalog{key,owner,exportId,sourcePath,pointer}`、`callables[{key,owner,exportId,kind,effect,sourcePath}]` 与 `declaration{path,pointer}`。因此 Host 可以直接从 Artifact 得到 Skill 请求的 Capability 及其精确 Catalog Package、Owner、导出身份和 Callable 成员，**无需读取原始 SKILL 源码**；多条 Capability 可能包含同一 Callable，但 Artifact 只记录 Skill 实际声明的那一条，既不按 Callable 反推，也不把所有匹配 Capability 都当成授权需求。该记录是静态授权需求，不是 Deployment Grant，也不表示任何权限已被授予或验证；Catalog Owner 的真实性仍由 Host 按 `OWNER_TRUST` 验证。
 
 ~~~mermaid
 flowchart TD
@@ -147,7 +155,7 @@ Deployment Grant、Provider Binding 与当前 Invocation 授权同样属于 Host
 
 这些记录是 Host 与 Runtime 必须补齐并验证的外部事实，不是 Compiler 的通过结论，也不表示 Build 失败。Compiler 不内建 Assurance Engine、签名验证、信任根或运行时 Evidence 检查；Owner 的真实身份、Assurance 签发者可信性、真实 Evidence 来源/Freshness/Correlation、实际 Commit Proof 和 Invocation 资格均属于 Owner、Assurance Authority、Host / Runtime。
 
-产物采用 JCS JSON、排序路径及稳定顺序；对 manifest 之外的每个产物文件逐字节求摘要，Artifact 身份由含版本域的规范 manifest 摘要给出，manifest 不包含自身摘要。相同源码字节、快照与生成器版本应产生同一产物。Verify 检查两个 Requirement 文件的规范化 JCS、排序、逐条重新推导的 `requirementId`、kind 所属类别、`status` 与覆盖完整，并以原始请求重建全部产物逐字节比对。产物禁止嵌入 endpoint、凭据、主体私有数据、Grant 或可执行授权令牌。
+产物采用 JCS JSON、排序路径及稳定顺序；对 manifest 之外的每个产物文件逐字节求摘要，Artifact 身份由含版本域的规范 manifest 摘要给出，manifest 不包含自身摘要。`capabilityRequirements[]` 属于 manifest 内容，随 manifest 摘要与逐字节重建一并验证：删除、替换 Capability ID / Catalog Package Key / Owner / Export ID / SourcePath / Callable 成员 / Skill 声明位置，即使重算外层摘要仍被拒绝。相同源码字节、快照与生成器版本应产生同一产物。Verify 检查两个 Requirement 文件的规范化 JCS、排序、逐条重新推导的 `requirementId`、kind 所属类别、`status` 与覆盖完整，并以原始请求重建全部产物逐字节比对。产物禁止嵌入 endpoint、凭据、主体私有数据、Grant 或可执行授权令牌。
 
 ## 5. Host Admission、Qualification 与运行生命周期
 

@@ -18,9 +18,9 @@
 | 步骤 | 交付和验收 |
 |---|---|
 | 1. 旧入口基线 | 从 v2.0.2 运行 `Check`、`Build`、`InspectDependencies`、`VerifyBuildResult` 的代表性正反例，保存诊断、退出码与产物文件摘要。后续在新代码上用相同输入比对。 |
-| 2. 离线 Link | 按已锁定的根与传递边复算快照摘要，验证包、导出、Schema 片段、Effect、Capability 成员、EvidenceDescriptor 和 Ingress 闭包。沿用现有快照摘要向量。明确报告包、导出或使用位置。缺接口或闭包不一致时，构建失败且无产物。 |
+| 2. 离线 Link | 按已锁定的根与传递边复算快照摘要，验证包、导出、Schema 片段、Effect、Capability 成员、EvidenceDescriptor 和 Ingress 闭包。Schema 的 `$ref` 只在声明文档所属 Package 的作用域内解析（Skill 用 Contract 根别名，Package 内 Schema 用该 Package 的直接依赖别名）；全局 `$id` 不作为跨 Package 授权。沿用现有快照摘要向量。明确报告包、导出或使用位置。缺接口或闭包不一致时，构建失败且无产物。 |
 | 3. 静态 Evidence 语义 + 两类 Requirement | 完整执行冻结的 Evidence 语言语义：声明/引用、Descriptor 形状、Producer/Consumer、SourcePath、Schema 类型、Independence 静态部分（逐组展开）、Mutation/Commit Proof/Reconcile 静态约束、Ingress 导出身份。Descriptor 缺失、重复、非法或与引用不符即失败。每个被 Predicate 消费的 Descriptor 的 `authority` 与其他跨包导出一样生成独立的 `OWNER_TRUST`，不能被 `EVIDENCE_DOMAIN_TRUST` / `EVIDENCE_FACT_TRUST` 替代；Producer 输出 Schema 经其 Callable 唯一解析并与 Predicate 参数 Schema 比对。静态检查通过后，仅把 Compiler 能定位的派发前外部事实记为 `OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`；Deployment Grant、Provider Binding、Invocation 授权由 Host 在派发时校验但不写成条目。把只能在执行期产生的真实结果记为 `COMMIT_PROOF`、`RECONCILE` 的 Runtime Execution Requirement。`COMMIT_PROOF` / `RECONCILE` 不得写进 Host Admission 文件，也不得声称在 Build 或派发前可满足。 |
-| 4. Build 与 Verify | 对规范化锁、链接记录、两类 Requirement 和产物文件生成确定性摘要。装配后自验。Verify 复验产物字节和精确快照闭包，并逐项核对两个 Requirement 文件（JCS、排序、重新推导 requirementId、kind 所属类别、status、覆盖完整）。单纯复算 manifest 摘要仅证明字节一致性。提交至少一个在重新计算外层摘要后仍会被拒绝的删改 requirement 负例。复验用原始请求重跑核心并校对完整产物字节。 |
+| 4. Build 与 Verify | 对规范化锁、链接记录、Capability 静态需求和两类 Requirement 和产物文件生成确定性摘要。装配后自验。Verify 复验产物字节和精确快照闭包，并逐项核对两个 Requirement 文件（JCS、排序、重新推导 requirementId、kind 所属类别、status、覆盖完整）以及 manifest 的 `capabilityRequirements[]`（删除或替换 Capability ID、Catalog Package Key / Owner / Export ID / SourcePath / Callable 成员 / Skill 声明位置均失败）。单纯复算 manifest 摘要仅证明字节一致性。提交至少一个在重新计算外层摘要后仍会被拒绝的删改 requirement 负例。复验用原始请求重跑核心并校对完整产物字节。 |
 | 5. 入口及回归 | 在 Native 与 WASM 入口显式选择新契约。新旧入口交叉传错版本均失败。以真实 Chromium Worker 比对成功样例的完整产物字节和失败样例的结构化诊断。 |
 
 首轮需区分三类结果：
@@ -48,6 +48,14 @@
 | 11 | 同一 Guarantee 由多个 Producer 提供、Producer 输出 Schema 位于传递锁定包 | 每个 Producer 精确匹配其 Callable 与 `provides.path`；输出 Schema 恰好解析一次并与 Predicate 参数 Schema 比对；Descriptor 只产生一条 `OWNER_TRUST` |
 | 12 | 删除 Descriptor 的 `OWNER_TRUST` 并重封全部外层摘要 | Verify 失败（以原始请求重建并逐字节比较） |
 | 13 | 静态 Descriptor 缺失 vs 实际 Runtime Evidence / Attestation / Grant 缺失 | 前者 Build FAIL 无产物；后者 Build 成功、状态固定 `NOT_ADMITTED`，且两类 Requirement 保留 |
+| 14 | Skill 声明一个 Capability，而 Catalog 中另一 Capability 含同一 Callable | manifest 只记录 Skill 实际声明的 `capabilityId`；不按 Callable 反推、不把所有匹配 Capability 都写入；`catalog` 的 Package Key / Owner / Export ID / SourcePath / Pointer 与 `callables[]`、`declaration{path,pointer}` 均精确 |
+| 15 | 删除/替换 Capability 需求、Capability ID、Catalog Package Key、Owner、Export ID、SourcePath、Callable 成员、Skill 声明位置 | 即使重算 manifest 文件摘要与 artifactDigest，Verify 仍失败 |
+| 16 | Skill 声明的 Capability 没有唯一锁定 CapabilityCatalog | Build FAIL（`CAPABILITY_MAPPING_MISSING`），不得静默丢弃 |
+| 17 | Schema 链 `Skill → A → B → C`，B 用自身别名引用 C | PASS：B 内的 `$ref` 按 B 的 Package 依赖解析，不沿用 Skill 根别名；Schema 内后续 `$ref` 按所属 Package 重新确定作用域 |
+| 18 | Package A 未声明 C，但 C 已在 Lock Closure 中，A 通过绝对 `$id` 引用 C | Build FAIL（`SCHEMA_MISSING`）：全局 `$id` 不构成跨 Package 解析授权 |
+| 19 | 不存在的 Alias、别名指向错误 Package、Schema 不属于目标 Package、非法相对引用、重复 Schema 身份 | 分别 Build 失败，诊断含当前 Package、Alias、SourcePath 与 JSON Pointer |
+| 20 | 两个 Skill 共用同一 Lock，各自声明不同 Root | PASS；Root 集合取并集，不要求任一 Skill 声明对方依赖 |
+| 21 | 缺少某个 Skill 的 Root、Alias 对应错误 Package ID、存在未被引用 Root、同名 Alias 跨 Skill 指向不同 Package、Lock Closure 缺少传递依赖或含不可达 Package | 分别 Build FAIL（`DEVELOPMENT_LOCK_INVALID`）；单 Skill 正例不回退 |
 
 增加一组同版异摘要、重复符号和未锁外部引用的负例。验证重排输入后的产物字节一致。以静态契约完整但外部信任缺失的请求为基线，增加信任材料后核对 Requirement 状态变化。构建入口按定版契约拒绝未知字段。Grant 和 Provider 由 Host 接收。
 
