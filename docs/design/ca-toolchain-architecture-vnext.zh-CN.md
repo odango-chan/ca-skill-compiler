@@ -1,8 +1,8 @@
 # CA-SL 工具链架构：编译、接口链接与执行资格分离
 
-> **状态：设计已进入最终评审，尚未冻结，也未合并或发布。**
+> **状态（2026-11-20）：架构评审通过，PR #48 已合并（`22860a2`），Development Build 实现 PR #51 已合并（`1d7ea81`）。** 本页已经进入 `main`，但**尚未独立冻结或正式发布新一代公开契约**；生产 Host 仍须拒绝 `DEVELOPMENT` Artifact。
 >
-> 本页是 PR #48 的最终评审基线：原则已通过评审，契约已进入最终一致性收敛，但**尚未冻结**。冻结只能由最终评审者在两个 PR 都评审通过后宣布。当前基线为冻结的 CA-SL v1alpha5（`connectionagent.io/v1alpha5`）和已发布的 Compiler v2.0.2；现有语言规则、BuildRequest / BuildResult / Artifact 契约及实现行为以冻结基线为准，本页不改变它们。Development Build 的实现见 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51)，其状态为“实现完成、等待最终评审”，不是已冻结或已发布。迁移步骤见[演进路线](compiler-evolution-roadmap-vnext.zh-CN.md)，Host 和 MAS E2E 边界见 [ca-agent-demo #217](https://github.com/odango-chan/ca-agent-demo/pull/217)。
+> 现行冻结语言仍为 CA-SL v1alpha5，已发布产品仍为 Compiler v2.0.2。本页是下一代接口链接与 Artifact 生命周期的设计基线；其评审阶段的 SHA、图形验收记录与 `PENDING` 项为历史证据，正文中如有“等待最终评审”的表述，应以本状态块为准。实现与证据见 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 和[实现报告](compiler-development-build-implementation-report.zh-CN.md)。MAS G0/G1 未运行、正式 Owner/Provider 发布与真实 Host Admission 仍待完成。
 
 ## 1. 已批准的原则
 
