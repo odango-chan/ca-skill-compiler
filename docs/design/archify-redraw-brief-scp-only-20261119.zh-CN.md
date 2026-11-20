@@ -19,11 +19,11 @@
 - MAS Runtime/E2E 手册：`ca-agent-demo/docs/design/mas-e2e-harness.zh-CN.md`
 - Frozen Skill 示例：`ca-skills/examples/skills/establish-pdu-session-mas/`
 
-旧稿（先审查再决定能否复用）：
+旧稿（历史本地草稿，不作为本轮正式交付源）：
 `.archify/workflow-ca-sl-toolchain-20261119-1350/01-toolchain-panorama.architecture.json`、
 `02-offline-build.workflow.json`、
 `03-host-admission.architecture.json`。
-若旧源不存在，可用已安装 Archify Skill 重新生成相同主题。绝不伪称找到了旧文件。
+本轮正式可编辑源、HTML 与统一入口均已提交到 `docs/architecture/archify/`；以该目录的 `index.html` 和 README 为准。
 
 ## 2. 这次已经确定的架构约束
 
