@@ -104,7 +104,7 @@
       "from": "ue",
       "to": "amf",
       "y": 168,
-      "label": "5GSM Establishment Request (0xC1)",
+      "label": "Establishment Request (5GSM 0xC1)",
       "variant": "default"
     },
     {
@@ -629,7 +629,8 @@
       "items": [
         "Nsmf_PDUSession_CreateSMContext 对应 operationId=PostSmContexts；UpdateSMContext 对应 UpdateSmContext",
         "Namf_Communication_N1N2MessageTransfer 是 3GPP Service Operation；Nsmf_MasOrchestration / masOrchestrationInvoke 是 OpenAMSM 私有 API",
-        "s7 是 MAS charging step；不将它画成 CHF 已完成外部计费"
+        "s7 是 MAS charging step；不将它画成 CHF 已完成外部计费",
+        "UE NAS message：PDU Session Establishment Request（5GSM message type 0xC1）"
       ]
     },
     {

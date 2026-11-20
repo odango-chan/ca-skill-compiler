@@ -62,7 +62,7 @@
       "id": "upf",
       "type": "external",
       "label": "UPF · N4 Peer",
-      "sublabel": "外部 5GC · N4 不经 SCP"
+      "sublabel": "N4 · no SCP"
     }
   ],
   "segments": [
@@ -98,7 +98,7 @@
       "from": "pcf",
       "to": "scp",
       "y": 168,
-      "label": "Npcf_SMPolicyControl_Notify（PCF notification）",
+      "label": "PCF Policy Notification",
       "variant": "emphasis"
     },
     {
@@ -397,7 +397,8 @@
       "items": [
         "PCF notification 是 PCF → SCP → OpenAMSM 的既有网络侧回调，不是 AMF → Host 的 Nsmf 请求",
         "OpenAMSM 以受信 scoped event 把准确 Session、触发原因和 generation 交给 Host；Host 决定对应 Run 的启动或继续",
-        "SMF-local timer / decision 是 Owner 内部触发，不应伪装成 PCF 或 AMF 消息"
+        "SMF-local timer / decision 是 Owner 内部触发，不应伪装成 PCF 或 AMF 消息",
+        "PCF callback 的 3GPP Service Operation：Npcf_SMPolicyControl_Notify"
       ]
     },
     {

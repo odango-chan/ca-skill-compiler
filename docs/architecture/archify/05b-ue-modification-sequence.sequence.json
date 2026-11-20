@@ -62,7 +62,7 @@
       "id": "upf",
       "type": "external",
       "label": "UPF · N4 Peer",
-      "sublabel": "外部 5GC · N4 不经 SCP"
+      "sublabel": "N4 · no SCP"
     }
   ],
   "segments": [
@@ -98,7 +98,7 @@
       "from": "ue",
       "to": "amf",
       "y": 168,
-      "label": "UE · PDU Session Modification Request (0xC9)",
+      "label": "UE Modification Request (5GSM 0xC9)",
       "variant": "default"
     },
     {
@@ -106,7 +106,7 @@
       "from": "ue",
       "to": "amf",
       "y": 200,
-      "label": "[ALT · RAN] N2 modification event / request",
+      "label": "RAN N2 Modification Event",
       "variant": "default"
     },
     {
@@ -517,7 +517,8 @@
       "items": [
         "分支 A：新的 UE Modification Request 或新的 RAN 业务修改，启动 Modify Procedure",
         "分支 B：N2 response 命中已有 Owner Pending（例如原 m4 / s10），只继续原 occurrence，不创建第二个 Run",
-        "Host 必须先按 Session 生命周期、N1 5GSM Message Type、N2 SmInfoType、upCnxState、hoState 和 Pending 身份分类"
+        "Host 必须先按 Session 生命周期、N1 5GSM Message Type、N2 SmInfoType、upCnxState、hoState 和 Pending 身份分类",
+        "UE NAS message：PDU Session Modification Request（5GSM message type 0xC9）；RAN 侧 N2 修改按 N2 SM information 分类"
       ]
     },
     {

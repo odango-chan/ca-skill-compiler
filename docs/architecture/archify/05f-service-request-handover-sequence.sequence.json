@@ -50,7 +50,7 @@
       "id": "upf",
       "type": "external",
       "label": "UPF · N4 Peer",
-      "sublabel": "外部 5GC · N4 不经 SCP"
+      "sublabel": "N4 · no SCP"
     }
   ],
   "segments": [
@@ -244,7 +244,7 @@
       "from": "amf",
       "to": "scp",
       "y": 840,
-      "label": "[ALT · F10] UpdateSMContext · hoState / PATH_SWITCH_REQ",
+      "label": "[F10] UpdateSMContext · PATH_SWITCH_REQ",
       "variant": "emphasis"
     },
     {

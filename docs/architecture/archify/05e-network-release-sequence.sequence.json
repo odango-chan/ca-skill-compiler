@@ -62,7 +62,7 @@
       "id": "upf",
       "type": "external",
       "label": "UPF · N4 Peer",
-      "sublabel": "外部 5GC · N4 不经 SCP"
+      "sublabel": "N4 · no SCP"
     }
   ],
   "segments": [
@@ -98,7 +98,7 @@
       "from": "pcf",
       "to": "scp",
       "y": 168,
-      "label": "[分支 A · PCF] Npcf_SMPolicyControl_Notify",
+      "label": "PCF Policy Notification",
       "variant": "emphasis"
     },
     {
@@ -250,7 +250,7 @@
       "from": "amf",
       "to": "scp",
       "y": 776,
-      "label": "Nsmf_PDUSession_UpdateSMContext or ReleaseSMContext · scenario completion",
+      "label": "Nsmf Update / ReleaseSMContext · completion",
       "variant": "emphasis"
     },
     {
@@ -389,7 +389,8 @@
       "items": [
         "PCF-initiated：PCF → SCP → OpenAMSM callback；SMF-local：OpenAMSM 自身 timer / decision",
         "OpenAMSM 再通过受信 scoped event 把准确 Session 与 trigger generation 交给 Host",
-        "网络侧释放不是 AMF 新建 SM Context；Host 只定位既有资源"
+        "网络侧释放不是 AMF 新建 SM Context；Host 只定位既有资源",
+        "PCF callback 的 3GPP Service Operation：Npcf_SMPolicyControl_Notify；AMF 释放入口为 Nsmf_PDUSession_ReleaseSMContext，UE 释放入口为 Nsmf_PDUSession_UpdateSMContext"
       ]
     },
     {

@@ -62,7 +62,7 @@
       "id": "upf",
       "type": "external",
       "label": "UPF · N4 Peer",
-      "sublabel": "外部 5GC · N4 不经 SCP"
+      "sublabel": "N4 · no SCP"
     },
     {
       "id": "pcf",
@@ -104,7 +104,7 @@
       "from": "ue",
       "to": "amf",
       "y": 168,
-      "label": "[分支 A · UE] PDU Session Release Request (5GSM 0xD1)",
+      "label": "UE Release Request (5GSM 0xD1)",
       "variant": "default"
     },
     {
