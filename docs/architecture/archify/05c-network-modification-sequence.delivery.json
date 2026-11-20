@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "receiptId": "ccc90248-05a4-4bd6-8ea4-fa416774459c",
+  "receiptId": "e9d1b459-0565-4283-a812-4725b47ec221",
   "status": "current",
   "command": "deliver",
   "type": "sequence",
   "input": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05c-network-modification-sequence.sequence.json",
   "output": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05c-network-modification-sequence.html",
   "specification": {
-    "sha256": "67dbac49efaad4bfe1ca5eb6aefa186cab2f73be937074b6dc261dadceec8144",
-    "bytes": 9824
+    "sha256": "d6ba00f7342a0e8b0f85656fccb4a98cb486a1fab0dc9b920e5d30a2bb7cf0a8",
+    "bytes": 10164
   },
   "artifact": {
-    "sha256": "a4ccd845ab49dbaadd905c8432284e0e6741a3dc034d30692b67ef904cb64272",
-    "bytes": 860885
+    "sha256": "3e905f274ccd919a07acde5239af5334aa9bfea4e8a06a9f97e1ec9d0b6550aa",
+    "bytes": 861199
   }
 }

@@ -6,11 +6,11 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "ccc90248-05a4-4bd6-8ea4-fa416774459c",
+  "deliveryReceiptId": "e9d1b459-0565-4283-a812-4725b47ec221",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05c-network-modification-sequence.html",
-    "sha256": "a4ccd845ab49dbaadd905c8432284e0e6741a3dc034d30692b67ef904cb64272",
-    "bytes": 860885
+    "sha256": "3e905f274ccd919a07acde5239af5334aa9bfea4e8a06a9f97e1ec9d0b6550aa",
+    "bytes": 861199
   },
   "state": {
     "detail": "read",
@@ -132,7 +132,7 @@
         "innerWidth": 1920,
         "innerHeight": 1080,
         "scrollWidth": 1920,
-        "scrollHeight": 2383,
+        "scrollHeight": 2382,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -182,7 +182,7 @@
         "innerWidth": 2048,
         "innerHeight": 1320,
         "scrollWidth": 2048,
-        "scrollHeight": 2401,
+        "scrollHeight": 2400,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -385,7 +385,7 @@
         "innerWidth": 1920,
         "innerHeight": 1080,
         "scrollWidth": 1920,
-        "scrollHeight": 2383,
+        "scrollHeight": 2382,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -435,7 +435,7 @@
         "innerWidth": 2048,
         "innerHeight": 1320,
         "scrollWidth": 2048,
-        "scrollHeight": 2401,
+        "scrollHeight": 2400,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -590,7 +590,7 @@
         "innerWidth": 1920,
         "innerHeight": 1080,
         "scrollWidth": 1920,
-        "scrollHeight": 2383,
+        "scrollHeight": 2382,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -640,7 +640,7 @@
         "innerWidth": 2048,
         "innerHeight": 1320,
         "scrollWidth": 2048,
-        "scrollHeight": 2401,
+        "scrollHeight": 2400,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -797,7 +797,7 @@
         "innerWidth": 2048,
         "innerHeight": 1320,
         "scrollWidth": 2048,
-        "scrollHeight": 2401,
+        "scrollHeight": 2400,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -848,7 +848,7 @@
         "innerWidth": 2048,
         "innerHeight": 1320,
         "scrollWidth": 2048,
-        "scrollHeight": 2401,
+        "scrollHeight": 2400,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -906,23 +906,23 @@
         "file": "05c-network-modification-sequence.visual-check.html"
       },
       {
-        "sha256": "10a199c8324de4b9538001616cd74ab4c4614becaa44c1d4694edf7bdaa60658",
-        "bytes": 165332,
+        "sha256": "11087281536058efe4de7de06153f897ffe1e91c4c8da03929f51aee175c1381",
+        "bytes": 166868,
         "file": "05c-network-modification-sequence.visual-check.1440x900.light.png"
       },
       {
-        "sha256": "a243f98e4090448c18899d04a48de4de24a98d64dbfc3183709e03811d068337",
-        "bytes": 178167,
+        "sha256": "9e42bab887b37e0e65ed1006c3ad1492e5154eb59eb5d8602c38e0ddf2ce0eab",
+        "bytes": 178426,
         "file": "05c-network-modification-sequence.visual-check.1440x900.dark.png"
       },
       {
-        "sha256": "78bea30bb19cfe4acd6299c23dc2134e7ac77c5243e7b1b0f9c3c2119f8c9392",
-        "bytes": 187328,
+        "sha256": "f25b74c5e8c13353648fa07879fdf8585ee785a56f01f87f1875c2685e43bd80",
+        "bytes": 187971,
         "file": "05c-network-modification-sequence.visual-check.2048x1320.light.png"
       },
       {
-        "sha256": "47157aae0d2470afa97fb3f68ef3c636f5aa32532f2cef690f29e09572c6de02",
-        "bytes": 202590,
+        "sha256": "dd1e537acb480e35a2b93508f91c19642626111c0e1a9ab7a57958b0144d7ae3",
+        "bytes": 203287,
         "file": "05c-network-modification-sequence.visual-check.2048x1320.dark.png"
       }
     ]

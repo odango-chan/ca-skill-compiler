@@ -7,13 +7,13 @@
   "quality": "showcase",
   "specification": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05b-ue-modification-sequence.sequence.json",
-    "sha256": "abd9329b1139ebdeae2c805c20f3118887da8537c9e140f539926cfd61a019fa",
-    "bytes": 13368
+    "sha256": "3c59c8b961086cac866187bf4c547c1d46320e0bbe2236118ac91780d09c93df",
+    "bytes": 13898
   },
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05b-ue-modification-sequence.html",
-    "sha256": "623993b7714abb46c459b3ebc30ed33d7fe4da6cdfe321ec55cf2924a1bcda97",
-    "bytes": 876537
+    "sha256": "481d755d6ad38134038f0823722fbd03a9447972f634bceb3ab4a28eaf781582",
+    "bytes": 877082
   },
   "gates": {
     "validate": "pass",
@@ -37,13 +37,13 @@
     "installedVersion": "3.2.0",
     "availableVersion": "3.2.0",
     "releaseNotes": null,
-    "checkedAt": "2026-11-20T02:28:24.430Z",
+    "checkedAt": "2026-11-20T02:48:34.996Z",
     "source": "cache",
     "noticeRequired": false,
     "noticeText": null
   },
   "visualReview": "not-requested",
-  "durationMs": 4132,
+  "durationMs": 4079,
   "browserCheck": {
     "requested": true,
     "ran": true

@@ -6,11 +6,11 @@
   "status": "pass",
   "visualReview": "not-requested",
   "provenance": "current",
-  "deliveryReceiptId": "826f49a0-5a0b-4e61-b71c-e9af5fb4ee47",
+  "deliveryReceiptId": "c3ed13fe-7069-40e6-8a60-03dfbbb188f9",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05a-establishment-sequence.html",
-    "sha256": "3cf05b2997ad92788a5b140b49109185b76c668aa8029f432699a58c9a085ad3",
-    "bytes": 881108
+    "sha256": "9fa7d9f575e7981f9b6bf94b4c915fede5a00ac676a8a190664a83ca04eb39d5",
+    "bytes": 881632
   },
   "state": {
     "detail": "read",

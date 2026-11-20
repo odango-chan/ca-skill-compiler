@@ -5,16 +5,16 @@
   "status": "pass",
   "type": "sequence",
   "quality": "showcase",
-  "startedAt": "2026-11-20T02:28:41.324Z",
+  "startedAt": "2026-11-20T02:48:51.729Z",
   "specification": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05c-network-modification-sequence.sequence.json",
-    "sha256": "67dbac49efaad4bfe1ca5eb6aefa186cab2f73be937074b6dc261dadceec8144",
-    "bytes": 9824
+    "sha256": "d6ba00f7342a0e8b0f85656fccb4a98cb486a1fab0dc9b920e5d30a2bb7cf0a8",
+    "bytes": 10164
   },
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05c-network-modification-sequence.html",
-    "sha256": "a4ccd845ab49dbaadd905c8432284e0e6741a3dc034d30692b67ef904cb64272",
-    "bytes": 860885
+    "sha256": "3e905f274ccd919a07acde5239af5334aa9bfea4e8a06a9f97e1ec9d0b6550aa",
+    "bytes": 861199
   },
   "stages": {
     "validate": {
@@ -38,8 +38,8 @@
         "ok": true,
         "command": "validate",
         "specification": {
-          "sha256": "67dbac49efaad4bfe1ca5eb6aefa186cab2f73be937074b6dc261dadceec8144",
-          "bytes": 9824
+          "sha256": "d6ba00f7342a0e8b0f85656fccb4a98cb486a1fab0dc9b920e5d30a2bb7cf0a8",
+          "bytes": 10164
         },
         "validation": {
           "checksPassed": 9,
@@ -54,7 +54,7 @@
     "deliver": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 464,
+      "durationMs": 475,
       "command": [
         "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
@@ -68,19 +68,19 @@
       ],
       "receipt": {
         "schemaVersion": 1,
-        "receiptId": "ccc90248-05a4-4bd6-8ea4-fa416774459c",
+        "receiptId": "e9d1b459-0565-4283-a812-4725b47ec221",
         "ok": true,
         "command": "deliver",
         "type": "sequence",
         "input": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05c-network-modification-sequence.sequence.json",
         "output": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05c-network-modification-sequence.html",
         "specification": {
-          "sha256": "67dbac49efaad4bfe1ca5eb6aefa186cab2f73be937074b6dc261dadceec8144",
-          "bytes": 9824
+          "sha256": "d6ba00f7342a0e8b0f85656fccb4a98cb486a1fab0dc9b920e5d30a2bb7cf0a8",
+          "bytes": 10164
         },
         "artifact": {
-          "sha256": "a4ccd845ab49dbaadd905c8432284e0e6741a3dc034d30692b67ef904cb64272",
-          "bytes": 860885
+          "sha256": "3e905f274ccd919a07acde5239af5334aa9bfea4e8a06a9f97e1ec9d0b6550aa",
+          "bytes": 861199
         },
         "validation": {
           "checksPassed": 9,
@@ -106,7 +106,7 @@
     "check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 205,
+      "durationMs": 209,
       "command": [
         "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
@@ -118,8 +118,8 @@
         "ok": true,
         "file": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05c-network-modification-sequence.html",
         "artifact": {
-          "sha256": "a4ccd845ab49dbaadd905c8432284e0e6741a3dc034d30692b67ef904cb64272",
-          "bytes": 860885
+          "sha256": "3e905f274ccd919a07acde5239af5334aa9bfea4e8a06a9f97e1ec9d0b6550aa",
+          "bytes": 861199
         },
         "checks": [
           {
@@ -248,13 +248,13 @@
           "issues": []
         },
         "provenance": "current",
-        "deliveryReceiptId": "ccc90248-05a4-4bd6-8ea4-fa416774459c"
+        "deliveryReceiptId": "e9d1b459-0565-4283-a812-4725b47ec221"
       }
     },
     "browser-check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 3024,
+      "durationMs": 3179,
       "command": [
         "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
@@ -272,11 +272,11 @@
         "status": "pass",
         "visualReview": "not-requested",
         "provenance": "current",
-        "deliveryReceiptId": "ccc90248-05a4-4bd6-8ea4-fa416774459c",
+        "deliveryReceiptId": "e9d1b459-0565-4283-a812-4725b47ec221",
         "artifact": {
           "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05c-network-modification-sequence.html",
-          "sha256": "a4ccd845ab49dbaadd905c8432284e0e6741a3dc034d30692b67ef904cb64272",
-          "bytes": 860885
+          "sha256": "3e905f274ccd919a07acde5239af5334aa9bfea4e8a06a9f97e1ec9d0b6550aa",
+          "bytes": 861199
         },
         "state": {
           "detail": "read",
@@ -398,7 +398,7 @@
               "innerWidth": 1920,
               "innerHeight": 1080,
               "scrollWidth": 1920,
-              "scrollHeight": 2383,
+              "scrollHeight": 2382,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -448,7 +448,7 @@
               "innerWidth": 2048,
               "innerHeight": 1320,
               "scrollWidth": 2048,
-              "scrollHeight": 2401,
+              "scrollHeight": 2400,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -651,7 +651,7 @@
               "innerWidth": 1920,
               "innerHeight": 1080,
               "scrollWidth": 1920,
-              "scrollHeight": 2383,
+              "scrollHeight": 2382,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -701,7 +701,7 @@
               "innerWidth": 2048,
               "innerHeight": 1320,
               "scrollWidth": 2048,
-              "scrollHeight": 2401,
+              "scrollHeight": 2400,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -856,7 +856,7 @@
               "innerWidth": 1920,
               "innerHeight": 1080,
               "scrollWidth": 1920,
-              "scrollHeight": 2383,
+              "scrollHeight": 2382,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -906,7 +906,7 @@
               "innerWidth": 2048,
               "innerHeight": 1320,
               "scrollWidth": 2048,
-              "scrollHeight": 2401,
+              "scrollHeight": 2400,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -974,14 +974,14 @@
     "browserCheckReceipt": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05c-network-modification-sequence.browser-check.json"
   },
   "visualReview": "not-requested",
-  "finishedAt": "2026-11-20T02:28:45.166Z",
-  "durationMs": 3842,
+  "finishedAt": "2026-11-20T02:48:55.732Z",
+  "durationMs": 4002,
   "update": {
     "status": "current",
     "installedVersion": "3.2.0",
     "availableVersion": "3.2.0",
     "releaseNotes": null,
-    "checkedAt": "2026-11-20T02:28:24.430Z",
+    "checkedAt": "2026-11-20T02:48:34.996Z",
     "source": "cache",
     "noticeRequired": false,
     "noticeText": null

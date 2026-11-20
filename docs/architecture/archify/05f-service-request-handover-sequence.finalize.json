@@ -5,16 +5,16 @@
   "status": "pass",
   "type": "sequence",
   "quality": "showcase",
-  "startedAt": "2026-11-20T02:29:04.129Z",
+  "startedAt": "2026-11-20T02:49:15.575Z",
   "specification": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.sequence.json",
-    "sha256": "5224d1edbfea6ccab26dae2e9d2007f4990edf06ac8e67041a54be1aebdd1eaf",
-    "bytes": 8990
+    "sha256": "dcab9de150e1ded1c99d533f2ffb8ca01efef822d6b59eb6723325107f437f01",
+    "bytes": 9773
   },
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.html",
-    "sha256": "e9f57e3773d4302d3f86048938f287ad52ca790b86914886715d2da96bcfd5c2",
-    "bytes": 856217
+    "sha256": "bb8e44d84354f196723c8c2cc7519461ceb72f1b4b2d1300edacb08a06bfcb88",
+    "bytes": 857638
   },
   "stages": {
     "validate": {
@@ -38,8 +38,8 @@
         "ok": true,
         "command": "validate",
         "specification": {
-          "sha256": "5224d1edbfea6ccab26dae2e9d2007f4990edf06ac8e67041a54be1aebdd1eaf",
-          "bytes": 8990
+          "sha256": "dcab9de150e1ded1c99d533f2ffb8ca01efef822d6b59eb6723325107f437f01",
+          "bytes": 9773
         },
         "validation": {
           "checksPassed": 9,
@@ -54,7 +54,7 @@
     "deliver": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 423,
+      "durationMs": 445,
       "command": [
         "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
@@ -68,19 +68,19 @@
       ],
       "receipt": {
         "schemaVersion": 1,
-        "receiptId": "c7de5a27-b7b7-4dee-8bbb-e456ce03724e",
+        "receiptId": "82b426a6-0d9e-47c5-bd10-f1c90ca11f15",
         "ok": true,
         "command": "deliver",
         "type": "sequence",
         "input": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.sequence.json",
         "output": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.html",
         "specification": {
-          "sha256": "5224d1edbfea6ccab26dae2e9d2007f4990edf06ac8e67041a54be1aebdd1eaf",
-          "bytes": 8990
+          "sha256": "dcab9de150e1ded1c99d533f2ffb8ca01efef822d6b59eb6723325107f437f01",
+          "bytes": 9773
         },
         "artifact": {
-          "sha256": "e9f57e3773d4302d3f86048938f287ad52ca790b86914886715d2da96bcfd5c2",
-          "bytes": 856217
+          "sha256": "bb8e44d84354f196723c8c2cc7519461ceb72f1b4b2d1300edacb08a06bfcb88",
+          "bytes": 857638
         },
         "validation": {
           "checksPassed": 9,
@@ -106,7 +106,7 @@
     "check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 186,
+      "durationMs": 200,
       "command": [
         "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
@@ -118,8 +118,8 @@
         "ok": true,
         "file": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.html",
         "artifact": {
-          "sha256": "e9f57e3773d4302d3f86048938f287ad52ca790b86914886715d2da96bcfd5c2",
-          "bytes": 856217
+          "sha256": "bb8e44d84354f196723c8c2cc7519461ceb72f1b4b2d1300edacb08a06bfcb88",
+          "bytes": 857638
         },
         "checks": [
           {
@@ -243,18 +243,18 @@
             },
             "minimumSourceTextPx": 7,
             "minimumProjectedTextPx": 6.70442842430484,
-            "semanticTextCount": 45
+            "semanticTextCount": 46
           },
           "issues": []
         },
         "provenance": "current",
-        "deliveryReceiptId": "c7de5a27-b7b7-4dee-8bbb-e456ce03724e"
+        "deliveryReceiptId": "82b426a6-0d9e-47c5-bd10-f1c90ca11f15"
       }
     },
     "browser-check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 2753,
+      "durationMs": 2845,
       "command": [
         "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
@@ -272,11 +272,11 @@
         "status": "pass",
         "visualReview": "not-requested",
         "provenance": "current",
-        "deliveryReceiptId": "c7de5a27-b7b7-4dee-8bbb-e456ce03724e",
+        "deliveryReceiptId": "82b426a6-0d9e-47c5-bd10-f1c90ca11f15",
         "artifact": {
           "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.html",
-          "sha256": "e9f57e3773d4302d3f86048938f287ad52ca790b86914886715d2da96bcfd5c2",
-          "bytes": 856217
+          "sha256": "bb8e44d84354f196723c8c2cc7519461ceb72f1b4b2d1300edacb08a06bfcb88",
+          "bytes": 857638
         },
         "state": {
           "detail": "read",
@@ -298,7 +298,7 @@
               "innerWidth": 1440,
               "innerHeight": 900,
               "scrollWidth": 1440,
-              "scrollHeight": 1887,
+              "scrollHeight": 1998,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -313,9 +313,9 @@
                 "bodyPaddingPx": 12,
                 "headerPx": 78,
                 "diagramChromePx": 78,
-                "svgPx": 1719,
+                "svgPx": 1830,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -348,7 +348,7 @@
               "innerWidth": 1600,
               "innerHeight": 1000,
               "scrollWidth": 1600,
-              "scrollHeight": 2095,
+              "scrollHeight": 2214,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -363,9 +363,9 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 86,
                 "diagramChromePx": 84,
-                "svgPx": 1860,
+                "svgPx": 1980,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -398,7 +398,7 @@
               "innerWidth": 1920,
               "innerHeight": 1080,
               "scrollWidth": 1920,
-              "scrollHeight": 2094,
+              "scrollHeight": 2214,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -413,9 +413,9 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 86,
                 "diagramChromePx": 84,
-                "svgPx": 1860,
+                "svgPx": 1980,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -448,7 +448,7 @@
               "innerWidth": 2048,
               "innerHeight": 1320,
               "scrollWidth": 2048,
-              "scrollHeight": 2112,
+              "scrollHeight": 2232,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -463,9 +463,9 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 94,
                 "diagramChromePx": 94,
-                "svgPx": 1860,
+                "svgPx": 1980,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -551,7 +551,7 @@
               "innerWidth": 1440,
               "innerHeight": 900,
               "scrollWidth": 1440,
-              "scrollHeight": 1887,
+              "scrollHeight": 1998,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -566,9 +566,9 @@
                 "bodyPaddingPx": 12,
                 "headerPx": 78,
                 "diagramChromePx": 78,
-                "svgPx": 1719,
+                "svgPx": 1830,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -601,7 +601,7 @@
               "innerWidth": 1600,
               "innerHeight": 1000,
               "scrollWidth": 1600,
-              "scrollHeight": 2095,
+              "scrollHeight": 2214,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -616,9 +616,9 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 86,
                 "diagramChromePx": 84,
-                "svgPx": 1860,
+                "svgPx": 1980,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -651,7 +651,7 @@
               "innerWidth": 1920,
               "innerHeight": 1080,
               "scrollWidth": 1920,
-              "scrollHeight": 2094,
+              "scrollHeight": 2214,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -666,9 +666,9 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 86,
                 "diagramChromePx": 84,
-                "svgPx": 1860,
+                "svgPx": 1980,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -701,7 +701,7 @@
               "innerWidth": 2048,
               "innerHeight": 1320,
               "scrollWidth": 2048,
-              "scrollHeight": 2112,
+              "scrollHeight": 2232,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -716,9 +716,9 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 94,
                 "diagramChromePx": 94,
-                "svgPx": 1860,
+                "svgPx": 1980,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -756,7 +756,7 @@
               "innerWidth": 1440,
               "innerHeight": 900,
               "scrollWidth": 1440,
-              "scrollHeight": 1887,
+              "scrollHeight": 1998,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -771,9 +771,9 @@
                 "bodyPaddingPx": 12,
                 "headerPx": 78,
                 "diagramChromePx": 78,
-                "svgPx": 1719,
+                "svgPx": 1830,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -806,7 +806,7 @@
               "innerWidth": 1600,
               "innerHeight": 1000,
               "scrollWidth": 1600,
-              "scrollHeight": 2095,
+              "scrollHeight": 2214,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -821,9 +821,9 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 86,
                 "diagramChromePx": 84,
-                "svgPx": 1860,
+                "svgPx": 1980,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -856,7 +856,7 @@
               "innerWidth": 1920,
               "innerHeight": 1080,
               "scrollWidth": 1920,
-              "scrollHeight": 2094,
+              "scrollHeight": 2214,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -871,9 +871,9 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 86,
                 "diagramChromePx": 84,
-                "svgPx": 1860,
+                "svgPx": 1980,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -906,7 +906,7 @@
               "innerWidth": 2048,
               "innerHeight": 1320,
               "scrollWidth": 2048,
-              "scrollHeight": 2112,
+              "scrollHeight": 2232,
               "overflowX": false,
               "overflowY": true,
               "verticalScrollAccepted": true,
@@ -921,9 +921,9 @@
                 "bodyPaddingPx": 64,
                 "headerPx": 94,
                 "diagramChromePx": 94,
-                "svgPx": 1860,
+                "svgPx": 1980,
                 "cardsPx": 0,
-                "viewBoxHeight": 1240
+                "viewBoxHeight": 1320
               },
               "viewBoxWidth": 971,
               "minimumProjectedNodeTextPx": 7,
@@ -974,14 +974,14 @@
     "browserCheckReceipt": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.browser-check.json"
   },
   "visualReview": "not-requested",
-  "finishedAt": "2026-11-20T02:29:07.627Z",
-  "durationMs": 3498,
+  "finishedAt": "2026-11-20T02:49:19.208Z",
+  "durationMs": 3632,
   "update": {
     "status": "current",
     "installedVersion": "3.2.0",
     "availableVersion": "3.2.0",
     "releaseNotes": null,
-    "checkedAt": "2026-11-20T02:28:24.430Z",
+    "checkedAt": "2026-11-20T02:48:34.996Z",
     "source": "cache",
     "noticeRequired": false,
     "noticeText": null

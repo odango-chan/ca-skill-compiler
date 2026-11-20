@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "receiptId": "c7de5a27-b7b7-4dee-8bbb-e456ce03724e",
+  "receiptId": "82b426a6-0d9e-47c5-bd10-f1c90ca11f15",
   "status": "current",
   "command": "deliver",
   "type": "sequence",
   "input": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.sequence.json",
   "output": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.html",
   "specification": {
-    "sha256": "5224d1edbfea6ccab26dae2e9d2007f4990edf06ac8e67041a54be1aebdd1eaf",
-    "bytes": 8990
+    "sha256": "dcab9de150e1ded1c99d533f2ffb8ca01efef822d6b59eb6723325107f437f01",
+    "bytes": 9773
   },
   "artifact": {
-    "sha256": "e9f57e3773d4302d3f86048938f287ad52ca790b86914886715d2da96bcfd5c2",
-    "bytes": 856217
+    "sha256": "bb8e44d84354f196723c8c2cc7519461ceb72f1b4b2d1300edacb08a06bfcb88",
+    "bytes": 857638
   }
 }

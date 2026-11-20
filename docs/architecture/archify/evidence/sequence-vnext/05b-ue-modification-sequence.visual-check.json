@@ -6,11 +6,11 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "6ff9ac1c-6812-4af8-af15-bf2ff190182a",
+  "deliveryReceiptId": "eaac4946-e570-42e5-a813-3f83a3b497c8",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05b-ue-modification-sequence.html",
-    "sha256": "623993b7714abb46c459b3ebc30ed33d7fe4da6cdfe321ec55cf2924a1bcda97",
-    "bytes": 876537
+    "sha256": "481d755d6ad38134038f0823722fbd03a9447972f634bceb3ab4a28eaf781582",
+    "bytes": 877082
   },
   "state": {
     "detail": "read",
@@ -906,23 +906,23 @@
         "file": "05b-ue-modification-sequence.visual-check.html"
       },
       {
-        "sha256": "b4451580a828404aaabf282434e599b4938f465abfa0950a885899da134d40f0",
-        "bytes": 161143,
+        "sha256": "3bb2600b28606cc8f33ad4ecf1eacf81bd75ac73f9f845671c628d7841a38e4b",
+        "bytes": 159772,
         "file": "05b-ue-modification-sequence.visual-check.1440x900.light.png"
       },
       {
-        "sha256": "959dcf97ea4b96e6dbd182f79a5fe3f81b07d13fcaa6aba01b2b6eae162b3c3c",
-        "bytes": 175160,
+        "sha256": "57bb86f43363287336b3ecae5a852475098f6763b58c975ca7d9f4c9be2a1948",
+        "bytes": 173633,
         "file": "05b-ue-modification-sequence.visual-check.1440x900.dark.png"
       },
       {
-        "sha256": "5202f59428c6a89529c6549de7254086382a8055f9643ecb92c318a3959a4ad2",
-        "bytes": 207192,
+        "sha256": "7bcb450ee20f208fab2abbfcfd5e61dd141194aa4edc4258c4643e91a93377ec",
+        "bytes": 206105,
         "file": "05b-ue-modification-sequence.visual-check.2048x1320.light.png"
       },
       {
-        "sha256": "44e79eb7e4290f487781827da0808c9e25593f9272849a6e39a6f58e9e6172d8",
-        "bytes": 223302,
+        "sha256": "b5aa9d77f6925d8e03ce3dea4b03939779782afeb7f40ead9989ba380f38a75b",
+        "bytes": 222529,
         "file": "05b-ue-modification-sequence.visual-check.2048x1320.dark.png"
       }
     ]

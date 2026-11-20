@@ -7,13 +7,13 @@
   "quality": "showcase",
   "specification": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05g-callback-failure-sequence.sequence.json",
-    "sha256": "178886238c396c1759ec41dc071d0d490070e2178442d9bfa5becd570197587b",
-    "bytes": 9193
+    "sha256": "5e6191955de97e116e9c1f99d0a90e9449fda760bed18f964166113058bb6cd2",
+    "bytes": 9529
   },
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05g-callback-failure-sequence.html",
-    "sha256": "b5ea01393e4096ab20163400fbc1c53d552ce76cdcbf333950e157f807fc17f1",
-    "bytes": 857117
+    "sha256": "f0c8d52e36d7057251f2eb6cc033f74054de3d9d01770ba4aa25278c7a421039",
+    "bytes": 857461
   },
   "gates": {
     "validate": "pass",
@@ -37,7 +37,7 @@
     "installedVersion": "3.2.0",
     "availableVersion": "3.2.0",
     "releaseNotes": null,
-    "checkedAt": "2026-11-20T02:28:24.430Z",
+    "checkedAt": "2026-11-20T02:48:34.996Z",
     "source": "cache",
     "noticeRequired": false,
     "noticeText": null

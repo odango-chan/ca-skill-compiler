@@ -6,11 +6,11 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "c7de5a27-b7b7-4dee-8bbb-e456ce03724e",
+  "deliveryReceiptId": "82b426a6-0d9e-47c5-bd10-f1c90ca11f15",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.html",
-    "sha256": "e9f57e3773d4302d3f86048938f287ad52ca790b86914886715d2da96bcfd5c2",
-    "bytes": 856217
+    "sha256": "bb8e44d84354f196723c8c2cc7519461ceb72f1b4b2d1300edacb08a06bfcb88",
+    "bytes": 857638
   },
   "state": {
     "detail": "read",
@@ -32,7 +32,7 @@
         "innerWidth": 1440,
         "innerHeight": 900,
         "scrollWidth": 1440,
-        "scrollHeight": 1887,
+        "scrollHeight": 1998,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -47,9 +47,9 @@
           "bodyPaddingPx": 12,
           "headerPx": 78,
           "diagramChromePx": 78,
-          "svgPx": 1719,
+          "svgPx": 1830,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -82,7 +82,7 @@
         "innerWidth": 1600,
         "innerHeight": 1000,
         "scrollWidth": 1600,
-        "scrollHeight": 2095,
+        "scrollHeight": 2214,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -97,9 +97,9 @@
           "bodyPaddingPx": 64,
           "headerPx": 86,
           "diagramChromePx": 84,
-          "svgPx": 1860,
+          "svgPx": 1980,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -132,7 +132,7 @@
         "innerWidth": 1920,
         "innerHeight": 1080,
         "scrollWidth": 1920,
-        "scrollHeight": 2094,
+        "scrollHeight": 2214,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -147,9 +147,9 @@
           "bodyPaddingPx": 64,
           "headerPx": 86,
           "diagramChromePx": 84,
-          "svgPx": 1860,
+          "svgPx": 1980,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -182,7 +182,7 @@
         "innerWidth": 2048,
         "innerHeight": 1320,
         "scrollWidth": 2048,
-        "scrollHeight": 2112,
+        "scrollHeight": 2232,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -197,9 +197,9 @@
           "bodyPaddingPx": 64,
           "headerPx": 94,
           "diagramChromePx": 94,
-          "svgPx": 1860,
+          "svgPx": 1980,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -285,7 +285,7 @@
         "innerWidth": 1440,
         "innerHeight": 900,
         "scrollWidth": 1440,
-        "scrollHeight": 1887,
+        "scrollHeight": 1998,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -300,9 +300,9 @@
           "bodyPaddingPx": 12,
           "headerPx": 78,
           "diagramChromePx": 78,
-          "svgPx": 1719,
+          "svgPx": 1830,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -335,7 +335,7 @@
         "innerWidth": 1600,
         "innerHeight": 1000,
         "scrollWidth": 1600,
-        "scrollHeight": 2095,
+        "scrollHeight": 2214,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -350,9 +350,9 @@
           "bodyPaddingPx": 64,
           "headerPx": 86,
           "diagramChromePx": 84,
-          "svgPx": 1860,
+          "svgPx": 1980,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -385,7 +385,7 @@
         "innerWidth": 1920,
         "innerHeight": 1080,
         "scrollWidth": 1920,
-        "scrollHeight": 2094,
+        "scrollHeight": 2214,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -400,9 +400,9 @@
           "bodyPaddingPx": 64,
           "headerPx": 86,
           "diagramChromePx": 84,
-          "svgPx": 1860,
+          "svgPx": 1980,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -435,7 +435,7 @@
         "innerWidth": 2048,
         "innerHeight": 1320,
         "scrollWidth": 2048,
-        "scrollHeight": 2112,
+        "scrollHeight": 2232,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -450,9 +450,9 @@
           "bodyPaddingPx": 64,
           "headerPx": 94,
           "diagramChromePx": 94,
-          "svgPx": 1860,
+          "svgPx": 1980,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -490,7 +490,7 @@
         "innerWidth": 1440,
         "innerHeight": 900,
         "scrollWidth": 1440,
-        "scrollHeight": 1887,
+        "scrollHeight": 1998,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -505,9 +505,9 @@
           "bodyPaddingPx": 12,
           "headerPx": 78,
           "diagramChromePx": 78,
-          "svgPx": 1719,
+          "svgPx": 1830,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -540,7 +540,7 @@
         "innerWidth": 1600,
         "innerHeight": 1000,
         "scrollWidth": 1600,
-        "scrollHeight": 2095,
+        "scrollHeight": 2214,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -555,9 +555,9 @@
           "bodyPaddingPx": 64,
           "headerPx": 86,
           "diagramChromePx": 84,
-          "svgPx": 1860,
+          "svgPx": 1980,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -590,7 +590,7 @@
         "innerWidth": 1920,
         "innerHeight": 1080,
         "scrollWidth": 1920,
-        "scrollHeight": 2094,
+        "scrollHeight": 2214,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -605,9 +605,9 @@
           "bodyPaddingPx": 64,
           "headerPx": 86,
           "diagramChromePx": 84,
-          "svgPx": 1860,
+          "svgPx": 1980,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -640,7 +640,7 @@
         "innerWidth": 2048,
         "innerHeight": 1320,
         "scrollWidth": 2048,
-        "scrollHeight": 2112,
+        "scrollHeight": 2232,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -655,9 +655,9 @@
           "bodyPaddingPx": 64,
           "headerPx": 94,
           "diagramChromePx": 94,
-          "svgPx": 1860,
+          "svgPx": 1980,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -695,7 +695,7 @@
         "innerWidth": 1440,
         "innerHeight": 900,
         "scrollWidth": 1440,
-        "scrollHeight": 1887,
+        "scrollHeight": 1998,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -710,9 +710,9 @@
           "bodyPaddingPx": 12,
           "headerPx": 78,
           "diagramChromePx": 78,
-          "svgPx": 1719,
+          "svgPx": 1830,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -746,7 +746,7 @@
         "innerWidth": 1440,
         "innerHeight": 900,
         "scrollWidth": 1440,
-        "scrollHeight": 1887,
+        "scrollHeight": 1998,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -761,9 +761,9 @@
           "bodyPaddingPx": 12,
           "headerPx": 78,
           "diagramChromePx": 78,
-          "svgPx": 1719,
+          "svgPx": 1830,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -797,7 +797,7 @@
         "innerWidth": 2048,
         "innerHeight": 1320,
         "scrollWidth": 2048,
-        "scrollHeight": 2112,
+        "scrollHeight": 2232,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -812,9 +812,9 @@
           "bodyPaddingPx": 64,
           "headerPx": 94,
           "diagramChromePx": 94,
-          "svgPx": 1860,
+          "svgPx": 1980,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -848,7 +848,7 @@
         "innerWidth": 2048,
         "innerHeight": 1320,
         "scrollWidth": 2048,
-        "scrollHeight": 2112,
+        "scrollHeight": 2232,
         "overflowX": false,
         "overflowY": true,
         "verticalScrollAccepted": true,
@@ -863,9 +863,9 @@
           "bodyPaddingPx": 64,
           "headerPx": 94,
           "diagramChromePx": 94,
-          "svgPx": 1860,
+          "svgPx": 1980,
           "cardsPx": 0,
-          "viewBoxHeight": 1240
+          "viewBoxHeight": 1320
         },
         "viewBoxWidth": 971,
         "minimumProjectedNodeTextPx": 7,
@@ -906,23 +906,23 @@
         "file": "05f-service-request-handover-sequence.visual-check.html"
       },
       {
-        "sha256": "94d3ec9c542596dc66bab9ec7a3a4cec647e52ccc93e4a7547d22ff6327292df",
-        "bytes": 158828,
+        "sha256": "870c0dee9da965f27cdd2ff007e255549c41a20bef0cd5116512a334d201e456",
+        "bytes": 159295,
         "file": "05f-service-request-handover-sequence.visual-check.1440x900.light.png"
       },
       {
-        "sha256": "6a1ac27653f2a4c899d8e814a458545320163727a549b9dbeeb0066bc6d7f55d",
-        "bytes": 171328,
+        "sha256": "11587b2ba6504f3e5afdfed080a0ed72835ac472e736b2360f508ae0151970df",
+        "bytes": 171729,
         "file": "05f-service-request-handover-sequence.visual-check.1440x900.dark.png"
       },
       {
-        "sha256": "d2fda5a2170a8d520867e59583f5714ff142741228931f2baa27b027efb77fb2",
-        "bytes": 187077,
+        "sha256": "e2e5847f5496938ffea8c2c6fe4abdd1cebef3fa620ef8fa7a45349dced78e5c",
+        "bytes": 187609,
         "file": "05f-service-request-handover-sequence.visual-check.2048x1320.light.png"
       },
       {
-        "sha256": "c35e15ca8632298e42b67a431e6e428a26df516a4191b849730a5979a81ef776",
-        "bytes": 201432,
+        "sha256": "9921c0c33f577ef02c67c653d3174724342eabeff045da4a77471c731f74fa95",
+        "bytes": 201441,
         "file": "05f-service-request-handover-sequence.visual-check.2048x1320.dark.png"
       }
     ]

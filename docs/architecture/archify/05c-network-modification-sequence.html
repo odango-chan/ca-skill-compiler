@@ -5232,9 +5232,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <!-- Time Segments -->
         <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="0" x="48" y="150" width="989" height="128" rx="10" class="c-lane" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="1" x="48" y="282" width="989" height="252" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="1" x="48" y="282" width="989" height="284" rx="10" class="c-lane" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="2" x="48" y="538" width="989" height="348" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="2" x="48" y="570" width="989" height="316" rx="10" class="c-lane" stroke-width="1"/>
 
         <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="3" x="48" y="890" width="989" height="316" rx="10" class="c-lane" stroke-width="1"/>
 
@@ -5255,11 +5255,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 
         <!-- Messages -->
-        <g data-edge-from="pcf" data-edge-to="scp" data-edge-label="PCF Policy Notification" data-edge-key="0" data-edge-id="m01">
+        <g data-edge-from="pcf" data-edge-to="scp" data-edge-label="Npcf_SMPolicyControl_Notify" data-edge-key="0" data-edge-id="m01">
           <path data-composition-edge-from="pcf" data-composition-edge-to="scp" data-composition-edge-id="m01" data-composition-points="108,168;206,168" d="M 108 168 L 206 168" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="75.10000000000001" y="148" width="163.79999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="157" y="158" class="t-edge-emphasis" font-size="11" text-anchor="middle">PCF Policy Notification</text>
+          <rect x="61.900000000000006" y="148" width="190.2" height="18" rx="3" class="c-mask"/>
+          <text x="157" y="158" class="t-edge-emphasis" font-size="11" text-anchor="middle">Npcf_SMPolicyControl_Notify</text>
         </g>
         </g>
 
@@ -5553,16 +5553,16 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
         <!-- Segment Labels -->
         <g data-graph-role="segment-label" data-segment-id="0">
-          <rect x="240.89999999999998" y="134" width="263.6" height="18" rx="3" class="c-mask"/>
-          <text x="246.89999999999998" y="147" class="t-muted" font-size="9" font-weight="600">PCF trigger · SCP → OpenAMSM → Host scoped event</text>
+          <rect x="254.1" y="134" width="263.6" height="18" rx="3" class="c-mask"/>
+          <text x="260.1" y="147" class="t-muted" font-size="9" font-weight="600">PCF trigger · SCP → OpenAMSM → Host scoped event</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="1">
           <rect x="56" y="260" width="144" height="18" rx="3" class="c-mask"/>
           <text x="62" y="273" class="t-muted" font-size="9" font-weight="600">Modify OES · m0 / m2 / m3</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="2">
-          <rect x="56" y="516" width="185.6" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="529" class="t-muted" font-size="9" font-weight="600">m4 · Namf relay / UE-RAN exchange</text>
+          <rect x="56" y="548" width="185.6" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="561" class="t-muted" font-size="9" font-weight="600">m4 · Namf relay / UE-RAN exchange</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="3">
           <rect x="56" y="894" width="180.4" height="18" rx="3" class="c-mask"/>
@@ -5912,6 +5912,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <li>CA Client Tools：固定 Owner-private / Namf egress</li>
           <li>OpenAMSM：SMF Owner、OES、GSM、PFCP；N4 直连 UPF</li>
           <li>PFCP standard messages：Session Modification Request / Response（Type 52/53）；m5 的 Request 使用 m4 返回的 AN F-TEID。</li>
+          <li>箭头图例与状态：默认实线表示常规调用；绿色实线表示关键步骤；蓝色虚线表示返回 / 响应；红色虚线表示 security 受信私有边界或原始二进制绑定，不表示未实现。全图为 DESIGN / DESIGN TARGET；实现状态以卡片文字为准，不能仅凭箭头线型推断。</li>
         </ul>
       </div>
     </div>
