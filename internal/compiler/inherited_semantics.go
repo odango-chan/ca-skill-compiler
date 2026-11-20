@@ -143,20 +143,23 @@ func validateSkillPackage(
 		var capabilityLinking capabilityLinkingResult
 		if opts.development != nil {
 			capabilityLinking = validateDevelopmentCapabilityLinking(sourceAST, ownerLinking, opts.development.scope)
+			// The Skill's static Capability selections enter the final Artifact
+			// and produce the external Catalog Owner authority fact.
+			opts.development.recordCapabilityRequirements(sourceAST, capabilityLinking.Requirements)
 		} else {
 			capabilityLinking = validateCapabilityLinking(req, sourceAST, ownerLinking)
 		}
 		diagnostics = append(diagnostics, capabilityLinking.Diagnostics...)
 		// Resolve the exact Schema reference closure and enforce the
 		// Request/Context root shape. Unresolvable references never guess.
-		schemaDiagnostics := validateSchemaClosure(req, sourceAST, identity, ownerLinking)
+		schemaDiagnostics := validateSchemaClosure(req, sourceAST, identity, ownerLinking, req.development)
 		diagnostics = append(diagnostics, schemaDiagnostics...)
 		// Reachability and global Precondition dominance.
 		procedureDiagnostics := validateProcedureGraph(contractAST, sourceAST.Procedure, ownerLinking, contractPath, procedurePath)
 		diagnostics = append(diagnostics, procedureDiagnostics...)
 		sourcePathDiagnostics := validateSourcePathSchemas(req, sourceAST, identity, contractPath, procedurePath)
 		diagnostics = append(diagnostics, sourcePathDiagnostics...)
-		producerSourcePathDiagnostics := validateProducerSourcePaths(req, sourceAST, identity, ownerLinking, procedurePath)
+		producerSourcePathDiagnostics := validateProducerSourcePaths(req, sourceAST, identity, ownerLinking, procedurePath, opts.development)
 		diagnostics = append(diagnostics, producerSourcePathDiagnostics...)
 		argumentKeyDiagnostics := validateArgumentKeys(req, sourceAST, identity, ownerLinking, procedurePath)
 		diagnostics = append(diagnostics, argumentKeyDiagnostics...)

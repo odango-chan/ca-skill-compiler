@@ -63,7 +63,7 @@ func validateScriptABI(req BuildRequest, identity dependencyIdentityResult, skil
 		}
 	}
 	if skill.Predicates != nil {
-		registry := buildSchemaRegistry(req, skill, identity)
+		registry := buildSchemaRegistry(req, skill, identity, req.development)
 		for _, predicateID := range sortedStringMapKeys(skill.Predicates.Definitions) {
 			predicate := skill.Predicates.Definitions[predicateID]
 			if predicate == nil || predicate.Evaluator == nil {

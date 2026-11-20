@@ -1016,8 +1016,20 @@ func validateDevelopmentBindingTargets(env *developmentEnvironment) []string {
 	return problems
 }
 
-// validateDevelopmentRootsAgainstContracts proves every Contract dependency
-// alias is a lock root whose package key matches the declared Stable Package ID.
+// validateDevelopmentRootsAgainstContracts proves the BuildRequest lock roots
+// are exactly the union of the selected Skill Contract dependency sets.
+//
+// Multiple selected Skills may share one Dependency Lock. Each Skill declares
+// only its own roots, so the required Root set is
+//
+//	R = D(S1) ∪ D(S2) ∪ ... ∪ D(Sn)
+//
+// It is never required that one Skill declare another Skill's dependencies. For
+// every declared alias the lock must carry exactly one root whose Stable Package
+// ID matches, every lock root must be declared by at least one selected Skill,
+// and one alias must not name two different package identities across Skills.
+// The Lock Closure itself is proven equal to the transitive closure of these
+// roots by the reachability admission above.
 func validateDevelopmentRootsAgainstContracts(env *developmentEnvironment) []string {
 	var problems []string
 	skillNames := map[string]bool{}
@@ -1036,6 +1048,9 @@ func validateDevelopmentRootsAgainstContracts(env *developmentEnvironment) []str
 	for _, target := range env.targets {
 		selected[target] = true
 	}
+	// unionRoots collects, for every alias declared by at least one selected
+	// Skill, the exact Stable Package IDs that the Skills bind to it.
+	unionRoots := map[string]map[string]bool{}
 	for _, name := range sortedStringMapKeys(selected) {
 		root, diagnostics := parseDevelopmentSkillContract(name, env.sourceFiles)
 		if root == nil || len(diagnostics) > 0 {
@@ -1061,6 +1076,10 @@ func validateDevelopmentRootsAgainstContracts(env *developmentEnvironment) []str
 			declared[alias] = value
 		}
 		for _, alias := range sortedStringMapKeys(declared) {
+			if unionRoots[alias] == nil {
+				unionRoots[alias] = map[string]bool{}
+			}
+			unionRoots[alias][declared[alias]] = true
 			key, exists := env.rootByAlias[alias]
 			if !exists {
 				problems = append(problems, "Skill "+name+" Contract dependency alias has no lock root: "+alias)
@@ -1070,10 +1089,19 @@ func validateDevelopmentRootsAgainstContracts(env *developmentEnvironment) []str
 				problems = append(problems, "Skill "+name+" Contract dependency Stable Package ID differs from the lock root packageId: "+alias)
 			}
 		}
-		for _, root := range env.roots {
-			if _, exists := declared[root.Alias]; !exists {
-				problems = append(problems, "lock root alias is not declared by any selected Skill Contract: "+root.Alias)
-			}
+	}
+	// One alias has exactly one identity. Two Skills that bind the same alias to
+	// different Packages must not be silently merged by the Lock.
+	for _, alias := range sortedStringMapKeys(unionRoots) {
+		if len(unionRoots[alias]) > 1 {
+			problems = append(problems, "dependency alias is bound to more than one Stable Package ID across selected Skills: "+alias)
+		}
+	}
+	// Every lock root must be requested by at least one selected Skill. A Root
+	// nobody declared is an unreferenced package, not part of this BuildRequest.
+	for _, root := range env.roots {
+		if len(unionRoots[root.Alias]) == 0 {
+			problems = append(problems, "lock root alias is not declared by any selected Skill Contract: "+root.Alias)
 		}
 	}
 	return problems

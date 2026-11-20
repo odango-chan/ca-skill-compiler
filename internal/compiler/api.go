@@ -49,6 +49,13 @@ type BuildRequest struct {
 	ResolvedDependencies []ResolvedDependency `json:"resolvedDependencies"`
 	Targets              []string             `json:"targets,omitempty"`
 	TrustedBuildContext  *TrustedBuildContext `json:"trustedBuildContext,omitempty"`
+
+	// development is set only on the internal request derived from a Development
+	// BuildRequest. It never serializes, never crosses a public entry point and is
+	// nil for every frozen v1alpha5 request, so the released pipeline behavior is
+	// unchanged. Its sole purpose is to give every Schema-consuming pass the same
+	// Package-scoped resolver instead of a second, build-global one.
+	development *developmentSemantics
 }
 
 type ResolvedDependency struct {

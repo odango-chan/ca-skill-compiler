@@ -2,7 +2,7 @@ package compiler
 
 // Positive-path static assurance for trusted Mutation / Reconcile contracts.
 //
-// This implements the released v1alpha4 §9.2.1, §20.2/§20.3 and Appendix
+// This implements the released v1alpha4 搂9.2.1, 搂20.2/搂20.3 and Appendix
 // G.2/G.2.2 obligations that the earlier identity slice only partially checked:
 //
 //   - commit-proof / failure-class / reconcile proof paths use the exact
@@ -49,7 +49,7 @@ func validateMutationPositiveContracts(
 			}
 		}
 	}
-	registry := buildSchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity, req.development)
 	// Positive-path assurance applies to the Mutation exports the selected Skill
 	// actually links; unrelated dependency content is not part of this closure.
 	usedMutations := map[string]bool{}

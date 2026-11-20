@@ -42,6 +42,10 @@ type capabilityLinkingResult struct {
 	Diagnostics  []Diagnostic
 	Grants       []string
 	Capabilities []capabilityDefinition
+	// Requirements carries the Development-profile static Capability
+	// requirements that enter the final Artifact. The frozen v1alpha5 profile
+	// leaves it empty: its Artifact contract is unchanged.
+	Requirements []DevelopmentCapabilityRequirement
 }
 
 func validateCapabilityLinking(req BuildRequest, skill *SkillAST, ownerLinking ownerLinkingResult) capabilityLinkingResult {

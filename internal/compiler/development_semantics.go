@@ -23,15 +23,45 @@ import (
 )
 
 type developmentSemantics struct {
-	env         *developmentEnvironment
-	scope       *developmentLinkScope
-	synthetic   []syntheticDependencyAlias
-	collector   *developmentRequirementCollector
-	linkRecords []DevelopmentLinkRecord
+	env                    *developmentEnvironment
+	scope                  *developmentLinkScope
+	synthetic              []syntheticDependencyAlias
+	collector              *developmentRequirementCollector
+	linkRecords            []DevelopmentLinkRecord
+	capabilityRequirements []DevelopmentCapabilityRequirement
 }
 
 func newDevelopmentSemantics(env *developmentEnvironment, scope *developmentLinkScope, synthetic []syntheticDependencyAlias, collector *developmentRequirementCollector) *developmentSemantics {
 	return &developmentSemantics{env: env, scope: scope, synthetic: synthetic, collector: collector}
+}
+
+// recordCapabilityRequirements appends the Skill's static Capability selections
+// to the manifest and records the external Catalog Owner authority fact.
+//
+// The catalog Owner identity comes from the locked Package manifest publisher,
+// which is the same Owner attribution every other Interface Package export uses.
+// The fact that a real publisher controls that identity is not established by
+// Build, so it stays an OWNER_TRUST Host Admission requirement; the artifact
+// itself stays NOT_ADMITTED. No Deployment Grant is recorded or implied.
+func (semantics *developmentSemantics) recordCapabilityRequirements(skill *SkillAST, requirements []DevelopmentCapabilityRequirement) {
+	if skill == nil {
+		return
+	}
+	for _, requirement := range requirements {
+		semantics.capabilityRequirements = append(semantics.capabilityRequirements, requirement)
+		semantics.collector.add(developmentRequirementKey{
+			Kind: DevelopmentRequirementOwnerTrust,
+			Location: DevelopmentRequirementLocation{
+				Skill: requirement.Skill, Path: requirement.Declaration.Path,
+				Node: requirement.CapabilityID, Stage: "capabilities",
+				Selector: requirement.Declaration.Pointer,
+			},
+			Subjects: []DevelopmentRequirementSubject{{
+				Key: requirement.Catalog.Key, ID: requirement.Catalog.ExportID,
+				SourcePath: requirement.Catalog.SourcePath, SchemaIDs: []string{},
+			}},
+		})
+	}
 }
 
 // validateDevelopmentEvidence runs the frozen Evidence Descriptor linking against

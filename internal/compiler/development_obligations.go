@@ -32,6 +32,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"sort"
+
+	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
 // DevelopmentRequirementLocation is the exact consumption position.
@@ -266,12 +268,20 @@ func sortedDevelopmentRequirements(byID map[string]DevelopmentHostRequirement) [
 // the package-scoped CapabilityCatalog exports. Membership is proven through the
 // exact package key and Callable ExportId; a cross-package member must use a
 // declared direct dependency alias of the catalog's package.
+//
+// Every declared Grant is also a static requirement of the final Artifact: the
+// exact Capability the Skill selected, the exact CapabilityCatalog Package,
+// Owner, export and SourcePath, every Callable member, and the exact Skill
+// declaration position are retained. The requirement is the Skill's static
+// request, not a Deployment Grant, and the Host never has to read the SKILL
+// source to recover it.
 func validateDevelopmentCapabilityLinking(skill *SkillAST, ownerLinking ownerLinkingResult, scope *developmentLinkScope) capabilityLinkingResult {
-	result := capabilityLinkingResult{Diagnostics: []Diagnostic{}, Grants: []string{}, Capabilities: []capabilityDefinition{}}
+	result := capabilityLinkingResult{Diagnostics: []Diagnostic{}, Grants: []string{}, Capabilities: []capabilityDefinition{}, Requirements: []DevelopmentCapabilityRequirement{}}
 	if skill == nil || skill.Contract == nil || skill.Contract.Raw == nil {
 		return result
 	}
-	grants, grantDiagnostics := parseSkillCapabilityGrants("skills/"+skill.Name+"/assurance/contract.yaml", skill.Contract.Capabilities)
+	contractPath := "skills/" + skill.Name + "/assurance/contract.yaml"
+	grants, grantDiagnostics := parseSkillCapabilityGrants(contractPath, skill.Contract.Capabilities)
 	result.Grants = grants
 	result.Diagnostics = append(result.Diagnostics, grantDiagnostics...)
 	granted := map[string]bool{}
@@ -288,6 +298,39 @@ func validateDevelopmentCapabilityLinking(skill *SkillAST, ownerLinking ownerLin
 			}
 			result.Capabilities = append(result.Capabilities, record)
 		}
+	}
+	grantLocations := developmentCapabilityDeclarationPointers(skill.Contract.Capabilities)
+	for _, grant := range grants {
+		catalogs := scope.capabilities[grant]
+		if len(catalogs) != 1 {
+			// A declared Capability with no locked CapabilityCatalog cannot be
+			// delivered as an exact static requirement. Never drop it silently.
+			result.Diagnostics = append(result.Diagnostics, dependencyDiagnostic(
+				"error", "C_STATIC", "CAPABILITY_MAPPING_MISSING", contractPath, nil,
+				"Skill declares Capability "+grant+" which no locked CapabilityCatalog exports"))
+			continue
+		}
+		catalog := catalogs[0]
+		requirement := DevelopmentCapabilityRequirement{
+			Skill:        skill.Name,
+			CapabilityID: catalog.id,
+			Catalog: DevelopmentCapabilityCatalogIdentity{
+				Key: catalog.packageKey, Owner: catalog.owner, ExportID: catalog.exportID,
+				SourcePath: catalog.sourcePath, Pointer: catalog.pointer,
+			},
+			Callables: []DevelopmentCapabilityCallable{},
+			Declaration: DevelopmentSourceDeclaration{
+				Path:    contractPath,
+				Pointer: "/capabilities/" + itoa(grantLocations[grant]),
+			},
+		}
+		for _, member := range catalog.members {
+			requirement.Callables = append(requirement.Callables, DevelopmentCapabilityCallable{
+				Key: member.packageKey, Owner: member.publisher, ExportID: member.callableID,
+				Kind: member.kind, Effect: member.effect, SourcePath: member.sourcePath,
+			})
+		}
+		result.Requirements = append(result.Requirements, requirement)
 	}
 	for _, export := range ownerLinking.Exports {
 		if export.ExportKind != "operation" && export.ExportKind != "observation" {
@@ -327,4 +370,25 @@ func validateDevelopmentCapabilityLinking(skill *SkillAST, ownerLinking ownerLin
 	}
 	sortDiagnostics(result.Diagnostics)
 	return result
+}
+
+// developmentCapabilityDeclarationPointers maps every distinct declared
+// Capability to its first exact position in the Skill's capabilities sequence.
+// The position is the author's declaration, never a reconstructed one.
+func developmentCapabilityDeclarationPointers(node *yaml.Node) map[string]int {
+	pointers := map[string]int{}
+	node = unalias(node)
+	if node == nil || node.Kind != yaml.SequenceNode {
+		return pointers
+	}
+	for index, item := range node.Content {
+		value := scalar(unalias(item))
+		if value == "" {
+			continue
+		}
+		if _, exists := pointers[value]; !exists {
+			pointers[value] = index
+		}
+	}
+	return pointers
 }

@@ -43,6 +43,9 @@ func buildDevelopmentInternal(req DevelopmentBuildRequest) DevelopmentBuildResul
 	legacy, synthetic := env.legacyRequest()
 	collector := newDevelopmentRequirementCollector()
 	semantics := newDevelopmentSemantics(env, scope, synthetic, collector)
+	// Every inherited pass shares the Development Package-scoped Schema
+	// resolver through the private request field; the frozen entry never sets it.
+	legacy.development = semantics
 	diagnostics = checkSourcesWithDevelopment(legacy, semantics)
 	if hasErrorDiagnostic(diagnostics) {
 		if developmentSourceFailure(diagnostics) {
@@ -276,7 +279,93 @@ func verifyDevelopmentArtifactFiles(result DevelopmentBuildResult) error {
 	if manifest.Lock.APIVersion != InterfaceDependencyLockAPIVersion {
 		return fmt.Errorf("Development manifest lock apiVersion is invalid")
 	}
+	if err := verifyDevelopmentCapabilityRequirements(manifest.CapabilityRequirements); err != nil {
+		return err
+	}
 	return nil
+}
+
+// verifyDevelopmentCapabilityRequirements verifies the structural exactness of
+// the static Capability requirements that now form part of the manifest. The
+// full request-derived content is already proven by the deterministic rebuild;
+// this pass rejects a malformed, ambiguous or inconsistently ordered record even
+// when an attacker re-seals the outer digest.
+func verifyDevelopmentCapabilityRequirements(requirements []DevelopmentCapabilityRequirement) error {
+	if requirements == nil {
+		return fmt.Errorf("Development manifest capabilities must be a JSON array")
+	}
+	last := ""
+	for _, requirement := range requirements {
+		if requirement.Skill == "" || !validExportID(requirement.CapabilityID) {
+			return fmt.Errorf("Development capability requirement has an invalid Skill or Capability identity")
+		}
+		catalog := requirement.Catalog
+		if catalog.Key.PackageID == "" || catalog.Key.Version == "" || catalog.Key.SnapshotDigest == "" {
+			return fmt.Errorf("Development capability requirement has an incomplete CapabilityCatalog Package key: %s", requirement.CapabilityID)
+		}
+		if catalog.Owner == "" || catalog.ExportID == "" || catalog.SourcePath == "" {
+			return fmt.Errorf("Development capability requirement has an incomplete CapabilityCatalog export identity: %s", requirement.CapabilityID)
+		}
+		if catalog.ExportID != requirement.CapabilityID {
+			return fmt.Errorf("Development capability requirement Catalog exportId differs from the selected Capability: %s", requirement.CapabilityID)
+		}
+		if !validDevelopmentCapabilityCatalogPointer(catalog.Pointer) {
+			return fmt.Errorf("Development capability requirement has an invalid CapabilityCatalog pointer: %q", catalog.Pointer)
+		}
+		if requirement.Declaration.Path != "skills/"+requirement.Skill+"/assurance/contract.yaml" {
+			return fmt.Errorf("Development capability requirement has a declaration outside the Skill Contract: %s", requirement.Declaration.Path)
+		}
+		if !validDevelopmentCapabilityPointer(requirement.Declaration.Pointer) {
+			return fmt.Errorf("Development capability requirement has an invalid declaration pointer: %q", requirement.Declaration.Pointer)
+		}
+		if len(requirement.Callables) == 0 {
+			return fmt.Errorf("Development capability requirement has no Callable members: %s", requirement.CapabilityID)
+		}
+		seen := map[string]bool{}
+		for _, callable := range requirement.Callables {
+			if callable.Key.PackageID == "" || callable.Key.Version == "" || callable.Key.SnapshotDigest == "" ||
+				callable.Owner == "" || !validExportID(callable.ExportID) || callable.SourcePath == "" {
+				return fmt.Errorf("Development capability requirement has an incomplete Callable member: %s", callable.ExportID)
+			}
+			if callable.Kind != "operation" && callable.Kind != "observation" {
+				return fmt.Errorf("Development capability requirement Callable kind is invalid: %s", callable.Kind)
+			}
+			if callable.Effect != "READ" && callable.Effect != "MUTATION" {
+				return fmt.Errorf("Development capability requirement Callable effect is invalid: %s", callable.Effect)
+			}
+			identity := callable.ExportID + "\x00" + developmentKeyString(callable.Key) + "\x00" + callable.Kind
+			if seen[identity] {
+				return fmt.Errorf("Development capability requirement duplicates a Callable member: %s", callable.ExportID)
+			}
+			seen[identity] = true
+		}
+		canonical, err := canonicalizeValue(requirement)
+		if err != nil {
+			return fmt.Errorf("Development capability requirement cannot be canonicalized: %w", err)
+		}
+		if string(canonical) <= last {
+			return fmt.Errorf("Development capability requirements are not in canonical order")
+		}
+		last = string(canonical)
+	}
+	return nil
+}
+
+// validDevelopmentCapabilityPointer accepts the exact Skill Contract position
+// /capabilities/<index> with a canonical array index.
+func validDevelopmentCapabilityPointer(pointer string) bool {
+	rest, ok := strings.CutPrefix(pointer, "/capabilities/")
+	if !ok {
+		return false
+	}
+	return validEvidenceIndex(rest)
+}
+
+// validDevelopmentCapabilityCatalogPointer accepts the exact CapabilityCatalog
+// position /capabilities/<index>; both documents use the same canonical index
+// grammar.
+func validDevelopmentCapabilityCatalogPointer(pointer string) bool {
+	return validDevelopmentCapabilityPointer(pointer)
 }
 
 // verifyDevelopmentRequirementDocument re-derives every requirement ID from its
@@ -390,10 +479,19 @@ func verifyDevelopmentRequirementLocation(requirement DevelopmentHostRequirement
 	case DevelopmentRequirementOwnerTrust:
 		// An EvidenceDescriptor export is consumed from the Predicate Evidence
 		// block, so its OWNER_TRUST must point at the same exact reference
-		// position as the guarantee itself. Callable/Schema Owner requirements
-		// use other stages and are not constrained here.
+		// position as the guarantee itself. A CapabilityCatalog owner points at
+		// the Skill's own Capability declaration. Callable/Schema Owner
+		// requirements use other stages and are not constrained here.
 		if location.Stage == "evidence" && !validDevelopmentEvidenceSelector(location.Node, location.Selector) {
 			return fmt.Errorf("Development Descriptor Owner Trust selector %q is not an exact Evidence position", location.Selector)
+		}
+		if location.Stage == "capabilities" {
+			if len(requirement.Subjects) != 1 || requirement.Subjects[0].ID != location.Node {
+				return fmt.Errorf("Development CapabilityCatalog Owner Trust does not name the exact Capability: %s", requirement.RequirementID)
+			}
+			if location.Path != "skills/"+location.Skill+"/assurance/contract.yaml" || !validDevelopmentCapabilityPointer(location.Selector) {
+				return fmt.Errorf("Development CapabilityCatalog Owner Trust selector %q is not an exact declaration position", location.Selector)
+			}
 		}
 	}
 	return nil

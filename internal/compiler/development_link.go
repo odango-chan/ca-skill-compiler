@@ -25,12 +25,17 @@ type developmentCapabilityMember struct {
 	callableID string
 	kind       string
 	effect     string
+	packageKey DevelopmentPackageKey
+	sourcePath string
 }
 
 type developmentCapability struct {
 	id         string
 	owner      string
 	packageKey DevelopmentPackageKey
+	exportID   string
+	sourcePath string
+	pointer    string
 	members    []developmentCapabilityMember
 }
 
@@ -180,7 +185,11 @@ func buildDevelopmentLinkScope(env *developmentEnvironment) (*developmentLinkSco
 					if capability.id != export.id {
 						continue
 					}
-					record := developmentCapability{id: capability.id, owner: pkg.manifest.publisher, packageKey: key}
+					record := developmentCapability{
+						id: capability.id, owner: pkg.manifest.publisher, packageKey: key,
+						exportID: export.id, sourcePath: export.path,
+						pointer: "/capabilities/" + itoa(capability.index),
+					}
 					for _, member := range capability.members {
 						resolved, memberProblems := scope.resolveCapabilityMember(key, pkg, member)
 						for _, problem := range memberProblems {
@@ -225,6 +234,7 @@ func developmentLinkInvalidCode() string {
 type developmentCapabilityDocument struct {
 	id      string
 	owner   string
+	index   int
 	members []developmentCapabilityMemberRef
 }
 
@@ -257,7 +267,7 @@ func parseDevelopmentCapabilityDocument(root *yaml.Node, path string) ([]develop
 			problems = append(problems, label+" must be a mapping with id and members")
 			continue
 		}
-		capability := developmentCapabilityDocument{id: scalar(child(node, "id"))}
+		capability := developmentCapabilityDocument{id: scalar(child(node, "id")), index: index}
 		if !validExportID(capability.id) {
 			problems = append(problems, label+".id must be a CapabilityId")
 			continue
@@ -336,6 +346,8 @@ func (scope *developmentLinkScope) resolveCapabilityMember(ownerKey DevelopmentP
 		callableID: callable.exportID,
 		kind:       callable.kind,
 		effect:     callable.effect,
+		packageKey: targetKey,
+		sourcePath: callable.path,
 	}, nil
 }
 
@@ -409,9 +421,130 @@ func (scope *developmentLinkScope) declaresSchema(key DevelopmentPackageKey, id 
 	return exists
 }
 
+// developmentSchemaContext is one exact Schema resolution scope.
+//
+// A Skill-owned document (zero Package key) resolves aliases against the Skill
+// Contract's declared dependencies. A Package-owned document resolves aliases
+// against that Package's own declared direct dependencies. There is no third,
+// build-global scope: a Schema being present in the Lock Closure never grants a
+// Package the right to reference it.
+type developmentSchemaContext struct {
+	packageKey DevelopmentPackageKey
+	aliases    map[string]DevelopmentPackageKey
+	label      string
+}
+
+func (scope *developmentLinkScope) schemaContextForPackage(key DevelopmentPackageKey) developmentSchemaContext {
+	return developmentSchemaContext{
+		packageKey: key,
+		aliases:    scope.packageAliases[key],
+		label:      "Package " + key.PackageID,
+	}
+}
+
+func (scope *developmentLinkScope) schemaContextForSkill(skill *SkillAST) developmentSchemaContext {
+	label := "Skill"
+	if skill != nil {
+		label = "Skill " + skill.Name
+	}
+	return developmentSchemaContext{aliases: developmentSkillSchemaAliases(skill, scope.env), label: label}
+}
+
+// developmentSkillSchemaAliases is the Skill's own alias scope. It is the set of
+// Contract dependencies the Skill actually declares, mapped through the lock.
+func developmentSkillSchemaAliases(skill *SkillAST, env *developmentEnvironment) map[string]DevelopmentPackageKey {
+	aliases := map[string]DevelopmentPackageKey{}
+	if skill == nil || skill.Contract == nil {
+		return aliases
+	}
+	dependencies := unalias(skill.Contract.Dependencies)
+	if dependencies == nil || dependencies.Kind != yaml.MappingNode {
+		return aliases
+	}
+	for i := 0; i+1 < len(dependencies.Content); i += 2 {
+		alias := scalar(unalias(dependencies.Content[i]))
+		if alias == "" {
+			continue
+		}
+		if key, exists := env.rootByAlias[alias]; exists {
+			aliases[alias] = key
+		}
+	}
+	return aliases
+}
+
+// resolveSchemaReference is the single Package-scoped Schema resolver used by
+// the Development profile. Every entry point resolves through it:
+//
+//   - an alias reference is resolved only through the referencing document's
+//     own alias scope (Skill Contract or Package manifest), never a global alias;
+//   - an absolute $id is resolved in the referencing document's own Package and
+//     that Package's declared direct dependencies, then nowhere else;
+//   - a fragment stays local to its own document.
+//
+// "local" is not an error: the shared Schema engine validates it. Every other
+// nonempty result is an exact, already-diagnosable failure reason.
+func (scope *developmentLinkScope) resolveSchemaReference(context developmentSchemaContext, reference string) (developmentSchemaResource, string) {
+	reference = strings.TrimSpace(reference)
+	if reference == "" {
+		return developmentSchemaResource{}, "an empty $ref"
+	}
+	if strings.HasPrefix(reference, "#") {
+		return developmentSchemaResource{}, "local"
+	}
+	alias := ""
+	target := reference
+	if index := strings.Index(reference, "::"); index > 0 {
+		alias = reference[:index]
+		target = reference[index+2:]
+	}
+	if alias != "" {
+		key, exists := context.aliases[alias]
+		if !exists {
+			return developmentSchemaResource{}, "references dependency alias " + alias + " which " + context.label + " does not declare"
+		}
+		if resource, found := scope.schemaByPackage(key, target); found {
+			return resource, ""
+		}
+		return developmentSchemaResource{}, "names Schema " + target + " which Package " + key.PackageID + " does not export"
+	}
+	if strings.HasPrefix(reference, "./") || strings.HasPrefix(reference, "../") || strings.HasPrefix(reference, "/") {
+		return developmentSchemaResource{}, "is an illegal relative reference; only #fragment or an absolute Schema $id is permitted"
+	}
+	// An absolute Schema $id identifies a document; it does not by itself
+	// authorize a cross-Package reference.
+	if context.packageKey.PackageID != "" {
+		if resource, found := scope.schemaByPackage(context.packageKey, target); found {
+			return resource, ""
+		}
+	}
+	matches := make([]developmentSchemaResource, 0, 1)
+	for _, alias := range sortedStringMapKeys(context.aliases) {
+		if resource, found := scope.schemaByPackage(context.aliases[alias], target); found {
+			matches = append(matches, resource)
+		}
+	}
+	switch len(matches) {
+	case 0:
+		return developmentSchemaResource{}, "names Schema " + target + " which " + context.label + " and its declared direct dependencies do not export"
+	case 1:
+		return matches[0], ""
+	default:
+		return developmentSchemaResource{}, "names Schema " + target + " which more than one declared direct dependency exports"
+	}
+}
+
+// resolveSchemaInPackage resolves one absolute Schema $id from an exact Package
+// context: the Package itself, then only its declared direct dependencies.
+func (scope *developmentLinkScope) resolveSchemaInPackage(key DevelopmentPackageKey, id string) (developmentSchemaResource, string) {
+	return scope.resolveSchemaReference(scope.schemaContextForPackage(key), id)
+}
+
 // validateDevelopmentSchemaClosure walks every Schema root that the selected
-// Skill and its linked callables depend on, resolving each $ref exactly once
-// across the locked closure. Missing or ambiguous references fail the build.
+// Skill and its linked callables depend on. Each $ref is resolved in the scope of
+// the document that declares it, so a Package's dependency declarations govern
+// its own Schemas and never the initial Skill alias table. Missing, ambiguous,
+// undeclared or illegal relative references fail the build.
 func validateDevelopmentSchemaClosure(env *developmentEnvironment, skill *SkillAST, scope *developmentLinkScope) []Diagnostic {
 	if skill == nil || skill.Contract == nil {
 		return []Diagnostic{}
@@ -434,8 +567,12 @@ func validateDevelopmentSchemaClosure(env *developmentEnvironment, skill *SkillA
 			add(resource.path, "Schema $ref closure exceeds the maximum depth at "+resource.id)
 			return
 		}
-		for _, ref := range collectSchemaRefs(resource.node) {
-			target, problem := scope.resolveDevelopmentSchemaRef(resource, ref)
+		context := scope.schemaContextForPackage(resource.packageKey)
+		if resource.packageKey.PackageID == "" {
+			context = scope.schemaContextForSkill(skill)
+		}
+		for _, ref := range collectSchemaRefPointers(resource.node) {
+			target, problem := scope.resolveSchemaReference(context, ref.reference)
 			switch problem {
 			case "":
 				walk(target, append(chain, resource.id))
@@ -443,18 +580,23 @@ func validateDevelopmentSchemaClosure(env *developmentEnvironment, skill *SkillA
 				// Same-document fragment or relative pointer: the shared Schema
 				// engine validates the local closure.
 			default:
-				add(resource.path, "Schema $ref "+ref+" in "+resource.id+" is "+problem+" in the locked closure")
+				add(resource.path, "Schema $ref "+ref.reference+" at "+
+					developmentSchemaPointerLabel(ref.pointer)+" in "+resource.id+" "+problem)
 			}
 		}
 	}
 	contract := skill.Contract
+	skillContext := scope.schemaContextForSkill(skill)
 	if context := contract.ContextSchema; context != nil {
-		alias, id, ok := splitQualifiedReference(unalias(context))
-		if ok {
-			if key, exists := env.rootByAlias[alias]; exists {
-				if resource, found := scope.schemaByPackage(key, id); found {
+		if _, _, ok := splitQualifiedReference(unalias(context)); ok {
+			resource, problem := scope.resolveSchemaReference(skillContext, scalar(unalias(context)))
+			if problem == "" || problem == "local" {
+				if problem == "" {
 					walk(resource, nil)
 				}
+			} else {
+				add("skills/"+skill.Name+"/assurance/contract.yaml",
+					"Contract.contextSchema "+problem)
 			}
 		}
 	}
@@ -467,26 +609,21 @@ func validateDevelopmentSchemaClosure(env *developmentEnvironment, skill *SkillA
 	}
 	// Every declared callable used by the Skill must have its complete input,
 	// query, output, receipt, commit-proof, reconcile and recoverable Schema
-	// closure present.
+	// closure present, resolved from the callable's own Package scope.
 	for _, export := range usedDevelopmentCallables(skill, env, scope) {
-		for _, id := range []string{export.inputSchemaID, export.querySchemaID, export.outputSchemaID, export.receiptSchemaID,
-			export.mutation.CommitProofSchemaID, export.mutation.ReconcileProofSchemaID, export.mutation.RecoverableSchemaID} {
+		ids := []string{export.inputSchemaID, export.querySchemaID, export.outputSchemaID, export.receiptSchemaID,
+			export.mutation.CommitProofSchemaID, export.mutation.ReconcileProofSchemaID, export.mutation.RecoverableSchemaID}
+		for _, id := range ids {
 			if id == "" {
 				continue
 			}
-			if !scope.hasSchema(id) {
-				add("", "Callable "+export.exportID+" references a Schema that is missing from the locked closure: "+id)
-			}
-		}
-		// Walk every schema this callable references so nested $refs are proven.
-		for _, id := range []string{export.inputSchemaID, export.querySchemaID, export.outputSchemaID, export.receiptSchemaID,
-			export.mutation.CommitProofSchemaID, export.mutation.ReconcileProofSchemaID, export.mutation.RecoverableSchemaID} {
-			if id == "" {
+			resource, problem := scope.resolveSchemaInPackage(export.packageKey, id)
+			if problem != "" {
+				add("", "Callable "+export.exportID+" references Schema "+id+" which "+problem+
+					" (Package "+export.packageKey.PackageID+")")
 				continue
 			}
-			for _, resource := range scope.schemas[id] {
-				walk(resource, nil)
-			}
+			walk(resource, nil)
 		}
 	}
 	sortDiagnostics(diagnostics)
@@ -502,54 +639,56 @@ func (scope *developmentLinkScope) schemaByPackage(key DevelopmentPackageKey, id
 	return developmentSchemaResource{}, false
 }
 
-func (scope *developmentLinkScope) hasSchema(id string) bool {
-	return len(scope.schemas[id]) == 1
+func developmentSchemaPointerLabel(pointer string) string {
+	if pointer == "" {
+		return "(document root)"
+	}
+	return pointer
 }
 
-func (scope *developmentLinkScope) resolveDevelopmentSchemaRef(owner developmentSchemaResource, ref string) (developmentSchemaResource, string) {
-	ref = strings.TrimSpace(ref)
-	if ref == "" {
-		return developmentSchemaResource{}, "empty"
-	}
-	if strings.HasPrefix(ref, "#") {
-		return developmentSchemaResource{}, "local"
-	}
-	alias := ""
-	target := ref
-	if index := strings.Index(ref, "::"); index > 0 {
-		alias = ref[:index]
-		target = ref[index+2:]
-	}
-	if alias != "" {
-		key, exists := scope.env.rootByAlias[alias]
-		if !exists {
-			return developmentSchemaResource{}, "missing"
+// developmentSchemaReference is one Schema $ref with its exact JSON Pointer
+// inside the declaring document, so a failure can name the Package, the alias,
+// the SourcePath and the position instead of only the file.
+type developmentSchemaReference struct {
+	reference string
+	pointer   string
+}
+
+func collectSchemaRefPointers(root *yaml.Node) []developmentSchemaReference {
+	refs := make([]developmentSchemaReference, 0)
+	seen := map[string]bool{}
+	var walk func(*yaml.Node, string)
+	walk = func(node *yaml.Node, pointer string) {
+		node = unalias(node)
+		if node == nil {
+			return
 		}
-		resource, found := scope.schemaByPackage(key, target)
-		if !found {
-			return developmentSchemaResource{}, "missing"
-		}
-		return resource, ""
-	}
-	// An absolute Schema URI resolves within the owner package first, then in the
-	// owner's locked dependency closure. It never falls back to an unrelated root.
-	if resource, found := scope.schemaByPackage(owner.packageKey, target); found {
-		return resource, ""
-	}
-	if owner.packageKey.PackageID != "" {
-		for _, alias := range sortedStringMapKeys(scope.packageAliases[owner.packageKey]) {
-			if resource, found := scope.schemaByPackage(scope.packageAliases[owner.packageKey][alias], target); found {
-				return resource, ""
+		switch node.Kind {
+		case yaml.MappingNode:
+			for i := 0; i+1 < len(node.Content); i += 2 {
+				key := unalias(node.Content[i])
+				value := unalias(node.Content[i+1])
+				if key == nil {
+					continue
+				}
+				childPointer := pointer + "/" + v1alpha5JSONPointerToken(key.Value)
+				if key.Value == "$ref" && value != nil && value.Kind == yaml.ScalarNode {
+					if !seen[childPointer] {
+						seen[childPointer] = true
+						refs = append(refs, developmentSchemaReference{reference: value.Value, pointer: childPointer})
+					}
+				}
+				walk(value, childPointer)
+			}
+		case yaml.SequenceNode:
+			for index, item := range node.Content {
+				walk(item, pointer+"/"+itoa(index))
 			}
 		}
 	}
-	if len(scope.schemas[target]) == 1 && owner.packageKey.PackageID == "" {
-		return scope.schemas[target][0], ""
-	}
-	if len(scope.schemas[target]) > 1 {
-		return developmentSchemaResource{}, "ambiguous"
-	}
-	return developmentSchemaResource{}, "missing"
+	walk(root, "")
+	sort.Slice(refs, func(i, j int) bool { return refs[i].pointer < refs[j].pointer })
+	return refs
 }
 
 func collectSchemaRefs(root *yaml.Node) []string {

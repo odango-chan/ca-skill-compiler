@@ -12,7 +12,11 @@ package compiler
 //
 // manifest.json is JCS, carries the exact normalized lock, every linked export
 // with its package key, the complete file digest list, the two requirement
-// document identities and the fixed NOT_ADMITTED execution status.
+// document identities and the fixed NOT_ADMITTED execution status. It also
+// carries the Skill's static Capability requirements: the exact Capability the
+// Skill selected, its CapabilityCatalog Package/Owner/export/SourcePath, every
+// Callable member and the Skill declaration position. Those records are static
+// requirements, never Deployment Grants.
 // artifactDigest is the SHA-256 of the JCS manifest bytes. The manifest never
 // embeds itself.
 //
@@ -66,18 +70,110 @@ type developmentManifestRequirementDocuments struct {
 	RuntimeExecution string `json:"runtimeExecution"`
 }
 
+// DevelopmentSourceDeclaration is one exact Skill source position: the author
+// file and the JSON Pointer inside it. It is never a "somewhere in the file"
+// approximation.
+type DevelopmentSourceDeclaration struct {
+	Path    string `json:"path"`
+	Pointer string `json:"pointer"`
+}
+
+// DevelopmentCapabilityCatalogIdentity is the exact CapabilityCatalog export a
+// Skill's static Capability requirement was linked against. Owner is the
+// publisher declared by the locked Package manifest, never an Owner that the
+// Catalog document asserts about itself.
+type DevelopmentCapabilityCatalogIdentity struct {
+	Key        DevelopmentPackageKey `json:"key"`
+	Owner      string                `json:"owner"`
+	ExportID   string                `json:"exportId"`
+	SourcePath string                `json:"sourcePath"`
+	Pointer    string                `json:"pointer"`
+}
+
+// DevelopmentCapabilityCallable is one Callable member of the selected
+// Capability with its exact Interface Package and export identity.
+type DevelopmentCapabilityCallable struct {
+	Key        DevelopmentPackageKey `json:"key"`
+	Owner      string                `json:"owner"`
+	ExportID   string                `json:"exportId"`
+	Kind       string                `json:"kind"`
+	Effect     string                `json:"effect"`
+	SourcePath string                `json:"sourcePath"`
+}
+
+// DevelopmentCapabilityRequirement is one Capability the Skill statically
+// selects. It records the exact Capability identity rather than a Callable set,
+// because several Capabilities may contain the same Callable: only the declared
+// Capability is the Skill's authorization requirement. It is a static
+// requirement, never a Deployment Grant; it says nothing about what a Host has
+// actually authorized.
+type DevelopmentCapabilityRequirement struct {
+	Skill        string                               `json:"skill"`
+	CapabilityID string                               `json:"capabilityId"`
+	Catalog      DevelopmentCapabilityCatalogIdentity `json:"catalog"`
+	Callables    []DevelopmentCapabilityCallable      `json:"callables"`
+	Declaration  DevelopmentSourceDeclaration         `json:"declaration"`
+}
+
+// sortedDevelopmentCapabilityRequirements produces the deterministic manifest
+// order and rejects duplicate static requirements.
+func sortedDevelopmentCapabilityRequirements(requirements []DevelopmentCapabilityRequirement) []DevelopmentCapabilityRequirement {
+	seen := map[string]DevelopmentCapabilityRequirement{}
+	for _, requirement := range requirements {
+		callables := make([]DevelopmentCapabilityCallable, 0, len(requirement.Callables))
+		seenCallable := map[string]bool{}
+		for _, callable := range requirement.Callables {
+			canonical, err := canonicalizeValue(callable)
+			if err != nil || seenCallable[string(canonical)] {
+				continue
+			}
+			seenCallable[string(canonical)] = true
+			callables = append(callables, callable)
+		}
+		sort.Slice(callables, func(i, j int) bool {
+			if callables[i].ExportID != callables[j].ExportID {
+				return callables[i].ExportID < callables[j].ExportID
+			}
+			if developmentKeyString(callables[i].Key) != developmentKeyString(callables[j].Key) {
+				return developmentKeyString(callables[i].Key) < developmentKeyString(callables[j].Key)
+			}
+			return callables[i].Kind < callables[j].Kind
+		})
+		requirement.Callables = callables
+		if requirement.Callables == nil {
+			requirement.Callables = []DevelopmentCapabilityCallable{}
+		}
+		canonical, err := canonicalizeValue(requirement)
+		if err != nil {
+			continue
+		}
+		seen[string(canonical)] = requirement
+	}
+	keys := make([]string, 0, len(seen))
+	for key := range seen {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	sorted := make([]DevelopmentCapabilityRequirement, 0, len(keys))
+	for _, key := range keys {
+		sorted = append(sorted, seen[key])
+	}
+	return sorted
+}
+
 type developmentArtifactManifest struct {
-	APIVersion      string                                  `json:"apiVersion"`
-	LanguageTarget  string                                  `json:"languageTarget"`
-	Profile         string                                  `json:"profile"`
-	Generator       developmentManifestGenerator            `json:"generator"`
-	ExecutionStatus string                                  `json:"executionStatus"`
-	SourceDigest    string                                  `json:"sourceDigest"`
-	Targets         []string                                `json:"targets"`
-	Lock            developmentManifestLock                 `json:"lock"`
-	Links           []DevelopmentLinkRecord                 `json:"links"`
-	Requirements    developmentManifestRequirementDocuments `json:"requirements"`
-	Files           []developmentManifestFile               `json:"files"`
+	APIVersion             string                                  `json:"apiVersion"`
+	LanguageTarget         string                                  `json:"languageTarget"`
+	Profile                string                                  `json:"profile"`
+	Generator              developmentManifestGenerator            `json:"generator"`
+	ExecutionStatus        string                                  `json:"executionStatus"`
+	SourceDigest           string                                  `json:"sourceDigest"`
+	Targets                []string                                `json:"targets"`
+	Lock                   developmentManifestLock                 `json:"lock"`
+	Links                  []DevelopmentLinkRecord                 `json:"links"`
+	CapabilityRequirements []DevelopmentCapabilityRequirement      `json:"capabilityRequirements"`
+	Requirements           developmentManifestRequirementDocuments `json:"requirements"`
+	Files                  []developmentManifestFile               `json:"files"`
 }
 
 func canonicalDevelopmentLock(env *developmentEnvironment) developmentManifestLock {
@@ -171,16 +267,21 @@ func assembleDevelopmentArtifact(env *developmentEnvironment, semantics *develop
 	if links == nil {
 		links = []DevelopmentLinkRecord{}
 	}
+	capabilities := sortedDevelopmentCapabilityRequirements(semantics.capabilityRequirements)
+	if capabilities == nil {
+		capabilities = []DevelopmentCapabilityRequirement{}
+	}
 	manifest := developmentArtifactManifest{
-		APIVersion:      DevelopmentArtifactAPIVersion,
-		LanguageTarget:  V1Alpha5Target,
-		Profile:         DevelopmentProfile,
-		Generator:       developmentManifestGenerator{Name: v1alpha5ArtifactGeneratorName, Version: CompilerVersion},
-		ExecutionStatus: DevelopmentExecutionStatus,
-		SourceDigest:    sourceDigest,
-		Targets:         targets,
-		Lock:            canonicalDevelopmentLock(env),
-		Links:           links,
+		APIVersion:             DevelopmentArtifactAPIVersion,
+		LanguageTarget:         V1Alpha5Target,
+		Profile:                DevelopmentProfile,
+		Generator:              developmentManifestGenerator{Name: v1alpha5ArtifactGeneratorName, Version: CompilerVersion},
+		ExecutionStatus:        DevelopmentExecutionStatus,
+		SourceDigest:           sourceDigest,
+		Targets:                targets,
+		Lock:                   canonicalDevelopmentLock(env),
+		Links:                  links,
+		CapabilityRequirements: capabilities,
 		Requirements: developmentManifestRequirementDocuments{
 			HostAdmission:    developmentRequirementsFileName,
 			RuntimeExecution: developmentRuntimeRequirementsFileName,
