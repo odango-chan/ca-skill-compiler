@@ -1,4 +1,4 @@
-﻿package compiler
+package compiler
 
 // Unified static semantic pipeline.
 //
@@ -35,8 +35,8 @@ type validationOptions struct {
 	additionalUsedAliases map[string]bool
 	// development selects the Development Build profile semantics: declared
 	// package identity instead of deployment-trusted identity, package-scoped
-	// CapabilityCatalog membership, deferred Evidence Descriptor assurance and
-	// typed obligation recording. It is nil for the frozen v1alpha5 entry.
+	// CapabilityCatalog and EvidenceDescriptor membership, and typed Host
+	// Admission requirement recording. It is nil for the frozen v1alpha5 entry.
 	development *developmentSemantics
 }
 
@@ -177,7 +177,7 @@ func validateSkillPackage(
 			// linking state; descriptor absence is deferred, never filtered from
 			// the statically decidable checks above.
 			opts.development.recordOwnerTrustRequirements(sourceAST, ownerLinking)
-			
+
 			opts.development.recordMutationRequirements(sourceAST, ownerLinking, procedurePath)
 		} else {
 			validateEvidenceDescriptors(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
@@ -206,4 +206,3 @@ func validateSkillPackage(
 	}
 	return diagnostics, input
 }
-

@@ -1,4 +1,4 @@
-﻿// Chromium Worker parity harness (WP8/WP11).
+// Chromium Worker parity harness (WP8/WP11).
 //
 // It builds the Go/WASM compiler, serves a static page, launches real headless
 // Chromium, runs Check/Build/Inspect through the same Web Worker transport used by
@@ -573,6 +573,3 @@ async function main() {
 }
 
 main().catch(error => fail(error.stack || String(error)));
-
-
-

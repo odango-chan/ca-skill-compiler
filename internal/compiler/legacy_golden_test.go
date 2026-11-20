@@ -1,4 +1,4 @@
-﻿package compiler_test
+package compiler_test
 
 // Frozen-entry golden baseline.
 //
@@ -71,14 +71,14 @@ type legacyGoldenIngress struct {
 }
 
 type legacyGoldenCase struct {
-	Name              string                    `json:"name"`
-	Check             []legacyGoldenDiagnostic  `json:"check"`
-	BuildSuccess      bool                      `json:"buildSuccess"`
-	BuildDiagnostics  []legacyGoldenDiagnostic  `json:"buildDiagnostics"`
-	DependencyClosure []string                  `json:"dependencyClosure"`
-	OutputFiles       []legacyGoldenFile        `json:"outputFiles"`
-	Inspect           legacyGoldenInspection    `json:"inspect"`
-	VerifyBuildResult string                    `json:"verifyBuildResult"`
+	Name              string                   `json:"name"`
+	Check             []legacyGoldenDiagnostic `json:"check"`
+	BuildSuccess      bool                     `json:"buildSuccess"`
+	BuildDiagnostics  []legacyGoldenDiagnostic `json:"buildDiagnostics"`
+	DependencyClosure []string                 `json:"dependencyClosure"`
+	OutputFiles       []legacyGoldenFile       `json:"outputFiles"`
+	Inspect           legacyGoldenInspection   `json:"inspect"`
+	VerifyBuildResult string                   `json:"verifyBuildResult"`
 }
 
 type legacyGoldenInspection struct {
@@ -89,7 +89,7 @@ type legacyGoldenInspection struct {
 }
 
 type legacyGoldenDocument struct {
-	BaselineCommit string            `json:"baselineCommit"`
+	BaselineCommit string             `json:"baselineCommit"`
 	Cases          []legacyGoldenCase `json:"cases"`
 }
 
@@ -279,8 +279,3 @@ func legacyNoEvidenceRequest(t *testing.T, root string) compiler.BuildRequest {
 	}
 	return request
 }
-
-
-
-
-

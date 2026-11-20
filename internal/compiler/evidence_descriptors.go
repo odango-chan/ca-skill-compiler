@@ -1,6 +1,6 @@
-﻿package compiler
+package compiler
 
-// Evidence Descriptor static linking (v1alpha4 搂17 / Appendix F.3 / G.3.1,
+// Evidence Descriptor static linking (v1alpha4 §17 / Appendix F.3 / G.3.1,
 // inherited by v1alpha5).
 //
 // The released language fixes the Evidence Descriptor logical DSL through the
@@ -488,7 +488,7 @@ func validateEvidenceDescriptors(req BuildRequest, skill *SkillAST, identity dep
 	validateHostRecoveryDualProducer(skill, identity, ownerLinking, indexes, procedurePath, add)
 }
 
-// validateHostRecoveryDualProducer implements 搂17.1: when a reachable Predicate
+// validateHostRecoveryDualProducer implements §17.1: when a reachable Predicate
 // consumes <original-mutation-node>.operation.output and that Mutation publishes
 // a trusted recoverable output through its dedicated Reconcile READ, every
 // required guarantee for that argument must declare both the normal Producer and
@@ -993,6 +993,3 @@ func validAbsoluteURI(value string) bool {
 	}
 	return colon+1 < len(value)
 }
-
-
-

@@ -1,4 +1,4 @@
-﻿package compiler
+package compiler
 
 // Development Build input admission.
 //
@@ -1039,4 +1039,3 @@ func developmentGraphCycle(env *developmentEnvironment) string {
 	}
 	return cycle
 }
-

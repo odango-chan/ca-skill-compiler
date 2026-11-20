@@ -1,4 +1,4 @@
-﻿# Evidence / Assurance 职责审计与纠偏（Development Build）
+# Evidence / Assurance 职责审计与纠偏（Development Build）
 
 **状态：纠偏实施记录。** 本页审计 Development Build 首轮实现中所有 Evidence 相关代码，按 Compile、Interface Link、Assurance、Host Admission、Runtime 五个边界重新归类，并记录本次最小调整。语言规范仍以冻结的 CA-SL v1alpha5（含继承的 v1alpha4 语义）为准；本页不新增、不删除、不弱化任何冻结语言规则。
 
@@ -67,4 +67,3 @@ Runtime records / Commit Proof ──────┘   真实 Commit Proof / Rec
 - Deployment Grant、Provider Binding、Runtime 派发。
 
 这些材料不进入 BuildRequest，也不改变 Artifact 的静态内容；Host 在派发前以受信材料补齐并重新校验语言要求。\n\n## 6. 设计文档同步\n\n本审计对应的设计更新已提交到 PR #48 分支 `docs/toolchain-architecture-vnext-20261119`，提交 `4a260be`：工具链架构、Development Build 实施契约和 Harness Goal 均已按本页边界修改；请求样例同步为 `EvidenceDescriptor` 导出形态。
-

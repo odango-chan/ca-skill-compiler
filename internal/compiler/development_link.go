@@ -1,4 +1,4 @@
-﻿package compiler
+package compiler
 
 // Development Build offline interface linking.
 //
@@ -836,4 +836,3 @@ func (env *developmentEnvironment) extendIdentity(identity dependencyIdentityRes
 	sort.Strings(identity.Closure)
 	return identity
 }
-

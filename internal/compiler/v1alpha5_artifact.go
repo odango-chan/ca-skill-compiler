@@ -1,4 +1,4 @@
-﻿package compiler
+package compiler
 
 // CA-SL v1alpha5 WP8: deterministic successful-Build artifact assembly.
 //
@@ -785,4 +785,3 @@ func diagnosticCodes(diagnostics []Diagnostic) []string {
 	}
 	return codes
 }
-

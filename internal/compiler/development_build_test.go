@@ -1,4 +1,4 @@
-﻿package compiler
+package compiler
 
 // Development Build acceptance matrix: positive fixture, deterministic rebuild,
 // negative interface closures, Assurance Descriptor three-state coverage and
@@ -644,5 +644,3 @@ func requestSkillName(t *testing.T, request DevelopmentBuildRequest) string {
 	t.Fatal("request has no Skill package")
 	return ""
 }
-
-
