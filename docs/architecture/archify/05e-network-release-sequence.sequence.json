@@ -68,26 +68,26 @@
   "segments": [
     {
       "from": 150,
-      "to": 246,
+      "to": 278,
       "label": "Trigger · PCF callback or SMF-local decision"
     },
     {
-      "from": 252,
-      "to": 470,
+      "from": 282,
+      "to": 502,
       "label": "Release OES · r1 optional / r2 N4 deletion"
     },
     {
-      "from": 474,
-      "to": 886,
+      "from": 506,
+      "to": 950,
       "label": "r3 · Namf relay / UE release / exact callback correlation"
     },
     {
-      "from": 890,
-      "to": 1206,
+      "from": 954,
+      "to": 1270,
       "label": "r4 PCF cleanup · r5 context release · r6 event"
     },
     {
-      "from": 1210,
+      "from": 1274,
       "to": 1302,
       "label": "Host resource settlement"
     }
@@ -418,7 +418,8 @@
       "items": [
         "触发可来自 PCF Npcf_SMPolicyControl_Notify callback，也可来自 OpenAMSM SMF-local timer / Owner decision；后者不是外部 SBI 消息",
         "两类触发都通过受信 Owner-scoped event 进入 Host，定位既有 Session 后执行 Release OES",
-        "AMF 后续 N1/N2 completion 仍按原 release generation / occurrence 关联；Host 最终写入 URI Map tombstone"
+        "AMF 后续 N1/N2 completion 仍按原 release generation / occurrence 关联；Host 最终写入 URI Map tombstone",
+        "箭头图例与状态：默认实线表示常规调用；绿色实线表示关键步骤；蓝色虚线表示返回 / 响应；红色虚线表示 security 受信私有边界或原始二进制绑定，不表示未实现。全图为 DESIGN / DESIGN TARGET；实现状态以卡片文字为准，不能仅凭箭头线型推断。"
       ]
     }
   ]

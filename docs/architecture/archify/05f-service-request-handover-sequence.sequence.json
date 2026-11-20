@@ -56,17 +56,17 @@
   "segments": [
     {
       "from": 150,
-      "to": 470,
+      "to": 502,
       "label": "BRANCH A · F09 Service Request / User-plane activation"
     },
     {
-      "from": 474,
-      "to": 790,
+      "from": 506,
+      "to": 822,
       "label": "F09 · N2 setup result returns to existing Session"
     },
     {
-      "from": 794,
-      "to": 1142,
+      "from": 858,
+      "to": 1222,
       "label": "BRANCH B · F10 Handover / Path Switch"
     }
   ],
@@ -240,18 +240,26 @@
       "variant": "return"
     },
     {
+      "id": "m22a",
+      "from": "ue",
+      "to": "amf",
+      "label": "Path Switch Request (NGAP)",
+      "y": 888,
+      "variant": "emphasis"
+    },
+    {
       "id": "m22",
       "from": "amf",
       "to": "scp",
-      "y": 840,
-      "label": "[F10] UpdateSMContext · PATH_SWITCH_REQ",
+      "y": 920,
+      "label": "[F10] Nsmf_PDUSession_UpdateSMContext · PATH_SWITCH_REQ",
       "variant": "emphasis"
     },
     {
       "id": "m23",
       "from": "scp",
       "to": "host",
-      "y": 872,
+      "y": 952,
       "label": "Existing Host Location + handover generation",
       "variant": "default"
     },
@@ -259,7 +267,7 @@
       "id": "m24",
       "from": "host",
       "to": "tools",
-      "y": 904,
+      "y": 984,
       "label": "Authorized Owner handover update · no Create",
       "variant": "default"
     },
@@ -267,7 +275,7 @@
       "id": "m25",
       "from": "tools",
       "to": "smf",
-      "y": 936,
+      "y": 1016,
       "label": "OpenAMSM Owner handover / N4 handling",
       "variant": "security"
     },
@@ -275,7 +283,7 @@
       "id": "m26",
       "from": "smf",
       "to": "upf",
-      "y": 968,
+      "y": 1048,
       "label": "PFCP Modification Request · 52",
       "variant": "default"
     },
@@ -283,7 +291,7 @@
       "id": "m27",
       "from": "upf",
       "to": "smf",
-      "y": 1000,
+      "y": 1080,
       "label": "PFCP Modification Response · 53",
       "variant": "return"
     },
@@ -291,7 +299,7 @@
       "id": "m28",
       "from": "smf",
       "to": "tools",
-      "y": 1032,
+      "y": 1112,
       "label": "hoState=COMPLETED / CANCELLED · authoritative result",
       "variant": "return"
     },
@@ -299,7 +307,7 @@
       "id": "m29",
       "from": "tools",
       "to": "host",
-      "y": 1064,
+      "y": 1144,
       "label": "Handover state + N2 attachment",
       "variant": "return"
     },
@@ -307,7 +315,7 @@
       "id": "m30",
       "from": "host",
       "to": "scp",
-      "y": 1096,
+      "y": 1176,
       "label": "Nsmf UpdateSMContext response",
       "variant": "return"
     },
@@ -315,7 +323,7 @@
       "id": "m31",
       "from": "scp",
       "to": "amf",
-      "y": 1128,
+      "y": 1208,
       "label": "UpdateSMContext response",
       "variant": "return"
     }
@@ -356,7 +364,9 @@
       "items": [
         "所有 AMF → SMF 请求均为 Nsmf_PDUSession_UpdateSMContext（OpenAPI operationId=UpdateSmContext）",
         "F09 由 upCnxState=ACTIVATING 识别 Service Request；F10 按 hoState / PATH_SWITCH_REQ 识别 Handover / Path Switch",
-        "两类分支都只更新既有 SM Context，不重跑 Establishment；PFCP Type 52/53 由 OpenAMSM 直连 UPF"
+        "两类分支都只更新既有 SM Context，不重跑 Establishment；PFCP Type 52/53 由 OpenAMSM 直连 UPF",
+        "F10 的 RAN 入口为 gNB → AMF 的 NGAP Path Switch Request；AMF 随后以 Nsmf_PDUSession_UpdateSMContext（PATH_SWITCH_REQ / hoState）更新既有 SM Context。本图覆盖 SMF-facing Path Switch 更新，不展开完整 NGAP Handover Preparation。",
+        "箭头图例与状态：默认实线表示常规调用；绿色实线表示关键步骤；蓝色虚线表示返回 / 响应；红色虚线表示 security 受信私有边界或原始二进制绑定，不表示未实现。全图为 DESIGN / DESIGN TARGET；实现状态以卡片文字为准，不能仅凭箭头线型推断。"
       ]
     }
   ]

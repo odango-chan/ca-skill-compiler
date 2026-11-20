@@ -68,26 +68,26 @@
   "segments": [
     {
       "from": 150,
-      "to": 342,
+      "to": 374,
       "label": "Ingress · UE-requested Update vs AMF ReleaseSMContext"
     },
     {
-      "from": 346,
-      "to": 566,
+      "from": 378,
+      "to": 662,
       "label": "Release OES · r1 optional / r2 PFCP deletion"
     },
     {
-      "from": 570,
-      "to": 1014,
+      "from": 666,
+      "to": 1110,
       "label": "r3 · Namf release signaling and exact completion"
     },
     {
-      "from": 1018,
-      "to": 1334,
+      "from": 1114,
+      "to": 1430,
       "label": "r4 PCF cleanup · r5 context release · r6 event"
     },
     {
-      "from": 1338,
+      "from": 1434,
       "to": 1526,
       "label": "Host resource tombstone and paired response"
     }
@@ -447,7 +447,8 @@
         "AMF 请求释放：Nsmf_PDUSession_ReleaseSMContext；不伪造成 HTTP DELETE",
         "两个入口都定位同一个已存在 Host Location / Owner Session，不创建新 SM Context",
         "UE NAS exchange 还包括 PDU Session Release Command（0xD3）与 PDU Session Release Complete（0xD4）；箭头使用短标签",
-        "职责归属：Host 负责 SBI / resource / generation 校验并保留原始 N1；CA Client Tools 的只读 5GSM Codec 只解码 N1，原始 NAS 仍交给 OpenAMSM GSM Handler。"
+        "职责归属：Host 负责 SBI / resource / generation 校验并保留原始 N1；CA Client Tools 的只读 5GSM Codec 只解码 N1，原始 NAS 仍交给 OpenAMSM GSM Handler。",
+        "箭头图例与状态：默认实线表示常规调用；绿色实线表示关键步骤；蓝色虚线表示返回 / 响应；红色虚线表示 security 受信私有边界或原始二进制绑定，不表示未实现。全图为 DESIGN / DESIGN TARGET；实现状态以卡片文字为准，不能仅凭箭头线型推断。"
       ]
     },
     {

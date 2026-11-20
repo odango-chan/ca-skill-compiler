@@ -73,11 +73,11 @@
     },
     {
       "from": 282,
-      "to": 534,
+      "to": 566,
       "label": "Modify OES · m0 / m2 / m3"
     },
     {
-      "from": 538,
+      "from": 570,
       "to": 886,
       "label": "m4 · Namf relay / UE-RAN exchange"
     },
@@ -419,7 +419,8 @@
         "CA-Agent：Host scoped-event ingress、Session Router、Runtime Run",
         "CA Client Tools：固定 Owner-private / Namf egress",
         "OpenAMSM：SMF Owner、OES、GSM、PFCP；N4 直连 UPF",
-        "PFCP standard messages：Session Modification Request / Response（Type 52/53）；m5 的 Request 使用 m4 返回的 AN F-TEID。"
+        "PFCP standard messages：Session Modification Request / Response（Type 52/53）；m5 的 Request 使用 m4 返回的 AN F-TEID。",
+        "箭头图例与状态：默认实线表示常规调用；绿色实线表示关键步骤；蓝色虚线表示返回 / 响应；红色虚线表示 security 受信私有边界或原始二进制绑定，不表示未实现。全图为 DESIGN / DESIGN TARGET；实现状态以卡片文字为准，不能仅凭箭头线型推断。"
       ]
     }
   ]

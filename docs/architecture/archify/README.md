@@ -61,6 +61,8 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 - 05g 分开表达有效 callback、重复/迟到 callback，以及 UNKNOWN / exact-original Reconcile。
 - NAS Codec 是 CA Client Tools 内部的只读职责，不属于 Host SBI Decoder；05a / 05b / 05d 共用一条 Client Tools lifeline，并以 `NAS Codec / Dispatch` 副标签和卡片区分内部职责。原始 NAS 字节仍保持不变并交给 Owner。
 
+**箭头线型说明（05a–05g）**：默认实线表示常规调用，绿色实线表示关键步骤，蓝色虚线表示返回 / 响应，红色虚线表示 `security` 受信私有边界或原始二进制绑定。sequence 图的虚线不表示未实现；实现状态以各图卡片的明确文字为准。图 04 的虚线仍专门表示未实现路径。
+
 ## 5. 与绘图简报的两处有意偏差
 
 1. **时序图类型**：绘图简报建议使用 Archify Workflow JSON，但 3GPP 风格时序要求时间自上而下、

@@ -62,21 +62,21 @@
   "segments": [
     {
       "from": 150,
-      "to": 342,
+      "to": 374,
       "label": "Ingress · UE / RAN request and Existing Session classification"
     },
     {
-      "from": 346,
-      "to": 662,
+      "from": 378,
+      "to": 726,
       "label": "BRANCH A · new business Modify · m0 / m2 / m3"
     },
     {
-      "from": 666,
-      "to": 1334,
+      "from": 730,
+      "to": 1206,
       "label": "BRANCH A · m4 N1/N2 signaling and exact result"
     },
     {
-      "from": 1338,
+      "from": 1210,
       "to": 1462,
       "label": "BRANCH A · m5 N4 follow-up and response"
     },
@@ -543,7 +543,8 @@
         "Host 保留原始 N1/N2 artifact；Typed projection 仅用于分类与 Skill 输入，原始 NAS/N2 bytes 通过受信 Owner-private binding 原样交给 OpenAMSM",
         "新的 UE/RAN Modification 与命中既有 Pending 的 N2 result 是互斥入口；后者不启动第二个 Run",
         "NAS Codec 是 CA Client Tools 内部的只读职责，与 Tool Dispatch 共用 Client Tools 责任域；原始 N1/N2 bytes 仍原样交给 Owner",
-        "职责归属：Host 解码 UpdateSMContext JSON、N2 SmInfoType、upCnxState / hoState 并负责 Session/generation 分类；CA Client Tools 的只读 5GSM Codec 只解码 N1，不解码 N2。"
+        "职责归属：Host 解码 UpdateSMContext JSON、N2 SmInfoType、upCnxState / hoState 并负责 Session/generation 分类；CA Client Tools 的只读 5GSM Codec 只解码 N1，不解码 N2。",
+        "箭头图例与状态：默认实线表示常规调用；绿色实线表示关键步骤；蓝色虚线表示返回 / 响应；红色虚线表示 security 受信私有边界或原始二进制绑定，不表示未实现。全图为 DESIGN / DESIGN TARGET；实现状态以卡片文字为准，不能仅凭箭头线型推断。"
       ]
     }
   ]

@@ -362,7 +362,8 @@
       "items": [
         "3GPP Service Operation：Namf_Communication_N1N2TransferFailureNotification；本图用短标签显示，完整名称以本卡为准",
         "Callback URI、NF identity、Session、Run、Owner occurrence 与 generation 必须共同匹配",
-        "UNKNOWN 不等于 NOT_COMMITTED；Reconcile 只查询 exact-original proof，不重放 Mutation"
+        "UNKNOWN 不等于 NOT_COMMITTED；Reconcile 只查询 exact-original proof，不重放 Mutation",
+        "箭头图例与状态：默认实线表示常规调用；绿色实线表示关键步骤；蓝色虚线表示返回 / 响应；红色虚线表示 security 受信私有边界或原始二进制绑定，不表示未实现。全图为 DESIGN / DESIGN TARGET；实现状态以卡片文字为准，不能仅凭箭头线型推断。"
       ]
     }
   ]
