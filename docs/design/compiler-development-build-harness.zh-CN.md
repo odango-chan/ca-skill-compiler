@@ -1,10 +1,10 @@
 # CA Skill Compiler 首轮实现任务
 
-**状态：可以交接。** 本轮按 [Compiler #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 中的[实施契约](compiler-development-build-pilot.zh-CN.md)提交试验实现。架构依据见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，交付顺序见[演进路线](compiler-evolution-roadmap-vnext.zh-CN.md)，Evidence / Assurance 边界见[职责审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。本轮目标是用完整的接口快照在离线环境生成可复验的 Development Artifact。在没有运行时 Evidence、Deployment Grant 或 Provider 时，成功结果为 `LINKED / BUILT / NOT_ADMITTED`；`COMMIT_PROOF` / `RECONCILE` 只是执行期要求，不在 Build 满足。MAS G0 / G1 仍为 **NOT_RUN**。
+**状态：实施任务已完成，等待验收收尾。** 本页按 [Compiler #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 中的[实施契约](compiler-development-build-pilot.zh-CN.md)交接试验实现任务；实现已在 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 完成并通过本地验收，两个 PR 均保持 OPEN、等待最终评审，**尚未合并、尚未冻结、尚未发布**。架构依据见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，交付顺序见[演进路线](compiler-evolution-roadmap-vnext.zh-CN.md)，Evidence / Assurance 边界见[职责审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。本轮目标是用完整的接口快照在离线环境生成可复验的 Development Artifact。在没有运行时 Evidence、Deployment Grant 或 Provider 时，成功结果为 `LINKED / BUILT / NOT_ADMITTED`；`COMMIT_PROOF` / `RECONCILE` 只是执行期要求，不在 Build 满足。MAS G0 / G1 仍为 **NOT_RUN**。
 
 ## 可直接交给 DeepSeek Harness 的 Goal
 
-> 在 `odango-chan/ca-skill-compiler` 实现一个可验证的 Development Build 垂直切片。从当前 main 新建实现分支。用本页链接的实施契约和请求样例开工，以 v2.0.2 发布提交 `e98a7b26acabfa2a5e1587974ab9be5742e70bf7` 建立旧入口黄金基线。复用现有 Go 静态检查与确定性装配能力。完成离线接口闭包链接、Evidence 静态语义、Host Admission Requirement 记录、开发产物 Verify，以及 Native CLI / Go-WASM / Chromium Worker 测试。在独立实现分支提交，交付 draft PR、测试证据和 MAS G0/G1 实际状态。保持 CA-SL v1alpha5 及冻结入口的既有行为。在 Draft PR 记录所使用的设计提交 SHA。公开契约冻结与合入另行评审。
+> 在 `odango-chan/ca-skill-compiler` 实现一个可验证的 Development Build 垂直切片。从当前 main 新建实现分支。用本页链接的实施契约和请求样例开工，以 v2.0.2 发布提交 `e98a7b26acabfa2a5e1587974ab9be5742e70bf7` 建立旧入口黄金基线。复用现有 Go 静态检查与确定性装配能力。完成离线接口闭包链接、Evidence 静态语义、Host Admission Requirement 记录、开发产物 Verify，以及 Native CLI / Go-WASM / Chromium Worker 测试。在独立实现分支提交，交付实现 PR（最终评审态，不是 Draft）、测试证据和 MAS G0/G1 实际状态。保持 CA-SL v1alpha5 及冻结入口的既有行为。在实现 PR 记录所使用的设计提交 SHA。公开契约冻结与合入另行评审。
 
 ## 开工前核对
 
@@ -43,6 +43,7 @@
 | 6 | 编辑 Procedure / Lock / Descriptor / Requirement | Verify 失败 |
 | 7 | 含 Mutation / Reconcile 的请求 | `COMMIT_PROOF`、`RECONCILE` 只出现在 `runtime-execution-requirements.json`（`RUNTIME_EXECUTION_REQUIRED`），不出现在 `host-admission-requirements.json` |
 | 8 | Ingress 导出身份负例：导出 ID 不存在或重复、导出 path 漂移、存在未导出的 operation、`metadata.owner` 与 publisher 不符、`artifactBindings`/`schemaBindings` 指向错误 | 分别 Build 失败并给出稳定诊断 |
+| 9 | 同一 Descriptor 被单个 Predicate、多个 Predicate、同一 `requires` 列表的多个序号、`requires` 与 `independence` 双重要用 | 每个真实位置各一条 Requirement，`selector` 精确到 `/predicates/<predicate>/evidence/requires/<parameter>/<index>` 或 `/predicates/<predicate>/evidence/independence/<group>/members/<member>/guarantee`；位置变化时 `requirementId` 随之变化；相同输入字节重复 Build 逐字节一致 |
 
 增加一组同版异摘要、重复符号和未锁外部引用的负例。验证重排输入后的产物字节一致。以静态契约完整但外部信任缺失的请求为基线，增加信任材料后核对 Requirement 状态变化。构建入口按定版契约拒绝未知字段。Grant 和 Provider 由 Host 接收。
 

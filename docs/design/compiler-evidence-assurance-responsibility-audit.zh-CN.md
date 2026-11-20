@@ -1,6 +1,6 @@
 # Evidence / Assurance 职责审计与纠偏（Development Build）
 
-**状态：架构冻结评审版。** 本页是 PR #48 架构文档的权威基线：先按 Compile、Interface Link、Assurance、Host Admission、Runtime 五个边界重新归类 Development Build 中所有 Evidence 相关职责，再给出与实现（PR #51 并行落地）一致的最终两类 Requirement 模型。语言规范仍以冻结的 CA-SL v1alpha5（含继承的 v1alpha4 语义）为准；本页不新增、不删除、不弱化任何冻结语言规则。
+**状态：最终职责基线，待随架构冻结。** 本页是 PR #48 架构文档的职责基线，也是 Architecture → Audit → Pilot → Implementation 链条中“职责归属”的唯一权威表述：先按 Compile、Interface Link、Assurance、Host Admission、Runtime 五个边界重新归类 Development Build 中所有 Evidence 相关职责，再给出与实现（PR #51）一致的最终两类 Requirement 模型。本页**尚未冻结**：只有两个 PR 都通过最终评审后，才随架构一并冻结。语言规范仍以冻结的 CA-SL v1alpha5（含继承的 v1alpha4 语义）为准；本页不新增、不删除、不弱化任何冻结语言规则。
 
 ## 1. 结论
 
@@ -34,7 +34,7 @@ Development Build 只产出**两类互不替代**的 Requirement。二者都是 
 | Host Admission Requirement | 派发之前（Build 之外，由 Host 用独立信任根验证外部事实） | `host-admission-requirements.json` | `HOST_VERIFICATION_REQUIRED` |
 | Runtime Execution Requirement | 实际执行期间（由 Runtime / Provider 在执行中产生并验证） | `runtime-execution-requirements.json` | `RUNTIME_EXECUTION_REQUIRED` |
 
-两类 Requirement 必须分别成文件、分别计算、分别校验。`Host Admission Requirement` 只覆盖派发前可验证的外部事实：`OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`、Deployment Grant、Provider Binding、当前 Invocation 授权。
+两类 Requirement 必须分别成文件、分别计算、分别校验。**Host Admission Requirement 恰好只覆盖四类**派发前可验证的外部信任事实：`OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`。Deployment Grant、Provider Binding 与当前 Invocation 授权**同属 Host Admission 检查，但不是 Host Admission Requirement 条目**：它们同样在派发前由 Host 用独立信任根校验，但 Compiler 无法从源码定位，因此不进入 `host-admission-requirements.json`、不进入 BuildRequest、不属于本页定义的任何一个 Requirement kind。
 
 其中只有前四类会由 Compiler 依据源码/接口位置写成 `host-admission-requirements.json` 条目；Deployment Grant、Provider Binding 与当前 Invocation 授权由 Host 按其独立信任根在派发时校验，**不是** Compiler 可识别、可定位或可伪造的产物字段。`runtime-execution-requirements.json` 同理只记录 Compiler 能定位的执行期保证位置，不记录实际执行结果。
 
@@ -52,6 +52,14 @@ Development Build 只产出**两类互不替代**的 Requirement。二者都是 
 
 把二者混为一谈，正是把「机制存在」当成「副作用已发生」的错误。
 
+两类 Requirement 的语义边界必须同时成立：
+
+- **Runtime Execution Requirement 不是外部授权。** 它不是 Grant、不是 Attestation、也不是 Host 放行判定；Host Admission Requirement 同样不授权执行。
+- **实际 Commit Proof 不在 Build 阶段产生**，**实际 Reconcile 结论也不在 Build 阶段产生**；两者只能由 Runtime / Provider 针对具体 Invocation 与具体 Operation occurrence 产生。
+- **Compiler 只检查静态契约并记录执行期要求**：机制是否就位可以静态判定，副作用是否真的发生不能。
+- **Host Admission 不得替代实际 Commit Proof。** 派发前外部事实全部成立，也不代表这一次 Mutation 已经提交；`UNKNOWN` 之后的恢复结论只能来自经授权的 exact-original Reconcile。
+- **Build 成功不代表 Artifact 已获得执行资格。** 成功只表示静态语言契约、接口闭包与确定性产物成立；执行资格由 Host 对具体 Invocation 逐次准入。
+
 ### 2.2 Requirement 记录形状
 
 ```
@@ -67,9 +75,11 @@ Development Build 只产出**两类互不替代**的 Requirement。二者都是 
 - `location.selector` 为源码 JSON Pointer（含列表序号）；不可应用的 `node` / `stage` 用空串。
 - `subjects` 按元素 JCS 字节稳定排序并去重；每项 `schemaIds` 排序去重，Schema 字节由锁与闭包固定。
 - 相同 Producer / 消费在多条等价控制流边复现时去重。
+- Evidence 引用位置必须精确：`requires` 写作 `/predicates/<predicate>/evidence/requires/<parameter>/<index>`，Independence 成员写作 `/predicates/<predicate>/evidence/independence/<group>/members/<member>/guarantee`。同一个 Descriptor 被多个 Predicate、多个参数、多个序号或 `requires`/`independence` 双重要用时逐一记录，不因内容相同而合并；`OWNER_TRUST` 按实际消费位置记录。
 - `EVIDENCE_INDEPENDENCE_TRUST` 记录另带可选的 `independence` 明细（见 2.3）。
-- `requirementId` = `sha256:` + SHA-256(`CA-SKILL-DEVELOPMENT-HOST-REQUIREMENT\0v1\0` + 类型化键的 JCS 字节)，**包含 `independence` 明细**。因此不同组、不同成员或不同域对必然得到不同 ID；删改明细无法靠复算外层摘要掩盖。两类文件共用该摘要域前缀；类别由 `kind`、所在文件与 `status` 三者共同判定，不能只靠摘要前缀。
+- `requirementId` = `sha256:` + SHA-256(`CA-SKILL-DEVELOPMENT-REQUIREMENT\0v1\0` + 类型化键的 JCS 字节)，`kind` 参与类型化键，**包含 `independence` 明细**。因此不同组、不同成员或不同域对必然得到不同 ID；删改明细无法靠复算外层摘要掩盖。该摘要域是**两类共用的唯一域**且类名中性：Host 与 Runtime 的隔离由 `kind`、所在文件与 `status` 三者共同判定，不能靠摘要前缀区分——若沿用 Host 专属前缀，Runtime Execution Requirement 会被误读成 Host Admission 命名空间的一部分。Verify 必须能拒绝旧摘要域或任意错误摘要域产生的条目。
 - 文件内容为按 `requirementId` 排序的 JCS JSON 数组；`status` 按 2.1 固定。
+- 顺序语义：语义上无序的输入（文件、快照、锁、映射顺序）规范化后不得改变产物字节；但真实源码列表序号是位置本身，序号变化允许改变 `requirementId` 与产物摘要。不得为维持错误的顺序无关性而丢弃真实位置。
 
 ### 2.3 Independence 明细与多组规则
 
@@ -83,6 +93,8 @@ independence {
 }
 ```
 
+`independence` 不含 `predicate` 字段：Predicate 身份只由 `location.node` 表达，`selector` 固定为 `/predicates/<predicate>/evidence/independence/<index>`。这样组身份只有一个权威来源，不会出现 `location.node` 与 `independence.predicate` 互相矛盾的第二份真相。
+
 规则：
 
 1. **一个 Independence Group 一条 Requirement**，不得压成一条全局记录。
@@ -90,10 +102,11 @@ independence {
 3. 成员逐项列出：每个成员 Descriptor、每个 Source Domain、每个被授权的 Domain Pair、每个精确 Interface Package key，全部写入该条的 `subjects` / `independence`。
 4. **不使用 `env.roots[0]`，也不使用单一全局布尔值**。多组、多根、多域对互相独立；组之间不得共享一条「独立性已满足」的结论。
 5. 组的静态结构非法（成员缺失、组形状非法、绑定不成立）是 **Build FAIL**；只有「外部域授权尚缺」才是 Host Admission Requirement。
+6. Verify 必须校验 `independence` 的每个成员、每个域、每个域对与组成员序号，并从统一摘要域重新推导 `requirementId`。
 
 ### 2.4 多信任事实不互相覆盖
 
-同一个 EvidenceDescriptor 同时声明 `sourceIdentity` 与 `factIdentity` 时，**同时**产生 `EVIDENCE_DOMAIN_TRUST` 与 `EVIDENCE_FACT_TRUST` 两条独立 Requirement，任一条都不得覆盖另一条。输入顺序（文件顺序、Predicate 顺序、快照顺序）不得改变产物字节或 Requirement 集合。
+同一个 EvidenceDescriptor 同时声明 `sourceIdentity` 与 `factIdentity` 时，**同时**产生 `EVIDENCE_DOMAIN_TRUST` 与 `EVIDENCE_FACT_TRUST` 两条独立 Requirement，任一条都不得覆盖另一条。语义上无序的输入（文件顺序、快照顺序、锁与映射顺序）不得改变产物字节或 Requirement 集合；Predicate 在 `predicates` 映射中的顺序同样不承载语义。但 `requires` 列表中的真实序号属于源码位置本身：列表顺序变化导致序号变化时，允许对应 `requirementId` 与产物摘要变化，不得为了错误的顺序无关性而丢失真实位置。
 
 ### 2.5 静态失败与外部缺失的分界
 
@@ -191,15 +204,19 @@ Runtime / Provider 执行期 ─────────────► COMMIT_P
 
 Verify 必须同时检查**两个** Requirement 文件：
 
-1. 规范化 JCS、排序、逐条重新推导 `requirementId`、kind 与所在文件类别一致、`status` 正确、覆盖完整。
-2. 以原始请求重建全部产物并**逐字节**比较每个产物文件。
+1. 两份文件都必须严格解码：拒绝未知字段、非数组文档、重复 Requirement 与未按 `requirementId` 排序的条目。
+2. 规范化 JCS、逐条从**统一摘要域**重新推导 `requirementId`、`kind` 与所在文件类别一致、`status` 正确、`subjects` / `independence` 已规范化、覆盖完整。
+3. `location` 必须是该 kind 的真实位置：Independence 恰好指向一个组 JSON Pointer，Evidence 信任要求指向 `location.node` 所指 Predicate 的 Evidence 块内；粗粒度、悬空或借用其他 Predicate 的位置一律拒绝。
+4. 以原始请求重建全部产物并**逐字节**比较每个产物文件；不能只依赖外层摘要。
 
-因此：删除一条 Requirement 后即使重新封装外层摘要仍然失败；改动 Procedure、Lock、Descriptor 或 Requirement 同样失败。
+因此：删除任意一条 Host 或 Runtime Requirement、把 `COMMIT_PROOF` 移入 Host 文件、把 `OWNER_TRUST` 移入 Runtime 文件、改动 `status` / `requirementId` / `location` / independence 成员 / `domainPairs`，即使重新封装 manifest 摘要仍然失败；改动 Procedure、Lock 或 Descriptor 同样失败。
 
 ## 6. 设计提交与本轮评审记录
 
-- 本页设计内容的提交：`551a0bba3455cfe4e7dbeede274b686a523316d6`（`docs(design)`，见 PR #48）。
-- 本轮只改文档与图形，不改实现、语言契约或 v2.0.2 冻结入口；PR #51 的实现与本文契约一一对应。
+- 本页职责基线的设计提交：`551a0bba3455cfe4e7dbeede274b686a523316d6`（`docs(design)`，见 PR #48）。本轮收敛在该提交之上继续修改，最终 HEAD 以 PR #48 的最后一个提交为准，并由 PR #51 的实施报告精确引用。
+- 本页与 PR #48 架构文档处于**最终评审**状态，不是已冻结：冻结由最终评审者在两个 PR 都通过后宣布。
+- PR #51 的实现与本页契约一一对应；本轮同时修正了 Requirement ID 摘要域、Evidence 引用定位、Independence 明细结构与文档状态语义。
+- 本页是 Architecture → Audit → Pilot → Implementation 链条中的职责权威来源；其他三份文档引用本页，不重复维护相互冲突的职责矩阵。
 - 产物执行状态恒为 `NOT_ADMITTED`；生产 Host 拒收 `DEVELOPMENT`；MAS G0 / G1 仍为 **NOT_RUN**，本文不构成 MAS 通过结论。
 
 ## 7. 旧入口与回归边界

@@ -1,6 +1,6 @@
 # Development Build 实施契约
 
-**状态：可进入试验实现。** 本页固定首个 Compiler Draft PR 的实现和验收基线。版本标识用于该试验分支。公开契约冻结、合并和发布另行评审。上位设计见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，工作顺序见[交接任务](compiler-development-build-harness.zh-CN.md)，Evidence / Assurance 边界见[职责审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。
+**状态：试验实现已完成，等待最终评审。** 本页固定 Development Build 首轮实现的接口与验收基线；试验实现已在 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 落地并通过本地验收，该 PR 与本页都保持 OPEN、等待最终评审，**尚未合并、尚未冻结、尚未发布**。版本标识用于该试验分支；公开契约冻结、合并和发布另行评审。上位设计见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，工作顺序见[交接任务](compiler-development-build-harness.zh-CN.md)，Evidence / Assurance 边界见[职责审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。
 
 ## 1. 入口与输入
 
@@ -44,8 +44,10 @@ Compiler 不接收 Owner 信任根、Assurance Attestation、真实 Evidence、D
 
 | 类别 | 覆盖范围 | 产物文件 | 固定 status |
 |---|---|---|---|
-| Host Admission Requirement | 派发前可验证的外部事实 | `host-admission-requirements.json` | `HOST_VERIFICATION_REQUIRED` |
+| Host Admission Requirement | 派发前由 Host 用独立信任根验证的外部信任事实 | `host-admission-requirements.json` | `HOST_VERIFICATION_REQUIRED` |
 | Runtime Execution Requirement | 只能在执行期产生的真实结果 | `runtime-execution-requirements.json` | `RUNTIME_EXECUTION_REQUIRED` |
+
+Host Admission Requirement 恰好只有四类 kind：`OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`。**Deployment Grant、Provider Binding 与当前 Invocation 授权不在其中**：它们同属 Host 在派发时校验的外部事实，但 Compiler 无法从源码定位，因此不写成 Requirement 条目（见本节末）。Runtime Execution Requirement 恰好只有两类 kind：`COMMIT_PROOF`、`RECONCILE`。
 
 **Host Admission Requirement 的 kind 与记录时机**（Compiler 可定位并写入产物的四类外部事实）：
 
@@ -65,7 +67,7 @@ Compiler 不接收 Owner 信任根、Assurance Attestation、真实 Evidence、D
 | `COMMIT_PROOF` | 每个按静态规则需要保证的 Mutation 发生点 | 实际 Mutation 提交，并核验与该次提交绑定的 proof |
 | `RECONCILE` | 带 Reconcile 契约的 Mutation（含恢复相关绑定） | `UNKNOWN` 后对精确原尝试执行 Reconcile，并给出实际恢复结论 |
 
-真实 Commit Proof 与 Reconcile 结论**永不进入已编译产物**，Compiler 不预测、不伪造。Runtime / Host 必须分别区分「运行时机制支持检查」（Contract、Schema、path、READ Callable、路由与重试结构是否就位，Build 已静态判定）与「实际执行结果」（这一次提交/恢复了什么）。
+真实 Commit Proof 与 Reconcile 结论**永不进入已编译产物**，Compiler 不预测、不伪造。Runtime / Host 必须分别区分「运行时机制支持检查」（Contract、Schema、path、READ Callable、路由与重试结构是否就位，Build 已静态判定）与「实际执行结果」（这一次提交/恢复了什么）。Runtime Execution Requirement 不是外部授权，实际 Commit Proof 与实际 Reconcile 结论都不在 Build 阶段产生；Host Admission 也不能替代实际 Commit Proof。Build 成功不代表产物已获得执行资格。
 
 Requirement 记录形状为：
 
@@ -76,7 +78,7 @@ Requirement 记录形状为：
   status }
 ```
 
-`location` 无法应用的 `node`/`stage` 用空串；`selector` 为源码 JSON Pointer，含列表序号。subjects 是按各项 JCS 字节顺序排序、去重的数组；每项 `schemaIds` 排序并去重，Schema 字节由锁与闭包固定。相同 Producer/消费在多条等价控制流边复现时去重。`requirementId` 为 `sha256:` 加上 `CA-SKILL-DEVELOPMENT-HOST-REQUIREMENT\0v1\0` 域和类型化键 JCS 字节（**含 independence 明细**）的 SHA-256。文件内容为按 `requirementId` 排序的 JCS JSON 数组。
+`location` 无法应用的 `node`/`stage` 用空串；`selector` 为源码 JSON Pointer，含列表序号。subjects 是按各项 JCS 字节顺序排序、去重的数组；每项 `schemaIds` 排序并去重，Schema 字节由锁与闭包固定。相同 Producer/消费在多条等价控制流边复现时去重。`requirementId` 为 `sha256:` 加上 **`CA-SKILL-DEVELOPMENT-REQUIREMENT\0v1\0` 统一摘要域**和类型化键 JCS 字节（含 `kind`，**含 independence 明细**）的 SHA-256。该摘要域对两类 Requirement 相同且类名中性：Host 与 Runtime 的隔离由 `kind`、所在文件与 `status` 三者共同判定，不能靠摘要前缀区分，否则 Runtime Requirement 会被按 HOST 命名空间解读。文件内容为按 `requirementId` 排序的 JCS JSON 数组。
 
 `EVIDENCE_INDEPENDENCE_TRUST` 另带 `independence` 明细：
 
@@ -86,9 +88,12 @@ independence { groupIndex,
   domainPairs [ [domainA, domainB], ... ] }
 ```
 
+`independence` **不含 `predicate` 字段**：Predicate 身份由 `location.node` 表达，`selector` 固定为 `/predicates/<predicate>/evidence/independence/<index>`，明细只承载组成员与域对。
+
+`OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST` 的 `selector` 同样是精确源码位置，而不是粗粒度的 `/predicates/<predicate>/evidence`：`requires` 引用写作 `/predicates/<predicate>/evidence/requires/<parameter>/<index>`（参数键与实际数组序号都保留），Independence 成员引用写作 `/predicates/<predicate>/evidence/independence/<group>/members/<member>/guarantee`。同一个 Descriptor 被多个 Predicate、多个参数、多个序号或 `requires` 与 `independence` 双重要用时，按每个位置分别生成 Requirement，不因内容相同而合并。语义上无序的输入（文件、快照、锁、映射顺序）仍规范化后不影响产物字节；但真实源码列表序号属于位置本身，序号变化允许改变 `requirementId` 与产物摘要，不得为维持错误的顺序无关性而丢失真实位置。
 **一个 Independence Group 一条 Requirement**：来源精确到 `selector=/predicates/<predicate>/evidence/independence/<index>`；每个成员 Descriptor、每个 Source Domain、每个被授权的 Domain Pair、每个精确 Interface Package key 都写入该条。不使用 `env.roots[0]`，也不使用单一全局布尔值；多组、多根、多域对互相独立。组的静态结构非法（成员缺失、组形状非法、绑定不成立）是 Build 失败；只有外部域授权缺失才是 Host Admission Requirement。
 
-**多信任事实不互相覆盖。** 同一个 EvidenceDescriptor 同时声明 `sourceIdentity` 与 `factIdentity` 时，同时产生 `EVIDENCE_DOMAIN_TRUST` 与 `EVIDENCE_FACT_TRUST` 两条独立 Requirement，任一条不得覆盖另一条。输入顺序（文件、Predicate、快照）不得改变产物字节或 Requirement 集合。
+**多信任事实不互相覆盖。** 同一个 EvidenceDescriptor 同时声明 `sourceIdentity` 与 `factIdentity` 时，同时产生 `EVIDENCE_DOMAIN_TRUST` 与 `EVIDENCE_FACT_TRUST` 两条独立 Requirement，任一条不得覆盖另一条。语义上无序的输入（文件、Predicate 映射、快照）不得改变产物字节或 Requirement 集合；真实 `requires` 列表序号属于位置本身，序号变化允许改变对应 `requirementId` 与产物摘要。参见 §3 的位置与摘要规则。
 
 这些 Requirement 不是 Compiler 的验收结论，也不表示 Build 失败或通过；它们分别记录 Host 派发前必须补齐的外部事实与 Runtime 执行期必须真正发生的结果。Compiler 不内建 Assurance Engine、签名验证、信任根或运行时 Evidence 检查。
 
@@ -96,8 +101,8 @@ independence { groupIndex,
 
 - BuildResult 采用 `connectionagent.io/compiler-development-build-result/v1alpha1`。必含 `success`、`sourceStatus`、`interfaceLinkStatus`、`artifactStatus`、`executionStatus`、`diagnostics[]`、`outputFiles[]`。成功为 `true / VALIDATED / LINKED / BUILT / NOT_ADMITTED`。失败时发生错误的阶段为 `FAILED`，后续未运行阶段为 `NOT_RUN`，无输出文件和 artifactDigest。executionStatus 恒为 `NOT_ADMITTED`。成功时另带 `artifactDigest`。静态语言诊断沿用附录 H 的身份。新封装诊断使用 `DEVELOPMENT_REQUEST_INVALID`、`DEVELOPMENT_SNAPSHOT_INVALID`、`DEVELOPMENT_LOCK_INVALID`、`DEVELOPMENT_ARTIFACT_INVALID`。诊断 DTO 沿用现有结构，path 指向源码或相应输入文件，消息标明失败身份。无法解码的输入按 CLI 输入错误处理。
 - 产物由 `manifest.json`、`host-admission-requirements.json`、`runtime-execution-requirements.json` 和现有每 Skill 的相对 Procedure/Ingress 文件组成。manifest 必含 `apiVersion=connectionagent.io/compiler-development-artifact/v1alpha1`、`languageTarget`、`profile`、`generator`、`executionStatus`、`sourceDigest`、`targets`、`lock`、`links`、`requirements{hostAdmission,runtimeExecution}`、`files`。sourceDigest 用快照算法对标准化源码输入计算。links 复用冻结产物中绑定的逻辑内容并带精确包键。files 为 manifest 之外的 `{path,sha256}`。使用现有 JCS 库，所有语义为集合的数组按元素身份稳定排序，Procedure 的有序列表保留语言顺序。artifactDigest 对 JCS manifest 字节求 SHA-256。两个 Requirement 文件都为空时仍生成（空数组），保证产物布局固定。
-- 首轮 Verify 明确要求**原始请求和实际产物字节**，或由调用方重建相同的规范请求。先验严格格式、文件清单与摘要，并逐项检查**两个** Requirement 文件：规范化 JCS、排序、逐条重新推导 `requirementId`（含 independence 明细）、kind 与所在文件类别一致、`status` 正确、覆盖完整；再用同一生成器重跑共享的源码、接口和 Requirement 计算并逐字节比较所有产物文件。抽取内部构建函数，避免 Verify 调用会自验的顶层 Build。缺少原请求、锁定快照或相同生成器时，无法完成完整 Verify。删除一条 Requirement 后重新封装外层摘要仍被拒绝；改动 Procedure、Lock、Descriptor 或 Requirement 均被拒绝。
-- 当前完成条件只到 G1。后续 Host 准入需要可信发布来源、准确的 Provider 和 Grant，并以可信输入完成冻结语言要求的静态复核后再派发。生产 Host 拒收 DEVELOPMENT profile；隔离测试 Host 只有在显式 opt-in 时才可接收。开发产物执行状态恒为 `NOT_ADMITTED`，Build 成功不等于授权或资格结论。
+- 首轮 Verify 明确要求**原始请求和实际产物字节**，或由调用方重建相同的规范请求。先验严格格式、文件清单与摘要，并逐项检查**两个** Requirement 文件：严格解码（拒绝未知字段、非数组文档、重复条目）、规范化 JCS、排序、逐条从统一摘要域重新推导 `requirementId`（含 `kind` 与 independence 明细）、kind 与所在文件类别一致、`status` 正确、`location` 为该 kind 的真实位置、覆盖完整；再用同一生成器重跑共享的源码、接口和 Requirement 计算并逐字节比较所有产物文件。抽取内部构建函数，避免 Verify 调用会自验的顶层 Build。缺少原请求、锁定快照或相同生成器时，无法完成完整 Verify。删除任意一条 Host 或 Runtime Requirement 后重新封装外层摘要仍被拒绝；把 `COMMIT_PROOF` 移入 Host 文件、把 `OWNER_TRUST` 移入 Runtime 文件、改动 `status` / `requirementId` / `location` / independence 成员 / `domainPairs`，以及改动 Procedure、Lock、Descriptor 均被拒绝。
+- 首轮完成条件只到本地验收入口（Native / Go-WASM / Chromium Worker 与旧入口黄金基线）；MAS **G0** 与 **G1** 仍为 **NOT_RUN**。后续 Host 准入需要可信发布来源、准确的 Provider 和 Grant，并以可信输入完成冻结语言要求的静态复核后再派发。生产 Host 拒收 DEVELOPMENT profile；隔离测试 Host 只有在显式 opt-in 时才可接收。开发产物执行状态恒为 `NOT_ADMITTED`，Build 成功不等于授权或资格结论。
 
 ## 5. 首轮输入与预期
 

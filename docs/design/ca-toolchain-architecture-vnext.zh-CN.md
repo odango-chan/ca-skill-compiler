@@ -1,8 +1,8 @@
 # CA-SL 工具链架构：编译、接口链接与执行资格分离
 
-> **状态：原则已通过评审；以下契约为提案，尚未冻结或实现。**
+> **状态：设计已进入最终评审，尚未冻结，也未合并或发布。**
 >
-> 当前基线为冻结的 CA-SL v1alpha5（`connectionagent.io/v1alpha5`）和已发布的 Compiler v2.0.2。现有语言规则、BuildRequest / BuildResult / Artifact 契约及实现行为以冻结基线为准。迁移步骤见[演进路线](compiler-evolution-roadmap-vnext.zh-CN.md)，Host 和 MAS E2E 边界见 [ca-agent-demo #217](https://github.com/odango-chan/ca-agent-demo/pull/217)。
+> 本页是 PR #48 的最终评审基线：原则已通过评审，契约已进入最终一致性收敛，但**尚未冻结**。冻结只能由最终评审者在两个 PR 都评审通过后宣布。当前基线为冻结的 CA-SL v1alpha5（`connectionagent.io/v1alpha5`）和已发布的 Compiler v2.0.2；现有语言规则、BuildRequest / BuildResult / Artifact 契约及实现行为以冻结基线为准，本页不改变它们。Development Build 的实现见 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51)，其状态为“实现完成、等待最终评审”，不是已冻结或已发布。迁移步骤见[演进路线](compiler-evolution-roadmap-vnext.zh-CN.md)，Host 和 MAS E2E 边界见 [ca-agent-demo #217](https://github.com/odango-chan/ca-agent-demo/pull/217)。
 
 ## 1. 已批准的原则
 
@@ -84,7 +84,7 @@ Deployment Grant 单独签名，至少含 `grantId`、签发者、环境及策�
 
 ## 4. Development Build 契约
 
-Compiler 首个 Draft PR 的具体入口、复验方式与样例见[实施契约](compiler-development-build-pilot.zh-CN.md)。Evidence / Assurance 的职责拆分见[职责审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。试验实现可独立于公开契约定版推进。
+Compiler 首个 Development Build 的实现已由 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 落地并等待最终评审；其具体入口、复验方式与样例见[实施契约](compiler-development-build-pilot.zh-CN.md)，实现与验收证据见该 PR 的实现报告。Evidence / Assurance 的职责拆分见[职责审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。本页与实现报告都仍是评审材料，不构成冻结、合并或发布决定。
 
 提案使用独立契约族，首版以 `connectionagent.io/<kind>/v1alpha1` 标识，其中 Build 相关 kind 为 `compiler-development-build-request`、`compiler-development-build-result`、`compiler-development-artifact`，输入 kind 为 `interface-package`、`interface-dependency-lock`。Evidence Descriptor 是 Interface Package 的正式导出（`EvidenceDescriptor`），不是独立 Assurance 输入。Provider 和 Grant 自有 `runtime-provider-package` 与 `deployment-grant` 版本。产品版本、语言目标、线格式版本和包发布版本独立。调用方显式选择新入口与契约版本；任何未知版本或不匹配的入口拒绝处理。
 
@@ -121,7 +121,15 @@ Deployment Grant、Provider Binding 与当前 Invocation 授权同样属于 Host
 
 `COMMIT_PROOF` 与 `RECONCILE` 不是可在 Build 或派发前满足的 Host Admission Requirement；它们的真实提交证据与恢复结论永不进入已编译产物，Compiler 也不预测或伪造。Runtime / Host 必须分别区分「运行时机制支持检查」（Contract、Schema、path、READ Callable、路由与重试结构是否就位）与「实际执行结果」（这一次到底提交/恢复了什么）。
 
-每条记录含确定性 `requirementId`（`sha256:` + `CA-SKILL-DEVELOPMENT-HOST-REQUIREMENT\0v1\0` 域与类型化键 JCS 字节的 SHA-256）、`kind`、`location{skill,path,node,stage,selector}`、`subjects[{key{packageId,version,snapshotDigest},id,sourcePath,schemaIds}]` 与 `status`。`EVIDENCE_INDEPENDENCE_TRUST` 另带 `independence{groupIndex,members[{dependencyAlias,key,exportId,sourcePath,domain}],domainPairs}`，**一个 Independence Group 一条记录**，来源精确定位到 `selector=/predicates/<predicate>/evidence/independence/<index>`，不使用 `env.roots[0]` 或单一全局布尔值。同一个 Descriptor 同时声明 `sourceIdentity` 与 `factIdentity` 时，两条记录各自独立生成、互不覆盖；输入顺序不得改变结果。静态结构非法是 Build 失败，只有外部授权缺失才是 Host Requirement。
+两类 Requirement 的语义边界必须同时成立：
+
+1. **Runtime Execution Requirement 不是外部授权。** 它不是 Grant、不是 Attestation、也不是 Host 的放行判定；它只是 Compiler 记录“执行期必须真正发生什么”的确定性条目。反之，Host Admission Requirement 也不授权执行。
+2. **实际 Commit Proof 不在 Build 阶段产生，实际 Reconcile 结论也不在 Build 阶段产生。** 两者只能由 Runtime / Provider 针对具体 Invocation 与具体 Operation occurrence 产生。
+3. **Compiler 只检查静态契约并记录执行期要求。** 机制是否就位可以静态判定；副作用是否真的发生不能。
+4. **Host Admission 不得替代实际 Commit Proof。** 派发前把所有外部信任事实都验证通过，也不等于这一次 Mutation 已经提交。`UNKNOWN` 之后只能走经授权的 exact-original Reconcile，不得用准入结论充当恢复结论。
+5. **Build 成功不代表 Artifact 已获得执行资格。** 成功只表示静态语言契约、接口闭包与确定性产物成立；执行资格必须由 Host 对具体 Invocation 逐次准入。
+
+每条记录含确定性 `requirementId`（`sha256:` + `CA-SKILL-DEVELOPMENT-REQUIREMENT\0v1\0` 统一摘要域与类型化键 JCS 字节的 SHA-256；`kind` 参与类型化键计算）、`kind`、`location{skill,path,node,stage,selector}`、`subjects[{key{packageId,version,snapshotDigest},id,sourcePath,schemaIds}]` 与 `status`。摘要域对两类 Requirement 是**同一个**、且类名中性：类别只由 `kind`、所在文件与 `status` 三者共同判定，绝不由摘要前缀暗示，因此 Runtime Execution Requirement 不会落入 HOST 命名空间。`EVIDENCE_INDEPENDENCE_TRUST` 另带 `independence{groupIndex,members[{dependencyAlias,key,exportId,sourcePath,domain}],domainPairs}`，Predicate 身份由 `location.node` 表达而不重复写入明细，**一个 Independence Group 一条记录**，来源精确定位到 `selector=/predicates/<predicate>/evidence/independence/<index>`，不使用 `env.roots[0]` 或单一全局布尔值。`EVIDENCE_DOMAIN_TRUST` / `EVIDENCE_FACT_TRUST` 与 `OWNER_TRUST` 的来源位置同样精确到真实 JSON Pointer：Evidence 引用使用 `requires` 的参数键与真实数组序号（`/predicates/<predicate>/evidence/requires/<parameter>/<index>`）或 Independence 成员位置（`/predicates/<predicate>/evidence/independence/<group>/members/<member>/guarantee`），同一 Descriptor 被多个位置引用时按位置分别记录，不因内容相同而合并。同一个 Descriptor 同时声明 `sourceIdentity` 与 `factIdentity` 时，两条记录各自独立生成、互不覆盖；语义上无序的输入（文件、快照、锁、映射顺序）不得改变结果，但真实源码列表序号属于位置本身，序号变化允许改变对应 `requirementId` 与产物摘要——不得为维持错误的顺序无关性而丢弃真实位置。静态结构非法是 Build 失败，只有外部授权缺失才是 Host Requirement。
 
 这些记录是 Host 与 Runtime 必须补齐并验证的外部事实，不是 Compiler 的通过结论，也不表示 Build 失败。Compiler 不内建 Assurance Engine、签名验证、信任根或运行时 Evidence 检查；Owner 的真实身份、Assurance 签发者可信性、真实 Evidence 来源/Freshness/Correlation、实际 Commit Proof 和 Invocation 资格均属于 Owner、Assurance Authority、Host / Runtime。
 
@@ -244,7 +252,5 @@ flowchart TD
 [附页 05](../architecture/archify/05-appendix-minimal-examples.zh-CN.md)。图中统一案例为 `session-demo`，
 `sha256:…mas` / `…ctx` / `…artifact` / `…provider` 只是追踪占位符。
 
-这些图是设计评审材料，不是实现完成或 E2E 通过的证据：Development Build、Host 原生 SBI 入口、
-Owner-private 原始 N1 输入、NRF 单一发布者与 Owner Recovery 均未实现或未验收，图中以虚线、
-“未实现”标签或明确的 NOT_IMPLEMENTED 说明表达。不要在仓库文档中使用某台开发机的绝对 Windows 路径作为共享链接。
+这些图是设计评审材料，不是实现完成或 E2E 通过的证据。Development Build 的实现已在 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 落地并通过本地验收，状态是“等待最终评审”，仍未合并、未冻结、未发布；图中涉及的 Host 原生 SBI 入口、Owner-private 原始 N1 输入、NRF 单一发布者与 Owner Recovery 仍未实现或未验收，以虚线、“未实现”标签或明确的 NOT_IMPLEMENTED 说明表达。不要在仓库文档中使用某台开发机的绝对 Windows 路径作为共享链接。
 
