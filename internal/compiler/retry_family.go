@@ -119,11 +119,11 @@ func validateRetryMutationFamilies(req BuildRequest, skill *SkillAST, identity d
 		}
 		add(procedurePath, anchor, "RETRY_CONTRACT_INVALID", violation.message)
 	}
-	// Positive retry assurance (§20.2 items 3-4): the retried operation must be
+	// Positive retry assurance (搂20.2 items 3-4): the retried operation must be
 	// the same Owner business identity, the original Mutation must publish a
 	// retryable, no-side-effect NOT_COMMITTED failure class, and the retry
 	// callable must accept the original business identity Schema.
-	registry := buildSchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity, req.development)
 	for _, edge := range edges {
 		retryNode := nodes[edge.nodeID]
 		targetNode := skill.Procedure.ByID[edge.target]

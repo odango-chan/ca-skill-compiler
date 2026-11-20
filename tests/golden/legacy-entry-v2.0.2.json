@@ -1,0 +1,560 @@
+{
+  "baselineCommit": "e98a7b26acabfa2a5e1587974ab9be5742e70bf7",
+  "cases": [
+    {
+      "name": "v1alpha5-trusted",
+      "check": [],
+      "buildSuccess": true,
+      "buildDiagnostics": [],
+      "dependencyClosure": [
+        "integration",
+        "tools"
+      ],
+      "outputFiles": [
+        {
+          "path": "manifest.json",
+          "sha256": "sha256:9a0fe796fe8bdd04cd21973ba0386857c9f49b766352401fd6df8439c12d2452"
+        },
+        {
+          "path": "skills/example/compiled/ingress-links.json",
+          "sha256": "sha256:00c8e2da06b8964fc79f09930769f2406a1fd01873cf8a4b602af1c7ff69eb84"
+        },
+        {
+          "path": "skills/example/compiled/procedure.json",
+          "sha256": "sha256:a688f467a445e493d87e6f428663f2e6c7938eef71047c7fe352ff6a9f7bf286"
+        }
+      ],
+      "inspect": {
+        "diagnostics": [],
+        "callables": [
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "kind": "operation",
+            "id": "amf.communication.n1n2_message_transfer",
+            "effect": "READ",
+            "sourcePath": "catalogs/toolcatalog.yaml",
+            "inputSchemaId": "urn:example:schema:amf-n1n2-transfer-input",
+            "outputSchemaId": "urn:example:schema:amf-n1n2-transfer-output"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "kind": "operation",
+            "id": "smf.session.update_from_amf",
+            "effect": "READ",
+            "sourcePath": "catalogs/toolcatalog.yaml",
+            "inputSchemaId": "urn:example:schema:smf-update-input",
+            "outputSchemaId": "urn:example:schema:smf-update-output"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "kind": "operation",
+            "id": "smf.update_timeout.handle",
+            "effect": "READ",
+            "sourcePath": "catalogs/toolcatalog.yaml",
+            "inputSchemaId": "urn:example:schema:smf-timeout-input",
+            "outputSchemaId": "urn:example:schema:smf-timeout-output"
+          }
+        ],
+        "schemas": [
+          {
+            "dependencyId": "integration",
+            "owner": "example.smf-integration-owner",
+            "id": "https://schemas.invalid/example/update-arm-input",
+            "sourcePath": "presentation/schemas/update-arm-input.json"
+          },
+          {
+            "dependencyId": "integration",
+            "owner": "example.smf-integration-owner",
+            "id": "https://schemas.invalid/example/update-request",
+            "sourcePath": "presentation/schemas/update-request.json"
+          },
+          {
+            "dependencyId": "integration",
+            "owner": "example.smf-integration-owner",
+            "id": "urn:example:schema:update-normalized",
+            "sourcePath": "presentation/schemas/update-normalized.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "https://schemas.invalid/example/transfer-input",
+            "sourcePath": "presentation/schemas/transfer-input.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "urn:example:schema:amf-n1n2-transfer-output",
+            "sourcePath": "presentation/schemas/transfer-output.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "urn:example:schema:smf-timeout-input",
+            "sourcePath": "presentation/schemas/smf-timeout-input.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "urn:example:schema:smf-timeout-output",
+            "sourcePath": "presentation/schemas/smf-timeout-output.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "urn:example:schema:smf-update-input",
+            "sourcePath": "presentation/schemas/smf-update-input.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "urn:example:schema:smf-update-output",
+            "sourcePath": "presentation/schemas/smf-update-output.json"
+          }
+        ],
+        "ingressOperations": [
+          {
+            "dependencyId": "integration",
+            "owner": "example.smf-integration-owner",
+            "kind": "ingressOperation",
+            "id": "nsmf-pdusession.update-sm-context",
+            "eventSource": "AMF",
+            "eventService": "Nsmf_PDUSession",
+            "eventOperation": "UpdateSMContext",
+            "method": "POST",
+            "path": "/sm-contexts/{smContextRef}/modify"
+          }
+        ]
+      },
+      "verifyBuildResult": ""
+    },
+    {
+      "name": "v1alpha5-invalid-procedure",
+      "check": [
+        {
+          "severity": "warning",
+          "phase": "C_WARNING",
+          "code": "UNUSED_DEPENDENCY",
+          "path": "skills/example/assurance/contract.yaml",
+          "line": 3,
+          "column": 3,
+          "message": "Contract declares a Dependency Alias that the selected Skill does not reference: tools"
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "SOURCE_ROOT_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 4,
+          "column": 9,
+          "message": "Node must contain a stage"
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_NODE_STAGE_REQUIRED",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 5,
+          "column": 12,
+          "message": "Node 'wait-only-node' declares wait but has no business stage."
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_DECLARATION_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 8,
+          "column": 20,
+          "message": "Node 'wait-only-node' has an invalid wait declaration at 'wait.event.operation'."
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_TIMEOUT_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 9,
+          "column": 16,
+          "message": "Node 'wait-only-node' has an invalid wait.timeout; expected a positive fixed ISO-8601 duration in the v1alpha5 subset."
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_RESPONSE_BOUNDARY_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 11,
+          "column": 16,
+          "message": "Node 'wait-only-node' wait.response.after does not identify one reachable response boundary on every accepted-event path."
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_TIMEOUT_ROUTE_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 13,
+          "column": 18,
+          "message": "Node 'wait-only-node' wait.routes must contain exactly TIMEOUT with a valid non-success target."
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_TIMEOUT_ROUTE_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 14,
+          "column": 9,
+          "message": "Node 'wait-only-node' wait.routes must contain exactly TIMEOUT with a valid non-success target."
+        }
+      ],
+      "buildSuccess": false,
+      "buildDiagnostics": [
+        {
+          "severity": "warning",
+          "phase": "C_WARNING",
+          "code": "UNUSED_DEPENDENCY",
+          "path": "skills/example/assurance/contract.yaml",
+          "line": 3,
+          "column": 3,
+          "message": "Contract declares a Dependency Alias that the selected Skill does not reference: tools"
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "SOURCE_ROOT_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 4,
+          "column": 9,
+          "message": "Node must contain a stage"
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_NODE_STAGE_REQUIRED",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 5,
+          "column": 12,
+          "message": "Node 'wait-only-node' declares wait but has no business stage."
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_DECLARATION_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 8,
+          "column": 20,
+          "message": "Node 'wait-only-node' has an invalid wait declaration at 'wait.event.operation'."
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_TIMEOUT_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 9,
+          "column": 16,
+          "message": "Node 'wait-only-node' has an invalid wait.timeout; expected a positive fixed ISO-8601 duration in the v1alpha5 subset."
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_RESPONSE_BOUNDARY_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 11,
+          "column": 16,
+          "message": "Node 'wait-only-node' wait.response.after does not identify one reachable response boundary on every accepted-event path."
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_TIMEOUT_ROUTE_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 13,
+          "column": 18,
+          "message": "Node 'wait-only-node' wait.routes must contain exactly TIMEOUT with a valid non-success target."
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "WAIT_TIMEOUT_ROUTE_INVALID",
+          "path": "skills/example/assurance/procedure.yaml",
+          "line": 14,
+          "column": 9,
+          "message": "Node 'wait-only-node' wait.routes must contain exactly TIMEOUT with a valid non-success target."
+        }
+      ],
+      "dependencyClosure": [],
+      "outputFiles": [],
+      "inspect": {
+        "diagnostics": [],
+        "callables": [
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "kind": "operation",
+            "id": "amf.communication.n1n2_message_transfer",
+            "effect": "READ",
+            "sourcePath": "catalogs/toolcatalog.yaml",
+            "inputSchemaId": "urn:example:schema:amf-n1n2-transfer-input",
+            "outputSchemaId": "urn:example:schema:amf-n1n2-transfer-output"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "kind": "operation",
+            "id": "smf.session.update_from_amf",
+            "effect": "READ",
+            "sourcePath": "catalogs/toolcatalog.yaml",
+            "inputSchemaId": "urn:example:schema:smf-update-input",
+            "outputSchemaId": "urn:example:schema:smf-update-output"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "kind": "operation",
+            "id": "smf.update_timeout.handle",
+            "effect": "READ",
+            "sourcePath": "catalogs/toolcatalog.yaml",
+            "inputSchemaId": "urn:example:schema:smf-timeout-input",
+            "outputSchemaId": "urn:example:schema:smf-timeout-output"
+          }
+        ],
+        "schemas": [
+          {
+            "dependencyId": "integration",
+            "owner": "example.smf-integration-owner",
+            "id": "https://schemas.invalid/example/update-arm-input",
+            "sourcePath": "presentation/schemas/update-arm-input.json"
+          },
+          {
+            "dependencyId": "integration",
+            "owner": "example.smf-integration-owner",
+            "id": "https://schemas.invalid/example/update-request",
+            "sourcePath": "presentation/schemas/update-request.json"
+          },
+          {
+            "dependencyId": "integration",
+            "owner": "example.smf-integration-owner",
+            "id": "urn:example:schema:update-normalized",
+            "sourcePath": "presentation/schemas/update-normalized.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "https://schemas.invalid/example/transfer-input",
+            "sourcePath": "presentation/schemas/transfer-input.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "urn:example:schema:amf-n1n2-transfer-output",
+            "sourcePath": "presentation/schemas/transfer-output.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "urn:example:schema:smf-timeout-input",
+            "sourcePath": "presentation/schemas/smf-timeout-input.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "urn:example:schema:smf-timeout-output",
+            "sourcePath": "presentation/schemas/smf-timeout-output.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "urn:example:schema:smf-update-input",
+            "sourcePath": "presentation/schemas/smf-update-input.json"
+          },
+          {
+            "dependencyId": "tools",
+            "owner": "example.amf-tool-owner",
+            "id": "urn:example:schema:smf-update-output",
+            "sourcePath": "presentation/schemas/smf-update-output.json"
+          }
+        ],
+        "ingressOperations": [
+          {
+            "dependencyId": "integration",
+            "owner": "example.smf-integration-owner",
+            "kind": "ingressOperation",
+            "id": "nsmf-pdusession.update-sm-context",
+            "eventSource": "AMF",
+            "eventService": "Nsmf_PDUSession",
+            "eventOperation": "UpdateSMContext",
+            "method": "POST",
+            "path": "/sm-contexts/{smContextRef}/modify"
+          }
+        ]
+      },
+      "verifyBuildResult": ""
+    },
+    {
+      "name": "parity-success-project",
+      "check": [],
+      "buildSuccess": true,
+      "buildDiagnostics": [],
+      "dependencyClosure": [
+        "ca",
+        "ca-context"
+      ],
+      "outputFiles": [
+        {
+          "path": "manifest.json",
+          "sha256": "sha256:36de17062a5b8a9139d937c47e7d58f06cc1aeecdc018f86414c3de40266b0d6"
+        },
+        {
+          "path": "skills/verify-ue-registration/compiled/ingress-links.json",
+          "sha256": "sha256:c18fbf192f8697e91444b95581c52428956c16e66c17d27767529a3ecee80c7b"
+        },
+        {
+          "path": "skills/verify-ue-registration/compiled/procedure.json",
+          "sha256": "sha256:a403a01c2ce5212794c1ab8145d48eddc1ffa898e04d7293873410c71d10a251"
+        }
+      ],
+      "inspect": {
+        "diagnostics": [],
+        "callables": [
+          {
+            "dependencyId": "ca",
+            "owner": "example-ue-owner",
+            "kind": "observation",
+            "id": "ue.registration.current",
+            "effect": "READ",
+            "sourcePath": "tool-catalog.yaml",
+            "queryContextSchemaId": "urn:example:ca:registration-query:v1",
+            "outputSchemaId": "urn:example:ca:registration:v1"
+          }
+        ],
+        "schemas": [
+          {
+            "dependencyId": "ca",
+            "owner": "example-ue-owner",
+            "id": "urn:example:ca:registration-query:v1",
+            "sourcePath": "registration-query.schema.yaml"
+          },
+          {
+            "dependencyId": "ca",
+            "owner": "example-ue-owner",
+            "id": "urn:example:ca:registration:v1",
+            "sourcePath": "registration.schema.yaml"
+          },
+          {
+            "dependencyId": "ca-context",
+            "owner": "example-host-owner",
+            "id": "urn:example:ca:invocation-context:v1",
+            "sourcePath": "invocation-context.schema.yaml"
+          }
+        ],
+        "ingressOperations": []
+      },
+      "verifyBuildResult": ""
+    },
+    {
+      "name": "parity-success-no-evidence",
+      "check": [],
+      "buildSuccess": true,
+      "buildDiagnostics": [],
+      "dependencyClosure": [
+        "ca",
+        "ca-context"
+      ],
+      "outputFiles": [
+        {
+          "path": "manifest.json",
+          "sha256": "sha256:36de17062a5b8a9139d937c47e7d58f06cc1aeecdc018f86414c3de40266b0d6"
+        },
+        {
+          "path": "skills/verify-ue-registration/compiled/ingress-links.json",
+          "sha256": "sha256:c18fbf192f8697e91444b95581c52428956c16e66c17d27767529a3ecee80c7b"
+        },
+        {
+          "path": "skills/verify-ue-registration/compiled/procedure.json",
+          "sha256": "sha256:a403a01c2ce5212794c1ab8145d48eddc1ffa898e04d7293873410c71d10a251"
+        }
+      ],
+      "inspect": {
+        "diagnostics": [],
+        "callables": [
+          {
+            "dependencyId": "ca",
+            "owner": "example-ue-owner",
+            "kind": "observation",
+            "id": "ue.registration.current",
+            "effect": "READ",
+            "sourcePath": "tool-catalog.yaml",
+            "queryContextSchemaId": "urn:example:ca:registration-query:v1",
+            "outputSchemaId": "urn:example:ca:registration:v1"
+          }
+        ],
+        "schemas": [
+          {
+            "dependencyId": "ca",
+            "owner": "example-ue-owner",
+            "id": "urn:example:ca:registration-query:v1",
+            "sourcePath": "registration-query.schema.yaml"
+          },
+          {
+            "dependencyId": "ca",
+            "owner": "example-ue-owner",
+            "id": "urn:example:ca:registration:v1",
+            "sourcePath": "registration.schema.yaml"
+          },
+          {
+            "dependencyId": "ca-context",
+            "owner": "example-host-owner",
+            "id": "urn:example:ca:invocation-context:v1",
+            "sourcePath": "invocation-context.schema.yaml"
+          }
+        ],
+        "ingressOperations": []
+      },
+      "verifyBuildResult": ""
+    },
+    {
+      "name": "parity-project",
+      "check": [
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "DEPENDENCY_SNAPSHOT_MISSING",
+          "path": "",
+          "message": "No supplied immutable DependencySnapshot has the used Dependency Alias as its dependencyId: ca"
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "DEPENDENCY_SNAPSHOT_MISSING",
+          "path": "",
+          "message": "No supplied immutable DependencySnapshot has the used Dependency Alias as its dependencyId: ca-context"
+        }
+      ],
+      "buildSuccess": false,
+      "buildDiagnostics": [
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "DEPENDENCY_SNAPSHOT_MISSING",
+          "path": "",
+          "message": "No supplied immutable DependencySnapshot has the used Dependency Alias as its dependencyId: ca"
+        },
+        {
+          "severity": "error",
+          "phase": "C_STATIC",
+          "code": "DEPENDENCY_SNAPSHOT_MISSING",
+          "path": "",
+          "message": "No supplied immutable DependencySnapshot has the used Dependency Alias as its dependencyId: ca-context"
+        }
+      ],
+      "dependencyClosure": [],
+      "outputFiles": [],
+      "inspect": {
+        "diagnostics": [],
+        "callables": [],
+        "schemas": [],
+        "ingressOperations": []
+      },
+      "verifyBuildResult": ""
+    }
+  ]
+}

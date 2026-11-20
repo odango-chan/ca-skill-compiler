@@ -127,7 +127,7 @@ func TestWP3B001PositiveExportIdentity(t *testing.T) {
 	}
 
 	want := []linkedExport{
-		{DependencyAlias: "ca", ExportKind: "evidenceGuarantee", ExportID: "ue.registration-state", TrustedOwner: "example-ue-owner", SelfDeclaredOwner: "example-ue-owner"},
+		{DependencyAlias: "ca", ExportKind: "evidenceGuarantee", ExportID: "ue.registration-state", TrustedOwner: "example-ue-owner", SelfDeclaredOwner: "example-ue-owner", SourcePath: "evidence-guarantees.yaml"},
 		{
 			DependencyAlias: "ca", ExportKind: "observation", ExportID: "ue.registration.current",
 			TrustedOwner: "example-ue-owner", SelfDeclaredOwner: "example-ue-owner",
@@ -342,4 +342,29 @@ func TestWP3BExportIDLexer(t *testing.T) {
 			t.Fatalf("invalid ExportId accepted: %q", value)
 		}
 	}
+}
+
+// WP3B-010: a multi-Owner snapshot has no exact attribution for a referenced
+// EvidenceDescriptor export. The Descriptor is a formal export, so a missing
+// export-owner record is an unverified Owner, not an Evidence trust exemption.
+func TestWP3B010MultiOwnerEvidenceGuaranteeMissingAttribution(t *testing.T) {
+	fixture := multiOwnerFixture(t)
+	for index := range fixture.bindings {
+		if fixture.bindings[index].DependencyID != "ca" {
+			continue
+		}
+		kept := make([]ExportOwner, 0, len(fixture.bindings[index].ExportOwners))
+		for _, exportOwner := range fixture.bindings[index].ExportOwners {
+			if exportOwner.ExportKind == "evidenceGuarantee" {
+				continue
+			}
+			kept = append(kept, exportOwner)
+		}
+		fixture.bindings[index].ExportOwners = kept
+	}
+	req := fixture.request(t)
+	assertNoRequestEnvelopeDiagnostics(t, req)
+	diagnostics := wp3bCheckBuildAgreement(t, req)
+	expectOnlyWP3BDiagnostics(t, diagnostics, "DEPENDENCY_EXPORT_OWNER_UNVERIFIED", 1)
+	assertFailureAtomic(t, Build(req))
 }

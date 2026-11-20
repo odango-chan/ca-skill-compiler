@@ -14,9 +14,9 @@ func validateScriptValueTypes(req BuildRequest, skill *SkillAST, identity depend
 	if skill == nil || skill.Procedure == nil || skill.Contract == nil || len(scriptInputSchemas) == 0 {
 		return diagnostics
 	}
-	registry := buildSchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity, req.development)
 	contextRoot, requestRoot := sourcePathRootSchemas(skill, registry)
-	producerSchemas := producerOutputSchemas(skill, ownerLinking, registry)
+	producerSchemas := producerOutputSchemas(skill, ownerLinking, registry, nil)
 	base := "skills/" + skill.Name + "/"
 	for _, nodeID := range sortedStringMapKeys(skill.Procedure.ByID) {
 		node := skill.Procedure.ByID[nodeID]

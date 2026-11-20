@@ -19,7 +19,7 @@ func validateSourcePathSchemas(req BuildRequest, skill *SkillAST, identity depen
 	if skill == nil || skill.Contract == nil || skill.Contract.Raw == nil {
 		return diagnostics
 	}
-	registry := buildSchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity, req.development)
 	base := "skills/" + skill.Name + "/"
 
 	var requestRoot *yaml.Node

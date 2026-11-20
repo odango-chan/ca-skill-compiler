@@ -14,9 +14,9 @@ func validatePredicateArgumentTypes(req BuildRequest, skill *SkillAST, identity 
 	if skill == nil || skill.Procedure == nil || skill.Predicates == nil || skill.Contract == nil {
 		return diagnostics
 	}
-	registry := buildSchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity, req.development)
 	contextRoot, requestRoot := sourcePathRootSchemas(skill, registry)
-	producers := producerOutputSchemas(skill, ownerLinking, registry)
+	producers := producerOutputSchemas(skill, ownerLinking, registry, nil)
 	for _, nodeID := range sortedStringMapKeys(skill.Procedure.ByID) {
 		node := skill.Procedure.ByID[nodeID]
 		if node == nil {

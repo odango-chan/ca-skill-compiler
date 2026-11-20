@@ -119,7 +119,7 @@ func validateReconcileContracts(req BuildRequest, skill *SkillAST, identity depe
 			}
 		}
 	}
-	registry := buildSchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity, req.development)
 	trustedOwner := map[string]string{}
 	for _, export := range ownerLinking.Exports {
 		trustedOwner[export.DependencyAlias+"\x00"+export.ExportKind+"\x00"+export.ExportID] = export.TrustedOwner

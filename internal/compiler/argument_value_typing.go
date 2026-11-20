@@ -15,9 +15,9 @@ func validateArgumentValueTypes(req BuildRequest, skill *SkillAST, identity depe
 	if skill == nil || skill.Procedure == nil || skill.Contract == nil {
 		return diagnostics
 	}
-	registry := buildSchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity, req.development)
 	contextRoot, requestRoot := sourcePathRootSchemas(skill, registry)
-	producerSchemas := producerOutputSchemas(skill, ownerLinking, registry)
+	producerSchemas := producerOutputSchemas(skill, ownerLinking, registry, nil)
 	linked := map[string]linkedExport{}
 	for _, export := range ownerLinking.Exports {
 		if export.ExportKind == "operation" || export.ExportKind == "observation" {

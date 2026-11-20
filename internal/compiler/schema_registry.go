@@ -27,15 +27,35 @@ type schemaResource struct {
 	owner    string
 	path     string
 	node     *yaml.Node
+	// packageKey is the exact Interface Package that owns an external resource.
+	// It is set only by the Development profile, where every $ref is resolved in
+	// the scope of the declaring document. The frozen v1alpha5 registry leaves it
+	// zero and keeps its pinned resolution behavior.
+	packageKey DevelopmentPackageKey
 }
 
 type schemaRegistry struct {
 	external map[string][]schemaResource
 	local    map[string]schemaResource
+	// development is non-nil only for the Development profile. It supplies the
+	// single Package-scoped resolver shared by every Schema entry point.
+	development  *developmentSemantics
+	skillContext developmentSchemaContext
+	aliasByKey   map[DevelopmentPackageKey]string
 }
 
-func buildSchemaRegistry(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult) schemaRegistry {
-	registry := schemaRegistry{external: map[string][]schemaResource{}, local: map[string]schemaResource{}}
+func buildSchemaRegistry(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, development *developmentSemantics) schemaRegistry {
+	registry := schemaRegistry{external: map[string][]schemaResource{}, local: map[string]schemaResource{}, development: development}
+	if development != nil {
+		registry.aliasByKey = map[DevelopmentPackageKey]string{}
+		registry.skillContext = development.scope.schemaContextForSkill(skill)
+		for _, root := range development.env.roots {
+			registry.aliasByKey[root.Key] = root.Alias
+		}
+		for _, synthetic := range development.synthetic {
+			registry.aliasByKey[synthetic.Key] = synthetic.Alias
+		}
+	}
 	if skill == nil {
 		return registry
 	}
@@ -76,10 +96,57 @@ func buildSchemaRegistry(req BuildRequest, skill *SkillAST, identity dependencyI
 				continue
 			}
 			resource := schemaResource{identity: export.ExportID, external: true, alias: alias, owner: owner, path: file.Path, node: root}
+			if development != nil {
+				if key, exists := development.packageKeyForLegacyAlias(alias); exists {
+					resource.packageKey = key
+				}
+			}
 			registry.external[export.ExportID] = append(registry.external[export.ExportID], resource)
 		}
 	}
 	return registry
+}
+
+// packageKeyForLegacyAlias maps a legacy/build alias (root or synthetic) back to
+// the exact Interface Package it denotes.
+func (semantics *developmentSemantics) packageKeyForLegacyAlias(alias string) (DevelopmentPackageKey, bool) {
+	if key, exists := semantics.env.rootByAlias[alias]; exists {
+		return key, true
+	}
+	for _, synthetic := range semantics.synthetic {
+		if synthetic.Alias == alias {
+			return synthetic.Key, true
+		}
+	}
+	return DevelopmentPackageKey{}, false
+}
+
+// resolveReferenceFrom resolves one $ref in the scope of the document that
+// declares it. The frozen v1alpha5 profile keeps the pinned build-global
+// resolution; the Development profile delegates to the single Package-scoped
+// resolver and never falls back to an unrelated Package.
+func (registry schemaRegistry) resolveReferenceFrom(resource schemaResource, ref string) (schemaResource, string) {
+	if registry.development == nil {
+		return registry.resolveReference(ref)
+	}
+	context := registry.skillContext
+	if resource.packageKey.PackageID != "" {
+		context = registry.development.scope.schemaContextForPackage(resource.packageKey)
+	}
+	devResource, problem := registry.development.scope.resolveSchemaReference(context, ref)
+	if problem != "" {
+		return schemaResource{}, problem
+	}
+	alias, exists := registry.aliasByKey[devResource.packageKey]
+	if !exists {
+		return schemaResource{}, "missing"
+	}
+	for _, candidate := range registry.external[devResource.id] {
+		if candidate.alias == alias {
+			return candidate, ""
+		}
+	}
+	return schemaResource{}, "missing"
 }
 
 // resolveReference resolves a frozen Schema $ref identity. It never guesses a
@@ -116,11 +183,11 @@ type schemaClosureResult struct {
 	visiting    map[string]bool
 }
 
-func validateSchemaClosure(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult) []Diagnostic {
+func validateSchemaClosure(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, development *developmentSemantics) []Diagnostic {
 	if skill == nil || skill.Contract == nil || skill.Contract.Raw == nil {
 		return []Diagnostic{}
 	}
-	registry := buildSchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity, development)
 	result := &schemaClosureResult{diagnostics: []Diagnostic{}, validated: map[string]bool{}, visiting: map[string]bool{}}
 	contractPath := "skills/" + skill.Name + "/assurance/contract.yaml"
 
@@ -195,22 +262,33 @@ func (registry schemaRegistry) walkSchemaClosure(resource schemaResource, result
 	}
 	for _, refNode := range schemaRefNodes(resource.node) {
 		ref := scalar(refNode)
-		target, problem := registry.resolveReference(ref)
+		target, problem := registry.resolveReferenceFrom(resource, ref)
+		reportable := resource.external || !strings.Contains(ref, "::")
 		switch problem {
+		case "":
+			registry.walkSchemaClosure(target, result)
+		case "local":
+			// Same-document fragment: the shared Schema engine validates it.
 		case "missing":
-			if resource.external || !strings.Contains(ref, "::") {
+			if reportable {
 				result.diagnostics = append(result.diagnostics, dependencyDiagnostic(
 					"error", "C_STATIC", "SCHEMA_MISSING", resourceDiagnosticPath(resource), refNode,
 					"Schema $ref does not resolve to a trusted Schema $id: "+ref))
 			}
 		case "ambiguous":
-			if resource.external || !strings.Contains(ref, "::") {
+			if reportable {
 				result.diagnostics = append(result.diagnostics, dependencyDiagnostic(
 					"error", "C_STATIC", "EXPORT_ID_AMBIGUOUS", resourceDiagnosticPath(resource), refNode,
 					"Schema $ref resolves to more than one trusted Schema $id: "+ref))
 			}
 		default:
-			registry.walkSchemaClosure(target, result)
+			// A Development Package-scope rejection: the reference names a
+			// document outside the declaring Package's declared dependencies.
+			if reportable {
+				result.diagnostics = append(result.diagnostics, dependencyDiagnostic(
+					"error", "C_STATIC", "SCHEMA_MISSING", resourceDiagnosticPath(resource), refNode,
+					"Schema $ref "+ref+" does not resolve from its declaring Package: "+problem))
+			}
 		}
 	}
 }
@@ -272,8 +350,13 @@ func (registry schemaRegistry) resolveSchemaRoot(resource schemaResource) (schem
 		if ref == nil {
 			return resource, ""
 		}
-		target, problem := registry.resolveReference(scalar(ref))
+		target, problem := registry.resolveReferenceFrom(resource, scalar(ref))
 		if problem != "" {
+			if problem != "ambiguous" && problem != "cycle" && problem != "missing" {
+				// A Development Package-scope rejection is reported at the same
+				// position as an unresolvable reference.
+				problem = "missing"
+			}
 			return schemaResource{}, problem
 		}
 		key := schemaResourceKey(target)
@@ -361,6 +444,13 @@ func compileSchemaClosure(registry schemaRegistry, validated map[string]bool) []
 		if !ok {
 			return []Diagnostic{dependencyDiagnostic("error", "C_STATIC", "SCHEMA_INVALID", "", nil, "Schema document is not a JSON value")}
 		}
+		if registry.development != nil {
+			// The Development resolver already proved the exact Package binding of
+			// every alias-qualified $ref. The JSON Schema engine consumes the
+			// absolute Schema identity, so the validated qualifier is removed from
+			// the compiled view only. The frozen v1alpha5 path never rewrites.
+			rewriteDevelopmentJSONRefs(value)
+		}
 		if err := compiler.AddResource(id, value); err != nil {
 			return []Diagnostic{dependencyDiagnostic("error", "C_STATIC", "SCHEMA_INVALID", "", nil, "Schema registration failed: "+err.Error())}
 		}
@@ -374,6 +464,31 @@ func compileSchemaClosure(registry schemaRegistry, validated map[string]bool) []
 		}
 	}
 	return diagnostics
+}
+
+// rewriteDevelopmentJSONRefs removes the already-proven authoring alias qualifier
+// from alias-qualified Schema references. It is applied only to the Development
+// profile's private JSON Schema compilation view, after the Package-scoped
+// resolver accepted every reference.
+func rewriteDevelopmentJSONRefs(value any) {
+	switch node := value.(type) {
+	case map[string]any:
+		for key, item := range node {
+			if key == "$ref" {
+				if ref, ok := item.(string); ok {
+					if index := strings.Index(ref, "::"); index > 0 {
+						node[key] = ref[index+2:]
+					}
+				}
+				continue
+			}
+			rewriteDevelopmentJSONRefs(item)
+		}
+	case []any:
+		for _, item := range node {
+			rewriteDevelopmentJSONRefs(item)
+		}
+	}
 }
 
 func yamlNodeToJSONValue(node *yaml.Node) (any, bool) {

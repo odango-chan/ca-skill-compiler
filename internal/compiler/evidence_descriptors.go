@@ -460,7 +460,7 @@ func validateEvidenceDescriptors(req BuildRequest, skill *SkillAST, identity dep
 				for _, guarantee := range sequence(requires.Content[i+1]) {
 					if alias, exportID, ok := splitQualifiedReference(guarantee); ok {
 						referenced[alias+"::"+exportID] = true
-						validateEvidenceDescriptorReference(alias, exportID, indexes, trusted, add)
+						validateEvidenceDescriptorReference(alias, exportID, indexes, trusted, add, nil)
 					}
 				}
 			}
@@ -477,7 +477,7 @@ func validateEvidenceDescriptors(req BuildRequest, skill *SkillAST, identity dep
 				}
 				if guarantee := unalias(child(member, "guarantee")); guarantee != nil {
 					if alias, exportID, ok := splitQualifiedReference(guarantee); ok {
-						validateEvidenceDescriptorReference(alias, exportID, indexes, trusted, add)
+						validateEvidenceDescriptorReference(alias, exportID, indexes, trusted, add, nil)
 					}
 				}
 			}
@@ -621,7 +621,7 @@ func evidenceDescriptorDeclaresProducer(descriptor evidenceDescriptor, exportID,
 	return false
 }
 
-func validateEvidenceDescriptorReference(alias, exportID string, indexes map[string]snapshotExportIndex, trusted *trustedEvidenceBindings, add func(string, *yaml.Node, string, string)) {
+func validateEvidenceDescriptorReference(alias, exportID string, indexes map[string]snapshotExportIndex, trusted *trustedEvidenceBindings, add func(string, *yaml.Node, string, string), deferTrust func(string)) {
 	index, ok := indexes[alias]
 	if !ok {
 		add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID", "Evidence guarantee references an unverified dependency alias: "+alias)
@@ -683,15 +683,27 @@ func validateEvidenceDescriptorReference(alias, exportID string, indexes map[str
 			add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
 				"Evidence Descriptor sourceIdentity must declare an absolute domain and a record.* path: "+exportID)
 		}
-		if trusted != nil && !trusted.hasDomain(descriptor.SourceIdentity.Domain) {
-			add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
-				"Evidence Descriptor sourceIdentity domain is not authorized by the trusted IndependentDomains input: "+exportID)
+		if trusted == nil {
+			if deferTrust != nil {
+				deferTrust("sourceIdentity")
+			}
+		} else if !trusted.hasDomain(descriptor.SourceIdentity.Domain) {
+			if deferTrust != nil {
+				deferTrust("sourceIdentity")
+			} else {
+				add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
+					"Evidence Descriptor sourceIdentity domain is not authorized by the trusted IndependentDomains input: "+exportID)
+			}
 		}
 	}
 	if descriptor.FactIdentity != nil {
 		if !trusted.hasCommonFact(descriptor.FactIdentity.Namespace, descriptor.FactIdentity.Fact, descriptor.Authority) {
-			add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
-				"Evidence Descriptor factIdentity is not authorized by the trusted CommonFact deployment binding: "+exportID)
+			if deferTrust != nil {
+				deferTrust("factIdentity")
+			} else {
+				add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
+					"Evidence Descriptor factIdentity is not authorized by the trusted CommonFact deployment binding: "+exportID)
+			}
 		}
 	}
 }

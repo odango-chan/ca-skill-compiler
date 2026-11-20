@@ -10,16 +10,16 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-func validateProducerSourcePaths(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string) []Diagnostic {
+func validateProducerSourcePaths(req BuildRequest, skill *SkillAST, identity dependencyIdentityResult, ownerLinking ownerLinkingResult, procedurePath string, development *developmentSemantics) []Diagnostic {
 	diagnostics := make([]Diagnostic, 0)
 	if skill == nil || skill.Procedure == nil {
 		return diagnostics
 	}
-	registry := buildSchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity, req.development)
 	graph := buildProcedureGraph(skill.Procedure)
 	start := scalar(skill.Procedure.Start)
 	dominators := procedureDominators(graph, start)
-	outputSchemas := producerOutputSchemas(skill, ownerLinking, registry)
+	outputSchemas := producerOutputSchemas(skill, ownerLinking, registry, development)
 	reachabilityCache := map[string]map[string]map[string]bool{}
 
 	for _, nodeID := range sortedStringMapKeys(skill.Procedure.ByID) {
@@ -96,15 +96,51 @@ type producerOutput struct {
 	schema      *yaml.Node
 	effect      string
 	recoverable bool
+	// packageKey is the exact Interface Package that owns schema. It is set only
+	// in the Development profile, where every nested $ref is resolved in the
+	// scope of the document that declares it.
+	packageKey DevelopmentPackageKey
+	scope      *developmentLinkScope
 }
 
-func producerOutputSchemas(skill *SkillAST, ownerLinking ownerLinkingResult, registry schemaRegistry) map[string]producerOutput {
+// producerOutputSchemas resolves every used callable's output Schema.
+//
+// In the frozen v1alpha5 profile (development == nil) the qualified reference is
+// authoritative and the legacy unique-closure-$id fallback is preserved
+// byte-for-byte. In the Development profile the output Schema is resolved only
+// from the Callable's own Package and that Package's declared direct
+// dependencies; a Schema that merely exists elsewhere in the Lock Closure is not
+// a legal target and is never used.
+func producerOutputSchemas(skill *SkillAST, ownerLinking ownerLinkingResult, registry schemaRegistry, development *developmentSemantics) map[string]producerOutput {
 	linked := map[string]producerOutput{}
 	for _, export := range ownerLinking.Exports {
 		if (export.ExportKind != "operation" && export.ExportKind != "observation") || export.OutputSchemaID == "" {
 			continue
 		}
+		if development != nil {
+			key, exists := development.env.rootByAlias[export.DependencyAlias]
+			if !exists {
+				continue
+			}
+			resource, problem := development.scope.resolveSchemaInPackage(key, export.OutputSchemaID)
+			if problem != "" {
+				continue
+			}
+			linked[export.DependencyAlias+"::"+export.ExportID] = producerOutput{
+				schema: unalias(resource.node), effect: export.Effect,
+				recoverable: export.MutationFields.RecoverableSchemaID != "",
+				packageKey:  resource.packageKey, scope: development.scope,
+			}
+			continue
+		}
 		resource, problem := registry.resolveReference(export.DependencyAlias + "::" + export.OutputSchemaID)
+		if problem != "" {
+			// The Callable contract names a stable Schema $id. That Schema may be
+			// exported by a transitive locked package rather than the Callable's
+			// own package, so fall back to the unique closure-wide identity. The
+			// qualified lookup stays authoritative when it resolves.
+			resource, problem = registry.resolveReference(export.OutputSchemaID)
+		}
 		if problem != "" {
 			continue
 		}
@@ -178,6 +214,7 @@ func checkProducerPath(value *yaml.Node, consumerID, consumerStage string, regis
 	}
 	optional := false
 	current := output.schema
+	currentPackage := output.packageKey
 	for _, segment := range segments[3:] {
 		if current == nil || current.Kind != yaml.MappingNode {
 			addSourcePathDiagnostic(&diagnostics, "error", "C_STATIC", "SOURCE_PATH_INVALID", procedurePath, value,
@@ -185,11 +222,23 @@ func checkProducerPath(value *yaml.Node, consumerID, consumerStage string, regis
 			return diagnostics
 		}
 		if ref := child(current, "$ref"); ref != nil {
-			resource, problem := registry.resolveReference(scalar(ref))
-			if problem != "" {
-				return diagnostics
+			if output.scope != nil {
+				// Development: the referenced Schema must be reachable from the
+				// declaring document's own Package scope.
+				resource, problem := output.scope.resolveSchemaReference(
+					output.scope.schemaContextForPackage(currentPackage), scalar(ref))
+				if problem != "" {
+					return diagnostics
+				}
+				current = unalias(resource.node)
+				currentPackage = resource.packageKey
+			} else {
+				resource, problem := registry.resolveReference(scalar(ref))
+				if problem != "" {
+					return diagnostics
+				}
+				current = unalias(resource.node)
 			}
-			current = unalias(resource.node)
 		}
 		property := child(child(current, "properties"), segment)
 		if property == nil {

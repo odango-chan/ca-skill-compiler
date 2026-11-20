@@ -24,13 +24,19 @@ Usage:
   skillc build   --request <REQUEST.json> --out <DIR>
   skillc inspect <PROJECT>                       inspect dependency snapshots and bindings
   skillc inspect --request <REQUEST.json>
+  skillc build-development --request <REQUEST.json> --out <DIR>
+                                                 Development Build (Compile -> Link -> Build)
+  skillc verify-development --request <REQUEST.json> --result <RESULT.json>
+                                                 verify an actual Development artifact against
+                                                 its original request (full deterministic rebuild)
   skillc version                                 print the Compiler product version
   skillc help                                    show this help
 
 Options:
-  --request FILE   read a complete BuildRequest JSON document instead of a project
+  --request FILE   read a complete request JSON document instead of a project
                    directory (strict decoding; dependencies and trusted build
                    context come from that document)
+  --result FILE    read a complete Development BuildResult JSON document
   --out DIR        artifact output directory; must be absent or empty. Defaults
                    to <PROJECT>/output in project mode and is required with
                    --request
@@ -44,6 +50,9 @@ API versions:
   build request        connectionagent.io/compiler-build-request/v1alpha5
   build result         connectionagent.io/compiler-build-result/v1alpha5
   dependency inspection connectionagent.io/compiler-dependency-inspection/v1alpha5
+  development request  connectionagent.io/compiler-development-build-request/v1alpha1
+  development result   connectionagent.io/compiler-development-build-result/v1alpha1
+  development artifact connectionagent.io/compiler-development-artifact/v1alpha1
 
 Project layout:
   skills/...                       author Skill source (or files/skills/...)
@@ -59,12 +68,15 @@ Exit codes:
 The CLI never infers a missing dependency, digest or Owner attribution: an
 incomplete trusted project is reported and fails closed. v1alpha4 requests are
 rejected like every other unsupported language target.
+A Development artifact is LINKED / BUILT / NOT_ADMITTED: it is never an
+execution authorization or a Host admission decision.
 `
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }
 
 type options struct {
 	request string
+	result  string
 	out     string
 	skills  []string
 	json    bool
@@ -90,7 +102,13 @@ func run(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stdout, "build request apiVersion: %s\n", compiler.BuildRequestAPIVersion)
 		fmt.Fprintf(stdout, "build result apiVersion: %s\n", compiler.BuildResultAPIVersion)
 		fmt.Fprintf(stdout, "dependency inspection apiVersion: %s\n", compiler.DependencyInspectionAPIVersion)
+		fmt.Fprintf(stdout, "development request apiVersion: %s\n", compiler.DevelopmentBuildRequestAPIVersion)
+		fmt.Fprintf(stdout, "development result apiVersion: %s\n", compiler.DevelopmentBuildResultAPIVersion)
+		fmt.Fprintf(stdout, "development artifact apiVersion: %s\n", compiler.DevelopmentArtifactAPIVersion)
 		return 0
+	}
+	if command == "build-development" || command == "verify-development" {
+		return runDevelopmentCommand(command, args[1:], stdout, stderr)
 	}
 	if command != "check" && command != "build" && command != "inspect" {
 		fmt.Fprintf(stderr, "skillc: unknown command %q\n\n%s", command, usageText)
@@ -224,6 +242,103 @@ func loadRequest(opts options, positionals []string) (compiler.BuildRequest, str
 		return compiler.BuildRequest{}, "", err
 	}
 	return req, absolute, nil
+}
+
+func runDevelopmentCommand(command string, args []string, stdout, stderr io.Writer) int {
+	var opts options
+	set := flag.NewFlagSet("skillc "+command, flag.ContinueOnError)
+	set.SetOutput(io.Discard)
+	set.StringVar(&opts.request, "request", "", "Development BuildRequest JSON file")
+	set.BoolVar(&opts.json, "json", false, "machine-readable output")
+	if command == "build-development" {
+		set.StringVar(&opts.out, "out", "", "artifact output directory")
+	} else {
+		set.StringVar(&opts.result, "result", "", "Development BuildResult JSON file")
+	}
+	if err := set.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			fmt.Fprint(stdout, usageText)
+			return 0
+		}
+		fmt.Fprintln(stderr, "skillc:", err)
+		return 2
+	}
+	if set.NArg() > 0 {
+		fmt.Fprintln(stderr, "skillc: "+command+" takes no positional arguments")
+		return 2
+	}
+	if opts.request == "" {
+		fmt.Fprintln(stderr, "skillc: --request is required with "+command)
+		return 2
+	}
+	raw, err := os.ReadFile(opts.request)
+	if err != nil {
+		fmt.Fprintln(stderr, "skillc: read Development BuildRequest:", err)
+		return 2
+	}
+	req, err := compiler.DecodeDevelopmentBuildRequestJSON(raw)
+	if err != nil {
+		fmt.Fprintln(stderr, "skillc: decode Development BuildRequest:", err)
+		return 2
+	}
+	if command == "build-development" {
+		if opts.out == "" {
+			fmt.Fprintln(stderr, "skillc: --out is required with build-development")
+			return 2
+		}
+		result := compiler.BuildDevelopment(req)
+		if result.Diagnostics == nil {
+			result.Diagnostics = []compiler.Diagnostic{}
+		}
+		if opts.json {
+			if err := writeJSON(stdout, result); err != nil {
+				fmt.Fprintln(stderr, "skillc:", err)
+				return 2
+			}
+		} else {
+			printDiagnostics(stderr, result.Diagnostics)
+		}
+		if !result.Success {
+			return 1
+		}
+		if err := writeOutput("", opts.out, result.OutputFiles); err != nil {
+			fmt.Fprintln(stderr, "output:", err)
+			return 1
+		}
+		if !opts.json {
+			fmt.Fprintf(stdout, "Development build complete: %s / %s / %s / %s, %d file(s), artifact %s -> %s\n",
+				result.SourceStatus, result.InterfaceLinkStatus, result.ArtifactStatus, result.ExecutionStatus,
+				len(result.OutputFiles), result.ArtifactDigest, opts.out)
+		}
+		return 0
+	}
+	if opts.result == "" {
+		fmt.Fprintln(stderr, "skillc: --result is required with verify-development")
+		return 2
+	}
+	resultRaw, err := os.ReadFile(opts.result)
+	if err != nil {
+		fmt.Fprintln(stderr, "skillc: read Development BuildResult:", err)
+		return 2
+	}
+	result, err := compiler.DecodeDevelopmentBuildResultJSON(resultRaw)
+	if err != nil {
+		fmt.Fprintln(stderr, "skillc: decode Development BuildResult:", err)
+		return 2
+	}
+	if err := compiler.VerifyDevelopment(req, result); err != nil {
+		fmt.Fprintln(stderr, "skillc: Development artifact verification failed:", err)
+		return 1
+	}
+	if opts.json {
+		if err := writeJSON(stdout, map[string]any{"success": true, "artifactDigest": result.ArtifactDigest, "executionStatus": result.ExecutionStatus}); err != nil {
+			fmt.Fprintln(stderr, "skillc:", err)
+			return 2
+		}
+	} else {
+		fmt.Fprintf(stdout, "Development artifact verification OK: %s (%s)\n", result.ArtifactDigest, result.ExecutionStatus)
+	}
+	return 0
 }
 
 func runCheck(req compiler.BuildRequest, opts options, stdout, stderr io.Writer) int {
@@ -443,7 +558,8 @@ func rejectSymlinkAncestors(abs string) error {
 func validOutputPath(value string) bool {
 	// The v1alpha5 artifact has exactly one top-level manifest; compiled files
 	// live under skills/<skill>/compiled/.
-	if value == compiler.V1Alpha5ArtifactManifestPath {
+	if value == compiler.V1Alpha5ArtifactManifestPath || value == "host-admission-requirements.json" ||
+		value == "runtime-execution-requirements.json" {
 		return true
 	}
 	if value == "" || len(value) > 240 || !strings.HasPrefix(value, "skills/") ||

@@ -13,7 +13,7 @@ func validateArgumentKeys(req BuildRequest, skill *SkillAST, identity dependency
 	if skill == nil || skill.Procedure == nil {
 		return diagnostics
 	}
-	registry := buildSchemaRegistry(req, skill, identity)
+	registry := buildSchemaRegistry(req, skill, identity, req.development)
 	linked := map[string]linkedExport{}
 	for _, export := range ownerLinking.Exports {
 		if export.ExportKind == "operation" || export.ExportKind == "observation" {

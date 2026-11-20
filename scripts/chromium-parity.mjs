@@ -13,7 +13,7 @@
 //
 // Exit code 0 only when every compared projection is identical.
 
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -129,8 +129,55 @@ nodes:
   return requests;
 }
 
+// writeDevelopmentRequests derives the Development Build Native/Chromium
+// comparison fixtures from the checked-in positive request: the canonical order,
+// a fully reordered order and a negative closure that removes the transitive
+// Schema package.
+function writeDevelopmentRequests() {
+  const source = JSON.parse(readFileSync(path.join(repoRoot, 'docs', 'design', 'fixtures', 'registration-development-request.json'), 'utf8'));
+  const write = (name, value) => {
+    writeFileSync(path.join(webRoot, name), JSON.stringify(value));
+    return name;
+  };
+  const reordered = JSON.parse(JSON.stringify(source));
+  reordered.files.reverse();
+  reordered.snapshots.reverse();
+  for (const snapshot of reordered.snapshots) snapshot.files.reverse();
+  reordered.lock.roots.reverse();
+  reordered.lock.packages.reverse();
+  for (const entry of reordered.lock.packages) (entry.dependencies || []).reverse();
+  const negative = JSON.parse(JSON.stringify(source));
+  negative.snapshots = negative.snapshots.filter(snapshot => snapshot.key.packageId !== 'urn:example:ca:types');
+  negative.lock.packages = negative.lock.packages.filter(entry => entry.key.packageId !== 'urn:example:ca:types');
+  for (const entry of negative.lock.packages) {
+    if (entry.key.packageId === 'urn:example:ca:tools') instrumentDropTypes(entry);
+  }
+  return {
+    base: write('parity-development-request.json', source),
+    reordered: write('parity-development-reordered-request.json', reordered),
+    negative: write('parity-development-negative-request.json', negative),
+  };
+}
+
+function instrumentDropTypes(entry) {
+  entry.dependencies = [];
+}
+
+// nativeDevelopmentReference runs the real Native Development entry through the
+// CLI and returns its BuildResult JSON. A failed build exits 1 with a complete
+// structured result, so both exit codes are accepted.
+function nativeDevelopmentReference(requestName, outName) {
+  const result = spawnSync('go', [
+    'run', './cmd/skillc', 'build-development',
+    `--request=${path.join(webRoot, requestName)}`,
+    `--out=${path.join(webRoot, outName)}`,
+    '--json',
+  ], { cwd: repoRoot, env, encoding: 'utf8', maxBuffer: 64 << 20 });
+  if (!result.stdout) fail(`Native Development reference produced no output: ${result.stderr}`);
+  return JSON.parse(result.stdout);
+}
+
 function browserArtifactHashes(build) {
-  // parity-replay's reference view records the bare sha256 hex digest.
   return (build.outputFiles || []).map(file => ({
     path: file.path,
     sha256: createHash('sha256').update(Buffer.from(file.bytes, 'base64')).digest('hex'),
@@ -468,6 +515,66 @@ async function main() {
     console.log('ok: v1alpha5 trusted linked Ingress metadata identical');
     console.log('ok: v1alpha5 Chromium Worker VerifyArtifact PASS');
 
+    // Development Build phase: Compile -> Interface Link -> Build -> Verify.
+    // The Native CLI and the real Chromium Worker must produce identical status
+    // fields, diagnostics, artifactDigest and complete artifact bytes for the
+    // canonical and reordered requests, and identical failure diagnostics for the
+    // incomplete interface closure.
+    const developmentRequests = writeDevelopmentRequests();
+    const nativeDevelopment = nativeDevelopmentReference(developmentRequests.base, 'development-native-out');
+    const nativeDevelopmentReordered = nativeDevelopmentReference(developmentRequests.reordered, 'development-native-reordered-out');
+    const nativeDevelopmentNegative = nativeDevelopmentReference(developmentRequests.negative, 'development-native-negative-out');
+    if (!nativeDevelopment.success) fail('Development positive fixture did not build natively: ' + stable(nativeDevelopment.diagnostics));
+    if (nativeDevelopment.executionStatus !== 'NOT_ADMITTED') fail('Development executionStatus is not NOT_ADMITTED');
+    if (nativeDevelopment.artifactDigest !== nativeDevelopmentReordered.artifactDigest) fail('reordered Development input changed the Native artifactDigest');
+    if (stable(nativeDevelopment.outputFiles) !== stable(nativeDevelopmentReordered.outputFiles)) fail('reordered Development input changed Native artifact bytes');
+    const baseArtifact = await cdpEvaluate('http://127.0.0.1:' + debugPort + '/json/version', 'http://127.0.0.1:' + port + '/parity.html?development=1&request=' + developmentRequests.base);
+    if (!baseArtifact.ok) fail('Chromium Worker Development error: ' + baseArtifact.error);
+    if (baseArtifact.verifyError !== '') fail('Chromium Worker Development Verify failed: ' + baseArtifact.verifyError);
+    const browserDevelopment = baseArtifact.build;
+    compare('development build.success', nativeDevelopment.success, browserDevelopment.success);
+    compare('development build.sourceStatus', nativeDevelopment.sourceStatus, browserDevelopment.sourceStatus);
+    compare('development build.interfaceLinkStatus', nativeDevelopment.interfaceLinkStatus, browserDevelopment.interfaceLinkStatus);
+    compare('development build.artifactStatus', nativeDevelopment.artifactStatus, browserDevelopment.artifactStatus);
+    compare('development build.executionStatus', nativeDevelopment.executionStatus, browserDevelopment.executionStatus);
+    compare('development build.diagnostics', nativeDevelopment.diagnostics, browserDevelopment.diagnostics);
+    compare('development build.artifactDigest', nativeDevelopment.artifactDigest, browserDevelopment.artifactDigest);
+    compare('development build.outputFiles', nativeDevelopment.outputFiles, browserDevelopment.outputFiles);
+    const developmentRequirements = browserArtifactJSON(browserDevelopment, 'host-admission-requirements.json');
+    if (!Array.isArray(developmentRequirements) || developmentRequirements.length === 0) fail('Development artifact has no host-admission requirements');
+    if (!developmentRequirements.some(requirement => requirement.kind === 'OWNER_TRUST')) {
+      fail('Development artifact has no OWNER_TRUST host-admission requirement');
+    }
+    if (developmentRequirements.some(requirement => requirement.status !== 'HOST_VERIFICATION_REQUIRED')) {
+      fail('Development host-admission requirement status is not HOST_VERIFICATION_REQUIRED');
+    }
+    if (developmentRequirements.some(requirement => requirement.kind === 'COMMIT_PROOF' || requirement.kind === 'RECONCILE')) {
+      fail('Development host-admission document contains a Runtime Execution requirement');
+    }
+    const developmentRuntimeRequirements = browserArtifactJSON(browserDevelopment, 'runtime-execution-requirements.json');
+    if (!Array.isArray(developmentRuntimeRequirements)) fail('Development artifact has no runtime-execution requirements document');
+    if (developmentRuntimeRequirements.some(requirement =>
+      requirement.kind !== 'COMMIT_PROOF' && requirement.kind !== 'RECONCILE')) {
+      fail('Development runtime-execution document contains a Host Admission requirement');
+    }
+    if (developmentRuntimeRequirements.some(requirement => requirement.status !== 'RUNTIME_EXECUTION_REQUIRED')) {
+      fail('Development runtime-execution requirement status is not RUNTIME_EXECUTION_REQUIRED');
+    }
+    console.log('ok: Development LINKED/BUILT/NOT_ADMITTED byte parity (' + browserDevelopment.outputFiles.length + ' files)');
+    const reorderedBrowser = await cdpEvaluate('http://127.0.0.1:' + debugPort + '/json/version', 'http://127.0.0.1:' + port + '/parity.html?development=1&request=' + developmentRequests.reordered);
+    if (!reorderedBrowser.ok) fail('Chromium Worker Development reordered error: ' + reorderedBrowser.error);
+    compare('development reordered build.success', true, reorderedBrowser.build.success);
+    compare('development reordered artifact bytes', browserDevelopment.outputFiles, reorderedBrowser.build.outputFiles);
+    console.log('ok: Development reordered input produces identical artifact bytes');
+    if (nativeDevelopmentNegative.success) fail('Development negative fixture unexpectedly built');
+    if (nativeDevelopmentNegative.diagnostics.length === 0) fail('Development negative fixture produced no diagnostics');
+    const negativeBrowser = await cdpEvaluate('http://127.0.0.1:' + debugPort + '/json/version', 'http://127.0.0.1:' + port + '/parity.html?development=1&request=' + developmentRequests.negative);
+    if (!negativeBrowser.ok) fail('Chromium Worker Development negative error: ' + negativeBrowser.error);
+    compare('development negative build.success', false, negativeBrowser.build.success);
+    compare('development negative diagnostics', nativeDevelopmentNegative.diagnostics, negativeBrowser.build.diagnostics);
+    console.log('ok: Development failure diagnostics identical between Native and Chromium Worker');
+
+    console.log('PASS: Native and real Chromium Worker Development Build parity');
     console.log('PASS: Native and real Chromium Worker v1alpha5 artifact parity');
 
     console.log('PASS: Native and real Chromium Worker projections are identical');
