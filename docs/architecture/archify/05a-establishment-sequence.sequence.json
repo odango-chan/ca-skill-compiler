@@ -68,7 +68,7 @@
       "id": "upf",
       "type": "external",
       "label": "UPF · N4 Peer",
-      "sublabel": "外部 5GC · N4 不经 SCP"
+      "sublabel": "N4 · no SCP"
     }
   ],
   "segments": [
@@ -104,7 +104,7 @@
       "from": "ue",
       "to": "amf",
       "y": 168,
-      "label": "PDU Session Establishment Request (0xC1)",
+      "label": "5GSM Establishment Request (0xC1)",
       "variant": "default"
     },
     {
