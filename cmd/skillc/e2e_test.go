@@ -748,3 +748,92 @@ func TestCLIEndToEndRejectsV1Alpha4Request(t *testing.T) {
 		t.Fatalf("v1alpha4 build exit = %d, want 1; stderr = %s", built.code, built.stderr)
 	}
 }
+
+// TestCLIDevelopmentBuildEndToEnd exercises the new Development entry points
+// through a real process: build writes the artifact tree, verify reads the
+// original request plus the actual BuildResult bytes, and every fail-closed exit
+// code is exercised.
+func TestCLIDevelopmentBuildEndToEnd(t *testing.T) {
+	root := repoRootForCLI(t)
+	requestPath := filepath.Join(root, "docs", "design", "fixtures", "registration-development-request.json")
+	work := t.TempDir()
+	out := filepath.Join(work, "artifact")
+	build := runCLI(t, "build-development", "--request", requestPath, "--out", out, "--json")
+	if build.code != 0 {
+		t.Fatalf("build-development exit=%d stderr=%s", build.code, build.stderr)
+	}
+	var result compiler.DevelopmentBuildResult
+	if err := json.Unmarshal([]byte(build.stdout), &result); err != nil {
+		t.Fatalf("decode build output: %v", err)
+	}
+	if !result.Success || result.ExecutionStatus != "NOT_ADMITTED" || result.ArtifactDigest == "" {
+		t.Fatalf("unexpected Development result: %+v", result)
+	}
+	for _, path := range []string{"manifest.json", "obligations.json", "skills/verify-ue-registration/compiled/procedure.json"} {
+		if _, err := os.Stat(filepath.Join(out, filepath.FromSlash(path))); err != nil {
+			t.Fatalf("artifact file %s: %v", path, err)
+		}
+	}
+	resultPath := filepath.Join(work, "result.json")
+	if err := os.WriteFile(resultPath, []byte(build.stdout), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	verify := runCLI(t, "verify-development", "--request", requestPath, "--result", resultPath, "--json")
+	if verify.code != 0 {
+		t.Fatalf("verify-development exit=%d stderr=%s", verify.code, verify.stderr)
+	}
+	// A modified result digest must be rejected.
+	tampered := result
+	tampered.ArtifactDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+	tamperedRaw, err := json.Marshal(tampered)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tamperedPath := filepath.Join(work, "tampered-result.json")
+	if err := os.WriteFile(tamperedPath, tamperedRaw, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if verify := runCLI(t, "verify-development", "--request", requestPath, "--result", tamperedPath); verify.code != 1 {
+		t.Fatalf("verify of tampered result exit=%d, want 1 (stderr=%s)", verify.code, verify.stderr)
+	}
+	// The frozen entry must reject the Development request as an input error.
+	if check := runCLI(t, "check", "--request", requestPath); check.code != 2 {
+		t.Fatalf("frozen check accepted a Development request: exit=%d", check.code)
+	}
+	// Malformed Development input is an input error, not a build failure.
+	broken := filepath.Join(work, "broken.json")
+	if err := os.WriteFile(broken, []byte(`{"apiVersion":`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if run := runCLI(t, "build-development", "--request", broken, "--out", filepath.Join(work, "broken-out")); run.code != 2 {
+		t.Fatalf("malformed request exit=%d, want 2", run.code)
+	}
+	// A failed build must not create the output directory.
+	missingTypes := filepath.Join(work, "missing-types.json")
+	raw, err := os.ReadFile(requestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var request compiler.DevelopmentBuildRequest
+	if err := json.Unmarshal(raw, &request); err != nil {
+		t.Fatal(err)
+	}
+	var snapshots []compiler.DevelopmentSnapshot
+	for _, snapshot := range request.Snapshots {
+		if snapshot.Key.PackageID != "urn:example:ca:types" {
+			snapshots = append(snapshots, snapshot)
+		}
+	}
+	request.Snapshots = snapshots
+	brokenRaw, _ := json.Marshal(request)
+	if err := os.WriteFile(missingTypes, brokenRaw, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	failedOut := filepath.Join(work, "failed-out")
+	if run := runCLI(t, "build-development", "--request", missingTypes, "--out", failedOut); run.code != 1 {
+		t.Fatalf("incomplete request exit=%d, want 1 (stderr=%s)", run.code, run.stderr)
+	}
+	if _, err := os.Stat(failedOut); !os.IsNotExist(err) {
+		t.Fatalf("failed build created an output directory: %v", err)
+	}
+}

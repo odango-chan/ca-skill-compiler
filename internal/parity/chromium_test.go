@@ -1,4 +1,4 @@
-// Package parity holds opt-in cross-runtime acceptance tests that need a real
+﻿// Package parity holds opt-in cross-runtime acceptance tests that need a real
 // browser. They are skipped unless explicitly enabled, so the default Go test
 // suite stays hermetic.
 package parity
@@ -68,9 +68,14 @@ func TestChromiumWorkerParity(t *testing.T) {
 		"ok: v1alpha5 trusted successful-Build artifact byte parity",
 		"ok: v1alpha5 trusted linked Ingress metadata identical",
 		"PASS: Native and real Chromium Worker v1alpha5 artifact parity",
+		"ok: Development LINKED/BUILT/NOT_ADMITTED byte parity",
+		"ok: Development reordered input produces identical artifact bytes",
+		"ok: Development failure diagnostics identical between Native and Chromium Worker",
+		"PASS: Native and real Chromium Worker Development Build parity",
 	} {
 		if !strings.Contains(text, required) {
 			t.Fatalf("Chromium parity output missing %q", required)
 		}
 	}
 }
+
