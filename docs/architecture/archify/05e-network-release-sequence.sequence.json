@@ -166,7 +166,7 @@
       "from": "smf",
       "to": "upf",
       "y": 424,
-      "label": "PFCP Session Deletion Request (Type 54)",
+      "label": "PFCP Deletion Request · 54",
       "variant": "default"
     },
     {
@@ -174,7 +174,7 @@
       "from": "upf",
       "to": "smf",
       "y": 456,
-      "label": "PFCP Session Deletion Response (Type 55)",
+      "label": "PFCP Deletion Response · 55",
       "variant": "return"
     },
     {
@@ -412,7 +412,8 @@
       "items": [
         "PCF callback、Npcf policy deletion 和 Namf transfer 均经 SCP",
         "PFCP Type 54/55 由 OpenAMSM 直连 UPF，不经过 SCP",
-        "Host 负责对外 URI 与资源 tombstone；OpenAMSM 是 SMF Session / Policy / N4 的权威 Owner"
+        "Host 负责对外 URI 与资源 tombstone；OpenAMSM 是 SMF Session / Policy / N4 的权威 Owner",
+        "PFCP standard messages：Session Deletion Request / Response（Type 54/55）；由 OpenAMSM SMF 直连 UPF。"
       ]
     },
     {

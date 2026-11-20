@@ -212,7 +212,7 @@
       "from": "smf",
       "to": "upf",
       "y": 584,
-      "label": "PFCP Session Deletion Request (Type 54)",
+      "label": "PFCP Deletion Request · 54",
       "variant": "default"
     },
     {
@@ -220,7 +220,7 @@
       "from": "upf",
       "to": "smf",
       "y": 616,
-      "label": "PFCP Session Deletion Response (Type 55)",
+      "label": "PFCP Deletion Response · 55",
       "variant": "return"
     },
     {
@@ -474,7 +474,8 @@
       "items": [
         "UPF Session Deletion 使用 PFCP Type 54/55，OpenAMSM 直连 UPF",
         "PCF Policy Association Delete 使用 Npcf_SMPolicyControl_Delete，经 SCP",
-        "只有 Owner 释放与 Host 外部资源结算完成后，Host 才写入 URI Map tombstone"
+        "只有 Owner 释放与 Host 外部资源结算完成后，Host 才写入 URI Map tombstone",
+        "PFCP standard messages：Session Deletion Request / Response（Type 54/55）；箭头以 PFCP + procedure + type 简写。"
       ]
     },
     {

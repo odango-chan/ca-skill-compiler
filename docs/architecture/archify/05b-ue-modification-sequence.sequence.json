@@ -222,7 +222,7 @@
       "from": "smf",
       "to": "upf",
       "y": 648,
-      "label": "PFCP Session Modification Request (Type 52)",
+      "label": "PFCP Modification Request · 52",
       "variant": "default"
     },
     {
@@ -230,7 +230,7 @@
       "from": "upf",
       "to": "smf",
       "y": 680,
-      "label": "PFCP Session Modification Response (Type 53)",
+      "label": "PFCP Modification Response · 53",
       "variant": "return"
     },
     {
@@ -382,7 +382,7 @@
       "from": "smf",
       "to": "upf",
       "y": 1288,
-      "label": "PFCP Session Modification Request (Type 52)",
+      "label": "PFCP Modification Request · 52",
       "variant": "default"
     },
     {
@@ -390,7 +390,7 @@
       "from": "upf",
       "to": "smf",
       "y": 1320,
-      "label": "PFCP Session Modification Response (Type 53)",
+      "label": "PFCP Modification Response · 53",
       "variant": "return"
     },
     {
@@ -541,7 +541,8 @@
       "items": [
         "AMF ↔ Host 的 Nsmf Update、Owner → AMF 的 Namf Transfer 均经 SCP",
         "PFCP Type 52 由 OpenAMSM SMF 直连 UPF，不经过 SCP",
-        "Host 管理 ingress / Run 关联；Client Tools 执行固定 Owner binding；OpenAMSM 保有 GSM 与 N4 权威状态"
+        "Host 管理 ingress / Run 关联；Client Tools 执行固定 Owner binding；OpenAMSM 保有 GSM 与 N4 权威状态",
+        "PFCP standard messages：Session Modification Request / Response（Type 52/53）；m5 的 Request 使用 m4 返回的 AN F-TEID。"
       ]
     },
     {

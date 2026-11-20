@@ -120,7 +120,7 @@
       "from": "smf",
       "to": "upf",
       "y": 328,
-      "label": "PFCP Session Modification Request · Type 52",
+      "label": "PFCP Modification Request · 52",
       "variant": "default"
     },
     {
@@ -128,7 +128,7 @@
       "from": "upf",
       "to": "smf",
       "y": 360,
-      "label": "PFCP Session Modification Response (Type 53)",
+      "label": "PFCP Modification Response · 53",
       "variant": "return"
     },
     {
@@ -280,7 +280,7 @@
       "from": "smf",
       "to": "upf",
       "y": 968,
-      "label": "PFCP Session Modification Request · Type 52",
+      "label": "PFCP Modification Request · 52",
       "variant": "default"
     },
     {
@@ -288,7 +288,7 @@
       "from": "upf",
       "to": "smf",
       "y": 1000,
-      "label": "PFCP Session Modification Response (Type 53)",
+      "label": "PFCP Modification Response · 53",
       "variant": "return"
     },
     {
@@ -341,7 +341,8 @@
       "items": [
         "ACTIVATING 可使用 OpenAMSM 私有 smContextUpdateSync；它不是 3GPP Nsmf_PDUSession_UpdateSMContext",
         "FAR / F-TEID 变更由 OpenAMSM SMF 处理，PFCP Type 52/53 直连 UPF",
-        "hoState=COMPLETED 与 CANCELLED 是不同终态；取消不等于成功迁移"
+        "hoState=COMPLETED 与 CANCELLED 是不同终态；取消不等于成功迁移",
+        "PFCP standard messages：Session Modification Request / Response（Type 52/53）；FAR / F-TEID 由 OpenAMSM SMF 更新。"
       ]
     },
     {
