@@ -139,8 +139,10 @@ func buildDevelopmentLinkScope(env *developmentEnvironment) (*developmentLinkSco
 				}
 				record, ok := parseSchemaExport(root, export.path)
 				if !ok || record.ExportID != export.id {
-					add(developmentSnapshotInvalid, key.PackageID+"/"+export.path, "declared Schema export does not carry the declared $id")
-					continue
+					if boundPath, bound := pkg.schemaBindingPath(export.id); !bound || boundPath != export.path {
+						add(developmentSnapshotInvalid, key.PackageID+"/"+export.path, "declared Schema export does not carry the declared $id")
+						continue
+					}
 				}
 				scope.schemas[export.id] = append(scope.schemas[export.id], developmentSchemaResource{
 					packageKey: key, publisher: pkg.manifest.publisher, path: export.path, id: export.id, node: root,

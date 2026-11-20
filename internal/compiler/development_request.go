@@ -211,11 +211,13 @@ func validateDevelopmentRequest(req DevelopmentBuildRequest) (*developmentEnviro
 		if existingVersion, exists := packageIDs[key.PackageID]; exists {
 			if existingVersion != key.Version {
 				add(developmentSnapshotInvalid, label, "the same Package ID is present with more than one version: "+key.PackageID+" "+existingVersion+" and "+key.Version)
+				continue
 			}
-			continue
-		}
-		if existingDigest, exists := digestByKey[key.PackageID+"@"+key.Version]; exists && existingDigest != key.SnapshotDigest {
-			add(developmentSnapshotInvalid, label, "the same Package ID and version is present with different snapshot digests: "+key.PackageID+"@"+key.Version)
+			if existingDigest := digestByKey[key.PackageID+"@"+key.Version]; existingDigest != key.SnapshotDigest {
+				add(developmentSnapshotInvalid, label, "the same Package ID and version is present with different snapshot digests: "+key.PackageID+"@"+key.Version)
+				continue
+			}
+			add(developmentSnapshotInvalid, label, "duplicate Interface Package snapshot key: "+key.PackageID+"@"+key.Version)
 			continue
 		}
 		packageIDs[key.PackageID] = key.Version
@@ -245,9 +247,10 @@ func validateDevelopmentRequest(req DevelopmentBuildRequest) (*developmentEnviro
 			add(developmentAssuranceInvalid, label, "duplicate Assurance Export for one Interface Package key")
 			continue
 		}
-		files, fileBytes, size := validateDevelopmentSnapshotFiles(assurance.Key, assurance.Files, add)
+		files, fileBytes, size := validateDevelopmentAssuranceFiles(assurance.Key, assurance.Files, add)
 		if len(assurance.Files) == 0 {
 			add(developmentAssuranceInvalid, label, "Assurance Export must contain at least one file")
+			continue
 		}
 		measured, err := ComputeDependencySnapshotDigest(files)
 		if err != nil || measured != assurance.Digest {
@@ -506,6 +509,45 @@ func validateDevelopmentSnapshotFiles(key DevelopmentPackageKey, files []File, a
 		add(developmentSnapshotInvalid, key.PackageID, "snapshot digest cannot be computed: "+err.Error())
 	} else if digest != key.SnapshotDigest {
 		add(developmentSnapshotInvalid, key.PackageID, "snapshot bytes do not match key.snapshotDigest")
+	}
+	return ordered, byName, total
+}
+
+// validateDevelopmentAssuranceFiles applies the shared snapshot file path/size
+// grammar to one Assurance Export file set. Unlike an Interface Package snapshot
+// it has no package.json and no key digest to compare against.
+func validateDevelopmentAssuranceFiles(key DevelopmentPackageKey, files []File, add func(code, path, message string)) ([]File, map[string][]byte, int) {
+	ordered := append([]File(nil), files...)
+	sort.Slice(ordered, func(i, j int) bool { return ordered[i].Path < ordered[j].Path })
+	byName := make(map[string][]byte, len(ordered))
+	seen := map[string]bool{}
+	seenFolded := map[string]bool{}
+	total := 0
+	for _, file := range ordered {
+		if file.Bytes == nil {
+			add(developmentAssuranceInvalid, key.PackageID+"/"+file.Path, "Assurance Export file bytes are required")
+		}
+		if !validRelativeSnapshotPath(file.Path) {
+			add(developmentAssuranceInvalid, key.PackageID+"/"+file.Path, "Assurance Export file path must be a normalized UTF-8 POSIX relative path")
+			continue
+		}
+		if seen[file.Path] {
+			add(developmentAssuranceInvalid, key.PackageID+"/"+file.Path, "duplicate Assurance Export file path")
+			continue
+		} else if seenFolded[strings.ToLower(file.Path)] {
+			add(developmentAssuranceInvalid, key.PackageID+"/"+file.Path, "case-folded Assurance Export file path collision")
+			continue
+		}
+		seen[file.Path] = true
+		seenFolded[strings.ToLower(file.Path)] = true
+		if len(file.Bytes) > maxFileSize {
+			add(developmentAssuranceInvalid, key.PackageID+"/"+file.Path, "Assurance Export file exceeds the 2 MiB raw byte limit")
+		}
+		total += len(file.Bytes)
+		byName[file.Path] = file.Bytes
+	}
+	if len(ordered) > maxFiles {
+		add(developmentAssuranceInvalid, key.PackageID, "Assurance Export exceeds the file count limit")
 	}
 	return ordered, byName, total
 }
@@ -821,6 +863,30 @@ func validateDevelopmentPackageFiles(pkg *developmentPackage) []string {
 	return problems
 }
 
+// schemaBindingPath resolves one declared schema export identity to its snapshot
+// artifact path through the package's own artifactBindings/schemaBindings. It is
+// used for canonical artifact-root Schema exports whose file-level $id is the
+// artifact root identity, not the package export ID.
+func (pkg *developmentPackage) schemaBindingPath(exportID string) (string, bool) {
+	artifactPaths := map[string]string{}
+	for _, export := range pkg.manifest.exports {
+		for _, artifact := range export.artifactBindings {
+			artifactPaths[artifact.artifactRef] = artifact.snapshotPath
+		}
+	}
+	for _, export := range pkg.manifest.exports {
+		for _, binding := range export.schemaBindings {
+			if binding.exportID != exportID {
+				continue
+			}
+			if path, exists := artifactPaths[binding.artifactRef]; exists {
+				return path, true
+			}
+		}
+	}
+	return "", false
+}
+
 // validateDevelopmentPackageExports proves that every declared export exists at
 // its declared path with the declared identity and that no export identity is
 // declared twice.
@@ -868,7 +934,9 @@ func validateDevelopmentPackageExports(pkg *developmentPackage) []string {
 			}
 			record, ok := parseSchemaExport(root, export.path)
 			if !ok || record.ExportID != export.id {
-				problems = append(problems, "Schema export path does not carry the declared $id: "+export.id)
+				if boundPath, bound := pkg.schemaBindingPath(export.id); !bound || boundPath != export.path {
+					problems = append(problems, "Schema export path does not carry the declared $id: "+export.id)
+				}
 			}
 		case "CapabilityCatalog":
 			root, err := yaml.Parse(raw)
