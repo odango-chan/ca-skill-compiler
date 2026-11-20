@@ -72,7 +72,7 @@
       "label": "Trigger · PCF callback or SMF-local decision"
     },
     {
-      "from": 250,
+      "from": 252,
       "to": 470,
       "label": "Release OES · r1 optional / r2 N4 deletion"
     },
