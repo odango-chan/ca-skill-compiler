@@ -8,14 +8,14 @@
 |---|---|
 | 设计契约提交（PR #48 设计内容） | `551a0bba3455cfe4e7dbeede274b686a523316d6` |
 | 本报告当时固定的 PR #48 设计参考 HEAD（后续仅补 CI 安全修复） | `27324bcf273ae640acdf27637f9a7de89ed2ffe0` |
-| 本报告对应的 PR #51 实现 HEAD | `2e2a5840d2972f17c46c1cb1a6249ab9c50df58e` |
-| 权威职责基线（固定到 PR #48 最终 HEAD） | [`compiler-evidence-assurance-responsibility-audit.zh-CN.md`](https://github.com/odango-chan/ca-skill-compiler/blob/27324bcf273ae640acdf27637f9a7de89ed2ffe0/docs/design/compiler-evidence-assurance-responsibility-audit.zh-CN.md) |
+| 本报告对应的 PR #51 实现代码提交 | `2e2a5840d2972f17c46c1cb1a6249ab9c50df58e` |
+| 权威职责基线（固定到 PR #48 设计参考 HEAD） | [`compiler-evidence-assurance-responsibility-audit.zh-CN.md`](https://github.com/odango-chan/ca-skill-compiler/blob/27324bcf273ae640acdf27637f9a7de89ed2ffe0/docs/design/compiler-evidence-assurance-responsibility-audit.zh-CN.md) |
 | 已发布产品 / 语言目标 | CA Skill Compiler v2.0.2（未改）/ `connectionagent.io/v1alpha5`（未改） |
 | 冻结入口 | v2.0.2 BuildRequest / BuildResult / Artifact 逐字节未改 |
 | MAS G0 / G1 | **NOT_RUN** |
 | 合并检查点（不代表新版本 Release） | #48 `22860a26717a5a87d5af42c4674eec77ab4f7021`；#51 `1d7ea81c4b163b09add0314ecf949505128e3546` |
 
-职责基线只由 PR #48 维护：本分支不再保留该文档的副本，避免两个 PR 各自维护相互冲突的职责矩阵；上文链接固定在 PR #48 的最终 HEAD 上。
+职责基线由 PR #48 维护；原实现分支不保留该文档的副本，以免两处维护互相冲突的职责矩阵。上文链接固定在合并前的 PR #48 设计参考提交上；随后的 CI 安全修复不改变职责契约。
 
 ## 1. 本轮实现范围
 
