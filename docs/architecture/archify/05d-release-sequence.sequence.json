@@ -7,11 +7,7 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05d-release-sequence.html",
-    "viewBox": [
-      1084,
-      1624
-    ]
+    "output": "docs/architecture/archify/05d-release-sequence.html"
   },
   "participants": [
     {

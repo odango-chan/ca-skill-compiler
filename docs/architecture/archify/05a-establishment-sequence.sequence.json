@@ -7,11 +7,7 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05a-establishment-sequence.html",
-    "viewBox": [
-      1084,
-      2264
-    ]
+    "output": "docs/architecture/archify/05a-establishment-sequence.html"
   },
   "participants": [
     {
@@ -78,27 +74,27 @@
   "segments": [
     {
       "from": 150,
-      "to": 692,
+      "to": 694,
       "label": "F01 · Create ingress / s1–s3 / 201 Host Location"
     },
     {
-      "from": 696,
-      "to": 1267,
+      "from": 698,
+      "to": 1270,
       "label": "F01 · s3r–s8 Owner resources"
     },
     {
-      "from": 1271,
-      "to": 1586,
+      "from": 1274,
+      "to": 1590,
       "label": "F01 · s10 Namf N1/N2 signaling"
     },
     {
-      "from": 1590,
-      "to": 1873,
+      "from": 1594,
+      "to": 1878,
       "label": "F02 · N2 result returns to original s10"
     },
     {
-      "from": 1877,
-      "to": 2160,
+      "from": 1882,
+      "to": 2166,
       "label": "F02 · s11 / s13 and paired response"
     }
   ],
@@ -157,7 +153,7 @@
       "label": "Original N1 artifactRef · Owner-private binary binding",
       "variant": "security",
       "id": "m07",
-      "y": 359
+      "y": 360
     },
     {
       "from": "tools",
@@ -165,13 +161,13 @@
       "label": "Deliver original N1 bytes to GSM Handler",
       "variant": "security",
       "id": "m08",
-      "y": 391
+      "y": 392
     },
     {
       "id": "m09",
       "from": "runtime",
       "to": "tools",
-      "y": 423,
+      "y": 424,
       "label": "s1 / s2 / s3 · Establishment OES dispatch",
       "variant": "emphasis"
     },
@@ -179,7 +175,7 @@
       "id": "m10",
       "from": "tools",
       "to": "smf",
-      "y": 455,
+      "y": 456,
       "label": "s1 Subscription · s2 Auth SKIPPED · s3 Create",
       "variant": "security"
     },
@@ -187,7 +183,7 @@
       "id": "m11",
       "from": "smf",
       "to": "scp",
-      "y": 487,
+      "y": 488,
       "label": "Nudm_SDM_Get（s1）",
       "variant": "default"
     },
@@ -195,7 +191,7 @@
       "id": "m12",
       "from": "scp",
       "to": "nf",
-      "y": 519,
+      "y": 520,
       "label": "UDM SDM request",
       "variant": "default"
     },
@@ -203,7 +199,7 @@
       "id": "m13",
       "from": "nf",
       "to": "scp",
-      "y": 551,
+      "y": 552,
       "label": "UDM SDM response",
       "variant": "return"
     },
@@ -211,7 +207,7 @@
       "id": "m14",
       "from": "scp",
       "to": "smf",
-      "y": 583,
+      "y": 584,
       "label": "s1 subscription result",
       "variant": "return"
     },
@@ -219,7 +215,7 @@
       "id": "m15",
       "from": "smf",
       "to": "tools",
-      "y": 615,
+      "y": 616,
       "label": "s3 Owner smContextRef + session keys",
       "variant": "return"
     },
@@ -227,7 +223,7 @@
       "id": "m16",
       "from": "tools",
       "to": "runtime",
-      "y": 647,
+      "y": 648,
       "label": "s1–s3 validated Owner outcomes",
       "variant": "return"
     },
@@ -235,7 +231,7 @@
       "id": "m17",
       "from": "runtime",
       "to": "host",
-      "y": 678,
+      "y": 680,
       "label": "建立 Host Location ↔ Owner-private ref 持久映射",
       "variant": "default"
     },
@@ -243,7 +239,7 @@
       "id": "m18",
       "from": "host",
       "to": "scp",
-      "y": 710,
+      "y": 712,
       "label": "201 Created + Host Location",
       "variant": "emphasis"
     },
@@ -251,7 +247,7 @@
       "id": "m19",
       "from": "scp",
       "to": "amf",
-      "y": 742,
+      "y": 744,
       "label": "201 Created + Host Location",
       "variant": "emphasis"
     },
@@ -259,7 +255,7 @@
       "id": "m20",
       "from": "runtime",
       "to": "tools",
-      "y": 774,
+      "y": 776,
       "label": "s3r / s3p · UECM registration + SM Policy create",
       "variant": "emphasis"
     },
@@ -267,7 +263,7 @@
       "id": "m21",
       "from": "tools",
       "to": "smf",
-      "y": 806,
+      "y": 808,
       "label": "SC.REGISTER_UECM + PA.CREATE_SM_POLICY",
       "variant": "security"
     },
@@ -275,7 +271,7 @@
       "id": "m22",
       "from": "smf",
       "to": "scp",
-      "y": 838,
+      "y": 840,
       "label": "Nudm_UECM_Registration + Npcf_SMPolicyControl_Create",
       "variant": "default"
     },
@@ -283,7 +279,7 @@
       "id": "m23",
       "from": "scp",
       "to": "nf",
-      "y": 870,
+      "y": 872,
       "label": "UDM / PCF SBI requests",
       "variant": "default"
     },
@@ -291,7 +287,7 @@
       "id": "m24",
       "from": "nf",
       "to": "scp",
-      "y": 902,
+      "y": 904,
       "label": "UDM / PCF results",
       "variant": "return"
     },
@@ -299,7 +295,7 @@
       "id": "m25",
       "from": "scp",
       "to": "smf",
-      "y": 934,
+      "y": 936,
       "label": "s3r / s3p results",
       "variant": "return"
     },
@@ -307,7 +303,7 @@
       "id": "m26",
       "from": "runtime",
       "to": "tools",
-      "y": 966,
+      "y": 968,
       "label": "s4 / s5 · UPS.DECIDE_ANCHOR + IAM.ALLOCATE_ADDRESS",
       "variant": "default"
     },
@@ -315,7 +311,7 @@
       "id": "m27",
       "from": "tools",
       "to": "smf",
-      "y": 997,
+      "y": 1000,
       "label": "SMF-local anchor selection + address allocation",
       "variant": "security"
     },
@@ -323,7 +319,7 @@
       "id": "m28",
       "from": "runtime",
       "to": "tools",
-      "y": 1029,
+      "y": 1032,
       "label": "s6u · PA.UPDATE_SM_POLICY",
       "variant": "emphasis"
     },
@@ -331,7 +327,7 @@
       "id": "m29",
       "from": "tools",
       "to": "smf",
-      "y": 1061,
+      "y": 1064,
       "label": "Owner policy update",
       "variant": "security"
     },
@@ -339,7 +335,7 @@
       "id": "m30",
       "from": "smf",
       "to": "scp",
-      "y": 1093,
+      "y": 1096,
       "label": "Npcf_SMPolicyControl_Update",
       "variant": "default"
     },
@@ -347,7 +343,7 @@
       "id": "m31",
       "from": "scp",
       "to": "nf",
-      "y": 1125,
+      "y": 1128,
       "label": "PCF policy update",
       "variant": "default"
     },
@@ -355,7 +351,7 @@
       "id": "m32",
       "from": "nf",
       "to": "scp",
-      "y": 1157,
+      "y": 1160,
       "label": "PCF policy update result",
       "variant": "return"
     },
@@ -363,7 +359,7 @@
       "id": "m33",
       "from": "scp",
       "to": "smf",
-      "y": 1189,
+      "y": 1192,
       "label": "s6u result",
       "variant": "return"
     },
@@ -371,7 +367,7 @@
       "id": "m34",
       "from": "runtime",
       "to": "tools",
-      "y": 1221,
+      "y": 1224,
       "label": "s7 / s8 · CA.CREATE_CHARGING + UPN.CREATE_UP_SESSION",
       "variant": "default"
     },
@@ -379,7 +375,7 @@
       "id": "m35",
       "from": "tools",
       "to": "smf",
-      "y": 1253,
+      "y": 1256,
       "label": "Owner charging step + N4 session creation",
       "variant": "security"
     },
@@ -387,7 +383,7 @@
       "id": "m36",
       "from": "smf",
       "to": "upf",
-      "y": 1285,
+      "y": 1288,
       "label": "PFCP Establishment Request · 50",
       "variant": "default"
     },
@@ -395,7 +391,7 @@
       "id": "m37",
       "from": "upf",
       "to": "smf",
-      "y": 1316,
+      "y": 1320,
       "label": "PFCP Establishment Response · 51",
       "variant": "return"
     },
@@ -403,7 +399,7 @@
       "id": "m38",
       "from": "smf",
       "to": "tools",
-      "y": 1348,
+      "y": 1352,
       "label": "s8 N4 result",
       "variant": "return"
     },
@@ -411,7 +407,7 @@
       "id": "m39",
       "from": "tools",
       "to": "runtime",
-      "y": 1380,
+      "y": 1384,
       "label": "s3r–s8 Owner outcomes",
       "variant": "return"
     },
@@ -419,7 +415,7 @@
       "id": "m40",
       "from": "runtime",
       "to": "tools",
-      "y": 1412,
+      "y": 1416,
       "label": "s10 · SSM.SIGNAL_UE_AN (OWNER_DEFERRED)",
       "variant": "emphasis"
     },
@@ -427,7 +423,7 @@
       "id": "m41",
       "from": "tools",
       "to": "smf",
-      "y": 1444,
+      "y": 1448,
       "label": "s10 Owner operation",
       "variant": "security"
     },
@@ -435,7 +431,7 @@
       "id": "m42",
       "from": "smf",
       "to": "host",
-      "y": 1476,
+      "y": 1480,
       "label": "OpenAMSM private Namf Relay request",
       "variant": "security"
     },
@@ -443,7 +439,7 @@
       "id": "m43",
       "from": "host",
       "to": "tools",
-      "y": 1508,
+      "y": 1512,
       "label": "Fixed Namf egress",
       "variant": "security"
     },
@@ -451,7 +447,7 @@
       "id": "m44",
       "from": "tools",
       "to": "scp",
-      "y": 1540,
+      "y": 1544,
       "label": "Namf_Communication_N1N2MessageTransfer",
       "variant": "emphasis"
     },
@@ -459,7 +455,7 @@
       "id": "m45",
       "from": "scp",
       "to": "amf",
-      "y": 1572,
+      "y": 1576,
       "label": "N1/N2 setup information",
       "variant": "emphasis"
     },
@@ -467,7 +463,7 @@
       "id": "m46",
       "from": "amf",
       "to": "ue",
-      "y": 1604,
+      "y": 1608,
       "label": "N1/N2 forwarded to UE / gNB",
       "variant": "default"
     },
@@ -475,7 +471,7 @@
       "id": "m47",
       "from": "ue",
       "to": "amf",
-      "y": 1635,
+      "y": 1640,
       "label": "PDU Resource Setup Response",
       "variant": "return"
     },
@@ -483,7 +479,7 @@
       "id": "m48",
       "from": "amf",
       "to": "scp",
-      "y": 1667,
+      "y": 1672,
       "label": "Nsmf_PDUSession_UpdateSMContext · PDU_RES_SETUP_RSP",
       "variant": "emphasis"
     },
@@ -491,7 +487,7 @@
       "id": "m49",
       "from": "scp",
       "to": "host",
-      "y": 1699,
+      "y": 1704,
       "label": "Existing Host Location",
       "variant": "default"
     },
@@ -499,7 +495,7 @@
       "id": "m50",
       "from": "host",
       "to": "runtime",
-      "y": 1731,
+      "y": 1736,
       "label": "按 Session / generation 匹配原 s10 occurrence",
       "variant": "default"
     },
@@ -507,7 +503,7 @@
       "id": "m51",
       "from": "runtime",
       "to": "tools",
-      "y": 1763,
+      "y": 1768,
       "label": "继续原始 s10 Owner operation",
       "variant": "security"
     },
@@ -515,7 +511,7 @@
       "id": "m52",
       "from": "tools",
       "to": "smf",
-      "y": 1795,
+      "y": 1800,
       "label": "Owner-private N2 result update",
       "variant": "security"
     },
@@ -523,7 +519,7 @@
       "id": "m53",
       "from": "smf",
       "to": "tools",
-      "y": 1827,
+      "y": 1832,
       "label": "AN result adopted · tunnel / F-TEID",
       "variant": "return"
     },
@@ -531,7 +527,7 @@
       "id": "m54",
       "from": "tools",
       "to": "runtime",
-      "y": 1859,
+      "y": 1864,
       "label": "恢复同一 Run，不创建第二个 Skill Invocation",
       "variant": "return"
     },
@@ -539,7 +535,7 @@
       "id": "m55",
       "from": "runtime",
       "to": "tools",
-      "y": 1891,
+      "y": 1896,
       "label": "s11 · UPN.MODIFY_UP_SESSION",
       "variant": "emphasis"
     },
@@ -547,7 +543,7 @@
       "id": "m56",
       "from": "tools",
       "to": "smf",
-      "y": 1923,
+      "y": 1928,
       "label": "s11 Owner N4 update",
       "variant": "security"
     },
@@ -555,7 +551,7 @@
       "id": "m57",
       "from": "smf",
       "to": "upf",
-      "y": 1954,
+      "y": 1960,
       "label": "PFCP Modification Request · 52",
       "variant": "default"
     },
@@ -563,7 +559,7 @@
       "id": "m58",
       "from": "upf",
       "to": "smf",
-      "y": 1986,
+      "y": 1992,
       "label": "PFCP Modification Response · 53",
       "variant": "return"
     },
@@ -571,7 +567,7 @@
       "id": "m59",
       "from": "runtime",
       "to": "tools",
-      "y": 2018,
+      "y": 2024,
       "label": "s13 · SE.EMIT_EVENTS",
       "variant": "default"
     },
@@ -579,7 +575,7 @@
       "id": "m60",
       "from": "tools",
       "to": "smf",
-      "y": 2050,
+      "y": 2056,
       "label": "s13 local event outcome",
       "variant": "return"
     },
@@ -587,7 +583,7 @@
       "id": "m61",
       "from": "runtime",
       "to": "host",
-      "y": 2082,
+      "y": 2088,
       "label": "Goal / Postcondition 与响应义务",
       "variant": "return"
     },
@@ -595,7 +591,7 @@
       "id": "m62",
       "from": "host",
       "to": "scp",
-      "y": 2114,
+      "y": 2120,
       "label": "Paired UpdateSMContext response",
       "variant": "return"
     },
@@ -603,7 +599,7 @@
       "id": "m63",
       "from": "scp",
       "to": "amf",
-      "y": 2146,
+      "y": 2152,
       "label": "UpdateSMContext response",
       "variant": "return"
     }

@@ -7,11 +7,7 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05g-callback-failure-sequence.html",
-    "viewBox": [
-      1084,
-      1272
-    ]
+    "output": "docs/architecture/archify/05g-callback-failure-sequence.html"
   },
   "participants": [
     {

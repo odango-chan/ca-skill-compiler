@@ -7,11 +7,7 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05c-network-modification-sequence.html",
-    "viewBox": [
-      1084,
-      1432
-    ]
+    "output": "docs/architecture/archify/05c-network-modification-sequence.html"
   },
   "participants": [
     {

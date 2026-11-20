@@ -7,11 +7,7 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05e-network-release-sequence.html",
-    "viewBox": [
-      1084,
-      1400
-    ]
+    "output": "docs/architecture/archify/05e-network-release-sequence.html"
   },
   "participants": [
     {

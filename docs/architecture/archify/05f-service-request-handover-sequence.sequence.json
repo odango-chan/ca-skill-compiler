@@ -7,11 +7,7 @@
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "output": "docs/architecture/archify/05f-service-request-handover-sequence.html",
-    "viewBox": [
-      1084,
-      1240
-    ]
+    "output": "docs/architecture/archify/05f-service-request-handover-sequence.html"
   },
   "participants": [
     {
