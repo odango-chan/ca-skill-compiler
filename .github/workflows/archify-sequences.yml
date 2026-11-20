@@ -60,7 +60,7 @@ jobs:
             html="docs/architecture/archify/${name}.html"
             node "$ARCHIFY_CLI" finalize sequence "$source" "$html" --quality showcase --json
             node "$ARCHIFY_CLI" check "$html" --require-provenance --json
-            node "$ARCHIFY_CLI" visual-check "$html" --require-provenance --out-dir docs/architecture/archify/evidence --summary
+            node "$ARCHIFY_CLI" visual-check "$html" --require-provenance --out-dir docs/architecture/archify/evidence/sequence-vnext --summary
           done
 
       - name: Commit rendered HTML and browser evidence
