@@ -261,7 +261,7 @@ Host 直接读取 Artifact 即可得到 Skill 请求的 Capability、精确 Cata
 | 单元/集成 | `GOWORK=off go test ./... -count=1` | PASS（全部包：compiler / yamlast / ingresscatalog / parity / projectinput / cmd） |
 | 静态检查 | `GOWORK=off go vet ./...` | PASS（exit 0，无输出） |
 | Native build | `CGO_ENABLED=0 GOWORK=off go build ./...` | PASS（exit 0） |
-| Go/WASM build | `CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm` | PASS（exit 0，33,753,984 bytes） |
+| Go/WASM build | `CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm` | PASS（exit 0） |
 | CLI E2E | `GOWORK=off go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | PASS（12 个子测试全部通过） |
 | Chromium Worker parity | `CHROMIUM_PARITY=1 GOWORK=off go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | PASS（真实 Chromium Worker；Development 5 文件逐字节一致；重排输入逐字节一致；失败诊断一致） |
 | 空白/编码 | `git diff --check` | PASS（exit 0） |
