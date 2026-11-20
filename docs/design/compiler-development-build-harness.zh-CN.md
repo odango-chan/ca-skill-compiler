@@ -1,6 +1,6 @@
 # CA Skill Compiler 首轮实现任务
 
-**状态：实施任务已完成，等待验收收尾。** 本页按 [Compiler #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 中的[实施契约](compiler-development-build-pilot.zh-CN.md)交接试验实现任务；实现已在 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 完成并通过本地验收，两个 PR 均保持 OPEN、等待最终评审，**尚未合并、尚未冻结、尚未发布**。架构依据见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，交付顺序见[演进路线](compiler-evolution-roadmap-vnext.zh-CN.md)，Evidence / Assurance 边界见[职责审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。本轮目标是用完整的接口快照在离线环境生成可复验的 Development Artifact。在没有运行时 Evidence、Deployment Grant 或 Provider 时，成功结果为 `LINKED / BUILT / NOT_ADMITTED`；`COMMIT_PROOF` / `RECONCILE` 只是执行期要求，不在 Build 满足。MAS G0 / G1 仍为 **NOT_RUN**。
+**状态（2026-11-20）：本页为已执行完毕的 Harness 实施任务存档；架构 [PR #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 与实现 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 均已合并到 `main`，未打新 Tag、未宣称生产发布。** 下文 Goal 是历史实施指令，**不要再次执行**。Development Artifact 的结果仍为 `LINKED / BUILT / NOT_ADMITTED`；`COMMIT_PROOF` / `RECONCILE` 仍属 Runtime 执行期要求，MAS G0/G1 仍是 **NOT_RUN**。现行契约见[实施契约](compiler-development-build-pilot.zh-CN.md)，职责边界见[审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。
 
 ## 可直接交给 DeepSeek Harness 的 Goal
 

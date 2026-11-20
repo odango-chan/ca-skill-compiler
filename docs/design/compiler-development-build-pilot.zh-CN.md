@@ -1,6 +1,6 @@
 # Development Build 实施契约
 
-**状态：试验实现已完成，等待最终评审。** 本页固定 Development Build 首轮实现的接口与验收基线；试验实现已在 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 落地并通过本地验收，该 PR 与本页都保持 OPEN、等待最终评审，**尚未合并、尚未冻结、尚未发布**。版本标识用于该试验分支；公开契约冻结、合并和发布另行评审。上位设计见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，工作顺序见[交接任务](compiler-development-build-harness.zh-CN.md)，Evidence / Assurance 边界见[职责审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。
+**状态（2026-11-20）：Development Build 已通过最终审查并随 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 合并到 `main`（`1d7ea81`）；设计 [PR #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 亦已合并（`22860a2`）。** 本文是试验接口与首轮验收的实现契约；已合并不等于新版本发布或生产资格。正式公开契约未另行冻结，未打 Tag，MAS G0/G1 仍为 NOT_RUN，Development Artifact 恒为 `NOT_ADMITTED`。上位设计见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，任务历史见[交接任务](compiler-development-build-harness.zh-CN.md)，职责边界见[职责审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。
 
 ## 1. 入口与输入
 
