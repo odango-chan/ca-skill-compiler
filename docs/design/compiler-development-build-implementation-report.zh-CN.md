@@ -268,9 +268,9 @@ Host 直接读取 Artifact 即可得到 Skill 请求的 Capability、精确 Cata
 | v2.0.2 黄金基线 | `GOWORK=off go test ./internal/compiler -count=1 -run "TestLegacyEntryGoldenBaseline" -v` | PASS（与 `tests/golden/legacy-entry-v2.0.2.json` 完全一致） |
 | Capability 黄金基线 | `GOWORK=off go test ./internal/compiler -count=1 -run TestDevelopmentCapabilityGoldenBaseline -v` | PASS（与 `tests/golden/development-capability-requirements-v1.json` 逐字节一致） |
 | 重复构建/重排 | `TestDevelopmentBuildPositiveFixture`、`TestDevelopmentBuildIsReorderingInvariant`、`TestDevelopmentMultiSkillReorderingInvariant` | PASS（相同输入逐字节一致；无序输入重排后逐字节一致） |
-| GitHub Actions | run [44717886662](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44717886662)（PR #51 实现提交 `2e2a584`） | PASS（`v1alpha5-integration` job success，1m10s：focused 测试、全量测试、vet、Native/WASM build、CLI E2E、真实 Chromium Worker parity、diff check 全部通过） |
+| GitHub Actions | run [44717886662](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44717886662)（实现提交 `2e2a584`）及其后文档提交的 synchronize 运行（如 [44719034235](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44719034235)） | `v1alpha5-integration` job success（1m10s 级：focused 测试、全量测试、vet、Native/WASM build、CLI E2E、真实 Chromium Worker parity、diff check 全部通过） |
 
-> 本轮在 Windows + danger-full-access 文件策略下执行；Chromium 为真实浏览器 Worker，不是 Native 结果替代。CI 结果是实际 GitHub Actions 运行，不是本地结果冒充；PR #48 只改 `docs/design/**`，现有 workflow 的 path filter（`internal/compiler/**` 等，或 Archify 的 `docs/architecture/archify/*.sequence.json`）不覆盖该路径，因此其最终提交 `27324bc` **不触发** check（NOT_RUN），不写成 PASS。
+> 本轮在 Windows + danger-full-access 文件策略下执行；Chromium 为真实浏览器 Worker，不是 Native 结果替代。CI 结果是实际 GitHub Actions 运行，不是本地结果冒充。PR #51 的每次 synchronize 都会按 PR 整体 diff 触发 `v1alpha5-integration`，后续文档提交也实际跑过并通过；PR #48 分支当前没有 checks 上报（`gh pr checks 48` 无记录），其最终提交 `27324bc` 只改 `docs/design/**` 契约文字，因此记为 **NOT_RUN**，不写成 PASS。
 
 专项测试（`internal/compiler/development_requirements_test.go`、`development_locations_test.go` 等）：
 
@@ -300,9 +300,9 @@ Host 直接读取 Artifact 即可得到 Skill 请求的 Capability、精确 Cata
 | 22 | Package-scoped Schema 解析正反例 | `TestDevelopmentSchemaResolverPackageChain`、`…RejectsUndeclaredGlobalID`、`…RejectsUndeclaredAlias`、`…RejectsWrongPackage`、`…RejectsIllegalRelativeRef`、`…RejectsAmbiguousIdentity` |
 | 23 | 多 Skill 共用 Lock | `TestDevelopmentMultiSkillSharedLockPasses`、`…MissingRootFails`、`…WrongPackageFails`、`…ExtraRootFails`、`…AliasIdentityConflictFails`、`…BrokenClosureFails`、`…ReorderingInvariant`、`TestDevelopmentSingleSkillRootsUnchanged` |
 
-CI：本轮实现提交 `2e2a5840d2972f17c46c1cb1a6249ab9c50df58e` 的 `v1alpha5-integration` 运行
-<https://github.com/odango-chan/ca-skill-compiler/actions/runs/44717886662>（job PASS，全部门禁步骤通过）。
-PR #48 分支只改架构/实施契约文字，现有 workflow 的 path filter 不覆盖 `docs/**`，因此其最终提交 `27324bcf273ae640acdf27637f9a7de89ed2ffe0` **不触发**任何 check（NOT_RUN，不是 PASS）；本轮流程图的阶段与边界未变化，故未重绘 Archify 图，上一轮已提交的目视回执保持有效，人工签字仍为 PENDING。
+CI：实现提交 `2e2a5840d2972f17c46c1cb1a6249ab9c50df58e` 的 `v1alpha5-integration` 运行
+<https://github.com/odango-chan/ca-skill-compiler/actions/runs/44717886662> PASS；其后文档提交的 PR synchronize 运行（如 <https://github.com/odango-chan/ca-skill-compiler/actions/runs/44719034235>）同样 PASS。代码在实现提交后未再变化。
+PR #48 分支没有 checks 上报，其最终提交 `27324bcf273ae640acdf27637f9a7de89ed2ffe0` 只改 `docs/design/**` 契约文字，记为 **NOT_RUN**（不是 PASS）；本轮流程图的阶段与边界未变化，故未重绘 Archify 图，上一轮已提交的目视回执保持有效，人工签字仍为 PENDING。
 
 ## 4. 已知限制
 
