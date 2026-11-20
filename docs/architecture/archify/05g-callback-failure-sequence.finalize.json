@@ -5,7 +5,7 @@
   "status": "pass",
   "type": "sequence",
   "quality": "showcase",
-  "startedAt": "2026-11-20T02:25:12.350Z",
+  "startedAt": "2026-11-20T02:29:11.406Z",
   "specification": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05g-callback-failure-sequence.sequence.json",
     "sha256": "178886238c396c1759ec41dc071d0d490070e2178442d9bfa5becd570197587b",
@@ -54,7 +54,7 @@
     "deliver": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 441,
+      "durationMs": 436,
       "command": [
         "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
@@ -68,7 +68,7 @@
       ],
       "receipt": {
         "schemaVersion": 1,
-        "receiptId": "fe3a2fc5-fd4f-40d3-92bf-b956556e3609",
+        "receiptId": "de0036a9-03c4-4a53-94c1-499a5ba9cca4",
         "ok": true,
         "command": "deliver",
         "type": "sequence",
@@ -106,7 +106,7 @@
     "check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 201,
+      "durationMs": 190,
       "command": [
         "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
@@ -248,13 +248,13 @@
           "issues": []
         },
         "provenance": "current",
-        "deliveryReceiptId": "fe3a2fc5-fd4f-40d3-92bf-b956556e3609"
+        "deliveryReceiptId": "de0036a9-03c4-4a53-94c1-499a5ba9cca4"
       }
     },
     "browser-check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 2799,
+      "durationMs": 2757,
       "command": [
         "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
@@ -272,7 +272,7 @@
         "status": "pass",
         "visualReview": "not-requested",
         "provenance": "current",
-        "deliveryReceiptId": "fe3a2fc5-fd4f-40d3-92bf-b956556e3609",
+        "deliveryReceiptId": "de0036a9-03c4-4a53-94c1-499a5ba9cca4",
         "artifact": {
           "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05g-callback-failure-sequence.html",
           "sha256": "b5ea01393e4096ab20163400fbc1c53d552ce76cdcbf333950e157f807fc17f1",
@@ -974,14 +974,14 @@
     "browserCheckReceipt": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05g-callback-failure-sequence.browser-check.json"
   },
   "visualReview": "not-requested",
-  "finishedAt": "2026-11-20T02:25:15.935Z",
-  "durationMs": 3584,
+  "finishedAt": "2026-11-20T02:29:14.926Z",
+  "durationMs": 3520,
   "update": {
     "status": "current",
     "installedVersion": "3.2.0",
     "availableVersion": "3.2.0",
     "releaseNotes": null,
-    "checkedAt": "2026-11-20T02:24:24.779Z",
+    "checkedAt": "2026-11-20T02:28:24.430Z",
     "source": "cache",
     "noticeRequired": false,
     "noticeText": null
