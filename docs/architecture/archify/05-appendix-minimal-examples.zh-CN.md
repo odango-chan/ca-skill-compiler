@@ -21,6 +21,7 @@
 
    实际构建记录必须写入真实摘要；不得把 `sha256:…mas` 当作校验和提交。
 3. 图中出现的 JSON、YAML、锁文件片段都是**节选**，用于说明字段来源与责任边界，不可独立编译或直接发送。
+4. Requirement 口径统一为两类：`HOST_VERIFICATION_REQUIRED`（派发前外部事实，`host-admission-requirements.json`）与 `RUNTIME_EXECUTION_REQUIRED`（执行期真实结果，`runtime-execution-requirements.json`）。`COMMIT_PROOF` / `RECONCILE` 只属于后者，图 1–图 3 不得把它们画成 Build 或派发前可满足的 Host Admission 条件。
 
 ## 2. 图 1 / 图 2 的最小示例
 
@@ -51,8 +52,9 @@ nodes:
 - `context.supi` 是**身份**，不是 SBI JSON 的业务字段；Host 在准入后绑定，不交给 Skill 自行推断。
 - `context.request.*` 的四个字段分别来自 SBI JSON 与 NAS 解码（见 §3.2）。
 - `mas::` 前缀的 Callable 目前仍是**候选引用**：没有受信任的 MAS ToolCatalog / CapabilityContracts 公开签发。
+- `OUTCOME_UNKNOWN: UNRESOLVED` 中的 `UNRESOLVED` 是冻结 CA-SL 语言的 route 目标名，**不是** Requirement 状态；Requirement 状态只有 `HOST_VERIFICATION_REQUIRED` 与 `RUNTIME_EXECUTION_REQUIRED` 两种。
 
-### 2.2 `dependencies.lock` 与义务记录（设计草案）
+### 2.2 `dependencies.lock` 与两类 Requirement 记录（设计草案）
 
 ```jsonc
 // 设计草案：字段名与形状尚未冻结，v2.0.2 不产出该格式
@@ -65,19 +67,38 @@ nodes:
 ```
 
 ```jsonc
-// 设计草案：单条义务记录节选
+// 设计草案：host-admission-requirements.json 单条节选
 {
-  "kind": "EVIDENCE_GUARANTEE",
-  "scope": { "node": "validate-sm-subscription", "stage": "postcondition" },
-  "sourceCallable": "mas::SC.VALIDATE_SUBSCRIPTION",
-  "interfaceSnapshotDigest": "sha256:…mas",
-  "requiredGuarantee": "session.exists",
-  "status": "UNRESOLVED"
+  "requirementId": "sha256:…",
+  "kind": "OWNER_TRUST",
+  "location": { "skill": "establish-pdu-session-mas", "path": "assurance/procedure.yaml",
+                "node": "validate-sm-subscription", "stage": "postcondition", "selector": "/nodes/…" },
+  "subjects": [{ "key": { "packageId": "demo/mas", "version": "0.1.0", "snapshotDigest": "sha256:…mas" },
+                 "id": "mas::SC.VALIDATE_SUBSCRIPTION", "sourcePath": "callables.yaml",
+                 "schemaIds": ["demo/mas/schema/…"] }],
+  "status": "HOST_VERIFICATION_REQUIRED"
 }
 ```
 
-`status` 只允许 `UNRESOLVED`（材料缺失，须由 Host 逐项核验）或 `DESCRIPTOR_PRESENT`（材料静态匹配，仍须 Host 核验）。
-两种情况都不是执行授权。
+```jsonc
+// 设计草案：runtime-execution-requirements.json 单条节选
+{
+  "requirementId": "sha256:…",
+  "kind": "COMMIT_PROOF",
+  "location": { "skill": "establish-pdu-session-mas", "path": "assurance/procedure.yaml",
+                "node": "create-sm-context", "stage": "postcondition", "selector": "/nodes/…" },
+  "subjects": [{ "key": { "packageId": "demo/mas", "version": "0.1.0", "snapshotDigest": "sha256:…mas" },
+                 "id": "mas::SC.CREATE_SM_CONTEXT", "sourcePath": "callables.yaml",
+                 "schemaIds": ["demo/mas/schema/…"] }],
+  "status": "RUNTIME_EXECUTION_REQUIRED"
+}
+```
+
+- `HOST_VERIFICATION_REQUIRED` 只覆盖派发前可验证的外部事实（`OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST`、`EVIDENCE_INDEPENDENCE_TRUST`、Deployment Grant、Provider Binding、Invocation 授权）。
+- `RUNTIME_EXECUTION_REQUIRED` 只覆盖执行期才产生的真实结果（`COMMIT_PROOF`：实际提交与证明核验；`RECONCILE`：`UNKNOWN` 后精确原尝试的恢复与实际结论）。它们**不是**可在 Build 或派发前满足的 Host Admission Requirement，真实结果也不回写产物。
+- 两种状态都不是执行授权。静态结构非法是 Build FAIL；只有外部授权缺失才是 Host Requirement。
+
+`EVIDENCE_INDEPENDENCE_TRUST` 另带 `independence{groupIndex,members[{dependencyAlias,key,exportId,sourcePath,domain}],domainPairs}`，一组一条，`selector` 形如 `/predicates/<predicate>/evidence/independence/<index>`；不使用 `env.roots[0]` 或单一全局布尔值。
 
 ### 2.3 Artifact manifest（设计草案）
 
@@ -92,7 +113,7 @@ nodes:
   "dependencyLock": { "roots": ["mas", "ctx"] },
   "procedures": ["establish-pdu-session-mas"],
   "links": { "callables": ["mas::SC.VALIDATE_SUBSCRIPTION"], "ingress": [], "capabilityCatalog": "sha256:…mas" },
-  "obligations": ["obligation://…"],
+  "requirements": ["host-admission-requirements.json", "runtime-execution-requirements.json"],
   "executionState": "NOT_ADMITTED"
 }
 ```
@@ -191,7 +212,8 @@ OpenAMSM → Host Namf Relay → Client Tools → SCP → AMF    Namf N1N2
 | `sha256:…provider` | Runtime Provider 绑定 | — | Provider 绑定 | — |
 | LINKED / BUILT | Artifact 标签 | Artifact 标签 | 准入前提 | — |
 | NOT_ADMITTED | Artifact 标签 | Artifact + Host 拒绝派发 | 生产 Host 拒收 | — |
-| UNRESOLVED | Assurance 可缺失 | 义务 UNRESOLVED | Assurance 可缺失 | — |
+| HOST_VERIFICATION_REQUIRED | 由 Host 补齐的外部事实 | `host-admission-requirements.json` | 准入前逐项验证 | — |
+| RUNTIME_EXECUTION_REQUIRED | 不在编译区满足 | `runtime-execution-requirements.json` | 派发前只查机制就位 | 执行期产生 `COMMIT_PROOF` / `RECONCILE` 结果 |
 | UNKNOWN | — | — | 结果 UNKNOWN → Reconcile | Owner pending / 无 proof |
 | SCP | 不出现（离线区） | 不出现 | Invocation Context 来源 | 唯一网络入口 |
 | 201 Location | — | — | — | Host SM Context URI Map |
@@ -204,7 +226,7 @@ OpenAMSM → Host Namf Relay → Client Tools → SCP → AMF    Namf N1N2
 |---|---|---|---|
 | 1 | Interface Package 与 Runtime Provider 独立发布 | 图 1：两条发布链；`dependencies.lock` 与 Provider 绑定分开 | 一致 |
 | 2 | Capability Catalog 与 Deployment Grant 分离 | 图 1：Catalog 随包发布（`导出`），Grant 由部署方签发（`只交 Host`） | 一致 |
-| 3 | 缺 Evidence 可生成 Artifact，但保留 UNRESOLVED / NOT_ADMITTED；缺 Interface 则 Link FAIL 无产物 | 图 2 两条失败/成功分支 | 一致 |
+| 3 | 缺 Evidence 可生成 Artifact，但保留两类 Requirement / NOT_ADMITTED；缺 Interface 或静态结构非法则 Link FAIL 无产物 | 图 2 两条失败/成功分支与两个 Requirement 文件节点 | 一致 |
 | 4 | 不得把 v2.0.2 说成已支持新 Development Build | 图 1/图 2 副标题与卡片、本附录 §2.2/§2.3 | 一致 |
 | 5 | Host 只接管 AMF–SMF SBI，不替代 OpenAMSM 的 SMF 业务 | 图 4：`OpenAMSM SMF` 保留 5GSM/UDM/PCF/N4 | 一致 |
 | 6 | 所有 H1/H2/H3 网络测试必须含 SCP | 图 4：SCP 为唯一网络入口，无直连/无 Direct Mock Relay 路径 | 一致 |
@@ -408,4 +430,7 @@ node "$ARCHIFY" finalize architecture docs/architecture/archify/05a-ops-establis
 ```
 
 可编辑源文件与 HTML 并列存放于 `docs/architecture/archify/`，便于评审直接修改与重渲染。
+2026-11-20 架构冻结轮重绘了图 01–03（两类 Requirement 模型）；这三张图的 `validate` / `deliver` / 严格 `check`
+已通过，`browser-check` 与 `visual-check` 因运行环境禁止管道子进程（`spawn EPERM`）为 NOT_RUN/BLOCKED，
+详见 [evidence/acceptance.md](evidence/acceptance.md)。
 验收记录见 [evidence/acceptance.md](evidence/acceptance.md)。

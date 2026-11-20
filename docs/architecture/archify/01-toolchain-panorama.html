@@ -5196,7 +5196,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <div class="pulse-dot"></div>
         <h1>CA-SL 工具链全景：发布、离线构建与 Host 准入</h1>
       </div>
-      <p class="subtitle">下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 贯穿案例 session-demo</p>
+      <p class="subtitle">下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 贯穿案例 session-demo · Host 派发前要求与 Runtime 执行期要求分离</p>
     </div>
 
 
@@ -5206,7 +5206,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
          data-preset-badge-editorial-plate="ARCHIFY / 图版 04">
       <svg viewBox="0 0 1128 968" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-node-ui="" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14">
         <title id="archify-diagram-title">CA-SL 工具链全景：发布、离线构建与 Host 准入</title>
-        <desc id="archify-diagram-description">下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 贯穿案例 session-demo</desc>
+        <desc id="archify-diagram-description">下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 贯穿案例 session-demo · Host 派发前要求与 Runtime 执行期要求分离</desc>
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -5323,6 +5323,14 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <path data-graph-role="automatic-crossover-underlay" d="M 540 730 L 540 790" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
           <path data-edge-from="dispatch" data-edge-to="reconcile" data-edge-label="UNKNOWN" data-edge-key="16" data-edge-id="dispatch-reconcile" data-composition-points="540,730;540,790" data-composition-crossover="halo" data-composition-independent="true" d="M 540 730 L 540 790" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
+        <g data-graph-role="automatic-crossover" style="--step:17">
+          <path data-graph-role="automatic-crossover-underlay" d="M 920 720 L 920 790" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="provider_inst" data-edge-to="runtime_req" data-edge-label="实际提交 / 恢复" data-edge-key="17" data-edge-id="provider-runtime" data-composition-points="920,720;920,790" data-composition-crossover="halo" data-composition-independent="true" d="M 920 720 L 920 790" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        </g>
+        <g data-graph-role="automatic-crossover" style="--step:18">
+          <path data-graph-role="automatic-crossover-underlay" d="M 700 835 L 800 835" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="reconcile" data-edge-to="runtime_req" data-edge-label="恢复结论" data-edge-key="18" data-edge-id="reconcile-runtime" data-composition-points="700,835;800,835" data-composition-crossover="halo" data-composition-independent="true" d="M 700 835 L 800 835" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        </g>
 
         <!-- Components -->
         <g id="node-iface_pub" data-node-id="iface_pub" data-node-label="Interface Publisher" tabindex="0" role="button" aria-label="聚焦Interface Publisher，类型 / OpenAPI / Owner 契约, ① 发布与依赖准备：接口包与 Provider 包各自定版" aria-pressed="false" data-node-kind="backend" data-node-sublabel="类型 / OpenAPI / Owner 契约" data-node-context="① 发布与依赖准备：接口包与 Provider 包各自定版">
@@ -5422,8 +5430,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="450" y="332" class="t-backend" font-size="7" text-anchor="middle">缺接口即失败</text>
         </g>
 
-        <g id="node-artifact" data-node-id="artifact" data-node-label="Linked Skill Artifact" tabindex="0" role="button" aria-label="聚焦Linked Skill Artifact，sha256:…artifact, ② 离线编译与链接：只接收源码、锁与精确快照" aria-pressed="false" data-node-kind="database" data-node-sublabel="sha256:…artifact" data-node-tag="NOT_ADMITTED" data-node-context="② 离线编译与链接：只接收源码、锁与精确快照">
-          <title>Linked Skill Artifact · sha256:…artifact · ② 离线编译与链接：只接收源码、锁与精确快照 · NOT_ADMITTED</title>
+        <g id="node-artifact" data-node-id="artifact" data-node-label="Linked Skill Artifact" tabindex="0" role="button" aria-label="聚焦Linked Skill Artifact，sha256:…artifact · manifest + 两类记录, ② 离线编译与链接：只接收源码、锁与精确快照" aria-pressed="false" data-node-kind="database" data-node-sublabel="sha256:…artifact · manifest + 两类记录" data-node-tag="NOT_ADMITTED" data-node-context="② 离线编译与链接：只接收源码、锁与精确快照">
+          <title>Linked Skill Artifact · sha256:…artifact · manifest + 两类记录 · ② 离线编译与链接：只接收源码、锁与精确快照 · NOT_ADMITTED</title>
           <rect x="80" y="270" width="220" height="90" rx="8" class="c-mask"/>
           <rect x="80" y="270" width="220" height="90" rx="8" class="c-database" data-animate="node" style="--step:9" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(86 276) scale(0.6875)">
@@ -5431,7 +5439,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="190" y="313" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Linked Skill Artifact</text>
-        <text data-detail="context" x="190" y="329" class="t-muted" font-size="9" text-anchor="middle">sha256:…artifact</text>
+        <text data-detail="context" x="190" y="329" class="t-muted" font-size="9" text-anchor="middle">sha256:…artifact · manifest + 两类记录</text>
         <text data-detail="fine" x="190" y="352" class="t-database" font-size="7" text-anchor="middle">NOT_ADMITTED</text>
         </g>
 
@@ -5447,17 +5455,17 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="180" y="482" class="t-backend" font-size="7" text-anchor="middle">sha256:…provider</text>
         </g>
 
-        <g id="node-assurance" data-node-id="assurance" data-node-label="Assurance Export" tabindex="0" role="button" aria-label="聚焦Assurance Export，签发者 / 范围 / 摘要, ③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED" aria-pressed="false" data-node-kind="security" data-node-sublabel="签发者 / 范围 / 摘要" data-node-tag="可缺失 → UNRESOLVED" data-node-context="③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED">
-          <title>Assurance Export · 签发者 / 范围 / 摘要 · ③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED · 可缺失 → UNRESOLVED</title>
+        <g id="node-assurance" data-node-id="assurance" data-node-label="Assurance Attestation" tabindex="0" role="button" aria-label="聚焦Assurance Attestation，Owner / Assurance Authority 签发, ③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED" aria-pressed="false" data-node-kind="security" data-node-sublabel="Owner / Assurance Authority 签发" data-node-tag="外部信任产物 · 绝不进 Compiler" data-node-context="③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED">
+          <title>Assurance Attestation · Owner / Assurance Authority 签发 · ③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED · 外部信任产物 · 绝不进 Compiler</title>
           <rect x="60" y="510" width="240" height="80" rx="8" class="c-mask"/>
           <rect x="60" y="510" width="240" height="80" rx="8" class="c-security" data-animate="node" style="--step:11" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(66 516) scale(0.6875)">
             <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
             <path d="m5.8 8 1.5 1.5 3-3"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="180" y="548" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Assurance Export</text>
-        <text data-detail="context" x="180" y="564" class="t-muted" font-size="9" text-anchor="middle">签发者 / 范围 / 摘要</text>
-        <text data-detail="fine" x="180" y="582" class="t-security" font-size="7" text-anchor="middle">可缺失 → UNRESOLVED</text>
+          <text data-node-label="" data-detail-anchor="" x="180" y="548" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Assurance Attestation</text>
+        <text data-detail="context" x="180" y="564" class="t-muted" font-size="9" text-anchor="middle">Owner / Assurance Authority 签发</text>
+        <text data-detail="fine" x="180" y="582" class="t-security" font-size="7" text-anchor="middle">外部信任产物 · 绝不进 Compiler</text>
         </g>
 
         <g id="node-admission" data-node-id="admission" data-node-label="Host Admission" tabindex="0" role="button" aria-label="聚焦Host Admission，材料求交 · 默认拒绝 · 绑定 Invocation, ③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED" aria-pressed="false" data-node-kind="security" data-node-sublabel="材料求交 · 默认拒绝 · 绑定 Invocation" data-node-tag="开发 / 生产策略不同" data-node-context="③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED">
@@ -5537,6 +5545,21 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="540" y="872" class="t-messagebus" font-size="7" text-anchor="middle">UNKNOWN 唯一出口</text>
         </g>
 
+        <g id="node-runtime_req" data-node-id="runtime_req" data-node-label="Runtime 执行要求" tabindex="0" role="button" aria-label="聚焦Runtime 执行要求，COMMIT_PROOF / RECONCILE 实际结果, ③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="COMMIT_PROOF / RECONCILE 实际结果" data-node-tag="执行期产生 · 不回写产物" data-node-context="③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED">
+          <title>Runtime 执行要求 · COMMIT_PROOF / RECONCILE 实际结果 · ③ 目标环境 Host / Runtime：Artifact 一律 NOT_ADMITTED · 执行期产生 · 不回写产物</title>
+          <rect x="800" y="790" width="240" height="90" rx="8" class="c-mask"/>
+          <rect x="800" y="790" width="240" height="90" rx="8" class="c-messagebus" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(806 796) scale(0.6875)">
+            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
+            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
+            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
+            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="920" y="833" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Runtime 执行要求</text>
+        <text data-detail="context" x="920" y="849" class="t-muted" font-size="9" text-anchor="middle">COMMIT_PROOF / RECONCILE 实际结果</text>
+        <text data-detail="fine" x="920" y="872" class="t-messagebus" font-size="7" text-anchor="middle">执行期产生 · 不回写产物</text>
+        </g>
+
         <!-- Connection labels -->
         <g data-detail="context" data-edge-from="iface_pub" data-edge-to="iface_pkg" data-edge-label="发布" data-edge-key="0" data-edge-id="pub-pkg">
           <rect x="280" y="65" width="30" height="14" rx="3" class="c-mask"/>
@@ -5602,6 +5625,14 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g data-detail="context" data-edge-from="dispatch" data-edge-to="reconcile" data-edge-label="UNKNOWN" data-edge-key="16" data-edge-id="dispatch-reconcile">
           <rect x="490.40000000000003" y="753" width="43.6" height="14" rx="3" class="c-mask"/>
           <text x="512.2" y="763" class="t-edge-dashed" font-size="8" text-anchor="middle">UNKNOWN</text>
+        </g>
+        <g data-detail="context" data-edge-from="provider_inst" data-edge-to="runtime_req" data-edge-label="实际提交 / 恢复" data-edge-key="17" data-edge-id="provider-runtime">
+          <rect x="832" y="748" width="82" height="14" rx="3" class="c-mask"/>
+          <text x="873" y="758" class="t-edge-emphasis" font-size="8" text-anchor="middle">实际提交 / 恢复</text>
+        </g>
+        <g data-detail="context" data-edge-from="reconcile" data-edge-to="runtime_req" data-edge-label="恢复结论" data-edge-key="18" data-edge-id="reconcile-runtime">
+          <rect x="725.8" y="815" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="750" y="825" class="t-edge-dashed" font-size="8" text-anchor="middle">恢复结论</text>
         </g>
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->
@@ -5831,9 +5862,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <h3>三条路径各自定版（session-demo 贯穿）</h3>
         </div>
         <ul>
-          <li>接口：Interface Package（含 Capability Catalog）→ 锁 + 精确快照，只有锁进 Compiler</li>
+          <li>接口：Interface Package（含 Capability Catalog 与 EvidenceDescriptor 导出）→ 锁 + 精确快照，只有锁进 Compiler</li>
           <li>实现：Runtime Provider Package 不进 Compiler，只以精确接口键进入 Host 绑定</li>
           <li>授权：Deployment Grant 由部署方独立签发，Resolver 与 Compiler 都看不到</li>
+          <li>要求：Host 派发前外部事实与 Runtime 执行期结果分别成文件，互不替代</li>
         </ul>
       </div>
 
@@ -5845,6 +5877,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <ul>
           <li>构建成功不等于可执行：产物一律 NOT_ADMITTED</li>
           <li>隔离开发 Host 需显式 opt-in + 实测 Grant；生产 Host 一律拒收 DEVELOPMENT</li>
+          <li>COMMIT_PROOF / RECONCILE 是执行期要求，派发前只能检查机制是否就位</li>
           <li>结果未知时保留原尝试并走受控 Reconcile，不把重试当作成功</li>
         </ul>
       </div>

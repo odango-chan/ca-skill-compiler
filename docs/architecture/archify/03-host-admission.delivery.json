@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "receiptId": "b85d78ad-0af6-4b3f-852c-c28186d4dd61",
+  "receiptId": "6940c6f6-3745-4593-a939-c231b9fd052a",
   "status": "current",
   "command": "deliver",
   "type": "architecture",
-  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\03-host-admission.architecture.json",
-  "output": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\03-host-admission.html",
+  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\03-host-admission.architecture.json",
+  "output": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\03-host-admission.html",
   "specification": {
-    "sha256": "468f00ace3ba726e24ff881a82a94898a073b88472674b798b9bc0c46aea1a3b",
-    "bytes": 7197
+    "sha256": "8f76300afaeff6bef58078fe903d75280a51200b319086e5ad16356bad7d40d7",
+    "bytes": 7921
   },
   "artifact": {
-    "sha256": "b9480171e3afbc8136a258843c505249fef8316c6dea5082ba290c0b8acd6e26",
-    "bytes": 867543
+    "sha256": "a484e6224f086b87e9126917e00a6bc9e5c2158ec9245724fe60e42cf31b03d4",
+    "bytes": 873372
   }
 }

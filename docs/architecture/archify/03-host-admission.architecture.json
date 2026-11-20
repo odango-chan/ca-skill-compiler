@@ -2,21 +2,21 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "Host Admission 与执行：五类材料、两种环境、一个 UNKNOWN 出口",
+    "title": "Host Admission 与执行：五类派发前材料、两类执行期结果、一个 UNKNOWN 出口",
     "subtitle": "下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 案例 session-demo",
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "output": "docs/architecture/archify/03-host-admission.html"
   },
   "components": [
-    { "id": "artifact", "type": "database", "label": "Linked Skill Artifact", "sublabel": "锁定闭包 + 义务记录", "tag": "sha256:…artifact", "pos": [60, 240], "size": [240, 86] },
+    { "id": "artifact", "type": "database", "label": "Linked Skill Artifact", "sublabel": "锁定闭包 + 两类 Requirement 记录", "tag": "sha256:…artifact", "pos": [60, 240], "size": [240, 86] },
     { "id": "prov_bind", "type": "backend", "label": "Runtime Provider 绑定", "sublabel": "Package + 已部署实例映射", "tag": "sha256:…provider", "pos": [60, 350], "size": [240, 80] },
-    { "id": "assurance", "type": "security", "label": "Assurance Export", "sublabel": "签发者 / 义务类型 / 适用范围", "tag": "可缺失 → UNRESOLVED", "pos": [400, 60], "size": [300, 72] },
+    { "id": "authority", "type": "security", "label": "Owner / Evidence 权威材料", "sublabel": "OWNER_TRUST · 域 / 事实 / 独立性", "tag": "Assurance Attestation 另验", "pos": [400, 60], "size": [300, 80] },
     { "id": "grant", "type": "security", "label": "Deployment Grant", "sublabel": "环境 / 主体 / Scope / 有效期", "tag": "部署方独立签发", "pos": [900, 240], "size": [240, 80] },
     { "id": "invocation", "type": "external", "label": "Invocation Context", "sublabel": "NF 身份 / SM Context / 截止时间", "tag": "AMF 经 SCP 入站", "pos": [900, 350], "size": [240, 86] },
 
     { "id": "admission", "type": "security", "label": "Host Admission", "sublabel": "材料求交 · 默认拒绝 · 决定绑定当前 Invocation", "tag": "每次派发与恢复都复核", "pos": [360, 230], "size": [320, 220] },
-    { "id": "gate", "type": "security", "label": "准入判定", "sublabel": "Profile · 义务 · Grant Scope · 撤销状态", "tag": "逐 Invocation", "pos": [360, 500], "size": [320, 110] },
+    { "id": "gate", "type": "security", "label": "准入判定", "sublabel": "Profile · 外部要求 · Grant Scope · 撤销状态", "tag": "逐 Invocation", "pos": [360, 500], "size": [320, 110] },
 
     { "id": "dev", "type": "backend", "label": "隔离开发 Host", "sublabel": "显式 opt-in + 实测测试 Grant", "tag": "仅限隔离环境", "pos": [60, 660], "size": [280, 90] },
     { "id": "unknown", "type": "messagebus", "label": "结果 UNKNOWN", "sublabel": "保留原尝试标识与待结算状态", "tag": "不得盲目重试", "pos": [400, 660], "size": [260, 90] },
@@ -26,17 +26,18 @@
     { "id": "runtime", "type": "backend", "label": "Host Runtime / Temporal", "sublabel": "同一 Run 继续执行", "tag": "只协调既有 Procedure", "pos": [60, 810], "size": [280, 90] },
     { "id": "provider", "type": "backend", "label": "固定 Typed Provider", "sublabel": "按准入时绑定选择", "tag": "选择歧义即拒绝", "pos": [60, 930], "size": [280, 90] },
     { "id": "reconcile", "type": "messagebus", "label": "受控 Reconcile", "sublabel": "按原 Operation occurrence 核验", "tag": "无 proof 则保持 UNKNOWN", "pos": [400, 810], "size": [260, 90] },
+    { "id": "runtime_req", "type": "messagebus", "label": "Runtime 执行要求", "sublabel": "机制就位（静态）≠ 实际结果（执行期）", "tag": "COMMIT_PROOF / RECONCILE", "pos": [400, 930], "size": [260, 110] },
     { "id": "owner_op", "type": "backend", "label": "OpenAMSM Owner Operation", "sublabel": "真实 5GSM 与 Session 所有权", "pos": [60, 1050], "size": [280, 90] },
-    { "id": "owner_pending", "type": "messagebus", "label": "Owner Pending 等待", "sublabel": "进程内 /invoke waiter", "tag": "30 秒上限 · 非 Temporal 恢复", "pos": [400, 1050], "size": [260, 90] }
+    { "id": "owner_pending", "type": "messagebus", "label": "Owner Pending 等待", "sublabel": "进程内 /invoke waiter", "tag": "30 秒上限 · 非 Temporal 恢复", "pos": [400, 1090], "size": [260, 90] }
   ],
   "boundaries": [
-    { "kind": "security-group", "label": "准入材料与判定（全部由 Host 独立信任根验证）", "wraps": ["artifact", "prov_bind", "assurance", "grant", "invocation", "admission", "gate"], "pad": 20 },
-    { "kind": "region", "label": "准入后的执行与结算", "wraps": ["dev", "unknown", "prod", "reject", "runtime", "provider", "reconcile", "owner_op", "owner_pending"], "pad": 20 }
+    { "kind": "security-group", "label": "准入材料与判定（全部由 Host 独立信任根验证）", "wraps": ["artifact", "prov_bind", "authority", "grant", "invocation", "admission", "gate"], "pad": 20 },
+    { "kind": "region", "label": "准入后的执行与结算：真实提交与恢复结论在此产生", "wraps": ["dev", "unknown", "prod", "reject", "runtime", "provider", "reconcile", "runtime_req", "owner_op", "owner_pending"], "pad": 16 }
   ],
   "connections": [
-    { "id": "artifact-admission", "from": "artifact", "to": "admission", "label": "产物", "variant": "emphasis" },
+    { "id": "artifact-admission", "from": "artifact", "to": "admission", "label": "产物 + 两类记录", "variant": "emphasis" },
     { "id": "bind-admission", "from": "prov_bind", "to": "admission", "label": "绑定", "variant": "default" },
-    { "id": "assurance-admission", "from": "assurance", "to": "admission", "label": "保证", "variant": "security", "fromSide": "bottom", "toSide": "top" },
+    { "id": "authority-admission", "from": "authority", "to": "admission", "label": "外部事实", "variant": "security", "fromSide": "bottom", "toSide": "top" },
     { "id": "grant-admission", "from": "grant", "to": "admission", "label": "授权", "variant": "security" },
     { "id": "invocation-admission", "from": "invocation", "to": "admission", "label": "调用", "variant": "security" },
     { "id": "admission-gate", "from": "admission", "to": "gate", "label": "求交结果", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
@@ -47,8 +48,10 @@
     { "id": "dev-runtime", "from": "dev", "to": "runtime", "label": "准入通过", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
     { "id": "runtime-provider", "from": "runtime", "to": "provider", "label": "派发", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
     { "id": "provider-owner", "from": "provider", "to": "owner_op", "label": "受信调用", "variant": "default", "fromSide": "bottom", "toSide": "top" },
-    { "id": "owner-pending", "from": "owner_op", "to": "owner_pending", "label": "挂起", "variant": "dashed" },
-    { "id": "unknown-reconcile", "from": "unknown", "to": "reconcile", "label": "只走此路", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+    { "id": "provider-runtime", "from": "provider", "to": "runtime_req", "label": "提交证明", "variant": "emphasis" },
+    { "id": "unknown-reconcile", "from": "unknown", "to": "reconcile", "label": "只走此路", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "reconcile-runtime", "from": "reconcile", "to": "runtime_req", "label": "恢复结论", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "owner-pending", "from": "owner_op", "to": "owner_pending", "label": "挂起", "variant": "dashed" }
   ],
   "cards": [
     {
@@ -72,11 +75,11 @@
     },
     {
       "dot": "amber",
-      "title": "调度与 Owner 等待必须分开",
+      "title": "执行期要求与 Owner 等待必须分开",
       "items": [
-        "Temporal 只协调既有 Runtime Run，不接管 OpenAMSM 的 /invoke waiter",
-        "Owner Pending 仍是进程内状态，30 秒上限未解决",
-        "UNKNOWN 保留原尝试并走 exact-original Reconcile，不重试成成功"
+        "COMMIT_PROOF / RECONCILE 在 runtime-execution-requirements.json，不在 Host Admission 文件",
+        "派发前只检查运行时机制是否就位；真实提交与恢复结论执行期产生且不回写产物",
+        "Temporal 只协调既有 Runtime Run，不接管 OpenAMSM 的 /invoke waiter"
       ]
     }
   ]

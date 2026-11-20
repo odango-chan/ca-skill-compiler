@@ -9,9 +9,9 @@
 
 | 编号 | 主题 | 类型 | 可编辑源 | 成品 | 状态 |
 |---|---|---|---|---|---|
-| 01 | CA-SL Toolchain Panorama | architecture | `01-toolchain-panorama.architecture.json` | `01-toolchain-panorama.html` | DESIGN |
-| 02 | Offline Compile / Link / Build | workflow | `02-offline-build.workflow.json` | `02-offline-build.html` | DESIGN |
-| 03 | Host Admission / Runtime | architecture | `03-host-admission.architecture.json` | `03-host-admission.html` | DESIGN |
+| 01 | CA-SL Toolchain Panorama | architecture | `01-toolchain-panorama.architecture.json` | `01-toolchain-panorama.html` | DESIGN（2026-11-20 重绘） |
+| 02 | Offline Compile / Link / Build | workflow | `02-offline-build.workflow.json` | `02-offline-build.html` | DESIGN（2026-11-20 重绘） |
+| 03 | Host Admission / Runtime | architecture | `03-host-admission.architecture.json` | `03-host-admission.html` | DESIGN（2026-11-20 重绘） |
 | 04 | SCP-only AMF–SMF SBI Architecture | architecture | `04-scp-amf-smf.architecture.json` | `04-scp-amf-smf.html` | DESIGN |
 | 05a | PDU Session Establishment + N2 结果回传 | sequence | `05a-establishment-sequence.sequence.json` | `05a-establishment-sequence.html` | DESIGN |
 | 05a-ops | Establishment 13 Operation Node Capability 追踪 | architecture | `05a-ops-establishment-capabilities.architecture.json` | `05a-ops-establishment-capabilities.html` | 静态追踪 PASS |
@@ -41,13 +41,24 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 `finalize` 依次执行 `validate` / `deliver` / 严格 `check` / 真实浏览器 `browser-check` 四道门。
 `visual-check` 额外产出 1440×900 与 2048×1320、明/暗两套真实截图。
 
+在禁止管道子进程的受限沙箱里（`spawn EPERM`），可先用一个把管道 stdio 重定向到临时文件、
+不修改 Archify 包的 preload 脚本跑通前三道门（本仓库本轮使用 `.archify/pipe-shim.cjs`，该目录被 gitignore）：
+
+```bash
+node --require .archify/pipe-shim.cjs "$ARCHIFY" finalize architecture <source>.architecture.json <out>.html --quality showcase --json
+```
+
+该方式无法让 Chromium 启动，`browser-check` / `visual-check` 仍为 NOT_RUN (BLOCKED)，必须如实记录。
+
 ## 3. 验收结果
 
-12 张图均有四道门 PASS 记录（`ok: true`，`diagnostics: []`）。其中 **05a–05g 七张业务时序图已于 2026-11-20 按当前源文件重新生成并通过四道门及真实浏览器 `visual-check`**；01–04 与 05a-ops 的源文件未变，沿用此前通过的验收回执。
+图 01–03 于 2026-11-20 架构冻结轮重新生成：**validate / deliver / 严格 check 三道门 PASS**；`browser-check` 与 `visual-check` 为 **NOT_RUN (BLOCKED)**，因为本机沙箱禁止管道子进程，Playwright 无法启动 Chromium（精确错误 `spawn EPERM`）。不得把这三张图称为四道门 PASS 或视觉验收通过。回执见 `evidence/01..03-*.finalize-summary.json` 与 `.browser-check.json`（如实记录 `failedStage: browser-check`）。
+
+04、05a-ops 与 05a–05g 的源文件本轮未改动，沿用此前通过的验收记录。其中 **05a–05g 七张业务时序图已于 2026-11-20 按当前源文件重新生成并通过四道门及真实浏览器 `visual-check`**。
 
 最新 Push CI：[run #44663313398](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44660862083)。
 
-05a–05g 当前回执见 `evidence/<figure>.finalize-summary.json`；当前截图、接触表与 `visual-check` 回执统一位于 `evidence/sequence-vnext/`。每次重新生成前，工作流会把上一版 `sequence-vnext/` 与根目录 05a–05g `browser-check` 回执归档到 `evidence/history/<run-id>/`；旧证据保留不覆盖，当前截图只以 `evidence/sequence-vnext/` 为准。根目录 `evidence/` 中同名旧截图亦为历史快照。完整验收记录见 [evidence/acceptance.md](evidence/acceptance.md)。
+05a–05g 当前回执见 `evidence/<figure>.finalize-summary.json`；当前截图、接触表与 `visual-check` 回执统一位于 `evidence/sequence-vnext/`。每次重新生成前，工作流会把上一版 `sequence-vnext/` 与根目录 05a–05g `browser-check` 回执归档到 `evidence/history/<run-id>/`；旧证据保留不覆盖，当前截图只以 `evidence/sequence-vnext/` 为准。01–03 的上一版截图与回执已归档到 `evidence/history/freeze-20261120/`。完整验收记录见 [evidence/acceptance.md](evidence/acceptance.md)。
 
 ## 4. 七张业务时序图的设计表达口径
 
@@ -83,6 +94,7 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 - sequence 图在 1440×900 下有纵向滚动（`data-reader-fit="width-first"`）。这是 Archify 对
   sequence 的既定阅读契约：宽度自适应、纵向滚动；横向不溢出。
 - 当前 05a–05g 的四主题截图与接触表位于 `evidence/sequence-vnext/`；上一版截图和旧 `browser-check` 回执归档于 `evidence/history/<run-id>/`，根目录同名旧截图仍保留为历史快照。
+- 01–03 本轮没有新的真实浏览器截图：运行环境禁止管道子进程，Chromium 启动失败（`spawn EPERM`）。需要浏览器证据时，在允许子进程或已安装 Playwright Chromium 的环境重跑 `finalize` 与 `visual-check`。上一版截图与回执在 `evidence/history/freeze-20261120/`。
 
 ## 7. 事实基线
 

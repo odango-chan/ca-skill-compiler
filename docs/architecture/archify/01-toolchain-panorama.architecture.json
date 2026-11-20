@@ -3,7 +3,7 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "CA-SL 工具链全景：发布、离线构建与 Host 准入",
-    "subtitle": "下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 贯穿案例 session-demo",
+    "subtitle": "下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 贯穿案例 session-demo · Host 派发前要求与 Runtime 执行期要求分离",
     "locale": "zh-CN",
     "quality_profile": "showcase",
     "output": "docs/architecture/archify/01-toolchain-panorama.html"
@@ -131,7 +131,7 @@
       "id": "artifact",
       "type": "database",
       "label": "Linked Skill Artifact",
-      "sublabel": "sha256:…artifact",
+      "sublabel": "sha256:…artifact · manifest + 两类记录",
       "tag": "NOT_ADMITTED",
       "pos": [
         80,
@@ -160,9 +160,9 @@
     {
       "id": "assurance",
       "type": "security",
-      "label": "Assurance Export",
-      "sublabel": "签发者 / 范围 / 摘要",
-      "tag": "可缺失 → UNRESOLVED",
+      "label": "Assurance Attestation",
+      "sublabel": "Owner / Assurance Authority 签发",
+      "tag": "外部信任产物 · 绝不进 Compiler",
       "pos": [
         60,
         510
@@ -260,6 +260,21 @@
         320,
         90
       ]
+    },
+    {
+      "id": "runtime_req",
+      "type": "messagebus",
+      "label": "Runtime 执行要求",
+      "sublabel": "COMMIT_PROOF / RECONCILE 实际结果",
+      "tag": "执行期产生 · 不回写产物",
+      "pos": [
+        800,
+        790
+      ],
+      "size": [
+        240,
+        90
+      ]
     }
   ],
   "boundaries": [
@@ -297,7 +312,8 @@
         "invocation",
         "dispatch",
         "provider_inst",
-        "reconcile"
+        "reconcile",
+        "runtime_req"
       ],
       "pad": 18
     }
@@ -446,6 +462,22 @@
       "variant": "dashed",
       "fromSide": "bottom",
       "toSide": "top"
+    },
+    {
+      "id": "provider-runtime",
+      "from": "provider_inst",
+      "to": "runtime_req",
+      "label": "实际提交 / 恢复",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "reconcile-runtime",
+      "from": "reconcile",
+      "to": "runtime_req",
+      "label": "恢复结论",
+      "variant": "dashed"
     }
   ],
   "cards": [
@@ -453,9 +485,10 @@
       "dot": "cyan",
       "title": "三条路径各自定版（session-demo 贯穿）",
       "items": [
-        "接口：Interface Package（含 Capability Catalog）→ 锁 + 精确快照，只有锁进 Compiler",
+        "接口：Interface Package（含 Capability Catalog 与 EvidenceDescriptor 导出）→ 锁 + 精确快照，只有锁进 Compiler",
         "实现：Runtime Provider Package 不进 Compiler，只以精确接口键进入 Host 绑定",
-        "授权：Deployment Grant 由部署方独立签发，Resolver 与 Compiler 都看不到"
+        "授权：Deployment Grant 由部署方独立签发，Resolver 与 Compiler 都看不到",
+        "要求：Host 派发前外部事实与 Runtime 执行期结果分别成文件，互不替代"
       ]
     },
     {
@@ -464,6 +497,7 @@
       "items": [
         "构建成功不等于可执行：产物一律 NOT_ADMITTED",
         "隔离开发 Host 需显式 opt-in + 实测 Grant；生产 Host 一律拒收 DEVELOPMENT",
+        "COMMIT_PROOF / RECONCILE 是执行期要求，派发前只能检查机制是否就位",
         "结果未知时保留原尝试并走受控 Reconcile，不把重试当作成功"
       ]
     },

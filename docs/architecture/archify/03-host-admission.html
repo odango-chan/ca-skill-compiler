@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="generator" content="archify 3.2.0">
   <meta name="archify-reader-contract" content="declared-wide-v1">
-  <title>Host Admission 与执行：五类材料、两种环境、一个 UNKNOWN 出口</title>
+  <title>Host Admission 与执行：五类派发前材料、两类执行期结果、一个 UNKNOWN 出口</title>
   <script>
     // Resolve the theme before first paint so light-preference users don't
     // see a dark flash. The toolbar script below re-applies with UI state.
@@ -5194,7 +5194,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
            data-preset-badge-blueprint="蓝图 / 修订 01"
            data-preset-badge-editorial="编辑风格 / 现场笔记">
         <div class="pulse-dot"></div>
-        <h1>Host Admission 与执行：五类材料、两种环境、一个 UNKNOWN 出口</h1>
+        <h1>Host Admission 与执行：五类派发前材料、两类执行期结果、一个 UNKNOWN 出口</h1>
       </div>
       <p class="subtitle">下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 案例 session-demo</p>
     </div>
@@ -5204,8 +5204,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <!-- Main Diagram -->
     <div class="diagram-container" data-detail-level="read"
          data-preset-badge-editorial-plate="ARCHIFY / 图版 04">
-      <svg viewBox="0 0 1200 1228" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-node-ui="" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14">
-        <title id="archify-diagram-title">Host Admission 与执行：五类材料、两种环境、一个 UNKNOWN 出口</title>
+      <svg viewBox="0 0 1200 1268" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-node-ui="" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14">
+        <title id="archify-diagram-title">Host Admission 与执行：五类派发前材料、两类执行期结果、一个 UNKNOWN 出口</title>
         <desc id="archify-diagram-description">下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 案例 session-demo</desc>
         <!-- Definitions -->
         <defs>
@@ -5253,20 +5253,20 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <!-- Boundaries (behind everything) -->
         <rect data-graph-role="structural-frame" data-composition-frame-kind="security-group" data-composition-frame-id="0" data-composition-frame-label="准入材料与判定（全部由 Host 独立信任根验证）" x="40" y="36" width="1120" height="594" rx="8" class="c-security-group" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" data-composition-frame-label="准入后的执行与结算" x="40" y="636" width="1040" height="524" rx="12" class="c-region" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" data-composition-frame-label="准入后的执行与结算：真实提交与恢复结论在此产生" x="44" y="636" width="1032" height="564" rx="12" class="c-region" stroke-width="1"/>
 
         <!-- Connection paths (before components for correct z-order) -->
         <g data-graph-role="automatic-crossover" style="--step:0">
-          <path data-graph-role="automatic-crossover-underlay" d="M 300 283 L 360 283" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="artifact" data-edge-to="admission" data-edge-label="产物" data-edge-key="0" data-edge-id="artifact-admission" data-composition-points="300,283;360,283" data-composition-crossover="halo" data-composition-independent="true" d="M 300 283 L 360 283" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 180 240 L 180 224 Q 180 216 188 216 L 328 216 Q 336 216 336 224 L 336 325 Q 336 333 344 333 L 360 333" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="artifact" data-edge-to="admission" data-edge-label="产物 + 两类记录" data-edge-key="0" data-edge-id="artifact-admission" data-composition-points="180,240;180,216;336,216;336,333;360,333" data-composition-crossover="halo" data-composition-independent="true" d="M 180 240 L 180 224 Q 180 216 188 216 L 328 216 Q 336 216 336 224 L 336 325 Q 336 333 344 333 L 360 333" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:1">
           <path data-graph-role="automatic-crossover-underlay" d="M 300 390 L 360 390" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
           <path data-edge-from="prov_bind" data-edge-to="admission" data-edge-label="绑定" data-edge-key="1" data-edge-id="bind-admission" data-composition-points="300,390;360,390" data-composition-crossover="halo" data-composition-independent="true" d="M 300 390 L 360 390" class="a-default" data-animate="edge" style="--step:1" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:2">
-          <path data-graph-role="automatic-crossover-underlay" d="M 550 132 L 550 230" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="assurance" data-edge-to="admission" data-edge-label="保证" data-edge-key="2" data-edge-id="assurance-admission" data-composition-points="550,132;550,230" data-composition-crossover="halo" data-composition-independent="true" d="M 550 132 L 550 230" class="a-security" data-animate="edge" style="--step:2" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 550 140 L 550 230" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="authority" data-edge-to="admission" data-edge-label="外部事实" data-edge-key="2" data-edge-id="authority-admission" data-composition-points="550,140;550,230" data-composition-crossover="halo" data-composition-independent="true" d="M 550 140 L 550 230" class="a-security" data-animate="edge" style="--step:2" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:3">
           <path data-graph-role="automatic-crossover-underlay" d="M 900 280 L 680 280" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
@@ -5309,17 +5309,25 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <path data-edge-from="provider" data-edge-to="owner_op" data-edge-label="受信调用" data-edge-key="12" data-edge-id="provider-owner" data-composition-points="200,1020;200,1050" data-composition-crossover="halo" data-composition-independent="true" d="M 200 1020 L 200 1050" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:13">
-          <path data-graph-role="automatic-crossover-underlay" d="M 340 1095 L 400 1095" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="owner_op" data-edge-to="owner_pending" data-edge-label="挂起" data-edge-key="13" data-edge-id="owner-pending" data-composition-points="340,1095;400,1095" data-composition-crossover="halo" data-composition-independent="true" d="M 340 1095 L 400 1095" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 340 975 L 400 975" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="provider" data-edge-to="runtime_req" data-edge-label="提交证明" data-edge-key="13" data-edge-id="provider-runtime" data-composition-points="340,975;400,975" data-composition-crossover="halo" data-composition-independent="true" d="M 340 975 L 400 975" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:14">
           <path data-graph-role="automatic-crossover-underlay" d="M 530 750 L 530 810" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
           <path data-edge-from="unknown" data-edge-to="reconcile" data-edge-label="只走此路" data-edge-key="14" data-edge-id="unknown-reconcile" data-composition-points="530,750;530,810" data-composition-crossover="halo" data-composition-independent="true" d="M 530 750 L 530 810" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
+        <g data-graph-role="automatic-crossover" style="--step:15">
+          <path data-graph-role="automatic-crossover-underlay" d="M 530 900 L 530 930" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="reconcile" data-edge-to="runtime_req" data-edge-label="恢复结论" data-edge-key="15" data-edge-id="reconcile-runtime" data-composition-points="530,900;530,930" data-composition-crossover="halo" data-composition-independent="true" d="M 530 900 L 530 930" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        </g>
+        <g data-graph-role="automatic-crossover" style="--step:16">
+          <path data-graph-role="automatic-crossover-underlay" d="M 340 1106 L 400 1106" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="owner_op" data-edge-to="owner_pending" data-edge-label="挂起" data-edge-key="16" data-edge-id="owner-pending" data-composition-points="340,1106;400,1106" data-composition-crossover="halo" data-composition-independent="true" d="M 340 1106 L 400 1106" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        </g>
 
         <!-- Components -->
-        <g id="node-artifact" data-node-id="artifact" data-node-label="Linked Skill Artifact" tabindex="0" role="button" aria-label="聚焦Linked Skill Artifact，锁定闭包 + 义务记录, 准入材料与判定（全部由 Host 独立信任根验证）" aria-pressed="false" data-node-kind="database" data-node-sublabel="锁定闭包 + 义务记录" data-node-tag="sha256:…artifact" data-node-context="准入材料与判定（全部由 Host 独立信任根验证）">
-          <title>Linked Skill Artifact · 锁定闭包 + 义务记录 · 准入材料与判定（全部由 Host 独立信任根验证） · sha256:…artifact</title>
+        <g id="node-artifact" data-node-id="artifact" data-node-label="Linked Skill Artifact" tabindex="0" role="button" aria-label="聚焦Linked Skill Artifact，锁定闭包 + 两类 Requirement 记录, 准入材料与判定（全部由 Host 独立信任根验证）" aria-pressed="false" data-node-kind="database" data-node-sublabel="锁定闭包 + 两类 Requirement 记录" data-node-tag="sha256:…artifact" data-node-context="准入材料与判定（全部由 Host 独立信任根验证）">
+          <title>Linked Skill Artifact · 锁定闭包 + 两类 Requirement 记录 · 准入材料与判定（全部由 Host 独立信任根验证） · sha256:…artifact</title>
           <rect x="60" y="240" width="240" height="86" rx="8" class="c-mask"/>
           <rect x="60" y="240" width="240" height="86" rx="8" class="c-database" data-animate="node" style="--step:0" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(66 246) scale(0.6875)">
@@ -5327,7 +5335,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="180" y="281" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Linked Skill Artifact</text>
-        <text data-detail="context" x="180" y="297" class="t-muted" font-size="9" text-anchor="middle">锁定闭包 + 义务记录</text>
+        <text data-detail="context" x="180" y="297" class="t-muted" font-size="9" text-anchor="middle">锁定闭包 + 两类 Requirement 记录</text>
         <text data-detail="fine" x="180" y="318" class="t-database" font-size="7" text-anchor="middle">sha256:…artifact</text>
         </g>
 
@@ -5343,17 +5351,17 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="180" y="422" class="t-backend" font-size="7" text-anchor="middle">sha256:…provider</text>
         </g>
 
-        <g id="node-assurance" data-node-id="assurance" data-node-label="Assurance Export" tabindex="0" role="button" aria-label="聚焦Assurance Export，签发者 / 义务类型 / 适用范围, 准入材料与判定（全部由 Host 独立信任根验证）" aria-pressed="false" data-node-kind="security" data-node-sublabel="签发者 / 义务类型 / 适用范围" data-node-tag="可缺失 → UNRESOLVED" data-node-context="准入材料与判定（全部由 Host 独立信任根验证）">
-          <title>Assurance Export · 签发者 / 义务类型 / 适用范围 · 准入材料与判定（全部由 Host 独立信任根验证） · 可缺失 → UNRESOLVED</title>
-          <rect x="400" y="60" width="300" height="72" rx="8" class="c-mask"/>
-          <rect x="400" y="60" width="300" height="72" rx="8" class="c-security" data-animate="node" style="--step:2" stroke-width="1.5"/>
+        <g id="node-authority" data-node-id="authority" data-node-label="Owner / Evidence 权威材料" tabindex="0" role="button" aria-label="聚焦Owner / Evidence 权威材料，OWNER_TRUST · 域 / 事实 / 独立性, 准入材料与判定（全部由 Host 独立信任根验证）" aria-pressed="false" data-node-kind="security" data-node-sublabel="OWNER_TRUST · 域 / 事实 / 独立性" data-node-tag="Assurance Attestation 另验" data-node-context="准入材料与判定（全部由 Host 独立信任根验证）">
+          <title>Owner / Evidence 权威材料 · OWNER_TRUST · 域 / 事实 / 独立性 · 准入材料与判定（全部由 Host 独立信任根验证） · Assurance Attestation 另验</title>
+          <rect x="400" y="60" width="300" height="80" rx="8" class="c-mask"/>
+          <rect x="400" y="60" width="300" height="80" rx="8" class="c-security" data-animate="node" style="--step:2" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(406 66) scale(0.6875)">
             <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
             <path d="m5.8 8 1.5 1.5 3-3"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="550" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Assurance Export</text>
-        <text data-detail="context" x="550" y="110" class="t-muted" font-size="9" text-anchor="middle">签发者 / 义务类型 / 适用范围</text>
-        <text data-detail="fine" x="550" y="124" class="t-security" font-size="7" text-anchor="middle">可缺失 → UNRESOLVED</text>
+          <text data-node-label="" data-detail-anchor="" x="550" y="98" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Owner / Evidence 权威材料</text>
+        <text data-detail="context" x="550" y="114" class="t-muted" font-size="9" text-anchor="middle">OWNER_TRUST · 域 / 事实 / 独立性</text>
+        <text data-detail="fine" x="550" y="132" class="t-security" font-size="7" text-anchor="middle">Assurance Attestation 另验</text>
         </g>
 
         <g id="node-grant" data-node-id="grant" data-node-label="Deployment Grant" tabindex="0" role="button" aria-label="聚焦Deployment Grant，环境 / 主体 / Scope / 有效期, 准入材料与判定（全部由 Host 独立信任根验证）" aria-pressed="false" data-node-kind="security" data-node-sublabel="环境 / 主体 / Scope / 有效期" data-node-tag="部署方独立签发" data-node-context="准入材料与判定（全部由 Host 独立信任根验证）">
@@ -5395,8 +5403,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="520" y="442" class="t-security" font-size="7" text-anchor="middle">每次派发与恢复都复核</text>
         </g>
 
-        <g id="node-gate" data-node-id="gate" data-node-label="准入判定" tabindex="0" role="button" aria-label="聚焦准入判定，Profile · 义务 · Grant Scope · 撤销状态, 准入材料与判定（全部由 Host 独立信任根验证）" aria-pressed="false" data-node-kind="security" data-node-sublabel="Profile · 义务 · Grant Scope · 撤销状态" data-node-tag="逐 Invocation" data-node-context="准入材料与判定（全部由 Host 独立信任根验证）">
-          <title>准入判定 · Profile · 义务 · Grant Scope · 撤销状态 · 准入材料与判定（全部由 Host 独立信任根验证） · 逐 Invocation</title>
+        <g id="node-gate" data-node-id="gate" data-node-label="准入判定" tabindex="0" role="button" aria-label="聚焦准入判定，Profile · 外部要求 · Grant Scope · 撤销状态, 准入材料与判定（全部由 Host 独立信任根验证）" aria-pressed="false" data-node-kind="security" data-node-sublabel="Profile · 外部要求 · Grant Scope · 撤销状态" data-node-tag="逐 Invocation" data-node-context="准入材料与判定（全部由 Host 独立信任根验证）">
+          <title>准入判定 · Profile · 外部要求 · Grant Scope · 撤销状态 · 准入材料与判定（全部由 Host 独立信任根验证） · 逐 Invocation</title>
           <rect x="360" y="500" width="320" height="110" rx="8" class="c-mask"/>
           <rect x="360" y="500" width="320" height="110" rx="8" class="c-security" data-animate="node" style="--step:6" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(366 506) scale(0.6875)">
@@ -5404,12 +5412,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <path d="m5.8 8 1.5 1.5 3-3"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="520" y="553" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">准入判定</text>
-        <text data-detail="context" x="520" y="569" class="t-muted" font-size="9" text-anchor="middle">Profile · 义务 · Grant Scope · 撤销状态</text>
+        <text data-detail="context" x="520" y="569" class="t-muted" font-size="9" text-anchor="middle">Profile · 外部要求 · Grant Scope · 撤销状态</text>
         <text data-detail="fine" x="520" y="602" class="t-security" font-size="7" text-anchor="middle">逐 Invocation</text>
         </g>
 
-        <g id="node-dev" data-node-id="dev" data-node-label="隔离开发 Host" tabindex="0" role="button" aria-label="聚焦隔离开发 Host，显式 opt-in + 实测测试 Grant, 准入后的执行与结算" aria-pressed="false" data-node-kind="backend" data-node-sublabel="显式 opt-in + 实测测试 Grant" data-node-tag="仅限隔离环境" data-node-context="准入后的执行与结算">
-          <title>隔离开发 Host · 显式 opt-in + 实测测试 Grant · 准入后的执行与结算 · 仅限隔离环境</title>
+        <g id="node-dev" data-node-id="dev" data-node-label="隔离开发 Host" tabindex="0" role="button" aria-label="聚焦隔离开发 Host，显式 opt-in + 实测测试 Grant, 准入后的执行与结算：真实提交与恢复结论在此产生" aria-pressed="false" data-node-kind="backend" data-node-sublabel="显式 opt-in + 实测测试 Grant" data-node-tag="仅限隔离环境" data-node-context="准入后的执行与结算：真实提交与恢复结论在此产生">
+          <title>隔离开发 Host · 显式 opt-in + 实测测试 Grant · 准入后的执行与结算：真实提交与恢复结论在此产生 · 仅限隔离环境</title>
           <rect x="60" y="660" width="280" height="90" rx="8" class="c-mask"/>
           <rect x="60" y="660" width="280" height="90" rx="8" class="c-backend" data-animate="node" style="--step:7" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(66 666) scale(0.6875)">
@@ -5420,8 +5428,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="200" y="742" class="t-backend" font-size="7" text-anchor="middle">仅限隔离环境</text>
         </g>
 
-        <g id="node-unknown" data-node-id="unknown" data-node-label="结果 UNKNOWN" tabindex="0" role="button" aria-label="聚焦结果 UNKNOWN，保留原尝试标识与待结算状态, 准入后的执行与结算" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="保留原尝试标识与待结算状态" data-node-tag="不得盲目重试" data-node-context="准入后的执行与结算">
-          <title>结果 UNKNOWN · 保留原尝试标识与待结算状态 · 准入后的执行与结算 · 不得盲目重试</title>
+        <g id="node-unknown" data-node-id="unknown" data-node-label="结果 UNKNOWN" tabindex="0" role="button" aria-label="聚焦结果 UNKNOWN，保留原尝试标识与待结算状态, 准入后的执行与结算：真实提交与恢复结论在此产生" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="保留原尝试标识与待结算状态" data-node-tag="不得盲目重试" data-node-context="准入后的执行与结算：真实提交与恢复结论在此产生">
+          <title>结果 UNKNOWN · 保留原尝试标识与待结算状态 · 准入后的执行与结算：真实提交与恢复结论在此产生 · 不得盲目重试</title>
           <rect x="400" y="660" width="260" height="90" rx="8" class="c-mask"/>
           <rect x="400" y="660" width="260" height="90" rx="8" class="c-messagebus" data-animate="node" style="--step:9" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(406 666) scale(0.6875)">
@@ -5435,8 +5443,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="530" y="742" class="t-messagebus" font-size="7" text-anchor="middle">不得盲目重试</text>
         </g>
 
-        <g id="node-prod" data-node-id="prod" data-node-label="生产 Host" tabindex="0" role="button" aria-label="聚焦生产 Host，拒收 DEVELOPMENT 产物, 准入后的执行与结算" aria-pressed="false" data-node-kind="security" data-node-sublabel="拒收 DEVELOPMENT 产物" data-node-tag="补齐材料也不放行" data-node-context="准入后的执行与结算">
-          <title>生产 Host · 拒收 DEVELOPMENT 产物 · 准入后的执行与结算 · 补齐材料也不放行</title>
+        <g id="node-prod" data-node-id="prod" data-node-label="生产 Host" tabindex="0" role="button" aria-label="聚焦生产 Host，拒收 DEVELOPMENT 产物, 准入后的执行与结算：真实提交与恢复结论在此产生" aria-pressed="false" data-node-kind="security" data-node-sublabel="拒收 DEVELOPMENT 产物" data-node-tag="补齐材料也不放行" data-node-context="准入后的执行与结算：真实提交与恢复结论在此产生">
+          <title>生产 Host · 拒收 DEVELOPMENT 产物 · 准入后的执行与结算：真实提交与恢复结论在此产生 · 补齐材料也不放行</title>
           <rect x="780" y="660" width="280" height="90" rx="8" class="c-mask"/>
           <rect x="780" y="660" width="280" height="90" rx="8" class="c-security" data-animate="node" style="--step:8" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(786 666) scale(0.6875)">
@@ -5448,8 +5456,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="920" y="742" class="t-security" font-size="7" text-anchor="middle">补齐材料也不放行</text>
         </g>
 
-        <g id="node-reject" data-node-id="reject" data-node-label="准入拒绝" tabindex="0" role="button" aria-label="聚焦准入拒绝，派发前阻断，不产生副作用, 准入后的执行与结算" aria-pressed="false" data-node-kind="security" data-node-sublabel="派发前阻断，不产生副作用" data-node-context="准入后的执行与结算">
-          <title>准入拒绝 · 派发前阻断，不产生副作用 · 准入后的执行与结算</title>
+        <g id="node-reject" data-node-id="reject" data-node-label="准入拒绝" tabindex="0" role="button" aria-label="聚焦准入拒绝，派发前阻断，不产生副作用, 准入后的执行与结算：真实提交与恢复结论在此产生" aria-pressed="false" data-node-kind="security" data-node-sublabel="派发前阻断，不产生副作用" data-node-context="准入后的执行与结算：真实提交与恢复结论在此产生">
+          <title>准入拒绝 · 派发前阻断，不产生副作用 · 准入后的执行与结算：真实提交与恢复结论在此产生</title>
           <rect x="780" y="810" width="280" height="90" rx="8" class="c-mask"/>
           <rect x="780" y="810" width="280" height="90" rx="8" class="c-security" data-animate="node" style="--step:10" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(786 816) scale(0.6875)">
@@ -5460,8 +5468,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="920" y="869" class="t-muted" font-size="9" text-anchor="middle">派发前阻断，不产生副作用</text>
         </g>
 
-        <g id="node-runtime" data-node-id="runtime" data-node-label="Host Runtime / Temporal" tabindex="0" role="button" aria-label="聚焦Host Runtime / Temporal，同一 Run 继续执行, 准入后的执行与结算" aria-pressed="false" data-node-kind="backend" data-node-sublabel="同一 Run 继续执行" data-node-tag="只协调既有 Procedure" data-node-context="准入后的执行与结算">
-          <title>Host Runtime / Temporal · 同一 Run 继续执行 · 准入后的执行与结算 · 只协调既有 Procedure</title>
+        <g id="node-runtime" data-node-id="runtime" data-node-label="Host Runtime / Temporal" tabindex="0" role="button" aria-label="聚焦Host Runtime / Temporal，同一 Run 继续执行, 准入后的执行与结算：真实提交与恢复结论在此产生" aria-pressed="false" data-node-kind="backend" data-node-sublabel="同一 Run 继续执行" data-node-tag="只协调既有 Procedure" data-node-context="准入后的执行与结算：真实提交与恢复结论在此产生">
+          <title>Host Runtime / Temporal · 同一 Run 继续执行 · 准入后的执行与结算：真实提交与恢复结论在此产生 · 只协调既有 Procedure</title>
           <rect x="60" y="810" width="280" height="90" rx="8" class="c-mask"/>
           <rect x="60" y="810" width="280" height="90" rx="8" class="c-backend" data-animate="node" style="--step:11" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(66 816) scale(0.6875)">
@@ -5472,8 +5480,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="200" y="892" class="t-backend" font-size="7" text-anchor="middle">只协调既有 Procedure</text>
         </g>
 
-        <g id="node-provider" data-node-id="provider" data-node-label="固定 Typed Provider" tabindex="0" role="button" aria-label="聚焦固定 Typed Provider，按准入时绑定选择, 准入后的执行与结算" aria-pressed="false" data-node-kind="backend" data-node-sublabel="按准入时绑定选择" data-node-tag="选择歧义即拒绝" data-node-context="准入后的执行与结算">
-          <title>固定 Typed Provider · 按准入时绑定选择 · 准入后的执行与结算 · 选择歧义即拒绝</title>
+        <g id="node-provider" data-node-id="provider" data-node-label="固定 Typed Provider" tabindex="0" role="button" aria-label="聚焦固定 Typed Provider，按准入时绑定选择, 准入后的执行与结算：真实提交与恢复结论在此产生" aria-pressed="false" data-node-kind="backend" data-node-sublabel="按准入时绑定选择" data-node-tag="选择歧义即拒绝" data-node-context="准入后的执行与结算：真实提交与恢复结论在此产生">
+          <title>固定 Typed Provider · 按准入时绑定选择 · 准入后的执行与结算：真实提交与恢复结论在此产生 · 选择歧义即拒绝</title>
           <rect x="60" y="930" width="280" height="90" rx="8" class="c-mask"/>
           <rect x="60" y="930" width="280" height="90" rx="8" class="c-backend" data-animate="node" style="--step:12" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(66 936) scale(0.6875)">
@@ -5484,8 +5492,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="200" y="1012" class="t-backend" font-size="7" text-anchor="middle">选择歧义即拒绝</text>
         </g>
 
-        <g id="node-reconcile" data-node-id="reconcile" data-node-label="受控 Reconcile" tabindex="0" role="button" aria-label="聚焦受控 Reconcile，按原 Operation occurrence 核验, 准入后的执行与结算" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="按原 Operation occurrence 核验" data-node-tag="无 proof 则保持 UNKNOWN" data-node-context="准入后的执行与结算">
-          <title>受控 Reconcile · 按原 Operation occurrence 核验 · 准入后的执行与结算 · 无 proof 则保持 UNKNOWN</title>
+        <g id="node-reconcile" data-node-id="reconcile" data-node-label="受控 Reconcile" tabindex="0" role="button" aria-label="聚焦受控 Reconcile，按原 Operation occurrence 核验, 准入后的执行与结算：真实提交与恢复结论在此产生" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="按原 Operation occurrence 核验" data-node-tag="无 proof 则保持 UNKNOWN" data-node-context="准入后的执行与结算：真实提交与恢复结论在此产生">
+          <title>受控 Reconcile · 按原 Operation occurrence 核验 · 准入后的执行与结算：真实提交与恢复结论在此产生 · 无 proof 则保持 UNKNOWN</title>
           <rect x="400" y="810" width="260" height="90" rx="8" class="c-mask"/>
           <rect x="400" y="810" width="260" height="90" rx="8" class="c-messagebus" data-animate="node" style="--step:12" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(406 816) scale(0.6875)">
@@ -5499,8 +5507,23 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="530" y="892" class="t-messagebus" font-size="7" text-anchor="middle">无 proof 则保持 UNKNOWN</text>
         </g>
 
-        <g id="node-owner_op" data-node-id="owner_op" data-node-label="OpenAMSM Owner Operation" tabindex="0" role="button" aria-label="聚焦OpenAMSM Owner Operation，真实 5GSM 与 Session 所有权, 准入后的执行与结算" aria-pressed="false" data-node-kind="backend" data-node-sublabel="真实 5GSM 与 Session 所有权" data-node-context="准入后的执行与结算">
-          <title>OpenAMSM Owner Operation · 真实 5GSM 与 Session 所有权 · 准入后的执行与结算</title>
+        <g id="node-runtime_req" data-node-id="runtime_req" data-node-label="Runtime 执行要求" tabindex="0" role="button" aria-label="聚焦Runtime 执行要求，机制就位（静态）≠ 实际结果（执行期）, 准入后的执行与结算：真实提交与恢复结论在此产生" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="机制就位（静态）≠ 实际结果（执行期）" data-node-tag="COMMIT_PROOF / RECONCILE" data-node-context="准入后的执行与结算：真实提交与恢复结论在此产生">
+          <title>Runtime 执行要求 · 机制就位（静态）≠ 实际结果（执行期） · 准入后的执行与结算：真实提交与恢复结论在此产生 · COMMIT_PROOF / RECONCILE</title>
+          <rect x="400" y="930" width="260" height="110" rx="8" class="c-mask"/>
+          <rect x="400" y="930" width="260" height="110" rx="8" class="c-messagebus" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(406 936) scale(0.6875)">
+            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
+            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
+            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
+            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="530" y="983" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Runtime 执行要求</text>
+        <text data-detail="context" x="530" y="999" class="t-muted" font-size="9" text-anchor="middle">机制就位（静态）≠ 实际结果（执行期）</text>
+        <text data-detail="fine" x="530" y="1032" class="t-messagebus" font-size="7" text-anchor="middle">COMMIT_PROOF / RECONCILE</text>
+        </g>
+
+        <g id="node-owner_op" data-node-id="owner_op" data-node-label="OpenAMSM Owner Operation" tabindex="0" role="button" aria-label="聚焦OpenAMSM Owner Operation，真实 5GSM 与 Session 所有权, 准入后的执行与结算：真实提交与恢复结论在此产生" aria-pressed="false" data-node-kind="backend" data-node-sublabel="真实 5GSM 与 Session 所有权" data-node-context="准入后的执行与结算：真实提交与恢复结论在此产生">
+          <title>OpenAMSM Owner Operation · 真实 5GSM 与 Session 所有权 · 准入后的执行与结算：真实提交与恢复结论在此产生</title>
           <rect x="60" y="1050" width="280" height="90" rx="8" class="c-mask"/>
           <rect x="60" y="1050" width="280" height="90" rx="8" class="c-backend" data-animate="node" style="--step:12" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(66 1056) scale(0.6875)">
@@ -5510,33 +5533,33 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="200" y="1109" class="t-muted" font-size="9" text-anchor="middle">真实 5GSM 与 Session 所有权</text>
         </g>
 
-        <g id="node-owner_pending" data-node-id="owner_pending" data-node-label="Owner Pending 等待" tabindex="0" role="button" aria-label="聚焦Owner Pending 等待，进程内 /invoke waiter, 准入后的执行与结算" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="进程内 /invoke waiter" data-node-tag="30 秒上限 · 非 Temporal 恢复" data-node-context="准入后的执行与结算">
-          <title>Owner Pending 等待 · 进程内 /invoke waiter · 准入后的执行与结算 · 30 秒上限 · 非 Temporal 恢复</title>
-          <rect x="400" y="1050" width="260" height="90" rx="8" class="c-mask"/>
-          <rect x="400" y="1050" width="260" height="90" rx="8" class="c-messagebus" data-animate="node" style="--step:12" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(406 1056) scale(0.6875)">
+        <g id="node-owner_pending" data-node-id="owner_pending" data-node-label="Owner Pending 等待" tabindex="0" role="button" aria-label="聚焦Owner Pending 等待，进程内 /invoke waiter, 准入后的执行与结算：真实提交与恢复结论在此产生" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="进程内 /invoke waiter" data-node-tag="30 秒上限 · 非 Temporal 恢复" data-node-context="准入后的执行与结算：真实提交与恢复结论在此产生">
+          <title>Owner Pending 等待 · 进程内 /invoke waiter · 准入后的执行与结算：真实提交与恢复结论在此产生 · 30 秒上限 · 非 Temporal 恢复</title>
+          <rect x="400" y="1090" width="260" height="90" rx="8" class="c-mask"/>
+          <rect x="400" y="1090" width="260" height="90" rx="8" class="c-messagebus" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(406 1096) scale(0.6875)">
             <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
             <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
             <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
             <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="530" y="1093" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Owner Pending 等待</text>
-        <text data-detail="context" x="530" y="1109" class="t-muted" font-size="9" text-anchor="middle">进程内 /invoke waiter</text>
-        <text data-detail="fine" x="530" y="1132" class="t-messagebus" font-size="7" text-anchor="middle">30 秒上限 · 非 Temporal 恢复</text>
+          <text data-node-label="" data-detail-anchor="" x="530" y="1133" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Owner Pending 等待</text>
+        <text data-detail="context" x="530" y="1149" class="t-muted" font-size="9" text-anchor="middle">进程内 /invoke waiter</text>
+        <text data-detail="fine" x="530" y="1172" class="t-messagebus" font-size="7" text-anchor="middle">30 秒上限 · 非 Temporal 恢复</text>
         </g>
 
         <!-- Connection labels -->
-        <g data-detail="context" data-edge-from="artifact" data-edge-to="admission" data-edge-label="产物" data-edge-key="0" data-edge-id="artifact-admission">
-          <rect x="315" y="263" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="330" y="273" class="t-edge-emphasis" font-size="8" text-anchor="middle">产物</text>
+        <g data-detail="context" data-edge-from="artifact" data-edge-to="admission" data-edge-label="产物 + 两类记录" data-edge-key="0" data-edge-id="artifact-admission">
+          <rect x="217" y="196" width="82" height="14" rx="3" class="c-mask"/>
+          <text x="258" y="206" class="t-edge-emphasis" font-size="8" text-anchor="middle">产物 + 两类记录</text>
         </g>
         <g data-detail="context" data-edge-from="prov_bind" data-edge-to="admission" data-edge-label="绑定" data-edge-key="1" data-edge-id="bind-admission">
           <rect x="315" y="370" width="30" height="14" rx="3" class="c-mask"/>
           <text x="330" y="380" class="t-edge-default" font-size="8" text-anchor="middle">绑定</text>
         </g>
-        <g data-detail="context" data-edge-from="assurance" data-edge-to="admission" data-edge-label="保证" data-edge-key="2" data-edge-id="assurance-admission">
-          <rect x="514" y="174" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="529" y="184" class="t-edge-security" font-size="8" text-anchor="middle">保证</text>
+        <g data-detail="context" data-edge-from="authority" data-edge-to="admission" data-edge-label="外部事实" data-edge-key="2" data-edge-id="authority-admission">
+          <rect x="495.59999999999997" y="178" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="519.8" y="188" class="t-edge-security" font-size="8" text-anchor="middle">外部事实</text>
         </g>
         <g data-detail="context" data-edge-from="grant" data-edge-to="admission" data-edge-label="授权" data-edge-key="3" data-edge-id="grant-admission">
           <rect x="775" y="260" width="30" height="14" rx="3" class="c-mask"/>
@@ -5551,8 +5574,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <text x="489.8" y="478" class="t-edge-emphasis" font-size="8" text-anchor="middle">求交结果</text>
         </g>
         <g data-detail="context" data-edge-from="gate" data-edge-to="dev" data-edge-label="开发策略允许" data-edge-key="6" data-edge-id="gate-dev">
-          <rect x="302.4" y="636" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="336.2" y="646" class="t-edge-default" font-size="8" text-anchor="middle">开发策略允许</text>
+          <rect x="382" y="636" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="415.8" y="646" class="t-edge-default" font-size="8" text-anchor="middle">开发策略允许</text>
         </g>
         <g data-detail="context" data-edge-from="gate" data-edge-to="prod" data-edge-label="生产策略拒绝" data-edge-key="7" data-edge-id="gate-prod">
           <rect x="688.2" y="656" width="67.6" height="14" rx="3" class="c-mask"/>
@@ -5578,13 +5601,21 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <rect x="145.60000000000002" y="1028" width="48.4" height="14" rx="3" class="c-mask"/>
           <text x="169.8" y="1038" class="t-edge-default" font-size="8" text-anchor="middle">受信调用</text>
         </g>
-        <g data-detail="context" data-edge-from="owner_op" data-edge-to="owner_pending" data-edge-label="挂起" data-edge-key="13" data-edge-id="owner-pending">
-          <rect x="355" y="1075" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="370" y="1085" class="t-edge-dashed" font-size="8" text-anchor="middle">挂起</text>
+        <g data-detail="context" data-edge-from="provider" data-edge-to="runtime_req" data-edge-label="提交证明" data-edge-key="13" data-edge-id="provider-runtime">
+          <rect x="345.8" y="955" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="370" y="965" class="t-edge-emphasis" font-size="8" text-anchor="middle">提交证明</text>
         </g>
         <g data-detail="context" data-edge-from="unknown" data-edge-to="reconcile" data-edge-label="只走此路" data-edge-key="14" data-edge-id="unknown-reconcile">
           <rect x="475.6" y="773" width="48.4" height="14" rx="3" class="c-mask"/>
           <text x="499.8" y="783" class="t-edge-dashed" font-size="8" text-anchor="middle">只走此路</text>
+        </g>
+        <g data-detail="context" data-edge-from="reconcile" data-edge-to="runtime_req" data-edge-label="恢复结论" data-edge-key="15" data-edge-id="reconcile-runtime">
+          <rect x="475.6" y="908" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="499.8" y="918" class="t-edge-dashed" font-size="8" text-anchor="middle">恢复结论</text>
+        </g>
+        <g data-detail="context" data-edge-from="owner_op" data-edge-to="owner_pending" data-edge-label="挂起" data-edge-key="16" data-edge-id="owner-pending">
+          <rect x="355" y="1086" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="370" y="1096" class="t-edge-dashed" font-size="8" text-anchor="middle">挂起</text>
         </g>
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->
@@ -5593,33 +5624,33 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <text data-boundary-label="" x="48" y="53" class="t-security" font-size="9" font-weight="600">准入材料与判定（全部由 Host 独立信任根验证）</text>
         </g>
 
-        <g data-graph-role="structural-frame-label" data-composition-frame-id="1" data-composition-frame-kind="region" data-composition-frame-label="准入后的执行与结算">
-          <rect data-graph-role="structural-frame-label-mask" x="44" y="640" width="107.2" height="16" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="48" y="653" class="t-cloud" font-size="9" font-weight="600">准入后的执行与结算</text>
+        <g data-graph-role="structural-frame-label" data-composition-frame-id="1" data-composition-frame-kind="region" data-composition-frame-label="准入后的执行与结算：真实提交与恢复结论在此产生">
+          <rect data-graph-role="structural-frame-label-mask" x="48" y="640" width="258.4" height="16" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="52" y="653" class="t-cloud" font-size="9" font-weight="600">准入后的执行与结算：真实提交与恢复结论在此产生</text>
         </g>
 
         <!-- Legend -->
         <g data-legend="" data-legend-bridge="">
-          <text x="40" y="1192" class="t-primary" font-size="12" font-weight="650">图例</text>
-          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="后端" data-legend-x="40" data-legend-baseline="1212" data-legend-width="68">
-            <rect x="40" y="1203" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
-            <text x="62" y="1212" class="t-muted" font-size="10" font-weight="500">后端</text>
+          <text x="40" y="1232" class="t-primary" font-size="12" font-weight="650">图例</text>
+          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="后端" data-legend-x="40" data-legend-baseline="1252" data-legend-width="68">
+            <rect x="40" y="1243" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
+            <text x="62" y="1252" class="t-muted" font-size="10" font-weight="500">后端</text>
           </g>
-          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="数据库" data-legend-x="130" data-legend-baseline="1212" data-legend-width="81">
-            <rect x="130" y="1203" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
-            <text x="152" y="1212" class="t-muted" font-size="10" font-weight="500">数据库</text>
+          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="数据库" data-legend-x="130" data-legend-baseline="1252" data-legend-width="81">
+            <rect x="130" y="1243" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
+            <text x="152" y="1252" class="t-muted" font-size="10" font-weight="500">数据库</text>
           </g>
-          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="安全" data-legend-x="233" data-legend-baseline="1212" data-legend-width="68">
-            <rect x="233" y="1203" width="16" height="10" rx="2.5" class="c-security" stroke-width="1"/>
-            <text x="255" y="1212" class="t-muted" font-size="10" font-weight="500">安全</text>
+          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="安全" data-legend-x="233" data-legend-baseline="1252" data-legend-width="68">
+            <rect x="233" y="1243" width="16" height="10" rx="2.5" class="c-security" stroke-width="1"/>
+            <text x="255" y="1252" class="t-muted" font-size="10" font-weight="500">安全</text>
           </g>
-          <g data-legend-semantic-kind="messagebus" data-legend-kind="messagebus" data-legend-label="消息总线" data-legend-x="323" data-legend-baseline="1212" data-legend-width="93">
-            <rect x="323" y="1203" width="16" height="10" rx="2.5" class="c-messagebus" stroke-width="1"/>
-            <text x="345" y="1212" class="t-muted" font-size="10" font-weight="500">消息总线</text>
+          <g data-legend-semantic-kind="messagebus" data-legend-kind="messagebus" data-legend-label="消息总线" data-legend-x="323" data-legend-baseline="1252" data-legend-width="93">
+            <rect x="323" y="1243" width="16" height="10" rx="2.5" class="c-messagebus" stroke-width="1"/>
+            <text x="345" y="1252" class="t-muted" font-size="10" font-weight="500">消息总线</text>
           </g>
-          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="外部系统" data-legend-x="438" data-legend-baseline="1212" data-legend-width="93">
-            <rect x="438" y="1203" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
-            <text x="460" y="1212" class="t-muted" font-size="10" font-weight="500">外部系统</text>
+          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="外部系统" data-legend-x="438" data-legend-baseline="1252" data-legend-width="93">
+            <rect x="438" y="1243" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
+            <text x="460" y="1252" class="t-muted" font-size="10" font-weight="500">外部系统</text>
           </g>
         </g>
       </svg>
@@ -5827,12 +5858,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       <div class="card">
         <div class="card-header">
           <div class="card-dot amber"></div>
-          <h3>调度与 Owner 等待必须分开</h3>
+          <h3>执行期要求与 Owner 等待必须分开</h3>
         </div>
         <ul>
+          <li>COMMIT_PROOF / RECONCILE 在 runtime-execution-requirements.json，不在 Host Admission 文件</li>
+          <li>派发前只检查运行时机制是否就位；真实提交与恢复结论执行期产生且不回写产物</li>
           <li>Temporal 只协调既有 Runtime Run，不接管 OpenAMSM 的 /invoke waiter</li>
-          <li>Owner Pending 仍是进程内状态，30 秒上限未解决</li>
-          <li>UNKNOWN 保留原尝试并走 exact-original Reconcile，不重试成成功</li>
         </ul>
       </div>
     </div>

@@ -5196,7 +5196,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <div class="pulse-dot"></div>
         <h1>离线编译与链接：从源码到 NOT_ADMITTED 产物</h1>
       </div>
-      <p class="subtitle">下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 案例 session-demo</p>
+      <p class="subtitle">下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 案例 session-demo · Requirement 分两类</p>
     </div>
 
 
@@ -5204,9 +5204,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <!-- Main Diagram -->
     <div class="diagram-container" data-detail-level="read"
          data-preset-badge-editorial-plate="ARCHIFY / 图版 04">
-      <svg viewBox="0 0 1166 660" data-layout-contract="readable-v2" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-node-ui="">
+      <svg viewBox="0 0 1178 660" data-layout-contract="readable-v2" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-node-ui="">
         <title id="archify-diagram-title">离线编译与链接：从源码到 NOT_ADMITTED 产物</title>
-        <desc id="archify-diagram-description">下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 案例 session-demo</desc>
+        <desc id="archify-diagram-description">下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 案例 session-demo · Requirement 分两类</desc>
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -5258,7 +5258,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text x="54" y="200" class="t-muted" font-size="10" font-weight="600">02 / 离线编译器</text>
 
         <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-2" x="40" y="304" width="1110" height="106" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="54" y="326" class="t-muted" font-size="10" font-weight="600">03 / 产物</text>
+        <text x="54" y="326" class="t-muted" font-size="10" font-weight="600">03 / 产物文件</text>
 
         <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-3" x="40" y="430" width="1110" height="106" rx="10" class="c-lane" stroke-width="1"/>
         <rect data-graph-role="structural-frame" data-composition-frame-kind="exception-lane" data-composition-frame-id="lane-3-exception" x="46" y="436" width="1098" height="94" rx="8" class="c-security-group" stroke-width="1"/>
@@ -5271,237 +5271,225 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 
         <!-- Edge paths -->
-        <path data-edge-from="artifact" data-edge-to="host_stop" data-edge-label="NOT_ADMITTED" data-edge-key="0" data-edge-id="artifact-stop" data-composition-routing="workflow-v2-auto" data-edge-role="branch" data-composition-points="1051.1999999999998,406;1051.1999999999998,464" d="M 1051.1999999999998 406 L 1051.1999999999998 464" class="a-dashed" data-animate="edge" style="--step:7" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="assemble" data-edge-to="manifest" data-edge-label="义务记录" data-edge-key="1" data-edge-id="assemble-manifest" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="814.8,280;814.8,338" d="M 814.8 280 L 814.8 338" class="a-default" data-animate="edge" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="assure_in" data-edge-to="eval" data-edge-label="可选输入" data-edge-key="2" data-edge-id="assure-eval" data-composition-routing="workflow-v2-auto" data-edge-role="branch" data-composition-points="658.4,154;658.4,212" d="M 658.4 154 L 658.4 212" class="a-dashed" data-animate="edge" style="--step:9" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="compile" data-edge-to="link" data-edge-label="静态 AST" data-edge-key="3" data-edge-id="compile-link" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="386,246;442.4,246" d="M 386 246 L 442.4 246" class="a-default" data-animate="edge" style="--step:1" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="eval" data-edge-to="assemble" data-edge-label="义务清单" data-edge-key="4" data-edge-id="eval-assemble" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="710.4,246;766.8,246" d="M 710.4 246 L 766.8 246" class="a-default" data-animate="edge" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="eval" data-edge-to="unresolved" data-edge-label="缺 Evidence" data-edge-key="5" data-edge-id="eval-unresolved" data-composition-routing="workflow-v2-auto" data-edge-role="branch" data-composition-points="658.4,280;658.4,296;700.5999999999999,296;700.5999999999999,448;790.8,448;790.8,464" d="M 658.4 280 L 658.4 288 Q 658.4 296 666.4 296 L 692.5999999999999 296 Q 700.5999999999999 296 700.5999999999999 304 L 700.5999999999999 440 Q 700.5999999999999 448 708.5999999999999 448 L 782.8 448 Q 790.8 448 790.8 456 L 790.8 464" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="link" data-edge-to="eval" data-edge-label="链接记录" data-edge-key="6" data-edge-id="link-eval" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="546.4,246;606.4,246" d="M 546.4 246 L 606.4 246" class="a-default" data-animate="edge" style="--step:2" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="link" data-edge-to="link_fail" data-edge-label="闭包不成立" data-edge-key="7" data-edge-id="link-reject" data-composition-routing="workflow-v2-auto" data-edge-role="error" data-composition-points="494.4,280;494.4,464" d="M 494.4 280 L 494.4 464" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <path data-edge-from="manifest" data-edge-to="artifact" data-edge-label="文件清单" data-edge-key="8" data-edge-id="manifest-artifact" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="904.8,372;961.1999999999998,372" d="M 904.8 372 L 961.1999999999998 372" class="a-emphasis" data-animate="edge" style="--step:5" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="link_fail" data-edge-to="no_art" data-edge-key="9" data-edge-id="reject-noart" data-composition-routing="workflow-v2-auto" data-edge-role="branch" data-composition-points="576.4,498;608.4,498" d="M 576.4 498 L 608.4 498" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="req" data-edge-to="compile" data-edge-label="源码 + 锁" data-edge-key="10" data-edge-id="req-compile" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="122,154;122,180;328,180;328,212" d="M 122 154 L 122 172 Q 122 180 130 180 L 320 180 Q 328 180 328 188 L 328 212" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="snaps" data-edge-to="link" data-edge-label="精确快照" data-edge-key="11" data-edge-id="snaps-link" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="428,120;494.4,120;494.4,212" d="M 428 120 L 486.4 120 Q 494.4 120 494.4 128 L 494.4 212" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="unresolved" data-edge-to="manifest" data-edge-label="记为未决义务" data-edge-key="12" data-edge-id="unresolved-manifest" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="814.8,464;814.8,406" d="M 814.8 464 L 814.8 406" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="artifact" data-edge-to="host_stop" data-edge-label="NOT_ADMITTED" data-edge-key="0" data-edge-id="artifact-stop" data-composition-routing="workflow-v2-auto" data-edge-role="branch" data-composition-points="1051.2,406;1051.2,464" d="M 1051.2 406 L 1051.2 464" class="a-dashed" data-animate="edge" style="--step:6" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="assemble" data-edge-to="artifact" data-edge-label="manifest + 文件清单" data-edge-key="1" data-edge-id="assemble-artifact" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="874.4,246;1051.2,246;1051.2,338" d="M 874.4 246 L 1043.2 246 Q 1051.2 246 1051.2 254 L 1051.2 338" class="a-emphasis" data-animate="edge" style="--step:4" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="compile" data-edge-to="link" data-edge-label="静态 AST" data-edge-key="2" data-edge-id="compile-link" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="330,246;386.4,246" d="M 330 246 L 386.4 246" class="a-default" data-animate="edge" style="--step:1" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="eval" data-edge-to="assemble" data-edge-label="两类记录" data-edge-key="3" data-edge-id="eval-assemble" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="692.4,246;778.4,246" d="M 692.4 246 L 778.4 246" class="a-default" data-animate="edge" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="eval" data-edge-to="host_req" data-edge-label="外部事实" data-edge-key="4" data-edge-id="eval-hostreq" data-composition-routing="workflow-v2-auto" data-edge-role="branch" data-composition-points="628.4,280;628.4,338" d="M 628.4 280 L 628.4 338" class="a-default" data-animate="edge" style="--step:10" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="eval" data-edge-to="rt_req" data-edge-label="执行期要求" data-edge-key="5" data-edge-id="eval-rtreq" data-composition-routing="workflow-v2-auto" data-edge-role="branch" data-composition-points="692.4,254;708.4,254;708.4,306;826.4,306;826.4,338" d="M 692.4 254 L 700.4 254 Q 708.4 254 708.4 262 L 708.4 298 Q 708.4 306 716.4 306 L 818.4 306 Q 826.4 306 826.4 314 L 826.4 338" class="a-default" data-animate="edge" style="--step:11" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="eval" data-edge-to="static_fail" data-edge-label="静态非法" data-edge-key="6" data-edge-id="eval-staticfail" data-composition-routing="workflow-v2-auto" data-edge-role="error" data-composition-points="628.4,212;628.4,196;1162,196;1162,548;628.4,548;628.4,532" d="M 628.4 212 L 628.4 204 Q 628.4 196 636.4 196 L 1154 196 Q 1162 196 1162 204 L 1162 540 Q 1162 548 1154 548 L 636.4 548 Q 628.4 548 628.4 540 L 628.4 532" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path data-edge-from="host_req" data-edge-to="artifact" data-edge-label="随产物" data-edge-key="7" data-edge-id="hostreq-artifact" data-composition-routing="workflow-v2-auto" data-edge-role="branch" data-composition-points="628.4,406;628.4,426;945.2,426;945.2,372;961.2,372" d="M 628.4 406 L 628.4 418 Q 628.4 426 636.4 426 L 937.2 426 Q 945.2 426 945.2 418 L 945.2 380 Q 945.2 372 953.2 372 L 961.2 372" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="link" data-edge-to="eval" data-edge-label="链接记录" data-edge-key="8" data-edge-id="link-eval" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="490.4,246;564.4,246" d="M 490.4 246 L 564.4 246" class="a-default" data-animate="edge" style="--step:2" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="link" data-edge-to="link_fail" data-edge-label="闭包不成立" data-edge-key="9" data-edge-id="link-fail" data-composition-routing="workflow-v2-auto" data-edge-role="error" data-composition-points="438.4,280;438.4,464" d="M 438.4 280 L 438.4 464" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path data-edge-from="req" data-edge-to="compile" data-edge-label="源码 + 锁" data-edge-key="10" data-edge-id="req-compile" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="94,154;94,180;272,180;272,212" d="M 94 154 L 94 172 Q 94 180 102 180 L 264 180 Q 272 180 272 188 L 272 212" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="rt_req" data-edge-to="artifact" data-edge-label="随产物" data-edge-key="11" data-edge-id="rtreq-artifact" data-composition-routing="workflow-v2-auto" data-edge-role="branch" data-composition-points="914.4,372;961.2,372" d="M 914.4 372 L 961.2 372" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="snaps" data-edge-to="link" data-edge-label="精确快照" data-edge-key="12" data-edge-id="snaps-link" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="372,120;438.4,120;438.4,212" d="M 372 120 L 430.4 120 Q 438.4 120 438.4 128 L 438.4 212" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
 
         <!-- Nodes -->
-        <g id="node-req" data-node-id="req" data-node-label="构建请求" tabindex="0" role="button" aria-label="聚焦构建请求，session-demo 源码 + 锁 + 快照, 输入（离线：无 Registry、无凭据、无部署授权）" aria-pressed="false" data-node-kind="external" data-node-sublabel="session-demo 源码 + 锁 + 快照" data-node-tag="profile=DEVELOPMENT" data-node-context="输入（离线：无 Registry、无凭据、无部署授权）">
-          <title>构建请求 · session-demo 源码 + 锁 + 快照 · 输入（离线：无 Registry、无凭据、无部署授权） · profile=DEVELOPMENT</title>
-          <rect x="48" y="86" width="148" height="68" rx="8" class="c-mask"/>
-          <rect x="48" y="86" width="148" height="68" rx="8" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
+        <g id="node-req" data-node-id="req" data-node-label="构建请求" tabindex="0" role="button" aria-label="聚焦构建请求，源码 + 锁 + 快照, 输入（离线：无 Registry、无凭据、无部署授权）" aria-pressed="false" data-node-kind="external" data-node-sublabel="源码 + 锁 + 快照" data-node-tag="profile=DEVELOPMENT" data-node-context="输入（离线：无 Registry、无凭据、无部署授权）">
+          <title>构建请求 · 源码 + 锁 + 快照 · 输入（离线：无 Registry、无凭据、无部署授权） · profile=DEVELOPMENT</title>
+          <rect x="48" y="86" width="92" height="68" rx="8" class="c-mask"/>
+          <rect x="48" y="86" width="92" height="68" rx="8" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(54 92) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="122" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">构建请求</text>
-          <text data-detail="context" x="122" y="124" class="t-muted" font-size="8" text-anchor="middle">session-demo 源码 + 锁 + 快照</text>
-        <text data-detail="fine" x="122" y="142" class="t-external" font-size="7" text-anchor="middle">profile=DEVELOPMENT</text>
+          <text data-node-label="" data-detail-anchor="" x="94" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">构建请求</text>
+          <text data-detail="context" x="94" y="124" class="t-muted" font-size="8" text-anchor="middle">源码 + 锁 + 快照</text>
+        <text data-detail="fine" x="94" y="142" class="t-external" font-size="7" text-anchor="middle">profile=DEVELOPMENT</text>
         </g>
 
         <g id="node-snaps" data-node-id="snaps" data-node-label="Interface 快照" tabindex="0" role="button" aria-label="聚焦Interface 快照，Callable · Schema · Capability · Ingress, 输入（离线：无 Registry、无凭据、无部署授权）" aria-pressed="false" data-node-kind="database" data-node-sublabel="Callable · Schema · Capability · Ingress" data-node-tag="sha256:…mas / sha256:…ctx" data-node-context="输入（离线：无 Registry、无凭据、无部署授权）">
           <title>Interface 快照 · Callable · Schema · Capability · Ingress · 输入（离线：无 Registry、无凭据、无部署授权） · sha256:…mas / sha256:…ctx</title>
-          <rect x="228" y="86" width="200" height="68" rx="8" class="c-mask"/>
-          <rect x="228" y="86" width="200" height="68" rx="8" class="c-database" data-animate="node" style="--step:8" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(234 92) scale(0.6875)">
+          <rect x="172" y="86" width="200" height="68" rx="8" class="c-mask"/>
+          <rect x="172" y="86" width="200" height="68" rx="8" class="c-database" data-animate="node" style="--step:7" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(178 92) scale(0.6875)">
             <ellipse cx="8" cy="4" rx="5" ry="2"/>
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="328" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Interface 快照</text>
-          <text data-detail="context" x="328" y="124" class="t-muted" font-size="8" text-anchor="middle">Callable · Schema · Capability · Ingress</text>
-        <text data-detail="fine" x="328" y="142" class="t-database" font-size="7" text-anchor="middle">sha256:…mas / sha256:…ctx</text>
-        </g>
-
-        <g id="node-assure_in" data-node-id="assure_in" data-node-label="Assurance Export（可选）" tabindex="0" role="button" aria-label="聚焦Assurance Export（可选），缺失时只记录义务, 输入（离线：无 Registry、无凭据、无部署授权）" aria-pressed="false" data-node-kind="security" data-node-sublabel="缺失时只记录义务" data-node-tag="签发在 Compiler 之外" data-node-context="输入（离线：无 Registry、无凭据、无部署授权）">
-          <title>Assurance Export（可选） · 缺失时只记录义务 · 输入（离线：无 Registry、无凭据、无部署授权） · 签发在 Compiler 之外</title>
-          <rect x="578.4" y="86" width="160" height="68" rx="8" class="c-mask"/>
-          <rect x="578.4" y="86" width="160" height="68" rx="8" class="c-security" data-animate="node" style="--step:9" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(584.4 92) scale(0.6875)">
-            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
-            <path d="m5.8 8 1.5 1.5 3-3"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="658.4" y="117.6" class="t-primary" font-size="10.5" font-weight="600" text-anchor="middle">Assurance Export（可选）</text>
-          <text data-detail="context" x="658.4" y="132.4" class="t-muted" font-size="8" text-anchor="middle">缺失时只记录义务</text>
-        <text data-detail="fine" x="658.4" y="145.2" class="t-security" font-size="7" text-anchor="middle">签发在 Compiler 之外</text>
+          <text data-node-label="" data-detail-anchor="" x="272" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Interface 快照</text>
+          <text data-detail="context" x="272" y="124" class="t-muted" font-size="8" text-anchor="middle">Callable · Schema · Capability · Ingress</text>
+        <text data-detail="fine" x="272" y="142" class="t-database" font-size="7" text-anchor="middle">sha256:…mas / sha256:…ctx</text>
         </g>
 
         <g id="node-compile" data-node-id="compile" data-node-label="① Compile" tabindex="0" role="button" aria-label="聚焦① Compile，SKILL.md + Procedure 源, 离线编译器" aria-pressed="false" data-node-kind="backend" data-node-sublabel="SKILL.md + Procedure 源" data-node-tag="v1alpha5 静态规则" data-node-context="离线编译器">
           <title>① Compile · SKILL.md + Procedure 源 · 离线编译器 · v1alpha5 静态规则</title>
-          <rect x="270" y="212" width="116" height="68" rx="8" class="c-mask"/>
-          <rect x="270" y="212" width="116" height="68" rx="8" class="c-backend" data-animate="node" style="--step:1" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(276 218) scale(0.6875)">
+          <rect x="214" y="212" width="116" height="68" rx="8" class="c-mask"/>
+          <rect x="214" y="212" width="116" height="68" rx="8" class="c-backend" data-animate="node" style="--step:1" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(220 218) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="328" y="233" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">① Compile</text>
-          <text data-detail="context" x="328" y="250" class="t-muted" font-size="7.8" text-anchor="middle">SKILL.md + Procedure 源</text>
-        <text data-detail="fine" x="328" y="268" class="t-backend" font-size="7" text-anchor="middle">v1alpha5 静态规则</text>
+          <text data-node-label="" data-detail-anchor="" x="272" y="233" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">① Compile</text>
+          <text data-detail="context" x="272" y="250" class="t-muted" font-size="7.8" text-anchor="middle">SKILL.md + Procedure 源</text>
+        <text data-detail="fine" x="272" y="268" class="t-backend" font-size="7" text-anchor="middle">v1alpha5 静态规则</text>
         </g>
 
         <g id="node-link" data-node-id="link" data-node-label="② Interface Link" tabindex="0" role="button" aria-label="聚焦② Interface Link，闭包固定 + 类型绑定, 离线编译器" aria-pressed="false" data-node-kind="backend" data-node-sublabel="闭包固定 + 类型绑定" data-node-tag="缺接口即失败" data-node-context="离线编译器">
           <title>② Interface Link · 闭包固定 + 类型绑定 · 离线编译器 · 缺接口即失败</title>
-          <rect x="442.4" y="212" width="104" height="68" rx="8" class="c-mask"/>
-          <rect x="442.4" y="212" width="104" height="68" rx="8" class="c-backend" data-animate="node" style="--step:2" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(448.4 218) scale(0.6875)">
+          <rect x="386.4" y="212" width="104" height="68" rx="8" class="c-mask"/>
+          <rect x="386.4" y="212" width="104" height="68" rx="8" class="c-backend" data-animate="node" style="--step:2" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(392.4 218) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="494.4" y="243" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">② Interface Link</text>
-          <text data-detail="context" x="494.4" y="257.6" class="t-muted" font-size="8" text-anchor="middle">闭包固定 + 类型绑定</text>
-        <text data-detail="fine" x="494.4" y="270.4" class="t-backend" font-size="7" text-anchor="middle">缺接口即失败</text>
+          <text data-node-label="" data-detail-anchor="" x="438.4" y="243" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">② Interface Link</text>
+          <text data-detail="context" x="438.4" y="257.6" class="t-muted" font-size="8" text-anchor="middle">闭包固定 + 类型绑定</text>
+        <text data-detail="fine" x="438.4" y="270.4" class="t-backend" font-size="7" text-anchor="middle">缺接口即失败</text>
         </g>
 
-        <g id="node-eval" data-node-id="eval" data-node-label="③ 义务评估" tabindex="0" role="button" aria-label="聚焦③ 义务评估，静态声明 + 已有描述符, 离线编译器" aria-pressed="false" data-node-kind="backend" data-node-sublabel="静态声明 + 已有描述符" data-node-tag="不推断部署状态" data-node-context="离线编译器">
-          <title>③ 义务评估 · 静态声明 + 已有描述符 · 离线编译器 · 不推断部署状态</title>
-          <rect x="606.4" y="212" width="104" height="68" rx="8" class="c-mask"/>
-          <rect x="606.4" y="212" width="104" height="68" rx="8" class="c-backend" data-animate="node" style="--step:3" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(612.4 218) scale(0.6875)">
+        <g id="node-eval" data-node-id="eval" data-node-label="③ Requirement 分类" tabindex="0" role="button" aria-label="聚焦③ Requirement 分类，静态语义 + 外部/执行期分离, 离线编译器" aria-pressed="false" data-node-kind="backend" data-node-sublabel="静态语义 + 外部/执行期分离" data-node-tag="结构非法即失败" data-node-context="离线编译器">
+          <title>③ Requirement 分类 · 静态语义 + 外部/执行期分离 · 离线编译器 · 结构非法即失败</title>
+          <rect x="564.4" y="212" width="128" height="68" rx="8" class="c-mask"/>
+          <rect x="564.4" y="212" width="128" height="68" rx="8" class="c-backend" data-animate="node" style="--step:3" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(570.4 218) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="658.4" y="233" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">③ 义务评估</text>
-          <text data-detail="context" x="658.4" y="250" class="t-muted" font-size="7.6" text-anchor="middle">静态声明 + 已有描述符</text>
-        <text data-detail="fine" x="658.4" y="268" class="t-backend" font-size="7" text-anchor="middle">不推断部署状态</text>
+          <text data-node-label="" data-detail-anchor="" x="628.4" y="244.2" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">③ Requirement 分类</text>
+          <text data-detail="context" x="628.4" y="258.7" class="t-muted" font-size="7.6" text-anchor="middle">静态语义 + 外部/执行期分离</text>
+        <text data-detail="fine" x="628.4" y="271.4" class="t-backend" font-size="7" text-anchor="middle">结构非法即失败</text>
         </g>
 
         <g id="node-assemble" data-node-id="assemble" data-node-label="④ Artifact 组装" tabindex="0" role="button" aria-label="聚焦④ Artifact 组装，规范化 · 逐字节摘要, 离线编译器" aria-pressed="false" data-node-kind="backend" data-node-sublabel="规范化 · 逐字节摘要" data-node-tag="确定性" data-node-context="离线编译器">
           <title>④ Artifact 组装 · 规范化 · 逐字节摘要 · 离线编译器 · 确定性</title>
-          <rect x="766.8" y="212" width="96" height="68" rx="8" class="c-mask"/>
-          <rect x="766.8" y="212" width="96" height="68" rx="8" class="c-backend" data-animate="node" style="--step:4" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(772.8 218) scale(0.6875)">
+          <rect x="778.4" y="212" width="96" height="68" rx="8" class="c-mask"/>
+          <rect x="778.4" y="212" width="96" height="68" rx="8" class="c-backend" data-animate="node" style="--step:4" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(784.4 218) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="814.8" y="242.7" class="t-primary" font-size="9.7" font-weight="600" text-anchor="middle">④ Artifact 组装</text>
-          <text data-detail="context" x="814.8" y="256.9" class="t-muted" font-size="7.7" text-anchor="middle">规范化 · 逐字节摘要</text>
-        <text data-detail="fine" x="814.8" y="269.7" class="t-backend" font-size="7" text-anchor="middle">确定性</text>
+          <text data-node-label="" data-detail-anchor="" x="826.4" y="242.7" class="t-primary" font-size="9.7" font-weight="600" text-anchor="middle">④ Artifact 组装</text>
+          <text data-detail="context" x="826.4" y="256.9" class="t-muted" font-size="7.7" text-anchor="middle">规范化 · 逐字节摘要</text>
+        <text data-detail="fine" x="826.4" y="269.7" class="t-backend" font-size="7" text-anchor="middle">确定性</text>
         </g>
 
-        <g id="node-manifest" data-node-id="manifest" data-node-label="manifest + obligations.json" tabindex="0" role="button" aria-label="聚焦manifest + obligations.json，逐条义务与状态, 产物" aria-pressed="false" data-node-kind="database" data-node-sublabel="逐条义务与状态" data-node-tag="未来字段：设计草案" data-node-context="产物">
-          <title>manifest + obligations.json · 逐条义务与状态 · 产物 · 未来字段：设计草案</title>
-          <rect x="724.8" y="338" width="180" height="68" rx="8" class="c-mask"/>
-          <rect x="724.8" y="338" width="180" height="68" rx="8" class="c-database" data-animate="node" style="--step:5" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(730.8 344) scale(0.6875)">
+        <g id="node-host_req" data-node-id="host_req" data-node-label="Host Admission 记录" tabindex="0" role="button" aria-label="聚焦Host Admission 记录，host-admission-requirements.json, 产物文件" aria-pressed="false" data-node-kind="database" data-node-sublabel="host-admission-requirements.json" data-node-tag="HOST_VERIFICATION_REQUIRED" data-node-context="产物文件">
+          <title>Host Admission 记录 · host-admission-requirements.json · 产物文件 · HOST_VERIFICATION_REQUIRED</title>
+          <rect x="550.4" y="338" width="156" height="68" rx="8" class="c-mask"/>
+          <rect x="550.4" y="338" width="156" height="68" rx="8" class="c-database" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(556.4 344) scale(0.6875)">
             <ellipse cx="8" cy="4" rx="5" ry="2"/>
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="814.8" y="369.8" class="t-primary" font-size="10.6" font-weight="600" text-anchor="middle">manifest + obligations.json</text>
-          <text data-detail="context" x="814.8" y="384.6" class="t-muted" font-size="8" text-anchor="middle">逐条义务与状态</text>
-        <text data-detail="fine" x="814.8" y="397.4" class="t-database" font-size="7" text-anchor="middle">未来字段：设计草案</text>
+          <text data-node-label="" data-detail-anchor="" x="632.1" y="359" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Host Admission 记录</text>
+          <text data-detail="context" x="628.4" y="376" class="t-muted" font-size="7.7" text-anchor="middle">host-admission-requirements.json</text>
+        <text data-detail="fine" x="628.4" y="394" class="t-database" font-size="7" text-anchor="middle">HOST_VERIFICATION_REQUIRED</text>
         </g>
 
-        <g id="node-artifact" data-node-id="artifact" data-node-label="Linked Development Artifact" tabindex="0" role="button" aria-label="聚焦Linked Development Artifact，sha256:…artifact, 产物" aria-pressed="false" data-node-kind="database" data-node-sublabel="sha256:…artifact" data-node-tag="LINKED / BUILT / NOT_ADMITTED" data-node-context="产物">
-          <title>Linked Development Artifact · sha256:…artifact · 产物 · LINKED / BUILT / NOT_ADMITTED</title>
-          <rect x="961.1999999999998" y="338" width="180" height="68" rx="8" class="c-mask"/>
-          <rect x="961.1999999999998" y="338" width="180" height="68" rx="8" class="c-database" data-animate="node" style="--step:6" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(967.1999999999998 344) scale(0.6875)">
+        <g id="node-rt_req" data-node-id="rt_req" data-node-label="Runtime 执行记录" tabindex="0" role="button" aria-label="聚焦Runtime 执行记录，runtime-execution-requirements.json, 产物文件" aria-pressed="false" data-node-kind="database" data-node-sublabel="runtime-execution-requirements.json" data-node-tag="RUNTIME_EXECUTION_REQUIRED" data-node-context="产物文件">
+          <title>Runtime 执行记录 · runtime-execution-requirements.json · 产物文件 · RUNTIME_EXECUTION_REQUIRED</title>
+          <rect x="738.4" y="338" width="176" height="68" rx="8" class="c-mask"/>
+          <rect x="738.4" y="338" width="176" height="68" rx="8" class="c-database" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(744.4 344) scale(0.6875)">
             <ellipse cx="8" cy="4" rx="5" ry="2"/>
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="1051.1999999999998" y="369.8" class="t-primary" font-size="10.6" font-weight="600" text-anchor="middle">Linked Development Artifact</text>
-          <text data-detail="context" x="1051.1999999999998" y="384.6" class="t-muted" font-size="8" text-anchor="middle">sha256:…artifact</text>
-        <text data-detail="fine" x="1051.1999999999998" y="397.4" class="t-database" font-size="7" text-anchor="middle">LINKED / BUILT / NOT_ADMITTED</text>
+          <text data-node-label="" data-detail-anchor="" x="826.4" y="359" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Runtime 执行记录</text>
+          <text data-detail="context" x="826.4" y="376" class="t-muted" font-size="8" text-anchor="middle">runtime-execution-requirements.json</text>
+        <text data-detail="fine" x="826.4" y="394" class="t-database" font-size="7" text-anchor="middle">RUNTIME_EXECUTION_REQUIRED</text>
         </g>
 
-        <g id="node-link_fail" data-node-id="link_fail" data-node-label="Link FAIL" tabindex="0" role="button" aria-label="聚焦Link FAIL，缺 Interface / Callable / Schema, 失败与阻断" aria-pressed="false" data-node-kind="security" data-node-sublabel="缺 Interface / Callable / Schema" data-node-tag="原子返回 · 无产物" data-node-context="失败与阻断">
-          <title>Link FAIL · 缺 Interface / Callable / Schema · 失败与阻断 · 原子返回 · 无产物</title>
-          <rect x="412.4" y="464" width="164" height="68" rx="8" class="c-mask"/>
-          <rect x="412.4" y="464" width="164" height="68" rx="8" class="c-security" data-animate="node" style="--step:12" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(418.4 470) scale(0.6875)">
+        <g id="node-artifact" data-node-id="artifact" data-node-label="Linked Development Artifact" tabindex="0" role="button" aria-label="聚焦Linked Development Artifact，manifest + 两个记录文件 + Procedure, 产物文件" aria-pressed="false" data-node-kind="database" data-node-sublabel="manifest + 两个记录文件 + Procedure" data-node-tag="LINKED / BUILT / NOT_ADMITTED" data-node-context="产物文件">
+          <title>Linked Development Artifact · manifest + 两个记录文件 + Procedure · 产物文件 · LINKED / BUILT / NOT_ADMITTED</title>
+          <rect x="961.2" y="338" width="180" height="68" rx="8" class="c-mask"/>
+          <rect x="961.2" y="338" width="180" height="68" rx="8" class="c-database" data-animate="node" style="--step:5" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(967.2 344) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="1051.2" y="369.8" class="t-primary" font-size="10.6" font-weight="600" text-anchor="middle">Linked Development Artifact</text>
+          <text data-detail="context" x="1051.2" y="384.6" class="t-muted" font-size="8" text-anchor="middle">manifest + 两个记录文件 + Procedure</text>
+        <text data-detail="fine" x="1051.2" y="397.4" class="t-database" font-size="7" text-anchor="middle">LINKED / BUILT / NOT_ADMITTED</text>
+        </g>
+
+        <g id="node-link_fail" data-node-id="link_fail" data-node-label="Link FAIL" tabindex="0" role="button" aria-label="聚焦Link FAIL，缺 Interface / Schema / Descriptor, 失败与阻断" aria-pressed="false" data-node-kind="security" data-node-sublabel="缺 Interface / Schema / Descriptor" data-node-tag="原子返回 · 无产物" data-node-context="失败与阻断">
+          <title>Link FAIL · 缺 Interface / Schema / Descriptor · 失败与阻断 · 原子返回 · 无产物</title>
+          <rect x="352.4" y="464" width="172" height="68" rx="8" class="c-mask"/>
+          <rect x="352.4" y="464" width="172" height="68" rx="8" class="c-security" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(358.4 470) scale(0.6875)">
             <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
             <path d="m5.8 8 1.5 1.5 3-3"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="494.4" y="485" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Link FAIL</text>
-          <text data-detail="context" x="494.4" y="502" class="t-muted" font-size="8" text-anchor="middle">缺 Interface / Callable / Schema</text>
-        <text data-detail="fine" x="494.4" y="520" class="t-security" font-size="7" text-anchor="middle">原子返回 · 无产物</text>
+          <text data-node-label="" data-detail-anchor="" x="438.4" y="485" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Link FAIL</text>
+          <text data-detail="context" x="438.4" y="502" class="t-muted" font-size="8" text-anchor="middle">缺 Interface / Schema / Descriptor</text>
+        <text data-detail="fine" x="438.4" y="520" class="t-security" font-size="7" text-anchor="middle">原子返回 · 无产物</text>
         </g>
 
-        <g id="node-no_art" data-node-id="no_art" data-node-label="没有产物" tabindex="0" role="button" aria-label="聚焦没有产物，BuildResult 只带诊断, 失败与阻断" aria-pressed="false" data-node-kind="security" data-node-sublabel="BuildResult 只带诊断" data-node-tag="不得进入 Host" data-node-context="失败与阻断">
-          <title>没有产物 · BuildResult 只带诊断 · 失败与阻断 · 不得进入 Host</title>
-          <rect x="608.4" y="464" width="100" height="68" rx="8" class="c-mask"/>
-          <rect x="608.4" y="464" width="100" height="68" rx="8" class="c-security" data-animate="node" style="--step:12" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(614.4 470) scale(0.6875)">
+        <g id="node-static_fail" data-node-id="static_fail" data-node-label="静态结构非法" tabindex="0" role="button" aria-label="聚焦静态结构非法，导出身份 / 组形状 / 引用不符, 失败与阻断" aria-pressed="false" data-node-kind="security" data-node-sublabel="导出身份 / 组形状 / 引用不符" data-node-tag="Build FAIL · 无产物" data-node-context="失败与阻断">
+          <title>静态结构非法 · 导出身份 / 组形状 / 引用不符 · 失败与阻断 · Build FAIL · 无产物</title>
+          <rect x="556.4" y="464" width="144" height="68" rx="8" class="c-mask"/>
+          <rect x="556.4" y="464" width="144" height="68" rx="8" class="c-security" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(562.4 470) scale(0.6875)">
             <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
             <path d="m5.8 8 1.5 1.5 3-3"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="658.4" y="485" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">没有产物</text>
-          <text data-detail="context" x="658.4" y="502" class="t-muted" font-size="7.6" text-anchor="middle">BuildResult 只带诊断</text>
-        <text data-detail="fine" x="658.4" y="520" class="t-security" font-size="7" text-anchor="middle">不得进入 Host</text>
+          <text data-node-label="" data-detail-anchor="" x="628.4" y="485" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">静态结构非法</text>
+          <text data-detail="context" x="628.4" y="502" class="t-muted" font-size="8" text-anchor="middle">导出身份 / 组形状 / 引用不符</text>
+        <text data-detail="fine" x="628.4" y="520" class="t-security" font-size="7" text-anchor="middle">Build FAIL · 无产物</text>
         </g>
 
-        <g id="node-unresolved" data-node-id="unresolved" data-node-label="义务 UNRESOLVED" tabindex="0" role="button" aria-label="聚焦义务 UNRESOLVED，缺 Evidence / Assurance, 失败与阻断" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="缺 Evidence / Assurance" data-node-tag="不阻断 Build" data-node-context="失败与阻断">
-          <title>义务 UNRESOLVED · 缺 Evidence / Assurance · 失败与阻断 · 不阻断 Build</title>
-          <rect x="756.8" y="464" width="116" height="68" rx="8" class="c-mask"/>
-          <rect x="756.8" y="464" width="116" height="68" rx="8" class="c-messagebus" data-animate="node" style="--step:12" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(762.8 470) scale(0.6875)">
-            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
-            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
-            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
-            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="814.8" y="496.2" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">义务 UNRESOLVED</text>
-          <text data-detail="context" x="814.8" y="510.9" class="t-muted" font-size="7.8" text-anchor="middle">缺 Evidence / Assurance</text>
-        <text data-detail="fine" x="814.8" y="523.7" class="t-messagebus" font-size="7" text-anchor="middle">不阻断 Build</text>
-        </g>
-
-        <g id="node-host_stop" data-node-id="host_stop" data-node-label="Host 拒绝派发" tabindex="0" role="button" aria-label="聚焦Host 拒绝派发，开发产物只进隔离测试, 失败与阻断" aria-pressed="false" data-node-kind="security" data-node-sublabel="开发产物只进隔离测试" data-node-tag="生产 Host 一律拒绝" data-node-context="失败与阻断">
-          <title>Host 拒绝派发 · 开发产物只进隔离测试 · 失败与阻断 · 生产 Host 一律拒绝</title>
-          <rect x="1001.1999999999998" y="464" width="100" height="68" rx="8" class="c-mask"/>
-          <rect x="1001.1999999999998" y="464" width="100" height="68" rx="8" class="c-security" data-animate="node" style="--step:12" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(1007.1999999999998 470) scale(0.6875)">
+        <g id="node-host_stop" data-node-id="host_stop" data-node-label="Host 拒绝派发" tabindex="0" role="button" aria-label="聚焦Host 拒绝派发，开发产物只进显式 opt-in 的隔离测试, 失败与阻断" aria-pressed="false" data-node-kind="security" data-node-sublabel="开发产物只进显式 opt-in 的隔离测试" data-node-tag="生产 Host 一律拒绝" data-node-context="失败与阻断">
+          <title>Host 拒绝派发 · 开发产物只进显式 opt-in 的隔离测试 · 失败与阻断 · 生产 Host 一律拒绝</title>
+          <rect x="965.2" y="464" width="172" height="68" rx="8" class="c-mask"/>
+          <rect x="965.2" y="464" width="172" height="68" rx="8" class="c-security" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(971.2 470) scale(0.6875)">
             <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
             <path d="m5.8 8 1.5 1.5 3-3"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="1051.1999999999998" y="496.2" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Host 拒绝派发</text>
-          <text data-detail="context" x="1051.1999999999998" y="510.7" class="t-muted" font-size="7.6" text-anchor="middle">开发产物只进隔离测试</text>
-        <text data-detail="fine" x="1051.1999999999998" y="523.4" class="t-security" font-size="7" text-anchor="middle">生产 Host 一律拒绝</text>
+          <text data-node-label="" data-detail-anchor="" x="1051.2" y="485" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Host 拒绝派发</text>
+          <text data-detail="context" x="1051.2" y="502" class="t-muted" font-size="8" text-anchor="middle">开发产物只进显式 opt-in 的隔离测试</text>
+        <text data-detail="fine" x="1051.2" y="520" class="t-security" font-size="7" text-anchor="middle">生产 Host 一律拒绝</text>
         </g>
 
         <!-- Edge labels -->
         <g data-detail="context" data-edge-from="artifact" data-edge-to="host_stop" data-edge-label="NOT_ADMITTED" data-edge-key="0" data-edge-id="artifact-stop">
-          <rect x="1017.3999999999999" y="425" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="1051.1999999999998" y="435" class="t-edge-dashed" font-size="8" text-anchor="middle">NOT_ADMITTED</text>
+          <rect x="1017.4000000000001" y="425" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="1051.2" y="435" class="t-edge-dashed" font-size="8" text-anchor="middle">NOT_ADMITTED</text>
         </g>
-        <g data-detail="context" data-edge-from="assemble" data-edge-to="manifest" data-edge-label="义务记录" data-edge-key="1" data-edge-id="assemble-manifest">
-          <rect x="790.5999999999999" y="299" width="48.4" height="14" rx="3" class="c-mask"/>
-          <text x="814.8" y="309" class="t-muted" font-size="8" text-anchor="middle">义务记录</text>
+        <g data-detail="context" data-edge-from="assemble" data-edge-to="artifact" data-edge-label="manifest + 文件清单" data-edge-key="1" data-edge-id="assemble-artifact">
+          <rect x="912.1999999999999" y="226" width="101.2" height="14" rx="3" class="c-mask"/>
+          <text x="962.8" y="236" class="t-edge-emphasis" font-size="8" text-anchor="middle">manifest + 文件清单</text>
         </g>
-        <g data-detail="context" data-edge-from="assure_in" data-edge-to="eval" data-edge-label="可选输入" data-edge-key="2" data-edge-id="assure-eval">
-          <rect x="634.1999999999999" y="173" width="48.4" height="14" rx="3" class="c-mask"/>
-          <text x="658.4" y="183" class="t-edge-dashed" font-size="8" text-anchor="middle">可选输入</text>
+        <g data-detail="context" data-edge-from="compile" data-edge-to="link" data-edge-label="静态 AST" data-edge-key="2" data-edge-id="compile-link">
+          <rect x="334" y="226" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="358.2" y="236" class="t-muted" font-size="8" text-anchor="middle">静态 AST</text>
         </g>
-        <g data-detail="context" data-edge-from="compile" data-edge-to="link" data-edge-label="静态 AST" data-edge-key="3" data-edge-id="compile-link">
-          <rect x="390" y="226" width="48.4" height="14" rx="3" class="c-mask"/>
-          <text x="414.2" y="236" class="t-muted" font-size="8" text-anchor="middle">静态 AST</text>
+        <g data-detail="context" data-edge-from="eval" data-edge-to="assemble" data-edge-label="两类记录" data-edge-key="3" data-edge-id="eval-assemble">
+          <rect x="711.1999999999999" y="226" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="735.4" y="236" class="t-muted" font-size="8" text-anchor="middle">两类记录</text>
         </g>
-        <g data-detail="context" data-edge-from="eval" data-edge-to="assemble" data-edge-label="义务清单" data-edge-key="4" data-edge-id="eval-assemble">
-          <rect x="714.3999999999999" y="226" width="48.4" height="14" rx="3" class="c-mask"/>
-          <text x="738.5999999999999" y="236" class="t-muted" font-size="8" text-anchor="middle">义务清单</text>
+        <g data-detail="context" data-edge-from="eval" data-edge-to="host_req" data-edge-label="外部事实" data-edge-key="4" data-edge-id="eval-hostreq">
+          <rect x="604.1999999999999" y="299" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="628.4" y="309" class="t-muted" font-size="8" text-anchor="middle">外部事实</text>
         </g>
-        <g data-detail="context" data-edge-from="eval" data-edge-to="unresolved" data-edge-label="缺 Evidence" data-edge-key="5" data-edge-id="eval-unresolved">
-          <rect x="714.3" y="428" width="62.8" height="14" rx="3" class="c-mask"/>
-          <text x="745.6999999999999" y="438" class="t-edge-dashed" font-size="8" text-anchor="middle">缺 Evidence</text>
+        <g data-detail="context" data-edge-from="eval" data-edge-to="rt_req" data-edge-label="执行期要求" data-edge-key="5" data-edge-id="eval-rtreq">
+          <rect x="738.4" y="286" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="767.4" y="296" class="t-muted" font-size="8" text-anchor="middle">执行期要求</text>
         </g>
-        <g data-detail="context" data-edge-from="link" data-edge-to="eval" data-edge-label="链接记录" data-edge-key="6" data-edge-id="link-eval">
-          <rect x="552.1999999999999" y="226" width="48.4" height="14" rx="3" class="c-mask"/>
-          <text x="576.4" y="236" class="t-muted" font-size="8" text-anchor="middle">链接记录</text>
+        <g data-detail="context" data-edge-from="eval" data-edge-to="static_fail" data-edge-label="静态非法" data-edge-key="6" data-edge-id="eval-staticfail">
+          <rect x="871" y="176" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="895.2" y="186" class="t-edge-security" font-size="8" text-anchor="middle">静态非法</text>
         </g>
-        <g data-detail="context" data-edge-from="link" data-edge-to="link_fail" data-edge-label="闭包不成立" data-edge-key="7" data-edge-id="link-reject">
-          <rect x="465.4" y="362" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="494.4" y="372" class="t-edge-security" font-size="8" text-anchor="middle">闭包不成立</text>
+        <g data-detail="context" data-edge-from="host_req" data-edge-to="artifact" data-edge-label="随产物" data-edge-key="7" data-edge-id="hostreq-artifact">
+          <rect x="767.4" y="406" width="38.8" height="14" rx="3" class="c-mask"/>
+          <text x="786.8" y="416" class="t-muted" font-size="8" text-anchor="middle">随产物</text>
         </g>
-        <g data-detail="context" data-edge-from="manifest" data-edge-to="artifact" data-edge-label="文件清单" data-edge-key="8" data-edge-id="manifest-artifact">
-          <rect x="908.7999999999998" y="352" width="48.4" height="14" rx="3" class="c-mask"/>
-          <text x="932.9999999999999" y="362" class="t-edge-emphasis" font-size="8" text-anchor="middle">文件清单</text>
+        <g data-detail="context" data-edge-from="link" data-edge-to="eval" data-edge-label="链接记录" data-edge-key="8" data-edge-id="link-eval">
+          <rect x="503.2" y="226" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="527.4" y="236" class="t-muted" font-size="8" text-anchor="middle">链接记录</text>
         </g>
-
+        <g data-detail="context" data-edge-from="link" data-edge-to="link_fail" data-edge-label="闭包不成立" data-edge-key="9" data-edge-id="link-fail">
+          <rect x="409.4" y="362" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="438.4" y="372" class="t-edge-security" font-size="8" text-anchor="middle">闭包不成立</text>
+        </g>
         <g data-detail="context" data-edge-from="req" data-edge-to="compile" data-edge-label="源码 + 锁" data-edge-key="10" data-edge-id="req-compile">
-          <rect x="198.4" y="160" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
-          <text x="225" y="170" class="t-edge-emphasis" font-size="8" text-anchor="middle">源码 + 锁</text>
+          <rect x="156.4" y="160" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
+          <text x="183" y="170" class="t-edge-emphasis" font-size="8" text-anchor="middle">源码 + 锁</text>
         </g>
-        <g data-detail="context" data-edge-from="snaps" data-edge-to="link" data-edge-label="精确快照" data-edge-key="11" data-edge-id="snaps-link">
-          <rect x="437" y="100" width="48.4" height="14" rx="3" class="c-mask"/>
-          <text x="461.2" y="110" class="t-edge-emphasis" font-size="8" text-anchor="middle">精确快照</text>
+        <g data-detail="context" data-edge-from="rt_req" data-edge-to="artifact" data-edge-label="随产物" data-edge-key="11" data-edge-id="rtreq-artifact">
+          <rect x="918.4" y="352" width="38.8" height="14" rx="3" class="c-mask"/>
+          <text x="937.8" y="362" class="t-muted" font-size="8" text-anchor="middle">随产物</text>
         </g>
-        <g data-detail="context" data-edge-from="unresolved" data-edge-to="manifest" data-edge-label="记为未决义务" data-edge-key="12" data-edge-id="unresolved-manifest">
-          <rect x="781" y="425" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="814.8" y="435" class="t-edge-dashed" font-size="8" text-anchor="middle">记为未决义务</text>
+        <g data-detail="context" data-edge-from="snaps" data-edge-to="link" data-edge-label="精确快照" data-edge-key="12" data-edge-id="snaps-link">
+          <rect x="381" y="100" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="405.2" y="110" class="t-edge-emphasis" font-size="8" text-anchor="middle">精确快照</text>
         </g>
 
         <!-- Legend -->
@@ -5515,17 +5503,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <rect x="117" y="572" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
             <text x="139" y="580" class="t-muted" font-size="7.5" font-weight="500">策略</text>
           </g>
-          <g data-legend-semantic-kind="messagebus" data-legend-kind="messagebus" data-legend-label="工具操作" data-legend-x="186" data-legend-baseline="580" data-legend-width="81">
-            <rect x="186" y="572" width="14" height="9" rx="2" class="c-messagebus" stroke-width="1"/>
-            <text x="208" y="580" class="t-muted" font-size="7.5" font-weight="500">工具操作</text>
+          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="上下文 / 追踪" data-legend-x="186" data-legend-baseline="580" data-legend-width="104">
+            <rect x="186" y="572" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+            <text x="208" y="580" class="t-muted" font-size="7.5" font-weight="500">上下文 / 追踪</text>
           </g>
-          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="上下文 / 追踪" data-legend-x="274" data-legend-baseline="580" data-legend-width="104">
-            <rect x="274" y="572" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
-            <text x="296" y="580" class="t-muted" font-size="7.5" font-weight="500">上下文 / 追踪</text>
-          </g>
-          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="外部系统" data-legend-x="385" data-legend-baseline="580" data-legend-width="81">
-            <rect x="385" y="572" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
-            <text x="407" y="580" class="t-muted" font-size="7.5" font-weight="500">外部系统</text>
+          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="外部系统" data-legend-x="297" data-legend-baseline="580" data-legend-width="81">
+            <rect x="297" y="572" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
+            <text x="319" y="580" class="t-muted" font-size="7.5" font-weight="500">外部系统</text>
           </g>
         </g>
       </svg>
@@ -5742,6 +5726,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         </div>
         <ul>
           <li>Deployment Grant 不是离线构建输入，只交 Host Admission</li>
+          <li>COMMIT_PROOF / RECONCILE 只进 runtime-execution-requirements.json，不在 Build 满足</li>
+          <li>Assurance Attestation 是外部信任产物，不是 Compiler 输入</li>
           <li>Compiler 不访问 Registry、不部署 Provider、不签发授权</li>
           <li>本图为设计提案；Compiler v2.0.2 尚无此 Development Build 入口</li>
         </ul>
