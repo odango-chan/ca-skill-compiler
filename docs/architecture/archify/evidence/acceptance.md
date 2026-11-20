@@ -18,7 +18,7 @@
 ## 2. 逐图四道门结果
 
 `finalize` 一次调用依次执行 `validate` / `deliver` / 严格 `check` / 真实浏览器 `browser-check`。
-05a–05g 的结果来自 2026-11-20 GitHub Actions run [#44659918942](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44659918942)；
+05a–05g 的结果来自 2026-11-20 GitHub Actions run [#44660862083](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44660862083)；
 01–04 与 05a-ops 的结果沿用未修改源文件的既有验收回执。
 
 | 图 | 类型 | validate | deliver | check | browser-check | diagnostics | artifact sha256（前 16 位） | 本轮 |

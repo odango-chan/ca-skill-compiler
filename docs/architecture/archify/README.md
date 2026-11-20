@@ -45,6 +45,8 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 
 12 张图均有四道门 PASS 记录（`ok: true`，`diagnostics: []`）。其中 **05a–05g 七张业务时序图已于 2026-11-20 按当前源文件重新生成并通过四道门及真实浏览器 `visual-check`**；01–04 与 05a-ops 的源文件未变，沿用此前通过的验收回执。
 
+最新 Push CI：[run #44660862083](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44660862083)。
+
 05a–05g 当前回执见 `evidence/<figure>.finalize-summary.json`；当前截图、接触表与 `visual-check` 回执统一位于 `evidence/sequence-vnext/`。根目录 `evidence/` 中同名旧时序图截图是前一版源文件的历史证据，不作为当前版本截图使用。完整验收记录见 [evidence/acceptance.md](evidence/acceptance.md)。
 
 ## 4. 七张业务时序图的设计表达口径
