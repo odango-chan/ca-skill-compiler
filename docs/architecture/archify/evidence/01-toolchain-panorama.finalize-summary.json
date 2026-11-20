@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\01-toolchain-panorama.architecture.json",
+    "sha256": "b450f4da52659ea49c652a57ba440b4a3397dee82cb2dac5a3ae19979702dcba",
+    "bytes": 11196
+  },
+  "artifact": {
+    "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\01-toolchain-panorama.html",
+    "sha256": "9f57122f67c9c77ea4b522b51c5ee4cd8944b940c2fe7c78dd06d23c0a613433",
+    "bytes": 876040
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\01-toolchain-panorama.finalize.json",
+    "summaryReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\01-toolchain-panorama.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\01-toolchain-panorama.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-19T05:40:48.674Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 12110,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

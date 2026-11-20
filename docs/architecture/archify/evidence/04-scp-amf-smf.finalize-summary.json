@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\04-scp-amf-smf.architecture.json",
+    "sha256": "e0f65aef3c919ba7efbd97e641c678e17b89764b8389eb79322442093288c925",
+    "bytes": 11571
+  },
+  "artifact": {
+    "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\04-scp-amf-smf.html",
+    "sha256": "50caeee35c7657136fddc23c20229e92aa6b7c3a8d30cf00f6c34e19dbd93895",
+    "bytes": 877991
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.archify\\workflow-ca-sl-toolchain-scp-20261119\\final-04-scp-amf-smf\\04-scp-amf-smf.finalize.json",
+    "summaryReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.archify\\workflow-ca-sl-toolchain-scp-20261119\\final-04-scp-amf-smf\\04-scp-amf-smf.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.archify\\workflow-ca-sl-toolchain-scp-20261119\\final-04-scp-amf-smf\\04-scp-amf-smf.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-19T05:40:48.674Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 5521,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "routesOverSuggestedBends": 1
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [],
+      "detours": [
+        {
+          "relationship": {
+            "id": "store-openamsm",
+            "from": "store",
+            "to": "openamsm",
+            "label": "原始 N1（未实现）",
+            "collectionIndex": 23,
+            "artifactIndex": 24
+          },
+          "bends": 5,
+          "stretch": 1.228
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "store → openamsm needs 5 bends: move node store or openamsm so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

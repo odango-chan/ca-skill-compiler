@@ -1,0 +1,484 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "05d · UE / AMF 发起 Session Release（SCP-only）",
+    "subtitle": "F06 + F07 · 目标业务时序 · 区分 UE N1 Release 与 AMF ReleaseSMContext；按 r1–r6 结算",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "docs/architecture/archify/05d-release-sequence.html"
+  },
+  "participants": [
+    {
+      "id": "ue",
+      "type": "external",
+      "label": "UE / gNB",
+      "sublabel": "外部 UE / 接入网"
+    },
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "scp",
+      "type": "external",
+      "label": "SCP",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "Host",
+      "sublabel": "CA-Agent"
+    },
+    {
+      "id": "runtime",
+      "type": "backend",
+      "label": "Runtime",
+      "sublabel": "CA-Agent"
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "CA Client Tools",
+      "sublabel": "NAS Codec / Dispatch"
+    },
+    {
+      "id": "smf",
+      "type": "backend",
+      "label": "OpenAMSM SMF",
+      "sublabel": "SMF Owner"
+    },
+    {
+      "id": "upf",
+      "type": "external",
+      "label": "UPF · N4 Peer",
+      "sublabel": "N4 · no SCP"
+    },
+    {
+      "id": "pcf",
+      "type": "external",
+      "label": "PCF",
+      "sublabel": "外部 5GC"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 374,
+      "label": "Ingress · UE-requested Update vs AMF ReleaseSMContext"
+    },
+    {
+      "from": 378,
+      "to": 662,
+      "label": "Release OES · r1 optional / r2 PFCP deletion"
+    },
+    {
+      "from": 666,
+      "to": 1110,
+      "label": "r3 · Namf release signaling and exact completion"
+    },
+    {
+      "from": 1114,
+      "to": 1430,
+      "label": "r4 PCF cleanup · r5 context release · r6 event"
+    },
+    {
+      "from": 1434,
+      "to": 1526,
+      "label": "Host resource tombstone and paired response"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01",
+      "from": "ue",
+      "to": "amf",
+      "y": 168,
+      "label": "UE Release Request (5GSM 0xD1)",
+      "variant": "default"
+    },
+    {
+      "id": "m02",
+      "from": "amf",
+      "to": "scp",
+      "y": 200,
+      "label": "[UE] Nsmf_PDUSession_UpdateSMContext · N1 Release",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m03",
+      "from": "amf",
+      "to": "scp",
+      "y": 232,
+      "label": "[AMF] Nsmf_PDUSession_ReleaseSMContext",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m04",
+      "from": "scp",
+      "to": "host",
+      "y": 264,
+      "label": "Existing Host SM Context Location",
+      "variant": "default"
+    },
+    {
+      "id": "m05",
+      "from": "host",
+      "to": "tools",
+      "y": 296,
+      "label": "Scoped N1 artifactRef · read-only 5GSM decode",
+      "variant": "default"
+    },
+    {
+      "id": "m06",
+      "from": "tools",
+      "to": "host",
+      "y": 328,
+      "label": "PDU Session Release Request projection",
+      "variant": "return"
+    },
+    {
+      "id": "m07",
+      "from": "host",
+      "to": "runtime",
+      "y": 360,
+      "label": "按触发分支启动或继续 Release Run",
+      "variant": "default"
+    },
+    {
+      "from": "host",
+      "to": "tools",
+      "label": "Original N1 artifactRef · private binding",
+      "variant": "security",
+      "id": "m08",
+      "y": 392
+    },
+    {
+      "from": "tools",
+      "to": "smf",
+      "label": "Deliver original N1 bytes unchanged to GSM Handler",
+      "variant": "security",
+      "id": "m09",
+      "y": 424
+    },
+    {
+      "id": "m10",
+      "from": "runtime",
+      "to": "tools",
+      "y": 456,
+      "label": "r1 · CA.DELETE_CHARGING（optional）",
+      "variant": "default"
+    },
+    {
+      "id": "m11",
+      "from": "tools",
+      "to": "smf",
+      "y": 488,
+      "label": "r1 optional Owner charging step",
+      "variant": "security"
+    },
+    {
+      "id": "m12",
+      "from": "runtime",
+      "to": "tools",
+      "y": 520,
+      "label": "r2 · UPN.DELETE_UP_SESSION",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m13",
+      "from": "tools",
+      "to": "smf",
+      "y": 552,
+      "label": "r2 Owner N4 Session deletion",
+      "variant": "security"
+    },
+    {
+      "id": "m14",
+      "from": "smf",
+      "to": "upf",
+      "y": 584,
+      "label": "PFCP Deletion Request · 54",
+      "variant": "default"
+    },
+    {
+      "id": "m15",
+      "from": "upf",
+      "to": "smf",
+      "y": 616,
+      "label": "PFCP Deletion Response · 55",
+      "variant": "return"
+    },
+    {
+      "id": "m16",
+      "from": "smf",
+      "to": "tools",
+      "y": 648,
+      "label": "r2 released / Owner result",
+      "variant": "return"
+    },
+    {
+      "id": "m17",
+      "from": "runtime",
+      "to": "tools",
+      "y": 680,
+      "label": "r3 · SSM.SIGNAL_UE_AN (release=1; per trigger/profile)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m18",
+      "from": "tools",
+      "to": "smf",
+      "y": 712,
+      "label": "r3 Owner release signaling operation",
+      "variant": "security"
+    },
+    {
+      "id": "m19",
+      "from": "smf",
+      "to": "host",
+      "y": 744,
+      "label": "OpenAMSM private Namf Relay request",
+      "variant": "security"
+    },
+    {
+      "id": "m20",
+      "from": "host",
+      "to": "tools",
+      "y": 776,
+      "label": "Fixed Namf egress",
+      "variant": "security"
+    },
+    {
+      "id": "m21",
+      "from": "tools",
+      "to": "scp",
+      "y": 808,
+      "label": "Namf_Communication_N1N2MessageTransfer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m22",
+      "from": "scp",
+      "to": "amf",
+      "y": 840,
+      "label": "Release N1/N2 information",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m23",
+      "from": "amf",
+      "to": "ue",
+      "y": 872,
+      "label": "Release Command (5GSM 0xD3)",
+      "variant": "default"
+    },
+    {
+      "id": "m24",
+      "from": "ue",
+      "to": "amf",
+      "y": 904,
+      "label": "Release Complete (5GSM 0xD4)",
+      "variant": "return"
+    },
+    {
+      "id": "m25",
+      "from": "amf",
+      "to": "scp",
+      "y": 936,
+      "label": "Nsmf_PDUSession_UpdateSMContext · Release Complete",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m26",
+      "from": "scp",
+      "to": "host",
+      "y": 968,
+      "label": "Existing Host Location",
+      "variant": "default"
+    },
+    {
+      "id": "m27",
+      "from": "host",
+      "to": "runtime",
+      "y": 1000,
+      "label": "correlate exact r3 Owner occurrence",
+      "variant": "default"
+    },
+    {
+      "id": "m28",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1032,
+      "label": "continue original r3 operation",
+      "variant": "security"
+    },
+    {
+      "id": "m29",
+      "from": "tools",
+      "to": "smf",
+      "y": 1064,
+      "label": "Owner-private Release Complete update",
+      "variant": "security"
+    },
+    {
+      "id": "m30",
+      "from": "smf",
+      "to": "tools",
+      "y": 1096,
+      "label": "Release completion adopted / authoritative result",
+      "variant": "return"
+    },
+    {
+      "id": "m31",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1128,
+      "label": "r4 · PA.DELETE_SM_POLICY",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m32",
+      "from": "tools",
+      "to": "smf",
+      "y": 1160,
+      "label": "r4 Owner policy association deletion",
+      "variant": "security"
+    },
+    {
+      "id": "m33",
+      "from": "smf",
+      "to": "scp",
+      "y": 1192,
+      "label": "Npcf_SMPolicyControl_Delete",
+      "variant": "default"
+    },
+    {
+      "id": "m34",
+      "from": "scp",
+      "to": "pcf",
+      "y": 1224,
+      "label": "PCF policy association delete",
+      "variant": "default"
+    },
+    {
+      "id": "m35",
+      "from": "pcf",
+      "to": "scp",
+      "y": 1256,
+      "label": "PCF deletion result",
+      "variant": "return"
+    },
+    {
+      "id": "m36",
+      "from": "scp",
+      "to": "smf",
+      "y": 1288,
+      "label": "r4 policy deletion result",
+      "variant": "return"
+    },
+    {
+      "id": "m37",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1320,
+      "label": "r5 · SC.RELEASE_SM_CONTEXT",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m38",
+      "from": "tools",
+      "to": "smf",
+      "y": 1352,
+      "label": "r5 Owner SM Context release",
+      "variant": "security"
+    },
+    {
+      "id": "m39",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1384,
+      "label": "r6 · SE.EMIT_EVENTS",
+      "variant": "default"
+    },
+    {
+      "id": "m40",
+      "from": "tools",
+      "to": "smf",
+      "y": 1416,
+      "label": "r6 local release event result",
+      "variant": "return"
+    },
+    {
+      "id": "m41",
+      "from": "runtime",
+      "to": "host",
+      "y": 1448,
+      "label": "Release settled + final response obligations",
+      "variant": "return"
+    },
+    {
+      "id": "m42",
+      "from": "host",
+      "to": "scp",
+      "y": 1480,
+      "label": "Tombstone Host Location; paired responses",
+      "variant": "return"
+    },
+    {
+      "id": "m43",
+      "from": "scp",
+      "to": "amf",
+      "y": 1512,
+      "label": "Response(s)",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "两个释放入口",
+      "items": [
+        "UE 请求释放：PDU Session Release Request (0xD1) 经 Nsmf_PDUSession_UpdateSMContext 携带 N1",
+        "AMF 请求释放：Nsmf_PDUSession_ReleaseSMContext；不伪造成 HTTP DELETE",
+        "两个入口都定位同一个已存在 Host Location / Owner Session，不创建新 SM Context",
+        "UE NAS exchange 还包括 PDU Session Release Command（0xD3）与 PDU Session Release Complete（0xD4）；箭头使用短标签",
+        "职责归属：Host 负责 SBI / resource / generation 校验并保留原始 N1；CA Client Tools 的只读 5GSM Codec 只解码 N1，原始 NAS 仍交给 OpenAMSM GSM Handler。",
+        "箭头图例与状态：默认实线表示常规调用；绿色实线表示关键步骤；蓝色虚线表示返回 / 响应；红色虚线表示 security 受信私有边界或原始二进制绑定，不表示未实现。全图为 DESIGN / DESIGN TARGET；实现状态以卡片文字为准，不能仅凭箭头线型推断。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Release OES 顺序",
+      "items": [
+        "r1 CA.DELETE_CHARGING（optional）→ r2 UPN.DELETE_UP_SESSION → r3 SSM.SIGNAL_UE_AN → r4 PA.DELETE_SM_POLICY → r5 SC.RELEASE_SM_CONTEXT → r6 SE.EMIT_EVENTS",
+        "r3 是否需要 UE/RAN 信令由触发场景和 Profile 决定；若发出 Release Command，Release Complete 必须回到原 r3 occurrence",
+        "r7 COMPENSATE_RELEASE 不作为普通 Skill Mutation；未知副作用通过 exact-original Reconcile 处理"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "资源与协议边界",
+      "items": [
+        "UPF Session Deletion 使用 PFCP Type 54/55，OpenAMSM 直连 UPF",
+        "PCF Policy Association Delete 使用 Npcf_SMPolicyControl_Delete，经 SCP",
+        "只有 Owner 释放与 Host 外部资源结算完成后，Host 才写入 URI Map tombstone",
+        "PFCP standard messages：Session Deletion Request / Response（Type 54/55）；箭头以 PFCP + procedure + type 简写。",
+        "NAS Codec 属于 CA Client Tools 内部只读职责；原始 NAS 仍保持不变并交给 OpenAMSM GSM Handler"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "3GPP Release 入口",
+      "items": [
+        "UE-requested release：Nsmf_PDUSession_UpdateSMContext（operationId=UpdateSmContext，携带 N1 PDU Session Release Request）",
+        "AMF-requested release：Nsmf_PDUSession_ReleaseSMContext（operationId=ReleaseSmContext），不是 HTTP DELETE",
+        "Host URI Map tombstone 在 Owner 资源结算完成后写入，迟到 Location 不再路由到已释放 Session"
+      ]
+    }
+  ]
+}

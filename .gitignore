@@ -4,3 +4,6 @@
 *.wasm
 *.zip
 .parity-web/
+
+# Archify local working directory (source of truth is docs/architecture/archify)
+.archify/

@@ -1,0 +1,551 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "05b · UE / RAN 发起 Session Modification（SCP-only）",
+    "subtitle": "F03 + F04 · 目标业务时序 · 先分类既有 Pending，再决定继续原 occurrence 或启动 Modify Procedure",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "docs/architecture/archify/05b-ue-modification-sequence.html"
+  },
+  "participants": [
+    {
+      "id": "ue",
+      "type": "external",
+      "label": "UE / gNB",
+      "sublabel": "外部 UE / 接入网"
+    },
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "scp",
+      "type": "external",
+      "label": "SCP",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "Host",
+      "sublabel": "CA-Agent"
+    },
+    {
+      "id": "runtime",
+      "type": "backend",
+      "label": "Runtime",
+      "sublabel": "CA-Agent"
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "CA Client Tools",
+      "sublabel": "NAS Codec / Dispatch"
+    },
+    {
+      "id": "smf",
+      "type": "backend",
+      "label": "OpenAMSM SMF",
+      "sublabel": "SMF Owner"
+    },
+    {
+      "id": "upf",
+      "type": "external",
+      "label": "UPF · N4 Peer",
+      "sublabel": "N4 · no SCP"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 374,
+      "label": "Ingress · UE / RAN request and Existing Session classification"
+    },
+    {
+      "from": 378,
+      "to": 726,
+      "label": "BRANCH A · new business Modify · m0 / m2 / m3"
+    },
+    {
+      "from": 730,
+      "to": 1206,
+      "label": "BRANCH A · m4 N1/N2 signaling and exact result"
+    },
+    {
+      "from": 1210,
+      "to": 1462,
+      "label": "BRANCH A · m5 N4 follow-up and response"
+    },
+    {
+      "from": 1466,
+      "to": 1814,
+      "label": "BRANCH B · pending N2 result returns to original occurrence"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01",
+      "from": "ue",
+      "to": "amf",
+      "y": 168,
+      "label": "UE Modification Request (5GSM 0xC9)",
+      "variant": "default"
+    },
+    {
+      "id": "m02",
+      "from": "ue",
+      "to": "amf",
+      "y": 200,
+      "label": "RAN N2 Modification Event",
+      "variant": "default"
+    },
+    {
+      "id": "m03",
+      "from": "amf",
+      "to": "scp",
+      "y": 232,
+      "label": "Nsmf_PDUSession_UpdateSMContext",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m04",
+      "from": "scp",
+      "to": "host",
+      "y": 264,
+      "label": "Existing Host SM Context Location",
+      "variant": "default"
+    },
+    {
+      "id": "m05",
+      "from": "host",
+      "to": "tools",
+      "y": 296,
+      "label": "Scoped N1 artifactRef · read-only 5GSM decode",
+      "variant": "default"
+    },
+    {
+      "id": "m06",
+      "from": "tools",
+      "to": "host",
+      "y": 328,
+      "label": "Typed N1 projection + decode facts",
+      "variant": "return"
+    },
+    {
+      "id": "m07",
+      "from": "host",
+      "to": "runtime",
+      "y": 360,
+      "label": "Classify API, N1/N2, connection, handover, Pending",
+      "variant": "default"
+    },
+    {
+      "from": "host",
+      "to": "tools",
+      "label": "Original N1/N2 artifactRef · private binding",
+      "variant": "security",
+      "id": "m08",
+      "y": 392
+    },
+    {
+      "from": "tools",
+      "to": "smf",
+      "label": "Deliver original NAS/N2 bytes unchanged to Owner",
+      "variant": "security",
+      "id": "m09",
+      "y": 424
+    },
+    {
+      "id": "m10",
+      "from": "runtime",
+      "to": "tools",
+      "y": 456,
+      "label": "m0 · SC.UPDATE_SM_CONTEXT",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m11",
+      "from": "tools",
+      "to": "smf",
+      "y": 488,
+      "label": "m0 Owner context update",
+      "variant": "security"
+    },
+    {
+      "id": "m12",
+      "from": "runtime",
+      "to": "tools",
+      "y": 520,
+      "label": "m2 · CA.UPDATE_CHARGING（optional）",
+      "variant": "default"
+    },
+    {
+      "id": "m13",
+      "from": "tools",
+      "to": "smf",
+      "y": 552,
+      "label": "m2 optional charging update",
+      "variant": "security"
+    },
+    {
+      "id": "m14",
+      "from": "runtime",
+      "to": "tools",
+      "y": 584,
+      "label": "m3 · UPN.MODIFY_UP_SESSION",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m15",
+      "from": "tools",
+      "to": "smf",
+      "y": 616,
+      "label": "m3 Owner N4 modification",
+      "variant": "security"
+    },
+    {
+      "id": "m16",
+      "from": "smf",
+      "to": "upf",
+      "y": 648,
+      "label": "PFCP Modification Request · 52",
+      "variant": "default"
+    },
+    {
+      "id": "m17",
+      "from": "upf",
+      "to": "smf",
+      "y": 680,
+      "label": "PFCP Modification Response · 53",
+      "variant": "return"
+    },
+    {
+      "id": "m18",
+      "from": "smf",
+      "to": "tools",
+      "y": 712,
+      "label": "m3 result · n4_seid",
+      "variant": "return"
+    },
+    {
+      "id": "m19",
+      "from": "runtime",
+      "to": "tools",
+      "y": 744,
+      "label": "m4 · SSM.SIGNAL_UE_AN",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m20",
+      "from": "tools",
+      "to": "smf",
+      "y": 776,
+      "label": "m4 Owner AN signaling operation",
+      "variant": "security"
+    },
+    {
+      "id": "m21",
+      "from": "smf",
+      "to": "host",
+      "y": 808,
+      "label": "OpenAMSM private Namf Relay request",
+      "variant": "security"
+    },
+    {
+      "id": "m22",
+      "from": "host",
+      "to": "tools",
+      "y": 840,
+      "label": "Fixed Namf egress",
+      "variant": "security"
+    },
+    {
+      "id": "m23",
+      "from": "tools",
+      "to": "scp",
+      "y": 872,
+      "label": "Namf_Communication_N1N2MessageTransfer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m24",
+      "from": "scp",
+      "to": "amf",
+      "y": 904,
+      "label": "N1/N2 modification information",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m25",
+      "from": "amf",
+      "to": "ue",
+      "y": 936,
+      "label": "N1 NAS / N2 RAN modification",
+      "variant": "default"
+    },
+    {
+      "id": "m26",
+      "from": "ue",
+      "to": "amf",
+      "y": 968,
+      "label": "N1 / N2 modification response",
+      "variant": "return"
+    },
+    {
+      "id": "m27",
+      "from": "amf",
+      "to": "scp",
+      "y": 1000,
+      "label": "Nsmf_PDUSession_UpdateSMContext · N1/N2 result",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m28",
+      "from": "scp",
+      "to": "host",
+      "y": 1032,
+      "label": "Existing Host Location",
+      "variant": "default"
+    },
+    {
+      "id": "m29",
+      "from": "host",
+      "to": "runtime",
+      "y": 1064,
+      "label": "correlate exact m4 occurrence / generation",
+      "variant": "default"
+    },
+    {
+      "id": "m30",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1096,
+      "label": "continue original m4 Owner operation",
+      "variant": "security"
+    },
+    {
+      "id": "m31",
+      "from": "tools",
+      "to": "smf",
+      "y": 1128,
+      "label": "Owner-private N1/N2 result update",
+      "variant": "security"
+    },
+    {
+      "id": "m32",
+      "from": "smf",
+      "to": "tools",
+      "y": 1160,
+      "label": "AN tunnel TEID / IP + authoritative result",
+      "variant": "return"
+    },
+    {
+      "id": "m33",
+      "from": "tools",
+      "to": "runtime",
+      "y": 1192,
+      "label": "m4 result adopted",
+      "variant": "return"
+    },
+    {
+      "id": "m34",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1224,
+      "label": "m5 · UPN.MODIFY_UP_SESSION（uses m3 + m4 outputs）",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m35",
+      "from": "tools",
+      "to": "smf",
+      "y": 1256,
+      "label": "m5 Owner N4 follow-up",
+      "variant": "security"
+    },
+    {
+      "id": "m36",
+      "from": "smf",
+      "to": "upf",
+      "y": 1288,
+      "label": "PFCP Modification Request · 52",
+      "variant": "default"
+    },
+    {
+      "id": "m37",
+      "from": "upf",
+      "to": "smf",
+      "y": 1320,
+      "label": "PFCP Modification Response · 53",
+      "variant": "return"
+    },
+    {
+      "id": "m38",
+      "from": "smf",
+      "to": "tools",
+      "y": 1352,
+      "label": "m5 n3_synced / Owner result",
+      "variant": "return"
+    },
+    {
+      "id": "m39",
+      "from": "tools",
+      "to": "runtime",
+      "y": 1384,
+      "label": "Modify Procedure outcome",
+      "variant": "return"
+    },
+    {
+      "id": "m40",
+      "from": "runtime",
+      "to": "host",
+      "y": 1416,
+      "label": "Response obligation + final Session state",
+      "variant": "return"
+    },
+    {
+      "id": "m41",
+      "from": "host",
+      "to": "scp",
+      "y": 1448,
+      "label": "Nsmf UpdateSMContext response",
+      "variant": "return"
+    },
+    {
+      "id": "m42",
+      "from": "scp",
+      "to": "amf",
+      "y": 1480,
+      "label": "UpdateSMContext response",
+      "variant": "return"
+    },
+    {
+      "id": "m43",
+      "from": "amf",
+      "to": "scp",
+      "y": 1512,
+      "label": "N2 result · Nsmf UpdateSMContext · PDU_RES_MOD_RSP",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m44",
+      "from": "scp",
+      "to": "host",
+      "y": 1544,
+      "label": "Existing Host Location · same Session",
+      "variant": "default"
+    },
+    {
+      "id": "m45",
+      "from": "host",
+      "to": "runtime",
+      "y": 1576,
+      "label": "match existing Owner Pending occurrence",
+      "variant": "default"
+    },
+    {
+      "id": "m46",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1608,
+      "label": "route to original occurrence · no new Modify Run",
+      "variant": "security"
+    },
+    {
+      "id": "m47",
+      "from": "tools",
+      "to": "smf",
+      "y": 1640,
+      "label": "original Owner N2 result handler",
+      "variant": "security"
+    },
+    {
+      "id": "m48",
+      "from": "smf",
+      "to": "tools",
+      "y": 1672,
+      "label": "adopted result / safe outcome",
+      "variant": "return"
+    },
+    {
+      "id": "m49",
+      "from": "tools",
+      "to": "runtime",
+      "y": 1704,
+      "label": "resume original Run",
+      "variant": "return"
+    },
+    {
+      "id": "m50",
+      "from": "runtime",
+      "to": "host",
+      "y": 1736,
+      "label": "paired response for this Update request",
+      "variant": "return"
+    },
+    {
+      "id": "m51",
+      "from": "host",
+      "to": "scp",
+      "y": 1768,
+      "label": "Nsmf UpdateSMContext response",
+      "variant": "return"
+    },
+    {
+      "id": "m52",
+      "from": "scp",
+      "to": "amf",
+      "y": 1800,
+      "label": "UpdateSMContext response",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "两个互斥入口分支",
+      "items": [
+        "分支 A：新的 UE Modification Request 或新的 RAN 业务修改，启动 Modify Procedure",
+        "分支 B：N2 response 命中已有 Owner Pending（例如原 m4 / s10），只继续原 occurrence，不创建第二个 Run",
+        "Host 必须先按 Session 生命周期、N1 5GSM Message Type、N2 SmInfoType、upCnxState、hoState 和 Pending 身份分类",
+        "UE NAS message：PDU Session Modification Request（5GSM message type 0xC9）；RAN 侧 N2 修改按 N2 SM information 分类"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Modify OES 顺序",
+      "items": [
+        "m0 SC.UPDATE_SM_CONTEXT → m2 CA.UPDATE_CHARGING（可选）→ m3 UPN.MODIFY_UP_SESSION → m4 SSM.SIGNAL_UE_AN → m5 UPN.MODIFY_UP_SESSION",
+        "m3 与 m5 是两次独立 Mutation occurrence；m5 使用 m3 的 n4_seid 与 m4 的 AN tunnel TEID / IP",
+        "既有 PCC 已由 PCF notification / local TFT 更新；本流程不额外虚构 PA.UPDATE_SM_POLICY",
+        "m5 的 PFCP Session Modification Request（Type 52）使用 m4 返回的 AN F-TEID / tunnel endpoint；完整 PFCP message name 见箭头标签"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "协议与责任边界",
+      "items": [
+        "AMF ↔ Host 的 Nsmf Update、Owner → AMF 的 Namf Transfer 均经 SCP",
+        "PFCP Type 52 由 OpenAMSM SMF 直连 UPF，不经过 SCP",
+        "Host 管理 ingress / Run 关联；Client Tools 执行固定 Owner binding；OpenAMSM 保有 GSM 与 N4 权威状态",
+        "PFCP standard messages：Session Modification Request / Response（Type 52/53）；m5 的 Request 使用 m4 返回的 AN F-TEID。"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "标准入口与原始 NAS",
+      "items": [
+        "AMF → SCP → Host 的 3GPP Service Operation 为 Nsmf_PDUSession_UpdateSMContext（OpenAPI operationId=UpdateSmContext）",
+        "Host 保留原始 N1/N2 artifact；Typed projection 仅用于分类与 Skill 输入，原始 NAS/N2 bytes 通过受信 Owner-private binding 原样交给 OpenAMSM",
+        "新的 UE/RAN Modification 与命中既有 Pending 的 N2 result 是互斥入口；后者不启动第二个 Run",
+        "NAS Codec 是 CA Client Tools 内部的只读职责，与 Tool Dispatch 共用 Client Tools 责任域；原始 N1/N2 bytes 仍原样交给 Owner",
+        "职责归属：Host 解码 UpdateSMContext JSON、N2 SmInfoType、upCnxState / hoState 并负责 Session/generation 分类；CA Client Tools 的只读 5GSM Codec 只解码 N1，不解码 N2。",
+        "箭头图例与状态：默认实线表示常规调用；绿色实线表示关键步骤；蓝色虚线表示返回 / 响应；红色虚线表示 security 受信私有边界或原始二进制绑定，不表示未实现。全图为 DESIGN / DESIGN TARGET；实现状态以卡片文字为准，不能仅凭箭头线型推断。"
+      ]
+    }
+  ]
+}

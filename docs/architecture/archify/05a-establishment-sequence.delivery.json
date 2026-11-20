@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "c3ed13fe-7069-40e6-8a60-03dfbbb188f9",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05a-establishment-sequence.sequence.json",
+  "output": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05a-establishment-sequence.html",
+  "specification": {
+    "sha256": "c094885f9c4a3c651e5b0ae8f948fa3067139ad84236edbfc43161a96a87bfde",
+    "bytes": 15922
+  },
+  "artifact": {
+    "sha256": "9fa7d9f575e7981f9b6bf94b4c915fede5a00ac676a8a190664a83ca04eb39d5",
+    "bytes": 881632
+  }
+}

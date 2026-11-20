@@ -1,0 +1,290 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "离线编译与链接：从源码到 NOT_ADMITTED 产物",
+    "subtitle": "下一代设计提案（契约未冻结）· 现行基线 CA-SL v1alpha5 / Compiler v2.0.2 · 案例 session-demo · Requirement 分两类",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "output": "docs/architecture/archify/02-offline-build.html"
+  },
+  "lanes": [
+    {
+      "id": "input",
+      "label": "输入（离线：无 Registry、无凭据、无部署授权）"
+    },
+    {
+      "id": "build",
+      "label": "离线编译器"
+    },
+    {
+      "id": "artifact",
+      "label": "产物文件"
+    },
+    {
+      "id": "fail",
+      "label": "失败与阻断",
+      "variant": "exception"
+    }
+  ],
+  "mainPath": [
+    "req",
+    "compile",
+    "link",
+    "eval",
+    "assemble",
+    "artifact"
+  ],
+  "nodes": [
+    {
+      "id": "req",
+      "lane": "input",
+      "col": 0,
+      "type": "external",
+      "label": "构建请求",
+      "sublabel": "源码 + 锁 + 快照",
+      "tag": "profile=DEVELOPMENT"
+    },
+    {
+      "id": "snaps",
+      "lane": "input",
+      "col": 1,
+      "type": "database",
+      "label": "Interface 快照",
+      "sublabel": "Callable · Schema · Capability · Ingress",
+      "tag": "sha256:…mas / sha256:…ctx"
+    },
+    {
+      "id": "compile",
+      "lane": "build",
+      "col": 1,
+      "type": "backend",
+      "label": "① Compile",
+      "sublabel": "SKILL.md + Procedure 源",
+      "tag": "v1alpha5 静态规则"
+    },
+    {
+      "id": "link",
+      "lane": "build",
+      "col": 2,
+      "type": "backend",
+      "label": "② Interface Link",
+      "sublabel": "闭包固定 + 类型绑定",
+      "tag": "缺接口即失败"
+    },
+    {
+      "id": "eval",
+      "lane": "build",
+      "col": 3,
+      "type": "backend",
+      "label": "③ Requirement 分类",
+      "sublabel": "静态语义 + 外部/执行期分离",
+      "tag": "结构非法即失败"
+    },
+    {
+      "id": "assemble",
+      "lane": "build",
+      "col": 4,
+      "type": "backend",
+      "label": "④ Artifact 组装",
+      "sublabel": "规范化 · 逐字节摘要",
+      "tag": "确定性"
+    },
+    {
+      "id": "host_req",
+      "lane": "artifact",
+      "col": 3,
+      "type": "database",
+      "label": "Host Admission 记录",
+      "sublabel": "host-admission-requirements.json",
+      "tag": "HOST_VERIFICATION_REQUIRED"
+    },
+    {
+      "id": "rt_req",
+      "lane": "artifact",
+      "col": 4,
+      "type": "database",
+      "label": "Runtime 执行记录",
+      "sublabel": "runtime-execution-requirements.json",
+      "tag": "RUNTIME_EXECUTION_REQUIRED"
+    },
+    {
+      "id": "artifact",
+      "lane": "artifact",
+      "col": 5,
+      "type": "database",
+      "label": "Linked Development Artifact",
+      "sublabel": "manifest + 两个记录文件 + Procedure",
+      "tag": "LINKED / BUILT / NOT_ADMITTED"
+    },
+    {
+      "id": "link_fail",
+      "lane": "fail",
+      "col": 2,
+      "type": "security",
+      "label": "Link FAIL",
+      "sublabel": "缺 Interface / Schema / Descriptor",
+      "tag": "原子返回 · 无产物"
+    },
+    {
+      "id": "static_fail",
+      "lane": "fail",
+      "col": 3,
+      "type": "security",
+      "label": "静态结构非法",
+      "sublabel": "导出身份 / 组形状 / 引用不符",
+      "tag": "Build FAIL · 无产物"
+    },
+    {
+      "id": "host_stop",
+      "lane": "fail",
+      "col": 5,
+      "type": "security",
+      "label": "Host 拒绝派发",
+      "sublabel": "开发产物只进显式 opt-in 的隔离测试",
+      "tag": "生产 Host 一律拒绝"
+    }
+  ],
+  "edges": [
+    {
+      "id": "req-compile",
+      "from": "req",
+      "to": "compile",
+      "label": "源码 + 锁",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "snaps-link",
+      "from": "snaps",
+      "to": "link",
+      "label": "精确快照",
+      "variant": "emphasis"
+    },
+    {
+      "id": "compile-link",
+      "from": "compile",
+      "to": "link",
+      "label": "静态 AST",
+      "variant": "default",
+      "role": "main"
+    },
+    {
+      "id": "link-eval",
+      "from": "link",
+      "to": "eval",
+      "label": "链接记录",
+      "variant": "default",
+      "role": "main"
+    },
+    {
+      "id": "eval-assemble",
+      "from": "eval",
+      "to": "assemble",
+      "label": "两类记录",
+      "variant": "default",
+      "role": "main"
+    },
+    {
+      "id": "assemble-artifact",
+      "from": "assemble",
+      "to": "artifact",
+      "label": "manifest + 文件清单",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "eval-hostreq",
+      "from": "eval",
+      "to": "host_req",
+      "label": "外部事实",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "eval-rtreq",
+      "from": "eval",
+      "to": "rt_req",
+      "label": "执行期要求",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "hostreq-artifact",
+      "from": "host_req",
+      "to": "artifact",
+      "label": "随产物",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "rtreq-artifact",
+      "from": "rt_req",
+      "to": "artifact",
+      "label": "随产物",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "link-fail",
+      "from": "link",
+      "to": "link_fail",
+      "label": "闭包不成立",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "eval-staticfail",
+      "from": "eval",
+      "to": "static_fail",
+      "label": "静态非法",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "artifact-stop",
+      "from": "artifact",
+      "to": "host_stop",
+      "label": "NOT_ADMITTED",
+      "variant": "dashed",
+      "role": "branch"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "session-demo 追踪摘要（占位标记，非真实校验和）",
+      "items": [
+        "MAS 源：sha256:…mas",
+        "Context 接口：sha256:…ctx",
+        "Linked Artifact：sha256:…artifact",
+        "Runtime Provider：sha256:…provider"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Procedure 局部节选（不可独立编译，完整字段见 ca-skills v1alpha5 源）",
+      "items": [
+        "start: validate-sm-subscription",
+        "nodes:",
+        "  validate-sm-subscription:",
+        "    operation:",
+        "      tool: mas::SC.VALIDATE_SUBSCRIPTION",
+        "      arguments:",
+        "        psi: context.request.pduSessionId",
+        "        dnn: context.request.dnn"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "本图边界",
+      "items": [
+        "Deployment Grant 不是离线构建输入，只交 Host Admission",
+        "COMMIT_PROOF / RECONCILE 只进 runtime-execution-requirements.json，不在 Build 满足",
+        "Assurance Attestation 是外部信任产物，不是 Compiler 输入",
+        "Compiler 不访问 Registry、不部署 Provider、不签发授权",
+        "本图为设计提案；Compiler v2.0.2 尚无此 Development Build 入口"
+      ]
+    }
+  ]
+}

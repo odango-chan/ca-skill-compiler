@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.archify\\workflow-ca-sl-toolchain-scp-20261119\\seq\\05g-callback-failure-sequence.sequence.json",
+    "sha256": "03d30deb9fee54ddfd7360bbf05dd70ff8a02a5a08d2eadb3f49d5767314c673",
+    "bytes": 5845
+  },
+  "artifact": {
+    "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05g-callback-failure-sequence.html",
+    "sha256": "8ee8be8ef158ceaeb0607ee3c03dda98891bbf6818931cc8bffa94167c1e3590",
+    "bytes": 843417
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05g-callback-failure-sequence.finalize.json",
+    "summaryReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05g-callback-failure-sequence.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05g-callback-failure-sequence.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-19T05:40:48.674Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 5218,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

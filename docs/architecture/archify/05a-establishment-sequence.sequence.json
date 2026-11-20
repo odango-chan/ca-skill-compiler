@@ -1,0 +1,645 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "05a · PDU Session Establishment 与 N2 结果回传（SCP-only）",
+    "subtitle": "F01 + F02 · 目标业务时序 · CA-SL v1alpha5 Establishment · s10 OWNER_DEFERRED 后继续同一 Run",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "docs/architecture/archify/05a-establishment-sequence.html"
+  },
+  "participants": [
+    {
+      "id": "ue",
+      "type": "external",
+      "label": "UE / gNB",
+      "sublabel": "外部 UE / 接入网"
+    },
+    {
+      "id": "amf",
+      "type": "external",
+      "label": "AMF",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "scp",
+      "type": "external",
+      "label": "SCP",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "Host",
+      "sublabel": "CA-Agent"
+    },
+    {
+      "id": "runtime",
+      "type": "backend",
+      "label": "Runtime",
+      "sublabel": "CA-Agent"
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "CA Client Tools",
+      "sublabel": "NAS Codec / Dispatch"
+    },
+    {
+      "id": "smf",
+      "type": "backend",
+      "label": "OpenAMSM SMF",
+      "sublabel": "SMF Owner"
+    },
+    {
+      "id": "nf",
+      "type": "external",
+      "label": "UDM / PCF",
+      "sublabel": "外部 5GC"
+    },
+    {
+      "id": "upf",
+      "type": "external",
+      "label": "UPF · N4 Peer",
+      "sublabel": "N4 · no SCP"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 758,
+      "label": "F01 · Create ingress / s1–s3 / 201 Host Location"
+    },
+    {
+      "from": 762,
+      "to": 1398,
+      "label": "F01 · s3r–s8 Owner resources"
+    },
+    {
+      "from": 1402,
+      "to": 1622,
+      "label": "F01 · s10 Namf N1/N2 signaling"
+    },
+    {
+      "from": 1626,
+      "to": 1878,
+      "label": "F02 · N2 result returns to original s10"
+    },
+    {
+      "from": 1882,
+      "to": 2166,
+      "label": "F02 · s11 / s13 and paired response"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01",
+      "from": "ue",
+      "to": "amf",
+      "y": 168,
+      "label": "Establishment Request (5GSM 0xC1)",
+      "variant": "default"
+    },
+    {
+      "id": "m02",
+      "from": "amf",
+      "to": "scp",
+      "y": 200,
+      "label": "Nsmf_PDUSession_CreateSMContext",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m03",
+      "from": "scp",
+      "to": "host",
+      "y": 232,
+      "label": "Host Nsmf apiRoot · operationId=PostSmContexts",
+      "variant": "default"
+    },
+    {
+      "id": "m04",
+      "from": "host",
+      "to": "tools",
+      "y": 264,
+      "label": "Scoped N1 artifactRef · read-only 5GSM decode",
+      "variant": "default"
+    },
+    {
+      "id": "m05",
+      "from": "tools",
+      "to": "host",
+      "y": 296,
+      "label": "Typed projection：PTI / PDU Type / SSC / ePCO",
+      "variant": "return"
+    },
+    {
+      "id": "m06",
+      "from": "host",
+      "to": "runtime",
+      "y": 328,
+      "label": "按 SUPI + PSI 准入；启动唯一 Establishment Run",
+      "variant": "default"
+    },
+    {
+      "from": "host",
+      "to": "tools",
+      "label": "Original N1 artifactRef · Owner-private binary binding",
+      "variant": "security",
+      "id": "m07",
+      "y": 360
+    },
+    {
+      "from": "tools",
+      "to": "smf",
+      "label": "Deliver original N1 bytes to GSM Handler",
+      "variant": "security",
+      "id": "m08",
+      "y": 392
+    },
+    {
+      "id": "m09",
+      "from": "runtime",
+      "to": "tools",
+      "y": 424,
+      "label": "s1 / s2 / s3 · Establishment OES dispatch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m10",
+      "from": "tools",
+      "to": "smf",
+      "y": 456,
+      "label": "s1 Subscription · s2 Auth SKIPPED · s3 Create",
+      "variant": "security"
+    },
+    {
+      "id": "m11",
+      "from": "smf",
+      "to": "scp",
+      "y": 488,
+      "label": "Nudm_SDM_Get（s1）",
+      "variant": "default"
+    },
+    {
+      "id": "m12",
+      "from": "scp",
+      "to": "nf",
+      "y": 520,
+      "label": "UDM SDM request",
+      "variant": "default"
+    },
+    {
+      "id": "m13",
+      "from": "nf",
+      "to": "scp",
+      "y": 552,
+      "label": "UDM SDM response",
+      "variant": "return"
+    },
+    {
+      "id": "m14",
+      "from": "scp",
+      "to": "smf",
+      "y": 584,
+      "label": "s1 subscription result",
+      "variant": "return"
+    },
+    {
+      "id": "m15",
+      "from": "smf",
+      "to": "tools",
+      "y": 616,
+      "label": "s3 Owner smContextRef + session keys",
+      "variant": "return"
+    },
+    {
+      "id": "m16",
+      "from": "tools",
+      "to": "runtime",
+      "y": 648,
+      "label": "s1–s3 validated Owner outcomes",
+      "variant": "return"
+    },
+    {
+      "id": "m17",
+      "from": "runtime",
+      "to": "host",
+      "y": 680,
+      "label": "建立 Host Location ↔ Owner-private ref 持久映射",
+      "variant": "default"
+    },
+    {
+      "id": "m18",
+      "from": "host",
+      "to": "scp",
+      "y": 712,
+      "label": "201 Created + Host Location",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m19",
+      "from": "scp",
+      "to": "amf",
+      "y": 744,
+      "label": "201 Created + Host Location",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m20",
+      "from": "runtime",
+      "to": "tools",
+      "y": 776,
+      "label": "s3r / s3p · UECM registration + SM Policy create",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m21",
+      "from": "tools",
+      "to": "smf",
+      "y": 808,
+      "label": "SC.REGISTER_UECM + PA.CREATE_SM_POLICY",
+      "variant": "security"
+    },
+    {
+      "id": "m22",
+      "from": "smf",
+      "to": "scp",
+      "y": 840,
+      "label": "Nudm_UECM_Registration + Npcf_SMPolicyControl_Create",
+      "variant": "default"
+    },
+    {
+      "id": "m23",
+      "from": "scp",
+      "to": "nf",
+      "y": 872,
+      "label": "UDM / PCF SBI requests",
+      "variant": "default"
+    },
+    {
+      "id": "m24",
+      "from": "nf",
+      "to": "scp",
+      "y": 904,
+      "label": "UDM / PCF results",
+      "variant": "return"
+    },
+    {
+      "id": "m25",
+      "from": "scp",
+      "to": "smf",
+      "y": 936,
+      "label": "s3r / s3p results",
+      "variant": "return"
+    },
+    {
+      "id": "m26",
+      "from": "runtime",
+      "to": "tools",
+      "y": 968,
+      "label": "s4 / s5 · UPS.DECIDE_ANCHOR + IAM.ALLOCATE_ADDRESS",
+      "variant": "default"
+    },
+    {
+      "id": "m27",
+      "from": "tools",
+      "to": "smf",
+      "y": 1000,
+      "label": "SMF-local anchor selection + address allocation",
+      "variant": "security"
+    },
+    {
+      "id": "m28",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1032,
+      "label": "s6u · PA.UPDATE_SM_POLICY",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m29",
+      "from": "tools",
+      "to": "smf",
+      "y": 1064,
+      "label": "Owner policy update",
+      "variant": "security"
+    },
+    {
+      "id": "m30",
+      "from": "smf",
+      "to": "scp",
+      "y": 1096,
+      "label": "Npcf_SMPolicyControl_Update",
+      "variant": "default"
+    },
+    {
+      "id": "m31",
+      "from": "scp",
+      "to": "nf",
+      "y": 1128,
+      "label": "PCF policy update",
+      "variant": "default"
+    },
+    {
+      "id": "m32",
+      "from": "nf",
+      "to": "scp",
+      "y": 1160,
+      "label": "PCF policy update result",
+      "variant": "return"
+    },
+    {
+      "id": "m33",
+      "from": "scp",
+      "to": "smf",
+      "y": 1192,
+      "label": "s6u result",
+      "variant": "return"
+    },
+    {
+      "id": "m34",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1224,
+      "label": "s7 / s8 · CA.CREATE_CHARGING + UPN.CREATE_UP_SESSION",
+      "variant": "default"
+    },
+    {
+      "id": "m35",
+      "from": "tools",
+      "to": "smf",
+      "y": 1256,
+      "label": "Owner charging step + N4 session creation",
+      "variant": "security"
+    },
+    {
+      "id": "m36",
+      "from": "smf",
+      "to": "upf",
+      "y": 1288,
+      "label": "PFCP Establishment Request · 50",
+      "variant": "default"
+    },
+    {
+      "id": "m37",
+      "from": "upf",
+      "to": "smf",
+      "y": 1320,
+      "label": "PFCP Establishment Response · 51",
+      "variant": "return"
+    },
+    {
+      "id": "m38",
+      "from": "smf",
+      "to": "tools",
+      "y": 1352,
+      "label": "s8 N4 result",
+      "variant": "return"
+    },
+    {
+      "id": "m39",
+      "from": "tools",
+      "to": "runtime",
+      "y": 1384,
+      "label": "s3r–s8 Owner outcomes",
+      "variant": "return"
+    },
+    {
+      "id": "m40",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1416,
+      "label": "s10 · SSM.SIGNAL_UE_AN (OWNER_DEFERRED)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m41",
+      "from": "tools",
+      "to": "smf",
+      "y": 1448,
+      "label": "s10 Owner operation",
+      "variant": "security"
+    },
+    {
+      "id": "m42",
+      "from": "smf",
+      "to": "host",
+      "y": 1480,
+      "label": "OpenAMSM private Namf Relay request",
+      "variant": "security"
+    },
+    {
+      "id": "m43",
+      "from": "host",
+      "to": "tools",
+      "y": 1512,
+      "label": "Fixed Namf egress",
+      "variant": "security"
+    },
+    {
+      "id": "m44",
+      "from": "tools",
+      "to": "scp",
+      "y": 1544,
+      "label": "Namf_Communication_N1N2MessageTransfer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m45",
+      "from": "scp",
+      "to": "amf",
+      "y": 1576,
+      "label": "N1/N2 setup information",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m46",
+      "from": "amf",
+      "to": "ue",
+      "y": 1608,
+      "label": "PDU Resource Setup Request",
+      "variant": "default"
+    },
+    {
+      "id": "m47",
+      "from": "ue",
+      "to": "amf",
+      "y": 1640,
+      "label": "PDU Resource Setup Response",
+      "variant": "return"
+    },
+    {
+      "id": "m48",
+      "from": "amf",
+      "to": "scp",
+      "y": 1672,
+      "label": "Nsmf_PDUSession_UpdateSMContext · PDU_RES_SETUP_RSP",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m49",
+      "from": "scp",
+      "to": "host",
+      "y": 1704,
+      "label": "Existing Host Location",
+      "variant": "default"
+    },
+    {
+      "id": "m50",
+      "from": "host",
+      "to": "runtime",
+      "y": 1736,
+      "label": "按 Session / generation 匹配原 s10 occurrence",
+      "variant": "default"
+    },
+    {
+      "id": "m51",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1768,
+      "label": "继续原始 s10 Owner operation",
+      "variant": "security"
+    },
+    {
+      "id": "m52",
+      "from": "tools",
+      "to": "smf",
+      "y": 1800,
+      "label": "Owner-private N2 result update",
+      "variant": "security"
+    },
+    {
+      "id": "m53",
+      "from": "smf",
+      "to": "tools",
+      "y": 1832,
+      "label": "AN result adopted · tunnel / F-TEID",
+      "variant": "return"
+    },
+    {
+      "id": "m54",
+      "from": "tools",
+      "to": "runtime",
+      "y": 1864,
+      "label": "恢复同一 Run，不创建第二个 Skill Invocation",
+      "variant": "return"
+    },
+    {
+      "id": "m55",
+      "from": "runtime",
+      "to": "tools",
+      "y": 1896,
+      "label": "s11 · UPN.MODIFY_UP_SESSION",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m56",
+      "from": "tools",
+      "to": "smf",
+      "y": 1928,
+      "label": "s11 Owner N4 update",
+      "variant": "security"
+    },
+    {
+      "id": "m57",
+      "from": "smf",
+      "to": "upf",
+      "y": 1960,
+      "label": "PFCP Modification Request · 52",
+      "variant": "default"
+    },
+    {
+      "id": "m58",
+      "from": "upf",
+      "to": "smf",
+      "y": 1992,
+      "label": "PFCP Modification Response · 53",
+      "variant": "return"
+    },
+    {
+      "id": "m59",
+      "from": "runtime",
+      "to": "tools",
+      "y": 2024,
+      "label": "s13 · SE.EMIT_EVENTS",
+      "variant": "default"
+    },
+    {
+      "id": "m60",
+      "from": "tools",
+      "to": "smf",
+      "y": 2056,
+      "label": "s13 local event outcome",
+      "variant": "return"
+    },
+    {
+      "id": "m61",
+      "from": "runtime",
+      "to": "host",
+      "y": 2088,
+      "label": "Goal / Postcondition 与响应义务",
+      "variant": "return"
+    },
+    {
+      "id": "m62",
+      "from": "host",
+      "to": "scp",
+      "y": 2120,
+      "label": "Paired UpdateSMContext response",
+      "variant": "return"
+    },
+    {
+      "id": "m63",
+      "from": "scp",
+      "to": "amf",
+      "y": 2152,
+      "label": "UpdateSMContext response",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "13 个 Capability 与时序节点的关系",
+      "items": [
+        "本图按业务阶段展示 s1、s2、s3、s3r、s3p、s4、s5、s6u、s7、s8、s10、s11、s13；逐节点 Node ID / Capability ID / Callable / OES Step 见 05a-ops 子图",
+        "201 Created 在 s3 建立 Owner Context 并完成 Host URI Map 后返回；它不是 PDU Session 最终建立成功证明",
+        "s10 是 OWNER_DEFERRED：N2 结果回到同一个 Owner occurrence 与同一个 Run"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "NAS 与网络边界",
+      "items": [
+        "原始 N1 由 Host Artifact Store 保留；Client Tools 内只读 NAS Codec 产生 Typed projection，供 Host / Skill 使用",
+        "原始 N1 仍通过受信 Owner-private binary binding 交给 OpenAMSM GSM Handler；Typed projection 不能替代原始 NAS",
+        "UDM / PCF SBI 经 SCP；OpenAMSM ↔ UPF 的 N4 / PFCP 直连，不经过 SCP",
+        "NGAP messages：PDU Session Resource Setup Request / Response；图中使用短标签 PDU Resource Setup Request / Response。",
+        "PFCP standard messages：Session Establishment Request / Response（Type 50/51）；Session Modification Request / Response（Type 52/53）。箭头以 PFCP + procedure + type 简写。",
+        "NAS Codec 是 CA Client Tools 内部的只读协议处理职责；与 Tool Dispatch 共用 Client Tools 责任域，不构成独立 Owner",
+        "职责归属：Host 负责 HTTP/2、SBI JSON / multipart / Content-ID 校验并保存原始 N1；CA Client Tools 的只读 5GSM Codec 只解码 N1。Host SBI Decoder 不属于 Client Tools。"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "协议标识",
+      "items": [
+        "Nsmf_PDUSession_CreateSMContext 对应 operationId=PostSmContexts；UpdateSMContext 对应 UpdateSmContext",
+        "Namf_Communication_N1N2MessageTransfer 是 3GPP Service Operation；Nsmf_MasOrchestration / masOrchestrationInvoke 是 OpenAMSM 私有 API",
+        "s7 是 MAS charging step；不将它画成 CHF 已完成外部计费",
+        "UE NAS message：PDU Session Establishment Request（5GSM message type 0xC1）"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "内部步骤与标准标识",
+      "items": [
+        "Host 在入口校验 SBI JSON / multipart / Content-ID，并保留原始 N1 artifact；Client Tools 内只读 NAS Codec 产生 typed projection，原始 N1 通过 Owner-private binary binding 交给 GSM Handler",
+        "Owner OES 依次执行 SC.VALIDATE_SUBSCRIPTION、SAA.SECONDARY_AUTH（required=0 时 SKIPPED）、SC.CREATE_SM_CONTEXT",
+        "3GPP Service Operations：Nsmf_PDUSession_CreateSMContext / Nsmf_PDUSession_UpdateSMContext；OpenAMSM 私有 API 不冒充 3GPP SBI",
+        "箭头图例与状态：默认实线表示常规调用；绿色实线表示关键步骤；蓝色虚线表示返回 / 响应；红色虚线表示 security 受信私有边界或原始二进制绑定，不表示未实现。全图为 DESIGN / DESIGN TARGET；实现状态以卡片文字为准，不能仅凭箭头线型推断。"
+      ]
+    }
+  ]
+}

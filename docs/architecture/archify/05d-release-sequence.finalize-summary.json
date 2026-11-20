@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05d-release-sequence.sequence.json",
+    "sha256": "635adc77cd94501ed06787dec1516ea073f402161df4140b2804b05edcccc0a5",
+    "bytes": 12154
+  },
+  "artifact": {
+    "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05d-release-sequence.html",
+    "sha256": "ca7abf6b85ce337a5ef1675da6cd535117c1497107e73f7da7d890931e60583a",
+    "bytes": 866777
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05d-release-sequence.finalize.json",
+    "summaryReceipt": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05d-release-sequence.finalize-summary.json",
+    "browserCheckReceipt": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05d-release-sequence.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-20T02:48:34.996Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4406,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "cf635ed4-4754-4404-9b50-684a3a190dee",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\02-offline-build.workflow.json",
+  "output": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\02-offline-build.html",
+  "specification": {
+    "sha256": "8df239e67e10c5322dad7b4bc85066443236422f0664376b2a465980188662ad",
+    "bytes": 7208
+  },
+  "artifact": {
+    "sha256": "035eddbae1071f8a1d6270337d22ca3629491cb93db7b6f749f9785925550549",
+    "bytes": 854919
+  }
+}

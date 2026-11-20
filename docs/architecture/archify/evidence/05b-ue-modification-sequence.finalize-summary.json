@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.archify\\workflow-ca-sl-toolchain-scp-20261119\\seq\\05b-ue-modification-sequence.sequence.json",
+    "sha256": "e135aa55f1b26f1cda5096eaae7f996310c27b50c502fa5509cdf552cd884b19",
+    "bytes": 8256
+  },
+  "artifact": {
+    "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05b-ue-modification-sequence.html",
+    "sha256": "888346351a0507b047884bcf0592f438b86800997cee560d913fe174bc46bd7d",
+    "bytes": 856460
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05b-ue-modification-sequence.finalize.json",
+    "summaryReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05b-ue-modification-sequence.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05b-ue-modification-sequence.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-19T05:40:48.674Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4400,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}
