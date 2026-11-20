@@ -41,18 +41,13 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 `finalize` 依次执行 `validate` / `deliver` / 严格 `check` / 真实浏览器 `browser-check` 四道门。
 `visual-check` 额外产出 1440×900 与 2048×1320、明/暗两套真实截图。
 
-在禁止管道子进程的受限沙箱里（`spawn EPERM`），可先用一个把管道 stdio 重定向到临时文件、
-不修改 Archify 包的 preload 脚本跑通前三道门（本仓库本轮使用 `.archify/pipe-shim.cjs`，该目录被 gitignore）：
-
-```bash
-node --require .archify/pipe-shim.cjs "$ARCHIFY" finalize architecture <source>.architecture.json <out>.html --quality showcase --json
-```
-
-该方式无法让 Chromium 启动，`browser-check` / `visual-check` 仍为 NOT_RUN (BLOCKED)，必须如实记录。
+> 历史说明：本轮早期在禁止管道子进程的受限沙箱里只跑通前三道门并留下 `spawn EPERM` 的
+> NOT_RUN 回执。随后在允许子进程的环境中用上面的**原样命令**重跑，四道门与 `visual-check`
+> 全部通过；旧回执与旧截图归档在 `evidence/history/freeze-20261120/`，不再作为当前证据。
 
 ## 3. 验收结果
 
-图 01–03 于 2026-11-20 架构冻结轮重新生成：**validate / deliver / 严格 check 三道门 PASS**；`browser-check` 与 `visual-check` 为 **NOT_RUN (BLOCKED)**，因为本机沙箱禁止管道子进程，Playwright 无法启动 Chromium（精确错误 `spawn EPERM`）。不得把这三张图称为四道门 PASS 或视觉验收通过。回执见 `evidence/01..03-*.finalize-summary.json` 与 `.browser-check.json`（如实记录 `failedStage: browser-check`）。
+图 01–03 于 2026-11-20 架构冻结轮重新生成：**validate / deliver / 严格 check / 真实浏览器 browser-check 四道门全部 PASS**，且 `visual-check` 以 1440×900、2048×1320 两种视口和明/暗两套主题全部 PASS（Chrome 158.0.8127.37）。回执见 `evidence/01..03-*.finalize-summary.json`、`.browser-check.json` 与 `.visual-check.json`；截图与接触表在同一目录。
 
 04、05a-ops 与 05a–05g 的源文件本轮未改动，沿用此前通过的验收记录。其中 **05a–05g 七张业务时序图已于 2026-11-20 按当前源文件重新生成并通过四道门及真实浏览器 `visual-check`**。
 
@@ -94,7 +89,7 @@ node --require .archify/pipe-shim.cjs "$ARCHIFY" finalize architecture <source>.
 - sequence 图在 1440×900 下有纵向滚动（`data-reader-fit="width-first"`）。这是 Archify 对
   sequence 的既定阅读契约：宽度自适应、纵向滚动；横向不溢出。
 - 当前 05a–05g 的四主题截图与接触表位于 `evidence/sequence-vnext/`；上一版截图和旧 `browser-check` 回执归档于 `evidence/history/<run-id>/`，根目录同名旧截图仍保留为历史快照。
-- 01–03 本轮没有新的真实浏览器截图：运行环境禁止管道子进程，Chromium 启动失败（`spawn EPERM`）。需要浏览器证据时，在允许子进程或已安装 Playwright Chromium 的环境重跑 `finalize` 与 `visual-check`。上一版截图与回执在 `evidence/history/freeze-20261120/`。
+- 01–03 本轮有四道门 PASS 与真实浏览器截图；截图、接触表与 `visual-check` 回执位于 `evidence/`（`01..03-*.visual-check.*`）。上一版截图与回执在 `evidence/history/freeze-20261120/`，不作当前证据使用。
 
 ## 7. 事实基线
 

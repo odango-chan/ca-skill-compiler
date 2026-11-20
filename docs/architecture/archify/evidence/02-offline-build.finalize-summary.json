@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "ok": false,
+  "ok": true,
   "command": "finalize",
-  "status": "fail",
+  "status": "pass",
   "type": "workflow",
   "quality": "showcase",
   "specification": {
@@ -19,39 +19,33 @@
     "validate": "pass",
     "deliver": "pass",
     "check": "pass",
-    "browser-check": "fail"
+    "browser-check": "pass"
   },
-  "failedStage": "browser-check",
-  "diagnostics": [
-    {
-      "code": "viewer/browser-check-runtime",
-      "severity": "error",
-      "message": "browser-check could not complete its Chrome inspection.",
-      "subject": {
-        "artifact": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\02-offline-build.html"
-      },
-      "evidence": {
-        "reason": "spawn EPERM"
-      },
-      "supportedFixes": [
-        "resolve the reported Chrome inspection error, then rerun browser-check"
-      ]
-    }
-  ],
+  "diagnostics": [],
   "diagnosticSummary": {
-    "total": 1,
-    "shown": 1,
+    "total": 0,
+    "shown": 0,
     "truncated": false
   },
   "evidence": {
-    "receipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\.archify\\archify-freeze-20261120\\f02\\02-offline-build.finalize.json",
-    "summaryReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\.archify\\archify-freeze-20261120\\f02\\02-offline-build.finalize-summary.json",
-    "browserCheckReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\.archify\\archify-freeze-20261120\\f02\\02-offline-build.browser-check.json"
+    "receipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\02-offline-build.finalize.json",
+    "summaryReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\02-offline-build.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\02-offline-build.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-19T05:40:48.674Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
   },
   "visualReview": "not-requested",
-  "durationMs": 2917,
+  "durationMs": 8240,
   "browserCheck": {
     "requested": true,
-    "ran": false
+    "ran": true
   }
 }
