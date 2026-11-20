@@ -6,7 +6,7 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "c1a45bdb-17c9-450a-896a-90f7aaeff197",
+  "deliveryReceiptId": "4c618185-c1f3-404f-b41b-84e9940c0359",
   "artifact": {
     "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\01-toolchain-panorama.html",
     "sha256": "9f57122f67c9c77ea4b522b51c5ee4cd8944b940c2fe7c78dd06d23c0a613433",
@@ -943,8 +943,8 @@
         "file": "01-toolchain-panorama.visual-check.1440x900.light.png"
       },
       {
-        "sha256": "a17be060a1096702a582084522c3b9f45a31040d946a131aa2d4dbd30932ffeb",
-        "bytes": 168895,
+        "sha256": "761ea4e18ecaa9d944200921100a5b04f86bd57fd6525f5c4dbd4cd81a01f6eb",
+        "bytes": 168902,
         "file": "01-toolchain-panorama.visual-check.1440x900.dark.png"
       },
       {
@@ -953,8 +953,8 @@
         "file": "01-toolchain-panorama.visual-check.2048x1320.light.png"
       },
       {
-        "sha256": "2d0b4726265305e99b5a3f7cba03c8cc88596bce219d35dd339e5db04e14a8b6",
-        "bytes": 234171,
+        "sha256": "0184cbee702d96688288e44389a008eceb025ac598ff42c52c6cbf35257bffea",
+        "bytes": 234480,
         "file": "01-toolchain-panorama.visual-check.2048x1320.dark.png"
       }
     ]

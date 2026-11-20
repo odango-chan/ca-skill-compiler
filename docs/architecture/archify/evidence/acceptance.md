@@ -2,6 +2,7 @@
 
 > 本文件只记录**实际执行**的检查与结果。未执行的检查一律标 NOT_RUN / BLOCKED，不得以“应该可以”代替。
 > 本轮（2026-11-20 架构冻结轮）重新生成并验范围为图 01–03；04、05a-ops 与 05a–05g 的源文件未变，保留此前通过的验收记录。
+> 随后在**最终评审轮**（同日）对 01–03 再次执行 `finalize` 与 `visual-check`：源文件与生成产物逐字节未变（spec/artifact sha256 与上一轮相同），仅回执 ID、时间戳与暗色截图编码刷新，见 §8。
 
 ## 1. 环境
 
@@ -13,7 +14,7 @@
 | Node.js | v24.18.0 |
 | 浏览器 | 真实 Google Chrome 158.0.8127.37（Playwright 自动启动） |
 | 质量档 | `showcase` |
-| 截图状态 | 01–03 本轮 PASS（1440×900 / 2048×1320 × 明/暗）；05a–05g 沿用 `evidence/sequence-vnext/` |
+| 截图状态 | 01–03 本轮 PASS（1440×900 / 2048×1320 × 明/暗）；最终评审轮再次 PASS，05a–05g 沿用 `evidence/sequence-vnext/` |
 
 ## 2. 逐图四道门结果
 
@@ -67,6 +68,12 @@
 **人工目视复核状态：PENDING（01、02）/ 已抽查（03）。** 03 的 1440×900 与 2048×1320 明色截图已人工查看，
 主体节点、图例和两类 Requirement 标注可读；01、02 尚未逐张人工签字。自动检查不冒充人工签字。
 
+最终评审轮的代理人目视记录（**不是**人工签字）：本轮查看了
+`01-*.1440x900.light.png`、`01-*.1440x900.dark.png`、`02-*.1440x900.light.png`、`03-*.2048x1320.light.png`
+四张截图——标题/副标题、三条泳道或四阶段分组、两类 Requirement 文件标签、`NOT_ADMITTED` 与
+`COMMIT_PROOF` / `RECONCILE` 执行期标注、图例与查看器外框均可读，深色主题对比度正常。
+01、02 的人工逐张签字仍为 **PENDING**，不得用上述记录替代。
+
 ## 5. 未执行 / 不适用的检查
 
 | 检查 | 状态 | 原因 |
@@ -104,3 +111,30 @@
   记录 containment / readability / viewerChrome / themeStates / captures 全部 PASS。
 - 四份截图（两种视口 × 两种主题）与接触表位于 `evidence/01..03-*.visual-check.*`。
 - 早期受限沙箱产生的 `NOT_RUN` 回执与旧截图归档在 `evidence/history/freeze-20261120/`，仅作历史痕迹。
+
+## 8. 2026-11-20 最终评审轮（01–03 重新验收）
+
+- 目的：确认“源与生成产物一致”，并在最终提交上重新执行四道门与视觉检查。
+- 源未改：三份 spec 的 sha256 与上轮相同（01 `b450f4da…`、02 `8df239e6…`、03 `8f76300a…`），
+  生成的 HTML artifact sha256 也未变（01 `9f57122f67c9c77e`、02 `035eddbae1071f8a`、03 `a484e6224f086b87`），
+  说明生成产物确实由当前源产出，不存在源/产物漂移。
+- 实际执行命令（`$ARCHIFY` = `C:\Users\z00587616\.dsh\profiles\desktop\node_modules\@tt-a1i\archify-dsh\skills\archify\bin\archify.mjs`，
+  工作目录为仓库根）：
+
+  ```bash
+  node "$ARCHIFY" finalize architecture docs/architecture/archify/01-toolchain-panorama.architecture.json docs/architecture/archify/01-toolchain-panorama.html --quality showcase --json
+  node "$ARCHIFY" finalize workflow     docs/architecture/archify/02-offline-build.workflow.json        docs/architecture/archify/02-offline-build.html          --quality showcase --json
+  node "$ARCHIFY" finalize architecture docs/architecture/archify/03-host-admission.architecture.json  docs/architecture/archify/03-host-admission.html        --quality showcase --json
+  node "$ARCHIFY" visual-check docs/architecture/archify/01-toolchain-panorama.html --require-provenance --out-dir docs/architecture/archify/evidence --summary
+  node "$ARCHIFY" visual-check docs/architecture/archify/02-offline-build.html       --require-provenance --out-dir docs/architecture/archify/evidence --summary
+  node "$ARCHIFY" visual-check docs/architecture/archify/03-host-admission.html      --require-provenance --out-dir docs/architecture/archify/evidence --summary
+  ```
+
+- 结果：三次 `finalize` 均 `ok: true`，`gates.{validate,deliver,check,browser-check} = pass`，
+  `diagnostics: []`；三次 `visual-check` 均 `ok: true`、`provenance: current`，
+  containment / readability / viewerChrome / themeStates / captures 全部 `pass`。
+- 03 仍给出建议项 `inspect-route-readability`（`artifact → admission` 3 个折点）。已查看
+  1440×900 与 2048×1320 截图，该绿色路径可辨识，不是失败项，不做几何重排。
+- 本轮第一次 `finalize` 在禁止子进程的沙箱中尝试，返回 `finalize/runtime: spawn EPERM`；
+  该 NOT_RUN 结果不作数，随后在允许子进程的环境中重新执行并取得上述 PASS 回执。
+- 人工逐张签字：01、02 **仍为 PENDING**；03 保持“已抽查”。自动化与代理人目视均不替代人工签字。

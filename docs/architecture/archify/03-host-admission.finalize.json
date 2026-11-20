@@ -5,7 +5,7 @@
   "status": "pass",
   "type": "architecture",
   "quality": "showcase",
-  "startedAt": "2026-11-20T06:48:57.853Z",
+  "startedAt": "2026-11-20T07:51:09.041Z",
   "specification": {
     "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\03-host-admission.architecture.json",
     "sha256": "8f76300afaeff6bef58078fe903d75280a51200b319086e5ad16356bad7d40d7",
@@ -54,7 +54,7 @@
     "deliver": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 1471,
+      "durationMs": 889,
       "command": [
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\z00587616\\.dsh\\profiles\\desktop\\node_modules\\@tt-a1i\\archify-dsh\\skills\\archify\\bin\\archify.mjs",
@@ -68,7 +68,7 @@
       ],
       "receipt": {
         "schemaVersion": 1,
-        "receiptId": "105c5d1d-2e45-404d-bafc-7ed61ad87d8d",
+        "receiptId": "cd319b39-7429-40db-b198-9ddb83f4d376",
         "ok": true,
         "command": "deliver",
         "type": "architecture",
@@ -106,7 +106,7 @@
     "check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 476,
+      "durationMs": 314,
       "command": [
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\z00587616\\.dsh\\profiles\\desktop\\node_modules\\@tt-a1i\\archify-dsh\\skills\\archify\\bin\\archify.mjs",
@@ -257,13 +257,13 @@
           "issues": []
         },
         "provenance": "current",
-        "deliveryReceiptId": "105c5d1d-2e45-404d-bafc-7ed61ad87d8d"
+        "deliveryReceiptId": "cd319b39-7429-40db-b198-9ddb83f4d376"
       }
     },
     "browser-check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 3380,
+      "durationMs": 3012,
       "command": [
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\z00587616\\.dsh\\profiles\\desktop\\node_modules\\@tt-a1i\\archify-dsh\\skills\\archify\\bin\\archify.mjs",
@@ -281,7 +281,7 @@
         "status": "pass",
         "visualReview": "not-requested",
         "provenance": "current",
-        "deliveryReceiptId": "105c5d1d-2e45-404d-bafc-7ed61ad87d8d",
+        "deliveryReceiptId": "cd319b39-7429-40db-b198-9ddb83f4d376",
         "artifact": {
           "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\03-host-admission.html",
           "sha256": "a484e6224f086b87e9126917e00a6bc9e5c2158ec9245724fe60e42cf31b03d4",
@@ -1007,8 +1007,8 @@
     "browserCheckReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\03-host-admission.browser-check.json"
   },
   "visualReview": "not-requested",
-  "finishedAt": "2026-11-20T06:49:05.189Z",
-  "durationMs": 7336,
+  "finishedAt": "2026-11-20T07:51:14.358Z",
+  "durationMs": 5317,
   "update": {
     "status": "current",
     "installedVersion": "3.2.0",

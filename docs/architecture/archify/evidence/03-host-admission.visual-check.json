@@ -6,7 +6,7 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "105c5d1d-2e45-404d-bafc-7ed61ad87d8d",
+  "deliveryReceiptId": "cd319b39-7429-40db-b198-9ddb83f4d376",
   "artifact": {
     "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\03-host-admission.html",
     "sha256": "a484e6224f086b87e9126917e00a6bc9e5c2158ec9245724fe60e42cf31b03d4",
@@ -943,7 +943,7 @@
         "file": "03-host-admission.visual-check.1440x900.light.png"
       },
       {
-        "sha256": "14d6935df9174f58c779e6f28d97792c17947888d1b7f741ea38d8e0220574b5",
+        "sha256": "78f67a9c0ba63366597d389cf498256ba2c3e92571d4f9e82a0307e96417fd05",
         "bytes": 146200,
         "file": "03-host-admission.visual-check.1440x900.dark.png"
       },
@@ -953,8 +953,8 @@
         "file": "03-host-admission.visual-check.2048x1320.light.png"
       },
       {
-        "sha256": "c7fb04bb384cf73288da5fbc4c9367381a3d1835b741f13655875c5f5744ffe1",
-        "bytes": 190502,
+        "sha256": "3a57b808d05890ef293d526ecba4857f32e470135c7aef5a7295dc2d1596fbbf",
+        "bytes": 190304,
         "file": "03-host-admission.visual-check.2048x1320.dark.png"
       }
     ]

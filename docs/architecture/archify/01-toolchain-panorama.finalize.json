@@ -5,7 +5,7 @@
   "status": "pass",
   "type": "architecture",
   "quality": "showcase",
-  "startedAt": "2026-11-20T06:48:28.980Z",
+  "startedAt": "2026-11-20T07:50:42.150Z",
   "specification": {
     "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\01-toolchain-panorama.architecture.json",
     "sha256": "b450f4da52659ea49c652a57ba440b4a3397dee82cb2dac5a3ae19979702dcba",
@@ -54,7 +54,7 @@
     "deliver": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 2604,
+      "durationMs": 1513,
       "command": [
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\z00587616\\.dsh\\profiles\\desktop\\node_modules\\@tt-a1i\\archify-dsh\\skills\\archify\\bin\\archify.mjs",
@@ -68,7 +68,7 @@
       ],
       "receipt": {
         "schemaVersion": 1,
-        "receiptId": "c1a45bdb-17c9-450a-896a-90f7aaeff197",
+        "receiptId": "4c618185-c1f3-404f-b41b-84e9940c0359",
         "ok": true,
         "command": "deliver",
         "type": "architecture",
@@ -106,7 +106,7 @@
     "check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 673,
+      "durationMs": 532,
       "command": [
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\z00587616\\.dsh\\profiles\\desktop\\node_modules\\@tt-a1i\\archify-dsh\\skills\\archify\\bin\\archify.mjs",
@@ -244,13 +244,13 @@
           "issues": []
         },
         "provenance": "current",
-        "deliveryReceiptId": "c1a45bdb-17c9-450a-896a-90f7aaeff197"
+        "deliveryReceiptId": "4c618185-c1f3-404f-b41b-84e9940c0359"
       }
     },
     "browser-check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 5132,
+      "durationMs": 5051,
       "command": [
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\z00587616\\.dsh\\profiles\\desktop\\node_modules\\@tt-a1i\\archify-dsh\\skills\\archify\\bin\\archify.mjs",
@@ -268,7 +268,7 @@
         "status": "pass",
         "visualReview": "not-requested",
         "provenance": "current",
-        "deliveryReceiptId": "c1a45bdb-17c9-450a-896a-90f7aaeff197",
+        "deliveryReceiptId": "4c618185-c1f3-404f-b41b-84e9940c0359",
         "artifact": {
           "path": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\01-toolchain-panorama.html",
           "sha256": "9f57122f67c9c77ea4b522b51c5ee4cd8944b940c2fe7c78dd06d23c0a613433",
@@ -994,8 +994,8 @@
     "browserCheckReceipt": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\.agent-tmp\\design48\\docs\\architecture\\archify\\01-toolchain-panorama.browser-check.json"
   },
   "visualReview": "not-requested",
-  "finishedAt": "2026-11-20T06:48:41.091Z",
-  "durationMs": 12110,
+  "finishedAt": "2026-11-20T07:50:51.429Z",
+  "durationMs": 9279,
   "update": {
     "status": "current",
     "installedVersion": "3.2.0",
