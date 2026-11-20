@@ -123,7 +123,7 @@
 | 静态检查 | `GOWORK=off go vet ./...` | PASS（exit 0，无输出） |
 | Native build | `CGO_ENABLED=0 GOWORK=off go build ./...` | PASS（exit 0） |
 | Go/WASM build | `CGO_ENABLED=0 GOOS=js GOARCH=wasm GOWORK=off go build -o dist/skillc.wasm ./cmd/skillc-wasm` | PASS（exit 0） |
-| CLI E2E | `GOWORK=off go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | PASS（3 个子测试：Build / InspectIngressInventory / RejectsV1Alpha4Request） |
+| CLI E2E | `GOWORK=off go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v` | PASS（12 个子测试全部通过） |
 | Chromium Worker parity | `CHROMIUM_PARITY=1 GOWORK=off go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v` | PASS（Development 5 文件逐字节一致；重排输入逐字节一致；失败诊断一致） |
 | 空白/编码 | `git diff --check` | PASS（exit 0） |
 | v2.0.2 黄金基线 | `GOWORK=off go test ./internal/compiler -count=1 -run "TestLegacyEntryGoldenBaseline\|TestDependencySnapshotDigestGoldenVectors" -v` | PASS（旧入口行为与 `tests/golden/legacy-entry-v2.0.2.json` 完全一致；三个冻结摘要向量一致） |
@@ -154,9 +154,9 @@
 | 18 | 无实际 Runtime Evidence / Attestation 的静态 Build | `TestDevelopmentBuildNeedsNoRuntimeEvidenceOrAttestation`（请求信封无这些字段、Build 成功、`NOT_ADMITTED`） |
 | 19 | 多 Owner 快照缺少 Descriptor 精确归属 | `TestWP3B010MultiOwnerEvidenceGuaranteeMissingAttribution`（`DEPENDENCY_EXPORT_OWNER_UNVERIFIED`） |
 
-CI：实现提交 `cf1fbd045df0c64c40fe2d14ad1d5f3673c1d493` 的 GitHub Actions 运行
-<https://github.com/odango-chan/ca-skill-compiler/actions/runs/44698833073>（job `v1alpha5-integration`，PASS，1m8s）。
-PR #48 分支只改文档与图形，现有 workflow 的 path filter 不覆盖 `docs/**`，因此其最终提交**不触发**任何 check（NOT_RUN，不是 PASS）；该分支的四道 Archify 门与截图检查为本地实际执行结果。
+CI：本轮实现提交 `1a7c7bdaaf9d5079304a22e1e4d6aa454dc0f61e` 的 `v1alpha5-integration` 运行
+<https://github.com/odango-chan/ca-skill-compiler/actions/runs/44710540260>（job PASS，1m6s，全部门禁步骤通过）。
+PR #48 分支只改文档与职责边界文字，现有 workflow 的 path filter 不覆盖 `docs/**`，因此其最终提交 `5a0340eec26aea6fad744d99743631995a4355d9` **不触发**任何 check（NOT_RUN，不是 PASS）；职责/流程没有变化，Archify 图不重绘，上一轮已提交的回执保持有效。
 
 ## 4. 已知限制
 
