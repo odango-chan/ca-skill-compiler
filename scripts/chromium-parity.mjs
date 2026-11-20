@@ -540,10 +540,13 @@ async function main() {
     compare('development build.diagnostics', nativeDevelopment.diagnostics, browserDevelopment.diagnostics);
     compare('development build.artifactDigest', nativeDevelopment.artifactDigest, browserDevelopment.artifactDigest);
     compare('development build.outputFiles', nativeDevelopment.outputFiles, browserDevelopment.outputFiles);
-    const developmentObligations = browserArtifactJSON(browserDevelopment, 'obligations.json');
-    if (!Array.isArray(developmentObligations) || developmentObligations.length === 0) fail('Development artifact has no obligations');
-    if (!developmentObligations.some(obligation => obligation.rule === 'EVIDENCE_GUARANTEE' && obligation.status === 'UNRESOLVED')) {
-      fail('Development artifact has no UNRESOLVED EVIDENCE_GUARANTEE obligation');
+    const developmentRequirements = browserArtifactJSON(browserDevelopment, 'host-admission-requirements.json');
+    if (!Array.isArray(developmentRequirements) || developmentRequirements.length === 0) fail('Development artifact has no host-admission requirements');
+    if (!developmentRequirements.some(requirement => requirement.kind === 'OWNER_TRUST')) {
+      fail('Development artifact has no OWNER_TRUST host-admission requirement');
+    }
+    if (developmentRequirements.some(requirement => requirement.status !== 'HOST_VERIFICATION_REQUIRED')) {
+      fail('Development host-admission requirement status is not HOST_VERIFICATION_REQUIRED');
     }
     console.log('ok: Development LINKED/BUILT/NOT_ADMITTED byte parity (' + browserDevelopment.outputFiles.length + ' files)');
     const reorderedBrowser = await cdpEvaluate('http://127.0.0.1:' + debugPort + '/json/version', 'http://127.0.0.1:' + port + '/parity.html?development=1&request=' + developmentRequests.reordered);
@@ -570,5 +573,6 @@ async function main() {
 }
 
 main().catch(error => fail(error.stack || String(error)));
+
 
 

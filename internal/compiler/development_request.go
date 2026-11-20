@@ -3,8 +3,8 @@ package compiler
 // Development Build input admission.
 //
 // The Resolver hands the Compiler only exact bytes: Skill source, exact
-// Interface Package snapshots, a Dependency Lock and optional Assurance Export
-// files. This file proves those bytes are self-consistent before any linking
+// Interface Package snapshots and a Dependency Lock. Evidence Descriptors are a
+// declared Interface Package export, not a separate assurance input. This file proves those bytes are self-consistent before any linking
 // runs: strict API identity, path/size/count limits, snapshot SHA-256 recompute,
 // package.json manifest shape, declared file-set equality, export index identity,
 // lock/snapshot equality, exact SemVer versions, closure completeness, acyclicity,
@@ -88,9 +88,7 @@ type developmentEnvironment struct {
 	rootByAlias     map[string]DevelopmentPackageKey
 	packages        map[DevelopmentPackageKey]*developmentPackage
 	packageOrder    []DevelopmentPackageKey
-	assuranceByKey  map[DevelopmentPackageKey]*DevelopmentAssurance
-	assuranceOrder  []*DevelopmentAssurance
-	assuranceFiles  map[DevelopmentPackageKey]map[string][]byte
+	evidenceByKey   map[DevelopmentPackageKey]map[string]evidenceDescriptor
 	dependencyGraph map[DevelopmentPackageKey]map[string]DevelopmentPackageKey
 	reachable       map[DevelopmentPackageKey]bool
 }
@@ -106,8 +104,7 @@ func validateDevelopmentRequest(req DevelopmentBuildRequest) (*developmentEnviro
 		request:         req,
 		rootByAlias:     map[string]DevelopmentPackageKey{},
 		packages:        map[DevelopmentPackageKey]*developmentPackage{},
-		assuranceByKey:  map[DevelopmentPackageKey]*DevelopmentAssurance{},
-		assuranceFiles:  map[DevelopmentPackageKey]map[string][]byte{},
+		evidenceByKey:   map[DevelopmentPackageKey]map[string]evidenceDescriptor{},
 		dependencyGraph: map[DevelopmentPackageKey]map[string]DevelopmentPackageKey{},
 		reachable:       map[DevelopmentPackageKey]bool{},
 	}
@@ -226,40 +223,6 @@ func validateDevelopmentRequest(req DevelopmentBuildRequest) (*developmentEnviro
 		files, fileBytes, filesOK := validateDevelopmentSnapshotFiles(key, snapshot.Files, add)
 		env.packages[key] = &developmentPackage{key: key, files: files, filesByName: fileBytes}
 		totalBytes += filesOK
-	}
-	if totalBytes > maxTotal {
-		add(developmentRequestInvalid, "", "the complete Development Build request exceeds the 16 MiB aggregate raw byte limit")
-	}
-
-	// Optional Assurance Export input.
-	if len(req.Assurance) > maxDevelopmentPackages {
-		add(developmentAssuranceInvalid, "", "BuildRequest.assurance exceeds the Assurance Export count limit")
-	}
-	for index, assurance := range req.Assurance {
-		label := "assurance[" + strconv.Itoa(index) + "]"
-		if assurance.APIVersion != AssuranceExportAPIVersion {
-			add(developmentAssuranceInvalid, label, "Assurance Export apiVersion must equal "+AssuranceExportAPIVersion)
-		}
-		if _, exists := env.packages[assurance.Key]; !exists {
-			add(developmentAssuranceInvalid, label, "Assurance Export key does not match a supplied Interface Package snapshot")
-		}
-		if _, duplicate := env.assuranceByKey[assurance.Key]; duplicate {
-			add(developmentAssuranceInvalid, label, "duplicate Assurance Export for one Interface Package key")
-			continue
-		}
-		files, fileBytes, size := validateDevelopmentAssuranceFiles(assurance.Key, assurance.Files, add)
-		if len(assurance.Files) == 0 {
-			add(developmentAssuranceInvalid, label, "Assurance Export must contain at least one file")
-			continue
-		}
-		measured, err := ComputeDependencySnapshotDigest(files)
-		if err != nil || measured != assurance.Digest {
-			add(developmentAssuranceInvalid, label, "Assurance Export digest does not match its original file bytes")
-		}
-		totalBytes += size
-		copyAssurance := assurance
-		env.assuranceByKey[assurance.Key] = &copyAssurance
-		env.assuranceFiles[assurance.Key] = fileBytes
 	}
 	if totalBytes > maxTotal {
 		add(developmentRequestInvalid, "", "the complete Development Build request exceeds the 16 MiB aggregate raw byte limit")
@@ -513,45 +476,6 @@ func validateDevelopmentSnapshotFiles(key DevelopmentPackageKey, files []File, a
 	return ordered, byName, total
 }
 
-// validateDevelopmentAssuranceFiles applies the shared snapshot file path/size
-// grammar to one Assurance Export file set. Unlike an Interface Package snapshot
-// it has no package.json and no key digest to compare against.
-func validateDevelopmentAssuranceFiles(key DevelopmentPackageKey, files []File, add func(code, path, message string)) ([]File, map[string][]byte, int) {
-	ordered := append([]File(nil), files...)
-	sort.Slice(ordered, func(i, j int) bool { return ordered[i].Path < ordered[j].Path })
-	byName := make(map[string][]byte, len(ordered))
-	seen := map[string]bool{}
-	seenFolded := map[string]bool{}
-	total := 0
-	for _, file := range ordered {
-		if file.Bytes == nil {
-			add(developmentAssuranceInvalid, key.PackageID+"/"+file.Path, "Assurance Export file bytes are required")
-		}
-		if !validRelativeSnapshotPath(file.Path) {
-			add(developmentAssuranceInvalid, key.PackageID+"/"+file.Path, "Assurance Export file path must be a normalized UTF-8 POSIX relative path")
-			continue
-		}
-		if seen[file.Path] {
-			add(developmentAssuranceInvalid, key.PackageID+"/"+file.Path, "duplicate Assurance Export file path")
-			continue
-		} else if seenFolded[strings.ToLower(file.Path)] {
-			add(developmentAssuranceInvalid, key.PackageID+"/"+file.Path, "case-folded Assurance Export file path collision")
-			continue
-		}
-		seen[file.Path] = true
-		seenFolded[strings.ToLower(file.Path)] = true
-		if len(file.Bytes) > maxFileSize {
-			add(developmentAssuranceInvalid, key.PackageID+"/"+file.Path, "Assurance Export file exceeds the 2 MiB raw byte limit")
-		}
-		total += len(file.Bytes)
-		byName[file.Path] = file.Bytes
-	}
-	if len(ordered) > maxFiles {
-		add(developmentAssuranceInvalid, key.PackageID, "Assurance Export exceeds the file count limit")
-	}
-	return ordered, byName, total
-}
-
 // validDevelopmentVersion accepts only an exact SemVer version, never a range,
 // wildcard, tag or build metadata.
 func validDevelopmentVersion(value string) bool {
@@ -766,8 +690,12 @@ func parseDevelopmentExport(node *yaml.Node, index int) (developmentExport, []st
 		if !validExportID(export.id) {
 			problems = append(problems, label+".id must be an Ingress Operation ID for IngressCatalog")
 		}
+	case "EvidenceDescriptor":
+		if !validExportID(export.id) {
+			problems = append(problems, label+".id must be an Evidence Guarantee ExportId for EvidenceDescriptor")
+		}
 	default:
-		problems = append(problems, label+".kind must be CallableCatalog, Schema, CapabilityCatalog or IngressCatalog")
+		problems = append(problems, label+".kind must be CallableCatalog, Schema, CapabilityCatalog, IngressCatalog or EvidenceDescriptor")
 	}
 	if !validRelativeSnapshotPath(export.path) {
 		problems = append(problems, label+".path must be a normalized snapshot-relative path")
@@ -963,6 +891,20 @@ func validateDevelopmentPackageExports(pkg *developmentPackage) []string {
 			}
 			if scalar(child(root, "apiVersion")) != "connectionagent.io/ingresscatalog/v1alpha1" {
 				problems = append(problems, "IngressCatalog export does not carry the frozen apiVersion: "+export.id)
+			}
+		case "EvidenceDescriptor":
+			root, err := yaml.Parse(raw)
+			if err != nil {
+				problems = append(problems, "EvidenceDescriptor export is not valid YAML/JSON: "+export.id)
+				continue
+			}
+			descriptors, ok := parseEvidenceDescriptors(root)
+			if !ok {
+				problems = append(problems, "EvidenceDescriptor export does not carry Evidence Descriptor entries: "+export.id)
+				continue
+			}
+			if len(descriptors[export.id]) != 1 {
+				problems = append(problems, "EvidenceDescriptor export identity must resolve exactly once in its file: "+export.id)
 			}
 		}
 	}

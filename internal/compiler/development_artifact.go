@@ -5,19 +5,20 @@ package compiler
 // Layout (Development profile, separate from the frozen v1alpha5 artifact):
 //
 //	manifest.json
-//	obligations.json
+//	host-admission-requirements.json
 //	skills/<skill>/compiled/procedure.json
 //	skills/<skill>/compiled/ingress-links.json
 //
 // manifest.json is JCS, carries the exact normalized lock, every linked export
-// with its package key, every consumed Assurance Export digest, the complete
-// file digest list and the fixed NOT_ADMITTED execution status. artifactDigest is
-// the SHA-256 of the JCS manifest bytes. The manifest never embeds itself.
+// with its package key, the complete file digest list and the fixed NOT_ADMITTED
+// execution status. artifactDigest is the SHA-256 of the JCS manifest bytes. The
+// manifest never embeds itself.
 //
 // The compiled Procedure/Ingress files are the same deterministic projections the
 // frozen v1alpha5 artifact produces; the Development manifest wraps them with the
-// linked interface identity and deferred obligations instead of claiming full
-// language validation.
+// linked interface identity. host-admission-requirements.json records only the
+// external facts the Compiler cannot establish; it never substitutes for a static
+// check.
 
 import (
 	"crypto/sha256"
@@ -54,17 +55,16 @@ type developmentManifestFile struct {
 }
 
 type developmentArtifactManifest struct {
-	APIVersion       string                       `json:"apiVersion"`
-	LanguageTarget   string                       `json:"languageTarget"`
-	Profile          string                       `json:"profile"`
-	Generator        developmentManifestGenerator `json:"generator"`
-	ExecutionStatus  string                       `json:"executionStatus"`
-	SourceDigest     string                       `json:"sourceDigest"`
-	Targets          []string                     `json:"targets"`
-	Lock             developmentManifestLock      `json:"lock"`
-	Links            []DevelopmentLinkRecord      `json:"links"`
-	AssuranceDigests []string                     `json:"assuranceDigests"`
-	Files            []developmentManifestFile    `json:"files"`
+	APIVersion      string                       `json:"apiVersion"`
+	LanguageTarget  string                       `json:"languageTarget"`
+	Profile         string                       `json:"profile"`
+	Generator       developmentManifestGenerator `json:"generator"`
+	ExecutionStatus string                       `json:"executionStatus"`
+	SourceDigest    string                       `json:"sourceDigest"`
+	Targets         []string                     `json:"targets"`
+	Lock            developmentManifestLock      `json:"lock"`
+	Links           []DevelopmentLinkRecord      `json:"links"`
+	Files           []developmentManifestFile    `json:"files"`
 }
 
 func canonicalDevelopmentLock(env *developmentEnvironment) developmentManifestLock {
@@ -88,16 +88,6 @@ func canonicalDevelopmentLock(env *developmentEnvironment) developmentManifestLo
 		lock.Packages = append(lock.Packages, entry)
 	}
 	return lock
-}
-
-func developmentAssuranceDigests(env *developmentEnvironment) []string {
-	digests := make([]string, 0, len(env.assuranceByKey))
-	for _, key := range sortedDevelopmentKeys(env.packages) {
-		if assurance, exists := env.assuranceByKey[key]; exists {
-			digests = append(digests, assurance.Digest)
-		}
-	}
-	return dedupeSortedStrings(digests)
 }
 
 func sortedDevelopmentLinkRecords(records []DevelopmentLinkRecord) []DevelopmentLinkRecord {
@@ -143,11 +133,11 @@ func assembleDevelopmentArtifact(env *developmentEnvironment, semantics *develop
 	if err != nil {
 		return nil, nil, "", fmt.Errorf("Development source digest: %w", err)
 	}
-	obligationFile, err := canonicalizeValue(semantics.collector.obligations())
+	requirementFile, err := canonicalizeValue(semantics.collector.requirements())
 	if err != nil {
-		return nil, nil, "", fmt.Errorf("Development obligations canonicalization: %w", err)
+		return nil, nil, "", fmt.Errorf("Development host-admission requirements canonicalization: %w", err)
 	}
-	files = append(files, File{Path: developmentObligationsFileName, Bytes: obligationFile})
+	files = append(files, File{Path: developmentRequirementsFileName, Bytes: requirementFile})
 
 	manifestFiles := make([]developmentManifestFile, 0, len(files))
 	for _, file := range files {
@@ -164,17 +154,16 @@ func assembleDevelopmentArtifact(env *developmentEnvironment, semantics *develop
 		links = []DevelopmentLinkRecord{}
 	}
 	manifest := developmentArtifactManifest{
-		APIVersion:       DevelopmentArtifactAPIVersion,
-		LanguageTarget:   V1Alpha5Target,
-		Profile:          DevelopmentProfile,
-		Generator:        developmentManifestGenerator{Name: v1alpha5ArtifactGeneratorName, Version: CompilerVersion},
-		ExecutionStatus:  DevelopmentExecutionStatus,
-		SourceDigest:     sourceDigest,
-		Targets:          targets,
-		Lock:             canonicalDevelopmentLock(env),
-		Links:            links,
-		AssuranceDigests: developmentAssuranceDigests(env),
-		Files:            manifestFiles,
+		APIVersion:      DevelopmentArtifactAPIVersion,
+		LanguageTarget:  V1Alpha5Target,
+		Profile:         DevelopmentProfile,
+		Generator:       developmentManifestGenerator{Name: v1alpha5ArtifactGeneratorName, Version: CompilerVersion},
+		ExecutionStatus: DevelopmentExecutionStatus,
+		SourceDigest:    sourceDigest,
+		Targets:         targets,
+		Lock:            canonicalDevelopmentLock(env),
+		Links:           links,
+		Files:           manifestFiles,
 	}
 	manifestBytes, err := canonicalizeValue(manifest)
 	if err != nil {
@@ -192,7 +181,7 @@ func assembleDevelopmentArtifact(env *developmentEnvironment, semantics *develop
 }
 
 func validDevelopmentArtifactPath(value string) bool {
-	if value == developmentManifestFileName || value == developmentObligationsFileName {
+	if value == developmentManifestFileName || value == developmentRequirementsFileName {
 		return true
 	}
 	if value == "" || len(value) > 240 || !strings.HasPrefix(value, "skills/") ||

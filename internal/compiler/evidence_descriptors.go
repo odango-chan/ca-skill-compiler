@@ -621,7 +621,7 @@ func evidenceDescriptorDeclaresProducer(descriptor evidenceDescriptor, exportID,
 	return false
 }
 
-func validateEvidenceDescriptorReference(alias, exportID string, indexes map[string]snapshotExportIndex, trusted *trustedEvidenceBindings, add func(string, *yaml.Node, string, string), deferTrust func()) {
+func validateEvidenceDescriptorReference(alias, exportID string, indexes map[string]snapshotExportIndex, trusted *trustedEvidenceBindings, add func(string, *yaml.Node, string, string), deferTrust func(string)) {
 	index, ok := indexes[alias]
 	if !ok {
 		add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID", "Evidence guarantee references an unverified dependency alias: "+alias)
@@ -685,11 +685,11 @@ func validateEvidenceDescriptorReference(alias, exportID string, indexes map[str
 		}
 		if trusted == nil {
 			if deferTrust != nil {
-				deferTrust()
+				deferTrust("sourceIdentity")
 			}
 		} else if !trusted.hasDomain(descriptor.SourceIdentity.Domain) {
 			if deferTrust != nil {
-				deferTrust()
+				deferTrust("sourceIdentity")
 			} else {
 				add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
 					"Evidence Descriptor sourceIdentity domain is not authorized by the trusted IndependentDomains input: "+exportID)
@@ -699,7 +699,7 @@ func validateEvidenceDescriptorReference(alias, exportID string, indexes map[str
 	if descriptor.FactIdentity != nil {
 		if !trusted.hasCommonFact(descriptor.FactIdentity.Namespace, descriptor.FactIdentity.Fact, descriptor.Authority) {
 			if deferTrust != nil {
-				deferTrust()
+				deferTrust("factIdentity")
 			} else {
 				add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
 					"Evidence Descriptor factIdentity is not authorized by the trusted CommonFact deployment binding: "+exportID)
@@ -993,4 +993,6 @@ func validAbsoluteURI(value string) bool {
 	}
 	return colon+1 < len(value)
 }
+
+
 

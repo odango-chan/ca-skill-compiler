@@ -44,8 +44,6 @@ const (
 	InterfacePackageAPIVersion = "connectionagent.io/interface-package/v1alpha1"
 	// InterfaceDependencyLockAPIVersion is the Dependency Lock identity.
 	InterfaceDependencyLockAPIVersion = "connectionagent.io/interface-dependency-lock/v1alpha1"
-	// AssuranceExportAPIVersion is the optional Assurance Export identity.
-	AssuranceExportAPIVersion = "connectionagent.io/assurance-export/v1alpha1"
 
 	// DevelopmentProfile is the only accepted BuildRequest.profile value. A
 	// production Host must reject it.
@@ -59,28 +57,28 @@ const (
 	DevelopmentArtifactBuilt         = "BUILT"
 	DevelopmentPhaseFailed           = "FAILED"
 	DevelopmentPhaseNotRun           = "NOT_RUN"
-	DevelopmentObligationUnresolved  = "UNRESOLVED"
-	DevelopmentObligationDescriptor  = "DESCRIPTOR_PRESENT"
-	DevelopmentObligationOwnerTrust  = "OWNER_TRUST"
-	DevelopmentObligationEvidence    = "EVIDENCE_GUARANTEE"
-	DevelopmentObligationIndepend    = "EVIDENCE_INDEPENDENCE"
-	DevelopmentObligationCommitProof = "COMMIT_PROOF"
-	DevelopmentObligationReconcile   = "RECONCILE"
+	DevelopmentHostRequirementStatus = "HOST_VERIFICATION_REQUIRED"
 
-	developmentObligationDigestDomain = "CA-SKILL-DEVELOPMENT-OBLIGATION\x00v1\x00"
-	developmentManifestFileName       = "manifest.json"
-	developmentObligationsFileName    = "obligations.json"
+	DevelopmentRequirementOwnerTrust     = "OWNER_TRUST"
+	DevelopmentRequirementEvidenceDomain = "EVIDENCE_DOMAIN_TRUST"
+	DevelopmentRequirementEvidenceFact   = "EVIDENCE_FACT_TRUST"
+	DevelopmentRequirementIndependence   = "EVIDENCE_INDEPENDENCE_TRUST"
+	DevelopmentRequirementCommitProof    = "COMMIT_PROOF"
+	DevelopmentRequirementReconcile      = "RECONCILE"
+
+	developmentRequirementDigestDomain = "CA-SKILL-DEVELOPMENT-HOST-REQUIREMENT\x00v1\x00"
+	developmentManifestFileName        = "manifest.json"
+	developmentRequirementsFileName    = "host-admission-requirements.json"
 
 	// New Development-envelope diagnostics. Static language diagnostics keep
 	// the frozen Appendix H identities.
 	developmentRequestInvalid    = "DEVELOPMENT_REQUEST_INVALID"
 	developmentSnapshotInvalid   = "DEVELOPMENT_SNAPSHOT_INVALID"
 	developmentLockInvalid       = "DEVELOPMENT_LOCK_INVALID"
-	developmentAssuranceInvalid  = "DEVELOPMENT_ASSURANCE_INVALID"
 	developmentArtifactInvalid   = "DEVELOPMENT_ARTIFACT_INVALID"
 	maxDevelopmentPackages       = 128
 	maxDevelopmentExports        = 4096
-	maxDevelopmentObligations    = 4096
+	maxDevelopmentRequirements   = 4096
 	maxDevelopmentVersionRunes   = 128
 	maxDevelopmentPublisherRunes = 256
 )
@@ -134,14 +132,13 @@ type DevelopmentAssurance struct {
 
 // DevelopmentBuildRequest is the only accepted Development Build input.
 type DevelopmentBuildRequest struct {
-	APIVersion     string                 `json:"apiVersion"`
-	LanguageTarget string                 `json:"languageTarget"`
-	Profile        string                 `json:"profile"`
-	Files          []File                 `json:"files"`
-	Targets        []string               `json:"targets"`
-	Lock           DevelopmentLock        `json:"lock"`
-	Snapshots      []DevelopmentSnapshot  `json:"snapshots"`
-	Assurance      []DevelopmentAssurance `json:"assurance,omitempty"`
+	APIVersion     string                `json:"apiVersion"`
+	LanguageTarget string                `json:"languageTarget"`
+	Profile        string                `json:"profile"`
+	Files          []File                `json:"files"`
+	Targets        []string              `json:"targets"`
+	Lock           DevelopmentLock       `json:"lock"`
+	Snapshots      []DevelopmentSnapshot `json:"snapshots"`
 }
 
 // DevelopmentBuildResult is the Development Build output. On failure the phase
@@ -173,16 +170,11 @@ func DecodeDevelopmentBuildRequestJSON(data []byte) (DevelopmentBuildRequest, er
 	if object == nil {
 		return DevelopmentBuildRequest{}, fmt.Errorf("development BuildRequest must be a JSON object")
 	}
-	if err := rejectJSONNullProperties(object, "files", "targets", "lock", "snapshots", "assurance"); err != nil {
+	if err := rejectJSONNullProperties(object, "files", "targets", "lock", "snapshots"); err != nil {
 		return DevelopmentBuildRequest{}, err
 	}
 	if err := rejectJSONNullArrayElements(object["snapshots"], "snapshots"); err != nil {
 		return DevelopmentBuildRequest{}, err
-	}
-	if raw, ok := object["assurance"]; ok {
-		if err := rejectJSONNullArrayElements(raw, "assurance"); err != nil {
-			return DevelopmentBuildRequest{}, err
-		}
 	}
 	if raw, ok := object["lock"]; ok {
 		var lock map[string]json.RawMessage

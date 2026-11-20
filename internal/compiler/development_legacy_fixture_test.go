@@ -50,7 +50,6 @@ func developmentRequestFromLegacy(t *testing.T, legacy BuildRequest) Development
 		}
 		publisherByOwner[binding.AuthorizedOwners[0]] = dependency.DependencyID
 	}
-	referencedGuaranteeIDs := collectReferencedGuaranteeIDs(legacy)
 	builders := map[string]*developmentPackageBuilder{}
 	order := make([]string, 0, len(legacy.ResolvedDependencies))
 	for _, dependency := range legacy.ResolvedDependencies {
@@ -211,8 +210,42 @@ func developmentRequestFromLegacy(t *testing.T, legacy BuildRequest) Development
 			host.exports = append(host.exports, map[string]any{"kind": "CapabilityCatalog", "id": capability.id, "path": file})
 		}
 	}
+	// Evidence Descriptor documents are declared Interface Package exports. Their
+	// bytes are fixed by the Dependency Lock like every other snapshot file.
+	for _, alias := range order {
+		builder := builders[alias]
+		paths := make([]string, 0, len(builder.files))
+		for path := range builder.files {
+			paths = append(paths, path)
+		}
+		sort.Strings(paths)
+		exported := map[string]bool{}
+		for _, export := range builder.exports {
+			kind, _ := export["kind"].(string)
+			id, _ := export["id"].(string)
+			exported[kind+"\x00"+id] = true
+		}
+		for _, path := range paths {
+			root, err := yaml.Parse(builder.files[path])
+			if err != nil {
+				continue
+			}
+			descriptors, ok := parseEvidenceDescriptors(root)
+			if !ok {
+				continue
+			}
+			for _, exportID := range sortedStringMapKeys(descriptors) {
+				if exported["EvidenceDescriptor\x00"+exportID] {
+					continue
+				}
+				builder.exports = append(builder.exports, map[string]any{
+					"kind": "EvidenceDescriptor", "id": exportID, "path": path,
+				})
+				exported["EvidenceDescriptor\x00"+exportID] = true
+			}
+		}
+	}
 	// Write package.json manifests and compute the exact snapshot identity.
-	assuranceByAlias := map[string][]File{}
 	request := DevelopmentBuildRequest{
 		APIVersion: DevelopmentBuildRequestAPIVersion, LanguageTarget: V1Alpha5Target,
 		Profile: DevelopmentProfile, Targets: append([]string(nil), legacy.Targets...),
@@ -267,25 +300,6 @@ func developmentRequestFromLegacy(t *testing.T, legacy BuildRequest) Development
 		key := DevelopmentPackageKey{PackageID: builder.packageID, Version: "1.0.0", SnapshotDigest: digest}
 		keys[alias] = key
 		request.Snapshots = append(request.Snapshots, DevelopmentSnapshot{Key: key, Files: files})
-		// Evidence Descriptor documents become the optional Assurance Export. Only
-		// descriptors that a Skill reference actually consumes are exported.
-		for _, path := range paths {
-			root, err := yaml.Parse(builder.files[path])
-			if err != nil {
-				continue
-			}
-			if descriptors, ok := parseEvidenceDescriptors(root); ok {
-				referenced := false
-				for exportID := range descriptors {
-					if referencedGuaranteeIDs[exportID] {
-						referenced = true
-					}
-				}
-				if referenced {
-					assuranceByAlias[alias] = append(assuranceByAlias[alias], File{Path: path, Bytes: append([]byte(nil), builder.files[path]...)})
-				}
-			}
-		}
 	}
 	// Lock: every legacy alias is a root; package edges mirror declared
 	// dependencies.
@@ -300,54 +314,5 @@ func developmentRequestFromLegacy(t *testing.T, legacy BuildRequest) Development
 		}
 		request.Lock.Packages = append(request.Lock.Packages, entry)
 	}
-	for alias, files := range assuranceByAlias {
-		sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
-		digest, err := ComputeDependencySnapshotDigest(files)
-		if err != nil {
-			t.Fatal(err)
-		}
-		request.Assurance = append(request.Assurance, DevelopmentAssurance{
-			APIVersion: AssuranceExportAPIVersion, Key: keys[alias], Digest: digest, Files: files,
-		})
-	}
-	sort.Slice(request.Assurance, func(i, j int) bool {
-		return developmentKeyString(request.Assurance[i].Key) < developmentKeyString(request.Assurance[j].Key)
-	})
 	return request
-}
-
-// collectReferencedGuaranteeIDs collects every qualified reference suffix that
-// appears in the synthetic Skill source. It is only used by the test converter to
-// avoid claiming an Assurance Descriptor that no obligation consumes.
-func collectReferencedGuaranteeIDs(legacy BuildRequest) map[string]bool {
-	referenced := map[string]bool{}
-	for _, file := range legacy.Files {
-		root, err := yaml.Parse(file.Bytes)
-		if err != nil {
-			continue
-		}
-		var walk func(*yaml.Node)
-		walk = func(node *yaml.Node) {
-			node = unalias(node)
-			if node == nil {
-				return
-			}
-			switch node.Kind {
-			case yaml.MappingNode:
-				for index := 0; index+1 < len(node.Content); index += 2 {
-					walk(node.Content[index+1])
-				}
-			case yaml.SequenceNode:
-				for _, item := range node.Content {
-					walk(item)
-				}
-			case yaml.ScalarNode:
-				if index := strings.Index(node.Value, "::"); index > 0 {
-					referenced[node.Value[index+2:]] = true
-				}
-			}
-		}
-		walk(root)
-	}
-	return referenced
 }

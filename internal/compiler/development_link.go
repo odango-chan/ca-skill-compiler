@@ -65,6 +65,7 @@ type developmentLinkScope struct {
 	schemas        map[string][]developmentSchemaResource
 	callables      map[string][]developmentCallable
 	capabilities   map[string][]developmentCapability
+	evidence       map[DevelopmentPackageKey]map[string]evidenceDescriptor
 	packageAliases map[DevelopmentPackageKey]map[string]DevelopmentPackageKey
 	exportKeys     map[DevelopmentPackageKey]map[string]developmentExport
 }
@@ -78,6 +79,7 @@ func buildDevelopmentLinkScope(env *developmentEnvironment) (*developmentLinkSco
 		schemas:        map[string][]developmentSchemaResource{},
 		callables:      map[string][]developmentCallable{},
 		capabilities:   map[string][]developmentCapability{},
+		evidence:       map[DevelopmentPackageKey]map[string]evidenceDescriptor{},
 		packageAliases: map[DevelopmentPackageKey]map[string]DevelopmentPackageKey{},
 		exportKeys:     map[DevelopmentPackageKey]map[string]developmentExport{},
 	}
@@ -147,6 +149,23 @@ func buildDevelopmentLinkScope(env *developmentEnvironment) (*developmentLinkSco
 				scope.schemas[export.id] = append(scope.schemas[export.id], developmentSchemaResource{
 					packageKey: key, publisher: pkg.manifest.publisher, path: export.path, id: export.id, node: root,
 				})
+			case "EvidenceDescriptor":
+				root, err := yaml.Parse(raw)
+				if err != nil {
+					add(developmentSnapshotInvalid, key.PackageID+"/"+export.path, "declared EvidenceDescriptor export is not valid YAML/JSON")
+					continue
+				}
+				descriptors, ok := parseEvidenceDescriptors(root)
+				if !ok || len(descriptors[export.id]) != 1 {
+					add(developmentSnapshotInvalid, key.PackageID+"/"+export.path, "declared EvidenceDescriptor export does not resolve exactly once")
+					continue
+				}
+				if scope.evidence[key] == nil {
+					scope.evidence[key] = map[string]evidenceDescriptor{}
+				}
+				record := descriptors[export.id][0]
+				record.SnapshotPath = export.path
+				scope.evidence[key][export.id] = record
 			case "CapabilityCatalog":
 				root, err := yaml.Parse(raw)
 				if err != nil {

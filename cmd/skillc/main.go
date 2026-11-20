@@ -558,7 +558,7 @@ func rejectSymlinkAncestors(abs string) error {
 func validOutputPath(value string) bool {
 	// The v1alpha5 artifact has exactly one top-level manifest; compiled files
 	// live under skills/<skill>/compiled/.
-	if value == compiler.V1Alpha5ArtifactManifestPath || value == "obligations.json" {
+	if value == compiler.V1Alpha5ArtifactManifestPath || value == "host-admission-requirements.json" {
 		return true
 	}
 	if value == "" || len(value) > 240 || !strings.HasPrefix(value, "skills/") ||

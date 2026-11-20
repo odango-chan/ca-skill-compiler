@@ -1,4 +1,4 @@
-package compiler
+﻿package compiler
 
 // Development Build acceptance matrix: positive fixture, deterministic rebuild,
 // negative interface closures, Assurance Descriptor three-state coverage and
@@ -36,7 +36,7 @@ func TestDevelopmentBuildPositiveFixture(t *testing.T) {
 	for _, file := range result.OutputFiles {
 		paths = append(paths, file.Path)
 	}
-	if !developmentContainsString(paths, developmentManifestFileName) || !developmentContainsString(paths, developmentObligationsFileName) {
+	if !developmentContainsString(paths, developmentManifestFileName) || !developmentContainsString(paths, developmentRequirementsFileName) {
 		t.Fatalf("Development artifact files = %v", paths)
 	}
 	if !developmentContainsString(paths, "skills/verify-ue-registration/compiled/procedure.json") {
@@ -45,22 +45,16 @@ func TestDevelopmentBuildPositiveFixture(t *testing.T) {
 	if len(paths) != 4 {
 		t.Fatalf("Development artifact file count = %d, want 4", len(paths))
 	}
-	// The fixture supplies no Evidence material: the guarantee obligation is
-	// UNRESOLVED, and every used cross-package export has an OWNER_TRUST
-	// obligation.
-	if _, ok := developmentObligationByRule(t, result, DevelopmentObligationEvidence, "ue.registration-state"); !ok {
-		t.Fatal("missing EVIDENCE_GUARANTEE obligation for ue.registration-state")
-	} else {
-		obligation, _ := developmentObligationByRule(t, result, DevelopmentObligationEvidence, "ue.registration-state")
-		if obligation.Status != DevelopmentObligationUnresolved {
-			t.Fatalf("ue.registration-state obligation status = %q", obligation.Status)
-		}
+	// The fixture declares a valid Evidence Descriptor export. The static
+	// Evidence checks therefore pass and no Evidence requirement is recorded.
+	if _, ok := developmentRequirementByKind(t, result, DevelopmentRequirementOwnerTrust, "ue.registration.current"); !ok {
+		t.Fatal("missing OWNER_TRUST Host requirement for the used Observation export")
 	}
-	if _, ok := developmentObligationByRule(t, result, DevelopmentObligationOwnerTrust, "ue.registration.current"); !ok {
-		t.Fatal("missing OWNER_TRUST obligation for the used Observation export")
+	if _, ok := developmentRequirementByKind(t, result, DevelopmentRequirementOwnerTrust, "urn:example:ca:invocation-context:v1"); !ok {
+		t.Fatal("missing OWNER_TRUST Host requirement for the used Context Schema export")
 	}
-	if _, ok := developmentObligationByRule(t, result, DevelopmentObligationOwnerTrust, "urn:example:ca:invocation-context:v1"); !ok {
-		t.Fatal("missing OWNER_TRUST obligation for the used Context Schema export")
+	if _, ok := developmentRequirementByKind(t, result, DevelopmentRequirementEvidenceDomain, "ue.registration-state"); ok {
+		t.Fatal("a statically complete Evidence Descriptor must not create an external Evidence requirement")
 	}
 	// Determinism: a repeated build is byte identical.
 	second := BuildDevelopment(request)
@@ -226,6 +220,18 @@ func TestDevelopmentBuildNegativeClosures(t *testing.T) {
 			wantCode: developmentSnapshotInvalid,
 		},
 		{
+			name: "wrong evidence descriptor producer",
+			mutate: func(t *testing.T, request DevelopmentBuildRequest) DevelopmentBuildRequest {
+				descriptor, err := os.ReadFile(filepath.Join("..", "..", "tests", "conformance", "v1alpha4", "fixtures", "dependency-identity", "base", "snapshots", "ca", "evidence-guarantees.yaml"))
+				if err != nil {
+					t.Fatal(err)
+				}
+				modified := bytes.Replace(descriptor, []byte("path: output"), []byte("path: other"), 1)
+				return modifyDevelopmentPackageFile(t, request, "urn:example:ca:tools", "evidence-guarantees.yaml", modified)
+			},
+			wantCode: "EVIDENCE_GUARANTEE_LINK_INVALID",
+		},
+		{
 			name: "lock root missing",
 			mutate: func(t *testing.T, request DevelopmentBuildRequest) DevelopmentBuildRequest {
 				request = cloneDevelopmentRequest(t, request)
@@ -262,79 +268,84 @@ func TestDevelopmentBuildNegativeClosures(t *testing.T) {
 	}
 }
 
-func TestDevelopmentAssuranceDescriptorStates(t *testing.T) {
+func TestDevelopmentEvidenceDescriptorStates(t *testing.T) {
 	descriptorRaw, err := os.ReadFile(filepath.Join("..", "..", "tests", "conformance", "v1alpha4", "fixtures", "dependency-identity", "base", "snapshots", "ca", "evidence-guarantees.yaml"))
 	if err != nil {
 		t.Fatalf("read evidence descriptor fixture: %v", err)
 	}
-	buildWithAssurance := func(t *testing.T, content []byte) DevelopmentBuildResult {
-		request := loadDevelopmentFixture(t)
-		files := []File{{Path: "evidence-guarantees.yaml", Bytes: content}}
-		digest, err := ComputeDependencySnapshotDigest(files)
-		if err != nil {
-			t.Fatal(err)
-		}
-		request.Assurance = []DevelopmentAssurance{{
-			APIVersion: AssuranceExportAPIVersion,
-			Key:        request.Snapshots[1].Key,
-			Digest:     digest,
-			Files:      files,
-		}}
-		return BuildDevelopment(request)
+	withDescriptor := func(t *testing.T, content []byte) DevelopmentBuildRequest {
+		return modifyDevelopmentPackageFile(t, loadDevelopmentFixture(t), "urn:example:ca:tools", "evidence-guarantees.yaml", content)
 	}
 
-	// Present and statically matching: DESCRIPTOR_PRESENT with the export digest.
-	result := buildWithAssurance(t, descriptorRaw)
+	// Present and statically matching: the frozen Evidence semantics pass and no
+	// external Evidence requirement is recorded.
+	result := BuildDevelopment(withDescriptor(t, descriptorRaw))
 	if !result.Success {
-		t.Fatalf("Assurance descriptor build failed: %#v", result.Diagnostics)
+		t.Fatalf("Evidence Descriptor build failed: %#v", result.Diagnostics)
 	}
-	obligation, ok := developmentObligationByRule(t, result, DevelopmentObligationEvidence, "ue.registration-state")
-	if !ok {
-		t.Fatal("missing EVIDENCE_GUARANTEE obligation")
+	if _, ok := developmentRequirementByKind(t, result, DevelopmentRequirementEvidenceDomain, "ue.registration-state"); ok {
+		t.Fatal("a statically complete Evidence Descriptor must not create an external Evidence requirement")
 	}
-	if obligation.Status != DevelopmentObligationDescriptor {
-		t.Fatalf("obligation status = %q, want DESCRIPTOR_PRESENT", obligation.Status)
+	if err := VerifyDevelopment(withDescriptor(t, descriptorRaw), result); err != nil {
+		t.Fatalf("VerifyDevelopment with Evidence Descriptor: %v", err)
 	}
-	if obligation.DescriptorDigest == "" {
-		t.Fatalf("obligation descriptorDigest = %q", obligation.DescriptorDigest)
+
+	// Missing static Descriptor: the frozen Evidence semantics cannot complete, so
+	// the Build must fail instead of becoming an UNRESOLVED exemption.
+	missing := modifyDevelopmentManifest(t, loadDevelopmentFixture(t), "urn:example:ca:tools", func(manifest map[string]any) {
+		exports, _ := manifest["exports"].([]any)
+		kept := make([]any, 0, len(exports))
+		for _, export := range exports {
+			object, _ := export.(map[string]any)
+			if object["kind"] == "EvidenceDescriptor" {
+				continue
+			}
+			kept = append(kept, export)
+		}
+		manifest["exports"] = kept
+	})
+	missingResult := BuildDevelopment(missing)
+	if missingResult.Success {
+		t.Fatal("missing Evidence Descriptor must fail the Build")
 	}
-	if obligation.DescriptorDigest != func() string {
-		digest, _ := ComputeDependencySnapshotDigest([]File{{Path: "evidence-guarantees.yaml", Bytes: descriptorRaw}})
-		return digest
-	}() {
-		t.Fatalf("obligation descriptorDigest does not equal the Assurance Export digest")
-	}
-	if err := VerifyDevelopment(func() DevelopmentBuildRequest {
-		request := loadDevelopmentFixture(t)
-		files := []File{{Path: "evidence-guarantees.yaml", Bytes: descriptorRaw}}
-		digest, _ := ComputeDependencySnapshotDigest(files)
-		request.Assurance = []DevelopmentAssurance{{APIVersion: AssuranceExportAPIVersion, Key: request.Snapshots[1].Key, Digest: digest, Files: files}}
-		return request
-	}(), result); err != nil {
-		t.Fatalf("VerifyDevelopment with descriptor: %v", err)
+	if !hasDevelopmentCode(missingResult.Diagnostics, "EVIDENCE_GUARANTEE_LINK_INVALID") {
+		t.Fatalf("expected EVIDENCE_GUARANTEE_LINK_INVALID, got %#v", missingResult.Diagnostics)
 	}
 
 	// Present but contradictory: producer path must match provides.path.
 	wrongPath := bytes.Replace(descriptorRaw, []byte("path: output"), []byte("path: other"), 1)
-	wrong := buildWithAssurance(t, wrongPath)
+	wrong := BuildDevelopment(withDescriptor(t, wrongPath))
 	if wrong.Success {
-		t.Fatal("contradictory Evidence Descriptor must fail the build")
+		t.Fatal("contradictory Evidence Descriptor must fail the Build")
 	}
 	if !hasDevelopmentCode(wrong.Diagnostics, "EVIDENCE_GUARANTEE_LINK_INVALID") {
 		t.Fatalf("expected EVIDENCE_GUARANTEE_LINK_INVALID, got %#v", wrong.Diagnostics)
 	}
 
-	// Present but unrelated: no obligation consumes it.
-	unused := bytes.Replace(descriptorRaw, []byte("ue.registration-state:"), []byte("unused.guarantee:"), 1)
-	unusedResult := buildWithAssurance(t, unused)
-	if unusedResult.Success {
-		t.Fatal("unconsumed Assurance Descriptor must fail the build")
+	// Present and statically valid, but it declares an external source identity:
+	// the Compiler cannot prove domain authority, so the Build succeeds and the
+	// fact becomes a Host Admission requirement.
+	withSource := append([]byte(nil), descriptorRaw...)
+	withSource = append(withSource, []byte("  sourceIdentity: {domain: urn:example:authority:one, path: record.source}\n")...)
+	trustDeferred := BuildDevelopment(withDescriptor(t, withSource))
+	if !trustDeferred.Success {
+		t.Fatalf("statically valid descriptor with external trust must build: %#v", trustDeferred.Diagnostics)
 	}
-	if !hasDevelopmentCode(unusedResult.Diagnostics, developmentAssuranceInvalid) {
-		t.Fatalf("expected DEVELOPMENT_ASSURANCE_INVALID, got %#v", unusedResult.Diagnostics)
+	if _, ok := developmentRequirementByKind(t, trustDeferred, DevelopmentRequirementEvidenceDomain, "ue.registration-state"); !ok {
+		t.Fatal("missing EVIDENCE_DOMAIN_TRUST Host requirement")
+	}
+
+	// A declared fact identity likewise requires an external CommonFact binding.
+	withFact := append([]byte(nil), descriptorRaw...)
+	withFact = append(withFact, []byte("  factIdentity: {namespace: urn:example:authority:facts, fact: ue.registration, valuePath: record.factValue, scopePaths: {ue: record.scope}}\n")...)
+	factDeferred := BuildDevelopment(withDescriptor(t, withFact))
+	if !factDeferred.Success {
+		t.Fatalf("statically valid descriptor with factIdentity must build: %#v", factDeferred.Diagnostics)
+	}
+	if _, ok := developmentRequirementByKind(t, factDeferred, DevelopmentRequirementEvidenceFact, "ue.registration-state"); !ok {
+		t.Fatal("missing EVIDENCE_FACT_TRUST Host requirement")
 	}
 }
-
 func TestDevelopmentVerifyRejectsResealedTampering(t *testing.T) {
 	request := loadDevelopmentFixture(t)
 	result := BuildDevelopment(request)
@@ -342,16 +353,16 @@ func TestDevelopmentVerifyRejectsResealedTampering(t *testing.T) {
 		t.Fatalf("fixture build failed: %#v", result.Diagnostics)
 	}
 
-	// Delete one obligation and re-seal every outer digest.
+	// Delete one host requirement and re-seal every outer digest.
 	tampered := tamperDevelopmentArtifact(t, result, func(files map[string][]byte) {
-		var obligations []DevelopmentObligation
-		if err := json.Unmarshal(files[developmentObligationsFileName], &obligations); err != nil {
+		var requirements []DevelopmentHostRequirement
+		if err := json.Unmarshal(files[developmentRequirementsFileName], &requirements); err != nil {
 			t.Fatal(err)
 		}
-		files[developmentObligationsFileName] = canonicalTestJSON(t, obligations[1:])
+		files[developmentRequirementsFileName] = canonicalTestJSON(t, requirements[1:])
 	})
 	if err := VerifyDevelopment(request, tampered); err == nil {
-		t.Fatal("VerifyDevelopment accepted a re-sealed artifact with a deleted obligation")
+		t.Fatal("VerifyDevelopment accepted a re-sealed artifact with a deleted host requirement")
 	}
 
 	// Edit the compiled Procedure and re-seal every outer digest.
@@ -556,33 +567,31 @@ func updateDevelopmentKeyDigest(request *DevelopmentBuildRequest, packageID, dig
 	}
 }
 
-func TestDevelopmentMutationAndReconcileObligations(t *testing.T) {
+func TestDevelopmentMutationAndReconcileRequirements(t *testing.T) {
 	legacy := recoveryFixture(t, recoveryDescriptor(true))
 	request := developmentRequestFromLegacy(t, legacy)
 	result := BuildDevelopment(request)
 	if !result.Success {
 		t.Fatalf("Mutation Development build failed: %#v", result.Diagnostics)
 	}
-	commit, ok := developmentObligationByRule(t, result, DevelopmentObligationCommitProof, "example.session.mutate")
+	commit, ok := developmentRequirementByKind(t, result, DevelopmentRequirementCommitProof, "example.session.mutate")
 	if !ok {
-		t.Fatal("missing COMMIT_PROOF obligation for the Mutation callable")
+		t.Fatal("missing COMMIT_PROOF Host requirement for the Mutation callable")
 	}
-	if commit.Status != DevelopmentObligationUnresolved {
+	if commit.Status != DevelopmentHostRequirementStatus {
 		t.Fatalf("COMMIT_PROOF status = %q", commit.Status)
 	}
-	reconcile, ok := developmentObligationByRule(t, result, DevelopmentObligationReconcile, "example.session.reconcile")
+	reconcile, ok := developmentRequirementByKind(t, result, DevelopmentRequirementReconcile, "example.session.reconcile")
 	if !ok {
-		t.Fatal("missing RECONCILE obligation for the Reconcile READ callable")
+		t.Fatal("missing RECONCILE Host requirement for the Reconcile READ callable")
 	}
-	if reconcile.Status != DevelopmentObligationUnresolved {
+	if reconcile.Status != DevelopmentHostRequirementStatus {
 		t.Fatalf("RECONCILE status = %q", reconcile.Status)
 	}
-	evidence, ok := developmentObligationByRule(t, result, DevelopmentObligationEvidence, "example.session-state")
-	if !ok {
-		t.Fatal("missing EVIDENCE_GUARANTEE obligation for the Mutation producer")
-	}
-	if evidence.Status != DevelopmentObligationDescriptor {
-		t.Fatalf("dual-producer Evidence obligation status = %q, want DESCRIPTOR_PRESENT", evidence.Status)
+	// The dual-producer Evidence Descriptor is static input; it must be fully
+	// checked and must not become an external requirement.
+	if _, ok := developmentRequirementByKind(t, result, DevelopmentRequirementEvidenceDomain, "example.session-state"); ok {
+		t.Fatal("a static dual-producer Evidence Descriptor must not create an external Evidence requirement")
 	}
 	if err := VerifyDevelopment(request, result); err != nil {
 		t.Fatalf("VerifyDevelopment: %v", err)
@@ -635,3 +644,5 @@ func requestSkillName(t *testing.T, request DevelopmentBuildRequest) string {
 	t.Fatal("request has no Skill package")
 	return ""
 }
+
+

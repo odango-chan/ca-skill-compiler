@@ -1,4 +1,4 @@
-package compiler
+﻿package compiler
 
 // Unified static semantic pipeline.
 //
@@ -176,9 +176,9 @@ func validateSkillPackage(
 			// Development records typed obligations from the same validated
 			// linking state; descriptor absence is deferred, never filtered from
 			// the statically decidable checks above.
-			opts.development.recordOwnerTrustObligations(sourceAST, ownerLinking)
-			opts.development.recordEvidenceObligations(sourceAST, ownerLinking, procedurePath, nil)
-			opts.development.recordMutationObligations(sourceAST, ownerLinking, procedurePath)
+			opts.development.recordOwnerTrustRequirements(sourceAST, ownerLinking)
+			
+			opts.development.recordMutationRequirements(sourceAST, ownerLinking, procedurePath)
 		} else {
 			validateEvidenceDescriptors(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
 		}
@@ -206,3 +206,4 @@ func validateSkillPackage(
 	}
 	return diagnostics, input
 }
+

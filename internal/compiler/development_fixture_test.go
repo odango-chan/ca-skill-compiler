@@ -115,7 +115,6 @@ func modifyDevelopmentPackageFile(t *testing.T, request DevelopmentBuildRequest,
 	if err != nil {
 		t.Fatalf("recompute snapshot digest: %v", err)
 	}
-	oldDigest := request.Snapshots[snapshotIndex].Key.SnapshotDigest
 	request.Snapshots[snapshotIndex].Key.SnapshotDigest = digest
 	for index := range request.Lock.Roots {
 		if request.Lock.Roots[index].Key.PackageID == packageID {
@@ -130,11 +129,6 @@ func modifyDevelopmentPackageFile(t *testing.T, request DevelopmentBuildRequest,
 			if request.Lock.Packages[index].Dependencies[edgeIndex].Key.PackageID == packageID {
 				request.Lock.Packages[index].Dependencies[edgeIndex].Key.SnapshotDigest = digest
 			}
-		}
-	}
-	for index := range request.Assurance {
-		if request.Assurance[index].Key.PackageID == packageID && request.Assurance[index].Key.SnapshotDigest == oldDigest {
-			request.Assurance[index].Key.SnapshotDigest = digest
 		}
 	}
 	return request
@@ -195,24 +189,24 @@ func hasDevelopmentCode(diagnostics []Diagnostic, code string) bool {
 	return false
 }
 
-func developmentObligationByRule(t *testing.T, result DevelopmentBuildResult, rule, subjectID string) (DevelopmentObligation, bool) {
+func developmentRequirementByKind(t *testing.T, result DevelopmentBuildResult, kind, subjectID string) (DevelopmentHostRequirement, bool) {
 	t.Helper()
-	raw := developmentOutputFile(t, result, developmentObligationsFileName)
-	var obligations []DevelopmentObligation
-	if err := json.Unmarshal(raw, &obligations); err != nil {
-		t.Fatalf("decode obligations: %v", err)
+	raw := developmentOutputFile(t, result, developmentRequirementsFileName)
+	var requirements []DevelopmentHostRequirement
+	if err := json.Unmarshal(raw, &requirements); err != nil {
+		t.Fatalf("decode host-admission requirements: %v", err)
 	}
-	for _, obligation := range obligations {
-		if obligation.Rule != rule {
+	for _, requirement := range requirements {
+		if requirement.Kind != kind {
 			continue
 		}
-		for _, subject := range obligation.Subjects {
+		for _, subject := range requirement.Subjects {
 			if subject.ID == subjectID {
-				return obligation, true
+				return requirement, true
 			}
 		}
 	}
-	return DevelopmentObligation{}, false
+	return DevelopmentHostRequirement{}, false
 }
 
 func developmentOutputFile(t *testing.T, result DevelopmentBuildResult, path string) []byte {

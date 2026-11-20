@@ -4,22 +4,21 @@ package compiler
 //
 // BuildDevelopment is the only Development build path. It admits the exact
 // request, links the offline interface closure, runs the single Go Core static
-// pipeline, records typed assurance obligations and assembles a deterministic
+// pipeline, records typed Host Admission requirements and assembles a deterministic
 // LINKED / BUILT / NOT_ADMITTED artifact. A failed build never returns partial
 // output files.
 //
 // VerifyDevelopment requires the original request and the actual artifact bytes.
-// It verifies the artifact in isolation (manifest/file digests, obligation
+// It verifies the artifact in isolation (manifest/file digests, requirement
 // identity, execution status) and then rebuilds the artifact from the original
 // request with the same generator and compares every byte. Recomputing an outer
-// digest after deleting an obligation or editing a Procedure therefore fails.
+// digest after deleting a requirement or editing a Procedure therefore fails.
 
 import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"sort"
 	"strings"
 )
 
@@ -40,22 +39,14 @@ func buildDevelopmentInternal(req DevelopmentBuildRequest) DevelopmentBuildResul
 	if len(scopeDiagnostics) > 0 {
 		return failedDevelopmentResult(scopeDiagnostics, DevelopmentSourceValidated, DevelopmentPhaseFailed, DevelopmentPhaseNotRun)
 	}
-	assurance, assuranceDiagnostics := buildDevelopmentAssuranceIndex(env)
-	if len(assuranceDiagnostics) > 0 {
-		return failedDevelopmentResult(assuranceDiagnostics, DevelopmentSourceValidated, DevelopmentPhaseFailed, DevelopmentPhaseNotRun)
-	}
 	legacy, synthetic := env.legacyRequest()
-	collector := newDevelopmentObligationCollector()
-	semantics := newDevelopmentSemantics(env, scope, synthetic, assurance, collector)
+	collector := newDevelopmentRequirementCollector()
+	semantics := newDevelopmentSemantics(env, scope, synthetic, collector)
 	diagnostics = checkSourcesWithDevelopment(legacy, semantics)
 	if hasErrorDiagnostic(diagnostics) {
 		if developmentSourceFailure(diagnostics) {
 			return failedDevelopmentResult(diagnostics, DevelopmentPhaseFailed, DevelopmentPhaseNotRun, DevelopmentPhaseNotRun)
 		}
-		return failedDevelopmentResult(diagnostics, DevelopmentSourceValidated, DevelopmentPhaseFailed, DevelopmentPhaseNotRun)
-	}
-	if unused := unusedDevelopmentDescriptors(env, assurance, collector); len(unused) > 0 {
-		diagnostics = append(diagnostics, developmentDiagnostic(developmentAssuranceInvalid, unused[0], "Assurance Export contains an Evidence Descriptor that no obligation consumes: "+unused[0]))
 		return failedDevelopmentResult(diagnostics, DevelopmentSourceValidated, DevelopmentPhaseFailed, DevelopmentPhaseNotRun)
 	}
 	skills, err := collectV1Alpha5ArtifactSkillsWithDevelopment(legacy, semantics)
@@ -113,20 +104,6 @@ func developmentInterfaceCode(code string) bool {
 		return true
 	}
 	return false
-}
-
-func unusedDevelopmentDescriptors(env *developmentEnvironment, assurance *developmentAssuranceIndex, collector *developmentObligationCollector) []string {
-	var unused []string
-	for _, key := range sortedDevelopmentKeys(env.packages) {
-		for _, exportID := range sortedStringMapKeys(assurance.byKey[key]) {
-			identity := key.PackageID + "@" + key.Version + "\x00" + exportID
-			if !collector.usedDescriptors[identity] {
-				unused = append(unused, key.PackageID+"@"+key.Version+"::"+exportID)
-			}
-		}
-	}
-	sort.Strings(unused)
-	return unused
 }
 
 // VerifyDevelopment verifies a successful Development build result against the
@@ -273,11 +250,11 @@ func verifyDevelopmentArtifactFiles(result DevelopmentBuildResult) error {
 			return fmt.Errorf("Development artifact carries a file the manifest does not list: %s", path)
 		}
 	}
-	obligationsRaw, exists := byPath[developmentObligationsFileName]
+	requirementsRaw, exists := byPath[developmentRequirementsFileName]
 	if !exists {
-		return fmt.Errorf("Development artifact has no %s", developmentObligationsFileName)
+		return fmt.Errorf("Development artifact has no %s", developmentRequirementsFileName)
 	}
-	if err := verifyDevelopmentObligationDocument(obligationsRaw); err != nil {
+	if err := verifyDevelopmentRequirementDocument(requirementsRaw); err != nil {
 		return err
 	}
 	// The manifest must embed exactly the request-derived interface identity: the
@@ -288,48 +265,45 @@ func verifyDevelopmentArtifactFiles(result DevelopmentBuildResult) error {
 	return nil
 }
 
-// verifyDevelopmentObligationDocument re-derives every obligation ID from its
+// verifyDevelopmentRequirementDocument re-derives every requirement ID from its
 // typed key, rejecting deleted, added, edited or reordered identity.
-func verifyDevelopmentObligationDocument(raw []byte) error {
+func verifyDevelopmentRequirementDocument(raw []byte) error {
 	canonical, err := canonicalizeJSON(raw)
 	if err != nil {
-		return fmt.Errorf("Development obligations document is not canonical JSON: %w", err)
+		return fmt.Errorf("Development host-admission requirements document is not canonical JSON: %w", err)
 	}
 	if string(canonical) != string(raw) {
-		return fmt.Errorf("Development obligations document is not JCS canonical")
+		return fmt.Errorf("Development host-admission requirements document is not JCS canonical")
 	}
-	var obligations []DevelopmentObligation
-	if err := json.Unmarshal(raw, &obligations); err != nil {
-		return fmt.Errorf("Development obligations document cannot be decoded: %w", err)
+	var requirements []DevelopmentHostRequirement
+	if err := json.Unmarshal(raw, &requirements); err != nil {
+		return fmt.Errorf("Development host-admission requirements document cannot be decoded: %w", err)
 	}
 	last := ""
-	for _, obligation := range obligations {
-		if obligation.ObligationID <= last {
-			return fmt.Errorf("Development obligations are not sorted by obligationId")
+	for _, requirement := range requirements {
+		if requirement.RequirementID <= last {
+			return fmt.Errorf("Development host-admission requirements are not sorted by requirementId")
 		}
-		last = obligation.ObligationID
-		key := developmentObligationKey{Rule: obligation.Rule, Location: obligation.Location, Subjects: obligation.Subjects}
-		key.Subjects = normalizeDevelopmentSubjects(key.Subjects)
+		last = requirement.RequirementID
+		key := developmentRequirementKey{Kind: requirement.Kind, Location: requirement.Location, Subjects: requirement.Subjects}
+		key.Subjects = normalizeDevelopmentRequirementSubjects(key.Subjects)
 		canonicalKey, err := canonicalizeValue(key)
 		if err != nil {
-			return fmt.Errorf("Development obligation key cannot be canonicalized: %w", err)
+			return fmt.Errorf("Development requirement key cannot be canonicalized: %w", err)
 		}
-		sum := sha256.Sum256(append([]byte(developmentObligationDigestDomain), canonicalKey...))
+		sum := sha256.Sum256(append([]byte(developmentRequirementDigestDomain), canonicalKey...))
 		want := "sha256:" + hex.EncodeToString(sum[:])
-		if obligation.ObligationID != want {
-			return fmt.Errorf("Development obligation identity does not match its typed key: %s", obligation.ObligationID)
+		if requirement.RequirementID != want {
+			return fmt.Errorf("Development requirement identity does not match its typed key: %s", requirement.RequirementID)
 		}
-		if obligation.Status != DevelopmentObligationUnresolved && obligation.Status != DevelopmentObligationDescriptor {
-			return fmt.Errorf("Development obligation has an invalid status: %s", obligation.Status)
+		if requirement.Status != DevelopmentHostRequirementStatus {
+			return fmt.Errorf("Development requirement has an invalid status: %s", requirement.Status)
 		}
-		if obligation.Status == DevelopmentObligationDescriptor && obligation.DescriptorDigest == "" {
-			return fmt.Errorf("Development descriptor-present obligation has no descriptorDigest: %s", obligation.ObligationID)
-		}
-		switch obligation.Rule {
-		case DevelopmentObligationOwnerTrust, DevelopmentObligationEvidence, DevelopmentObligationIndepend,
-			DevelopmentObligationCommitProof, DevelopmentObligationReconcile:
+		switch requirement.Kind {
+		case DevelopmentRequirementOwnerTrust, DevelopmentRequirementEvidenceDomain, DevelopmentRequirementEvidenceFact,
+			DevelopmentRequirementIndependence, DevelopmentRequirementCommitProof, DevelopmentRequirementReconcile:
 		default:
-			return fmt.Errorf("Development obligation has an unsupported rule: %s", obligation.Rule)
+			return fmt.Errorf("Development requirement has an unsupported kind: %s", requirement.Kind)
 		}
 	}
 	return nil
