@@ -37,13 +37,13 @@
     "installedVersion": "3.2.0",
     "availableVersion": "3.2.0",
     "releaseNotes": null,
-    "checkedAt": "2026-11-20T02:48:34.996Z",
+    "checkedAt": "2026-11-20T13:40:38.047Z",
     "source": "cache",
     "noticeRequired": false,
     "noticeText": null
   },
   "visualReview": "not-requested",
-  "durationMs": 3632,
+  "durationMs": 3399,
   "browserCheck": {
     "requested": true,
     "ran": true
