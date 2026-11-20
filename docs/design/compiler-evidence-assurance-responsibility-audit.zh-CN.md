@@ -1,6 +1,6 @@
 # Evidence / Assurance 职责审计与纠偏（Development Build）
 
-**状态：最终职责基线，待随架构冻结。** 本页是 PR #48 架构文档的职责基线，也是 Architecture → Audit → Pilot → Implementation 链条中“职责归属”的唯一权威表述：先按 Compile、Interface Link、Assurance、Host Admission、Runtime 五个边界重新归类 Development Build 中所有 Evidence 相关职责，再给出与实现（PR #51）一致的最终两类 Requirement 模型。本页**尚未冻结**：只有两个 PR 都通过最终评审后，才随架构一并冻结。语言规范仍以冻结的 CA-SL v1alpha5（含继承的 v1alpha4 语义）为准；本页不新增、不删除、不弱化任何冻结语言规则。
+**状态（2026-11-20）：职责基线已通过最终审查并随架构 [PR #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 合入 `main`（`22860a2`），对应实现 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 已合并（`1d7ea81`）；公开契约未另行冻结或发布。** 本页仍是 Architecture → Audit → Pilot → Implementation 中 Evidence / Assurance 职责归属的单一基线，不增加、删除或弱化冻结的 CA-SL v1alpha5 规则。原评审阶段 SHA 与未决人工/外部验收事项仍如实保留。
 
 ## 1. 结论
 
