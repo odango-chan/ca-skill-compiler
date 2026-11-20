@@ -307,15 +307,15 @@ PR #48 分支没有 checks 上报，其最终提交 `27324bcf273ae640acdf27637f9
 
 ## 4. 已知限制
 
-- MAS **G0 = NOT_RUN**（没有通过 G0 的真实精确接口快照），**G1 = NOT_RUN**。本报告不宣称 MAS 通过。
+- **正式 MAS 跨仓验收（非 Compiler 发布门槛）**：G0 = NOT_RUN（尚无可核实的正式 G0 接口输入），G1 = NOT_RUN；真实 MAS author 源 + 测试快照的离线静态回归另由 [#53](https://github.com/odango-chan/ca-skill-compiler/issues/53) 跟踪，不冒充 G0/G1。
 - 所有正例仍为 Compiler 自有的**合成 Interface Package 快照**，不代表真实 Owner 发布或产品资格。CapabilityCatalog 的 Publisher 也是合成值；其真实签发权限仍由 Host `OWNER_TRUST` 验证。
 - Development profile 的 Owner 归属来自每个包的单一 `publisher`，因此 Development 路径本身不构造多 Owner 快照；多 Owner 下 Descriptor 缺少精确归属的负例在共享的 owner-linking 层（`TestWP3B010MultiOwnerEvidenceGuaranteeMissingAttribution`）验证。真实多 Owner Interface Package 发布仍待 Provider/Owner 侧材料。
 - PR #48 本轮只改契约文字（Capability 静态需求、Package-scoped Schema、Root 并集）：流程阶段与边界未变，故未重绘 Archify 图 01–03，既有图与截图检查保持原样；仅文档提交换了 HEAD。
-- Owner 正式发布（真实 Owner 签名、真实 Interface Package 发布记录）**尚未完成**；本实现只消费调用方提供的精确快照与锁。
+- **外部系统状态（非 Compiler 阻塞项）**：Owner 正式发布、真实签名与 Interface Package 发布记录仍由 Owner / Publisher 自行交付；本实现只消费调用方提供的精确快照与锁，因此这些外部材料不得阻止 Compiler 代码交付或独立发版。
 - Development Artifact 恒为 `NOT_ADMITTED`；生产 Host 必须拒收 `DEVELOPMENT` profile。
 - 真实 Commit Proof、实际 Reconcile、运行时 Evidence、Deployment Grant、Provider Binding 与 Invocation 授权仍由 Host/Runtime 负责，本实现只记录其静态位置与契约。
 - Archify 图 01、02 的**人工逐张目视签字仍为 PENDING**；自动化检查与代理人目视记录都不冒充人工签字。图 03 维持“已抽查”。
-- v2.0.2 入口保持不变；本报告不构成发布、合并、冻结或打 Tag 的决定。最终判断只到 `READY FOR FINAL REVIEW`。
+- v2.0.2 已发布入口保持不变；#48/#51 现已合并。本报告所保留的 `READY FOR FINAL REVIEW` 与原实现 HEAD 属于**历史验收记录**，不是当前 PR 状态；Development Build 尚未另行正式发版。Compiler 自身完成门槛见[独立验收边界](../COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md)。
 
 ## 5. 最终职责矩阵（摘要）
 
