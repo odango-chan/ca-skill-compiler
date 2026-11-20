@@ -196,7 +196,7 @@ Verify 必须同时检查**两个** Requirement 文件：
 
 ## 6. 设计提交与本轮评审记录
 
-- 本页设计内容的提交：`<DESIGN_COMMIT_SHA>`（`docs(design)`，见 PR #48）。
+- 本页设计内容的提交：`551a0bba3455cfe4e7dbeede274b686a523316d6`（`docs(design)`，见 PR #48）。
 - 本轮只改文档与图形，不改实现、语言契约或 v2.0.2 冻结入口；PR #51 的实现与本文契约一一对应。
 - 产物执行状态恒为 `NOT_ADMITTED`；生产 Host 拒收 `DEVELOPMENT`；MAS G0 / G1 仍为 **NOT_RUN**，本文不构成 MAS 通过结论。
 
