@@ -91,6 +91,27 @@
 - Producer 输出 Schema 的解析改为：先按 Callable 所在 alias 限定解析，失败后按稳定 `$id` 在已锁定闭包内唯一解析。位于传递锁定包的输出 Schema 因此真正参与 Predicate 参数 Schema 比对，而不是被静默跳过；无法解析或与参数 Schema 不兼容仍是 Build FAIL。
 - 新增的定向测试覆盖：Descriptor Authority 精确记录；同一 Descriptor 被多个 Predicate / 多个列表序号引用；多个 Producer 提供同一 Guarantee 且输出 Schema 不同；Producer 输出 Schema 与参数的关联；缺失 / 重复 / 非法 / 未知 Producer / 错误 Owner / Outcome / `provides.path` / 未声明依赖 / Schema 不兼容的负例矩阵；删除 Descriptor `OWNER_TRUST` 与粗粒度 selector 在重封摘要后仍被 Verify 拒绝。
 
+### 1.8 修改文件与逐项原因
+
+| 文件 | 修改 | 原因 |
+|---|---|---|
+| `internal/compiler/owner_linking.go` | Descriptor 分支保留 `SourcePath`；缺失/歧义时不做归属 | 只保留 Owner 与 Export ID 会丢失物理来源，且可能为不存在的 Descriptor 记录 `OWNER_TRUST` |
+| `internal/compiler/development_semantics.go` | `recordOwnerTrustRequirements` 接受 `evidenceGuarantee`；Descriptor 无精确位置时不生成条目 | EvidenceDescriptor 是实际消费的正式导出，必须遵循 Owner Trust；不得用粗粒度位置兜底 |
+| `internal/compiler/development_link.go` | Development 信任绑定为 `EvidenceDescriptor` 导出补 `evidenceGuarantee` ExportOwner | 合成绑定应与声明的导出面一致；多 Owner 归属规则才能覆盖 Descriptor |
+| `internal/compiler/source_path_producer.go` | 输出 Schema 先按 alias 限定解析，失败后按稳定 `$id` 在锁定闭包内唯一解析 | 传递锁定包中的输出 Schema 原先被静默跳过，Producer 输出 Schema 与 Predicate 参数 Schema 的比对没有真正发生 |
+| `internal/compiler/development_build.go` | Verify 对 Evidence 阶段 `OWNER_TRUST` 复用精确 Evidence selector 语法 | 粗粒度 `/evidence` 指针在重算 ID 与外层摘要后仍可能被接受 |
+| `internal/compiler/development_evidence_owner_test.go` | 新增正例/负例/Verify 拒绝/静态与运行时缺失区分测试 | 逐项锁定上述契约 |
+| `internal/compiler/owner_linking_test.go` | 断言 Descriptor `SourcePath`；新增多 Owner 缺精确归属负例 | 防止物理来源与归属规则回退 |
+
+**修正前后的正反例。**
+
+- 修正前：`OWNER_TRUST` 只覆盖 operation / observation / schema；Descriptor 的 `ownerLinking` 记录只有 Owner 与 Export ID，`SourcePath` 为空。
+- 正例（修正后）：fixture 的 `ue.registration-state` 在 `example.ue.registered` 的 `registration` 参数位置被消费，`host-admission-requirements.json` 增加一条 `OWNER_TRUST`：
+  - Subject：`key={packageId: urn:example:ca:tools, version: 1.0.0, snapshotDigest: sha256:…}`、`id=ue.registration-state`、`sourcePath=evidence-guarantees.yaml`、`schemaIds=[]`；
+  - Location：`selector=/predicates/example.ue.registered/evidence/requires/registration/0`、`stage=evidence`。
+- 正例（同时声明两类身份）：`sourceIdentity` + `factIdentity` 使 `OWNER_TRUST`、`EVIDENCE_DOMAIN_TRUST`、`EVIDENCE_FACT_TRUST` 三条并存，ID 互异。
+- 反例：把 Descriptor 的 `authority` 改成未授权 Owner ⇒ `DEPENDENCY_OWNER_MISMATCH`；Producer 不存在 / Owner 不符 / Outcome 非 `SUCCEEDED` / `provides.path` 不匹配 ⇒ `EVIDENCE_GUARANTEE_LINK_INVALID`；未声明依赖别名 ⇒ Build FAIL；删除 `OWNER_TRUST` 或改粗粒度 selector 后重封全部外层摘要 ⇒ `VerifyDevelopment` 仍拒绝。
+
 ## 2. 架构与实现差异清单
 
 | 架构契约（PR #48） | 实现（PR #51） | 差异 |
