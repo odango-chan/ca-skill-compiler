@@ -41,16 +41,10 @@
       "sublabel": "CA-Agent"
     },
     {
-      "id": "codec",
-      "type": "backend",
-      "label": "NAS Codec",
-      "sublabel": "CA-Tools"
-    },
-    {
       "id": "tools",
       "type": "backend",
       "label": "CA Client Tools",
-      "sublabel": "Tool Dispatch"
+      "sublabel": "NAS Codec / Dispatch"
     },
     {
       "id": "smf",
@@ -128,14 +122,14 @@
     {
       "id": "m05",
       "from": "host",
-      "to": "codec",
+      "to": "tools",
       "y": 296,
       "label": "Validate Session/gen · scoped N1/N2 decode",
       "variant": "default"
     },
     {
       "id": "m06",
-      "from": "codec",
+      "from": "tools",
       "to": "host",
       "y": 328,
       "label": "Typed projection + message classification facts",
@@ -547,7 +541,8 @@
       "items": [
         "AMF → SCP → Host 的 3GPP Service Operation 为 Nsmf_PDUSession_UpdateSMContext（OpenAPI operationId=UpdateSmContext）",
         "Host 保留原始 N1/N2 artifact；Typed projection 仅用于分类与 Skill 输入，原始 NAS/N2 bytes 通过受信 Owner-private binding 原样交给 OpenAMSM",
-        "新的 UE/RAN Modification 与命中既有 Pending 的 N2 result 是互斥入口；后者不启动第二个 Run"
+        "新的 UE/RAN Modification 与命中既有 Pending 的 N2 result 是互斥入口；后者不启动第二个 Run",
+        "NAS Codec 是 CA Client Tools 内部的只读职责，与 Tool Dispatch 共用 Client Tools 责任域；原始 N1/N2 bytes 仍原样交给 Owner"
       ]
     }
   ]

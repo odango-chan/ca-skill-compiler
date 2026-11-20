@@ -384,7 +384,7 @@ Owner exact-original Reconcile 也不是通用业务 Tool。
 
 已按 05x 纠错修订的项：
 
-- 纠错 #1：Host SBI Decoder（只做 HTTP/2 / JSON / MIME / Content-ID）与 CA Client Tools 只读 5GSM Codec（类型化投影）分属不同节点、不同责任域。
+- 纠错 #1：Host SBI Decoder（只做 HTTP/2 / JSON / MIME / Content-ID）与 CA Client Tools 内部只读 5GSM Codec（类型化投影）分属不同节点、不同责任域；Codec 与 Tool Dispatch 同属 CA Client Tools 责任域，05a / 05b / 05d 以同一 Client Tools lifeline 表达，并在副标签与卡片中区分内部职责。
 - 纠错 #2：`201 + Host Location` 由 Host 产生并沿 SCP 返回；OpenAMSM 的 `smContextRef` 不是 AMF 可见 Location。
 - 纠错 #3 / #4：UDM/PCF/CHF 经 SCP，UPF 走 N4/PFCP 且不经 SCP，二者从不合并为一条线。
 - 纠错 #5：AMF→SCP→Host 为公开 Nsmf；OpenAMSM→Host 私有 Namf Relay→Client Tools→SCP→AMF 为 Namf；Host→OpenAMSM 为受信私有绑定。
