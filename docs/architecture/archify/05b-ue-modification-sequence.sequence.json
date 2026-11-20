@@ -124,7 +124,7 @@
       "from": "host",
       "to": "tools",
       "y": 296,
-      "label": "Validate Session/gen · scoped N1/N2 decode",
+      "label": "Scoped N1 artifactRef · read-only 5GSM decode",
       "variant": "default"
     },
     {
@@ -132,7 +132,7 @@
       "from": "tools",
       "to": "host",
       "y": 328,
-      "label": "Typed projection + message classification facts",
+      "label": "Typed N1 projection + decode facts",
       "variant": "return"
     },
     {
@@ -542,7 +542,8 @@
         "AMF → SCP → Host 的 3GPP Service Operation 为 Nsmf_PDUSession_UpdateSMContext（OpenAPI operationId=UpdateSmContext）",
         "Host 保留原始 N1/N2 artifact；Typed projection 仅用于分类与 Skill 输入，原始 NAS/N2 bytes 通过受信 Owner-private binding 原样交给 OpenAMSM",
         "新的 UE/RAN Modification 与命中既有 Pending 的 N2 result 是互斥入口；后者不启动第二个 Run",
-        "NAS Codec 是 CA Client Tools 内部的只读职责，与 Tool Dispatch 共用 Client Tools 责任域；原始 N1/N2 bytes 仍原样交给 Owner"
+        "NAS Codec 是 CA Client Tools 内部的只读职责，与 Tool Dispatch 共用 Client Tools 责任域；原始 N1/N2 bytes 仍原样交给 Owner",
+        "职责归属：Host 解码 UpdateSMContext JSON、N2 SmInfoType、upCnxState / hoState 并负责 Session/generation 分类；CA Client Tools 的只读 5GSM Codec 只解码 N1，不解码 N2。"
       ]
     }
   ]

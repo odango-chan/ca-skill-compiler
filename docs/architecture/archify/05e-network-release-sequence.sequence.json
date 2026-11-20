@@ -98,7 +98,7 @@
       "from": "pcf",
       "to": "scp",
       "y": 168,
-      "label": "PCF Policy Notification",
+      "label": "Npcf_SMPolicyControl_Notify",
       "variant": "emphasis"
     },
     {

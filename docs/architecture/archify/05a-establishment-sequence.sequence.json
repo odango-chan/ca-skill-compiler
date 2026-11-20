@@ -122,7 +122,7 @@
       "from": "host",
       "to": "tools",
       "y": 264,
-      "label": "Validate SBI · preserve N1 · decode scoped 5GSM ref",
+      "label": "Scoped N1 artifactRef · read-only 5GSM decode",
       "variant": "default"
     },
     {
@@ -617,7 +617,8 @@
         "UDM / PCF SBI 经 SCP；OpenAMSM ↔ UPF 的 N4 / PFCP 直连，不经过 SCP",
         "NGAP message：PDU Session Resource Setup Response；图中短标签为 PDU Resource Setup Response",
         "PFCP standard messages：Session Establishment Request / Response（Type 50/51）；Session Modification Request / Response（Type 52/53）。箭头以 PFCP + procedure + type 简写。",
-        "NAS Codec 是 CA Client Tools 内部的只读协议处理职责；与 Tool Dispatch 共用 Client Tools 责任域，不构成独立 Owner"
+        "NAS Codec 是 CA Client Tools 内部的只读协议处理职责；与 Tool Dispatch 共用 Client Tools 责任域，不构成独立 Owner",
+        "职责归属：Host 负责 HTTP/2、SBI JSON / multipart / Content-ID 校验并保存原始 N1；CA Client Tools 的只读 5GSM Codec 只解码 N1。Host SBI Decoder 不属于 Client Tools。"
       ]
     },
     {

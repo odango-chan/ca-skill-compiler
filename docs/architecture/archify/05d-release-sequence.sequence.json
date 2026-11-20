@@ -106,7 +106,7 @@
       "from": "amf",
       "to": "scp",
       "y": 200,
-      "label": "[UE] Nsmf UpdateSMContext · N1 Release",
+      "label": "[UE] Nsmf_PDUSession_UpdateSMContext · N1 Release",
       "variant": "emphasis"
     },
     {
@@ -114,7 +114,7 @@
       "from": "amf",
       "to": "scp",
       "y": 232,
-      "label": "[AMF] Nsmf ReleaseSMContext",
+      "label": "[AMF] Nsmf_PDUSession_ReleaseSMContext",
       "variant": "emphasis"
     },
     {
@@ -130,7 +130,7 @@
       "from": "host",
       "to": "tools",
       "y": 296,
-      "label": "Validate SUPI/PSI/generation · decode UE N1",
+      "label": "Scoped N1 artifactRef · read-only 5GSM decode",
       "variant": "default"
     },
     {
@@ -446,7 +446,8 @@
         "UE 请求释放：PDU Session Release Request (0xD1) 经 Nsmf_PDUSession_UpdateSMContext 携带 N1",
         "AMF 请求释放：Nsmf_PDUSession_ReleaseSMContext；不伪造成 HTTP DELETE",
         "两个入口都定位同一个已存在 Host Location / Owner Session，不创建新 SM Context",
-        "UE NAS exchange 还包括 PDU Session Release Command（0xD3）与 PDU Session Release Complete（0xD4）；箭头使用短标签"
+        "UE NAS exchange 还包括 PDU Session Release Command（0xD3）与 PDU Session Release Complete（0xD4）；箭头使用短标签",
+        "职责归属：Host 负责 SBI / resource / generation 校验并保留原始 N1；CA Client Tools 的只读 5GSM Codec 只解码 N1，原始 NAS 仍交给 OpenAMSM GSM Handler。"
       ]
     },
     {
