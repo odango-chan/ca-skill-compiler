@@ -41,16 +41,10 @@
       "sublabel": "CA-Agent"
     },
     {
-      "id": "codec",
-      "type": "backend",
-      "label": "NAS Codec",
-      "sublabel": "CA-Tools"
-    },
-    {
       "id": "tools",
       "type": "backend",
       "label": "CA Client Tools",
-      "sublabel": "Tool Dispatch"
+      "sublabel": "NAS Codec / Dispatch"
     },
     {
       "id": "smf",
@@ -134,14 +128,14 @@
     {
       "id": "m05",
       "from": "host",
-      "to": "codec",
+      "to": "tools",
       "y": 296,
       "label": "Validate SUPI/PSI/generation · decode UE N1",
       "variant": "default"
     },
     {
       "id": "m06",
-      "from": "codec",
+      "from": "tools",
       "to": "host",
       "y": 328,
       "label": "PDU Session Release Request projection",
@@ -471,7 +465,8 @@
         "UPF Session Deletion 使用 PFCP Type 54/55，OpenAMSM 直连 UPF",
         "PCF Policy Association Delete 使用 Npcf_SMPolicyControl_Delete，经 SCP",
         "只有 Owner 释放与 Host 外部资源结算完成后，Host 才写入 URI Map tombstone",
-        "PFCP standard messages：Session Deletion Request / Response（Type 54/55）；箭头以 PFCP + procedure + type 简写。"
+        "PFCP standard messages：Session Deletion Request / Response（Type 54/55）；箭头以 PFCP + procedure + type 简写。",
+        "NAS Codec 属于 CA Client Tools 内部只读职责；原始 NAS 仍保持不变并交给 OpenAMSM GSM Handler"
       ]
     },
     {

@@ -41,16 +41,10 @@
       "sublabel": "CA-Agent"
     },
     {
-      "id": "codec",
-      "type": "backend",
-      "label": "NAS Codec",
-      "sublabel": "CA-Tools"
-    },
-    {
       "id": "tools",
       "type": "backend",
       "label": "CA Client Tools",
-      "sublabel": "Tool Dispatch"
+      "sublabel": "NAS Codec / Dispatch"
     },
     {
       "id": "smf",
@@ -126,14 +120,14 @@
     {
       "id": "m04",
       "from": "host",
-      "to": "codec",
+      "to": "tools",
       "y": 264,
       "label": "Validate SBI · preserve N1 · decode scoped 5GSM ref",
       "variant": "default"
     },
     {
       "id": "m05",
-      "from": "codec",
+      "from": "tools",
       "to": "host",
       "y": 296,
       "label": "Typed projection：PTI / PDU Type / SSC / ePCO",
@@ -618,11 +612,12 @@
       "dot": "emerald",
       "title": "NAS 与网络边界",
       "items": [
-        "原始 N1 由 Host Artifact Store 保留；只读 Codec 产生 Typed projection，供 Host / Skill 使用",
+        "原始 N1 由 Host Artifact Store 保留；Client Tools 内只读 NAS Codec 产生 Typed projection，供 Host / Skill 使用",
         "原始 N1 仍通过受信 Owner-private binary binding 交给 OpenAMSM GSM Handler；Typed projection 不能替代原始 NAS",
         "UDM / PCF SBI 经 SCP；OpenAMSM ↔ UPF 的 N4 / PFCP 直连，不经过 SCP",
         "NGAP message：PDU Session Resource Setup Response；图中短标签为 PDU Resource Setup Response",
-        "PFCP standard messages：Session Establishment Request / Response（Type 50/51）；Session Modification Request / Response（Type 52/53）。箭头以 PFCP + procedure + type 简写。"
+        "PFCP standard messages：Session Establishment Request / Response（Type 50/51）；Session Modification Request / Response（Type 52/53）。箭头以 PFCP + procedure + type 简写。",
+        "NAS Codec 是 CA Client Tools 内部的只读协议处理职责；与 Tool Dispatch 共用 Client Tools 责任域，不构成独立 Owner"
       ]
     },
     {
@@ -639,7 +634,7 @@
       "dot": "slate",
       "title": "内部步骤与标准标识",
       "items": [
-        "Host 在入口校验 SBI JSON / multipart / Content-ID，并保留原始 N1 artifact；只读 Codec 产生 typed projection，原始 N1 通过 Owner-private binary binding 交给 GSM Handler",
+        "Host 在入口校验 SBI JSON / multipart / Content-ID，并保留原始 N1 artifact；Client Tools 内只读 NAS Codec 产生 typed projection，原始 N1 通过 Owner-private binary binding 交给 GSM Handler",
         "Owner OES 依次执行 SC.VALIDATE_SUBSCRIPTION、SAA.SECONDARY_AUTH（required=0 时 SKIPPED）、SC.CREATE_SM_CONTEXT",
         "3GPP Service Operations：Nsmf_PDUSession_CreateSMContext / Nsmf_PDUSession_UpdateSMContext；OpenAMSM 私有 API 不冒充 3GPP SBI"
       ]
