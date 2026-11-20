@@ -6,7 +6,7 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "2a057df4-1538-4578-b763-4d38f5e84f42",
+  "deliveryReceiptId": "dda1fdaa-488c-4ab0-9923-843bca539bbd",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05c-network-modification-sequence.html",
     "sha256": "a4ccd845ab49dbaadd905c8432284e0e6741a3dc034d30692b67ef904cb64272",
@@ -921,8 +921,8 @@
         "file": "05c-network-modification-sequence.visual-check.2048x1320.light.png"
       },
       {
-        "sha256": "bf8ec65ecd525e495a4db92ebd86c08068117e1de032afbc172bc7aa324ac265",
-        "bytes": 202584,
+        "sha256": "47157aae0d2470afa97fb3f68ef3c636f5aa32532f2cef690f29e09572c6de02",
+        "bytes": 202590,
         "file": "05c-network-modification-sequence.visual-check.2048x1320.dark.png"
       }
     ]

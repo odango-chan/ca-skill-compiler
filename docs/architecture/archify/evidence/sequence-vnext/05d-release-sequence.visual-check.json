@@ -6,7 +6,7 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "13c15353-3eb4-4376-9618-19d2248089f2",
+  "deliveryReceiptId": "26b01003-42f1-415b-a1fe-6c1418cd9290",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05d-release-sequence.html",
     "sha256": "9ac2a50cb5b76dcb2d56c38aa3e2160cee1239f23f6c7231ab27925f0d404467",
@@ -911,8 +911,8 @@
         "file": "05d-release-sequence.visual-check.1440x900.light.png"
       },
       {
-        "sha256": "f72be1a7630162dcc484aeaee373dc3488dd3f9bd38be955da41e302ebb5325a",
-        "bytes": 177998,
+        "sha256": "4dca87214cee77f38b07b9ce13fc59e510b39e529021d53ec3dd15124c2e74a4",
+        "bytes": 178006,
         "file": "05d-release-sequence.visual-check.1440x900.dark.png"
       },
       {
@@ -921,8 +921,8 @@
         "file": "05d-release-sequence.visual-check.2048x1320.light.png"
       },
       {
-        "sha256": "9499bafced5cb6b15d1d644b913f62f8ca8b3235f0a7396395aa8fd10cbd175d",
-        "bytes": 214406,
+        "sha256": "a671ba3c9003afec1a3d8fe25b5423173d4371dd5ea46a4b56daae896f5f6431",
+        "bytes": 214395,
         "file": "05d-release-sequence.visual-check.2048x1320.dark.png"
       }
     ]

@@ -6,7 +6,7 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "401e4e4b-c4a7-43d4-9235-21d0c2b52e96",
+  "deliveryReceiptId": "f20da2ae-e149-4bc3-b61b-9e8cd22999ce",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05b-ue-modification-sequence.html",
     "sha256": "623993b7714abb46c459b3ebc30ed33d7fe4da6cdfe321ec55cf2924a1bcda97",
@@ -921,8 +921,8 @@
         "file": "05b-ue-modification-sequence.visual-check.2048x1320.light.png"
       },
       {
-        "sha256": "9335e4e5c079b2dc6982b40a61ab2aa49d28644dd6b26707ebe121cc37f59c37",
-        "bytes": 223311,
+        "sha256": "44e79eb7e4290f487781827da0808c9e25593f9272849a6e39a6f58e9e6172d8",
+        "bytes": 223302,
         "file": "05b-ue-modification-sequence.visual-check.2048x1320.dark.png"
       }
     ]

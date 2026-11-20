@@ -6,7 +6,7 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "652bf7a3-519c-4331-9eac-09930bb40289",
+  "deliveryReceiptId": "b523c0a3-6fc5-44e1-8123-87925786002c",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05f-service-request-handover-sequence.html",
     "sha256": "e9f57e3773d4302d3f86048938f287ad52ca790b86914886715d2da96bcfd5c2",
@@ -911,18 +911,18 @@
         "file": "05f-service-request-handover-sequence.visual-check.1440x900.light.png"
       },
       {
-        "sha256": "0a832c3d14a5878b4abb950513e312c8b5080da0ed15c091ded975caed5eaa5c",
-        "bytes": 171305,
+        "sha256": "6a1ac27653f2a4c899d8e814a458545320163727a549b9dbeeb0066bc6d7f55d",
+        "bytes": 171328,
         "file": "05f-service-request-handover-sequence.visual-check.1440x900.dark.png"
       },
       {
-        "sha256": "aa69b9785ee3e54128d3eff47074f4feddb6766a927dc31b68272eb0e5850da4",
-        "bytes": 187075,
+        "sha256": "d2fda5a2170a8d520867e59583f5714ff142741228931f2baa27b027efb77fb2",
+        "bytes": 187077,
         "file": "05f-service-request-handover-sequence.visual-check.2048x1320.light.png"
       },
       {
-        "sha256": "61175a72ff66ded3ef0178c86c4045dd2f9d02d379a12e8e6b53b0edc2dfa99f",
-        "bytes": 201441,
+        "sha256": "c35e15ca8632298e42b67a431e6e428a26df516a4191b849730a5979a81ef776",
+        "bytes": 201432,
         "file": "05f-service-request-handover-sequence.visual-check.2048x1320.dark.png"
       }
     ]

@@ -6,7 +6,7 @@
   "status": "pass",
   "visualReview": "pending",
   "provenance": "current",
-  "deliveryReceiptId": "83e196ec-c4a0-4712-bc9a-8862caa55535",
+  "deliveryReceiptId": "fe3a2fc5-fd4f-40d3-92bf-b956556e3609",
   "artifact": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05g-callback-failure-sequence.html",
     "sha256": "b5ea01393e4096ab20163400fbc1c53d552ce76cdcbf333950e157f807fc17f1",
@@ -916,7 +916,7 @@
         "file": "05g-callback-failure-sequence.visual-check.1440x900.dark.png"
       },
       {
-        "sha256": "80ce9e78aabbb70012a0394196c3d1607b9308226834c1b6dcfc0fc2b51f935a",
+        "sha256": "641ca7a628b2aedf6047bf8969f906aef9e758a89a68a341e120a2f3825e6c1b",
         "bytes": 190178,
         "file": "05g-callback-failure-sequence.visual-check.2048x1320.light.png"
       },

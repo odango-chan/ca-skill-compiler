@@ -5,7 +5,7 @@
   "status": "pass",
   "type": "sequence",
   "quality": "showcase",
-  "startedAt": "2026-11-20T02:20:13.876Z",
+  "startedAt": "2026-11-20T02:24:57.502Z",
   "specification": {
     "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05e-network-release-sequence.sequence.json",
     "sha256": "83e322ab8105f33fe9c989f04c7e375d09bf17c923023213228d32e497f5bd5f",
@@ -23,7 +23,7 @@
       "durationMs": null,
       "execution": "embedded-in-deliver",
       "command": [
-        "/opt/hostedtoolcache/node/24.22.3/x64/bin/node",
+        "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
         "deliver",
         "sequence",
@@ -54,9 +54,9 @@
     "deliver": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 337,
+      "durationMs": 445,
       "command": [
-        "/opt/hostedtoolcache/node/24.22.3/x64/bin/node",
+        "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
         "deliver",
         "sequence",
@@ -68,7 +68,7 @@
       ],
       "receipt": {
         "schemaVersion": 1,
-        "receiptId": "a7acdc67-2d5b-458a-b006-f1956a74a926",
+        "receiptId": "8b820b66-54e3-4c84-83dc-6804f58e2167",
         "ok": true,
         "command": "deliver",
         "type": "sequence",
@@ -106,9 +106,9 @@
     "check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 156,
+      "durationMs": 197,
       "command": [
-        "/opt/hostedtoolcache/node/24.22.3/x64/bin/node",
+        "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
         "check",
         "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05e-network-release-sequence.html",
@@ -248,15 +248,15 @@
           "issues": []
         },
         "provenance": "current",
-        "deliveryReceiptId": "a7acdc67-2d5b-458a-b006-f1956a74a926"
+        "deliveryReceiptId": "8b820b66-54e3-4c84-83dc-6804f58e2167"
       }
     },
     "browser-check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 2893,
+      "durationMs": 2856,
       "command": [
-        "/opt/hostedtoolcache/node/24.22.3/x64/bin/node",
+        "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
         "/home/runner/work/_temp/archify-package/package/package/skills/archify/bin/archify.mjs",
         "browser-check",
         "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05e-network-release-sequence.html",
@@ -272,7 +272,7 @@
         "status": "pass",
         "visualReview": "not-requested",
         "provenance": "current",
-        "deliveryReceiptId": "a7acdc67-2d5b-458a-b006-f1956a74a926",
+        "deliveryReceiptId": "8b820b66-54e3-4c84-83dc-6804f58e2167",
         "artifact": {
           "path": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05e-network-release-sequence.html",
           "sha256": "d7cebc4eb4bdb220831ae623e50683cb2c7db614da446ad39f8f12aec13d3041",
@@ -974,14 +974,14 @@
     "browserCheckReceipt": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05e-network-release-sequence.browser-check.json"
   },
   "visualReview": "not-requested",
-  "finishedAt": "2026-11-20T02:20:17.711Z",
-  "durationMs": 3835,
+  "finishedAt": "2026-11-20T02:25:01.139Z",
+  "durationMs": 3637,
   "update": {
     "status": "current",
     "installedVersion": "3.2.0",
     "availableVersion": "3.2.0",
     "releaseNotes": null,
-    "checkedAt": "2026-11-20T02:19:47.633Z",
+    "checkedAt": "2026-11-20T02:24:24.779Z",
     "source": "cache",
     "noticeRequired": false,
     "noticeText": null
