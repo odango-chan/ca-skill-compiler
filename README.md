@@ -21,6 +21,8 @@ or Runtime dispatch.
 | Artifact API | `connectionagent.io/compiler-artifact/v1alpha5` |
 | Static validation scope | `FULL_LANGUAGE_VALIDATION` (Compiler-owned obligations only) |
 | Product qualification | **NOT_QUALIFIED** (real Owner, Deployment, Host, Runtime, 5GC and MAS evidence is external) |
+| Development Build on `main` | **MERGED / UNRELEASED** — [architecture #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) and [implementation #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) |
+| Development artifact execution | **NOT_ADMITTED**; production Host must reject the `DEVELOPMENT` profile |
 
 CA-SL v1alpha5 inherits the released v1alpha4 language semantics. Those
 inherited obligations are implemented by the single v1alpha5 pipeline; the
@@ -31,6 +33,19 @@ unsupported version.
 v2.0.2 fixes producer output availability across Procedure stages. v2.0.1 fixed a false YAML indentation-depth rejection. Prior releases remain immutable and the v1alpha5 input/output contract is unchanged. The earlier **v1.0.0** product (v1alpha4 target) remains an
 immutable historical release. It is documented under
 [docs/release-notes-v1.0.0.md](docs/release-notes-v1.0.0.md).
+
+## Development Build (merged on main, not released)
+
+The next-generation **Compile → Interface Link → Build → Verify** development profile is now implemented on `main`. It consumes CA-SL v1alpha5 Skill source, exact Interface Package snapshots and a Dependency Lock, resolves package-scoped Schema references, and emits a deterministic artifact with static `capabilityRequirements[]` and separate Host Admission / Runtime Execution requirement files. It does **not** accept or verify actual Deployment Grants, Runtime Evidence, Provider Bindings or Commit Proof. Those remain Host / Runtime responsibilities.
+
+The code is available from the merged source branch; **it is not included in the published v2.0.2 release** and is not a production admission format. Development artifacts are always `NOT_ADMITTED`. MAS G0/G1 and real Owner/Provider acceptance are **NOT_RUN / pending**, and product qualification remains **NOT_QUALIFIED**.
+
+```bash
+skillc build-development --request <DEVELOPMENT_REQUEST.json> --out <DIR> --json
+skillc verify-development --request <DEVELOPMENT_REQUEST.json> --result <BUILD_RESULT.json>
+```
+
+See the [Development Build contract](docs/design/compiler-development-build-pilot.zh-CN.md) and [implementation/acceptance report](docs/design/compiler-development-build-implementation-report.zh-CN.md). The merge checkpoints are architecture `22860a2` and implementation `1d7ea81`; integration acceptance of the implementation PR head passed [GitHub Actions run #83](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44719522516).
 
 ## Normative authority
 
