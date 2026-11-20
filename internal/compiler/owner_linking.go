@@ -6,8 +6,11 @@ package compiler
 // this file indexes the exact callable and Schema exports and attributes each
 // actually referenced export to a trusted Owner. It adds no language semantics,
 // no diagnostic code and no Owner format of its own. Capability membership,
-// Schema type checking, Evidence descriptors and DependencyInspection remain in
-// WP3C/WP4/WP7/WP3D and stay fail-closed.
+// Schema type checking, Evidence Descriptor structure and DependencyInspection
+// remain in WP3C/WP4/WP7/WP3D and stay fail-closed. For an EvidenceDescriptor
+// export this file attributes the declared `authority` and the exact locked
+// snapshot path; the Descriptor's own structural / Producer / Schema checks are
+// owned by the static Evidence pass and are never duplicated here.
 
 import (
 	"sort"
@@ -193,12 +196,24 @@ func validateOwnerLinking(req BuildRequest, skill *SkillAST, identity dependency
 			}
 			matched = records[0]
 		case "evidenceGuarantee":
-			// The Evidence Descriptor authority is the trusted Owner of the
-			// guarantee; missing/ambiguous descriptors are diagnosed by the
-			// positive-path Evidence Descriptor linking slice.
-			matched = linkedExport{ExportKind: "evidenceGuarantee", ExportID: reference.exportID}
-			if descriptors := index.evidence[reference.exportID]; len(descriptors) == 1 {
-				matched.SelfDeclaredOwner = descriptors[0].Owner
+			// The Evidence Descriptor is the physical publication of the
+			// guarantee: its declared `authority` is the interface Owner
+			// identity and its locked snapshot path is the exact physical
+			// source. A Descriptor never re-declares a Callable interface
+			// Schema, so no Schema identity is attributed here. Missing or
+			// ambiguous Descriptor exports are diagnosed by the Evidence
+			// Descriptor linking pass and must not be attributed, otherwise an
+			// OWNER_TRUST requirement could name a Descriptor that does not
+			// exist.
+			descriptors := index.evidence[reference.exportID]
+			if len(descriptors) != 1 {
+				continue
+			}
+			matched = linkedExport{
+				ExportKind:        "evidenceGuarantee",
+				ExportID:          reference.exportID,
+				SelfDeclaredOwner: descriptors[0].Owner,
+				SourcePath:        descriptors[0].SnapshotPath,
 			}
 		default:
 			continue

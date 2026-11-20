@@ -258,13 +258,23 @@ func (semantics *developmentSemantics) evidenceIndexes(skill *SkillAST) map[stri
 // recordOwnerTrustRequirements records Host Admission owner-identity
 // requirements for used cross-package exports. The declared Owner remains the
 // interface identity used by the static checks.
+//
+// An EvidenceDescriptor export is a formal cross-package export like any other:
+// its declared `authority` is the Owner identity and it therefore requires its
+// own OWNER_TRUST. EVIDENCE_DOMAIN_TRUST and EVIDENCE_FACT_TRUST authorize the
+// external source domain and CommonFact instead; neither replaces the Owner
+// identity check. The Subject keeps the exact locked snapshot path, and the
+// location is the real Predicate Evidence JSON Pointer rather than a derived
+// "somewhere under evidence" position.
 func (semantics *developmentSemantics) recordOwnerTrustRequirements(skill *SkillAST, ownerLinking ownerLinkingResult) {
 	if skill == nil {
 		return
 	}
 	locations := developmentReferenceLocations(skill)
 	for _, export := range ownerLinking.Exports {
-		if export.ExportKind != "operation" && export.ExportKind != "observation" && export.ExportKind != "schema" {
+		switch export.ExportKind {
+		case "operation", "observation", "schema", "evidenceGuarantee":
+		default:
 			continue
 		}
 		key, exists := semantics.env.rootByAlias[export.DependencyAlias]
@@ -274,6 +284,13 @@ func (semantics *developmentSemantics) recordOwnerTrustRequirements(skill *Skill
 		locationKey := export.DependencyAlias + "\x00" + export.ExportKind + "\x00" + export.ExportID
 		candidates := locations[locationKey]
 		if len(candidates) == 0 {
+			if export.ExportKind == "evidenceGuarantee" {
+				// A Descriptor without a real Predicate Evidence position cannot
+				// produce an exactly locatable requirement. The static Evidence
+				// pass has already rejected the reference, so the Build fails and
+				// no Artifact is produced.
+				continue
+			}
 			candidates = []DevelopmentRequirementLocation{{
 				Skill: skill.Name, Path: export.SourcePath, Node: "", Stage: "", Selector: "",
 			}}

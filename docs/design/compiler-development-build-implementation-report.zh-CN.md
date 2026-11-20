@@ -5,8 +5,8 @@
 | 项 | 值 |
 |---|---|
 | 设计契约提交（PR #48 设计内容） | `551a0bba3455cfe4e7dbeede274b686a523316d6` |
-| 本报告对应的 PR #48 最终 HEAD | `a76ea350d981d945631b04f07a0bc61c83f525a8` |
-| 权威职责基线（固定到该 SHA） | [`compiler-evidence-assurance-responsibility-audit.zh-CN.md`](https://github.com/odango-chan/ca-skill-compiler/blob/a76ea350d981d945631b04f07a0bc61c83f525a8/docs/design/compiler-evidence-assurance-responsibility-audit.zh-CN.md) |
+| 本报告对应的 PR #48 最终 HEAD | `5a0340eec26aea6fad744d99743631995a4355d9` |
+| 权威职责基线（固定到该 SHA） | [`compiler-evidence-assurance-responsibility-audit.zh-CN.md`](https://github.com/odango-chan/ca-skill-compiler/blob/5a0340eec26aea6fad744d99743631995a4355d9/docs/design/compiler-evidence-assurance-responsibility-audit.zh-CN.md) |
 | 产品版本 / 语言目标 | CA Skill Compiler v2.0.0（未改）/ `connectionagent.io/v1alpha5`（未改） |
 | 冻结入口 | v2.0.2 BuildRequest / BuildResult / Artifact 逐字节未改 |
 | MAS G0 / G1 | **NOT_RUN** |
@@ -80,12 +80,25 @@
 
 另修复 `legacyRequest` 把未声明依赖默默回退为 `self` 的隐式路径；现在未声明的依赖别名在准入阶段即失败。
 
+### 1.7 EvidenceDescriptor 的 Owner Trust 与物理来源
+
+- `recordOwnerTrustRequirements()` 现在把 `EvidenceDescriptor`（导出 kind `evidenceGuarantee`）与 operation / observation / schema 同等处理：每个被 Predicate 消费的 Descriptor 在每个真实消费位置产生一条 `OWNER_TRUST`，Subject 携带精确 Package Key、Export ID、声明 Owner 与锁定快照路径。
+- `owner_linking.go` 的 Descriptor 分支不再只保留 Owner 与 Export ID：它同时保留 Dependency Alias、Package Key、Export ID、声明 Owner（`authority`）与精确 `SourcePath`（Descriptor 文件在锁定快照中的路径）。Descriptor 不携带第二份 Callable 接口 Schema，因此 `schemaIds` 为空；Producer 的输出 Schema 仍由该 Producer 的 Callable 唯一持有。
+- Descriptor 缺失或歧义时不做 Owner 归属，避免产生命名不存在 Descriptor 的 `OWNER_TRUST`；静态 Evidence pass 已经使 Build 失败。
+- `authority` 与 trusted Owner 不一致、Descriptor 缺失、或多 Owner 快照缺少精确归属，分别按既有 `DEPENDENCY_OWNER_MISMATCH` / `EVIDENCE_GUARANTEE_LINK_INVALID` / `DEPENDENCY_EXPORT_OWNER_UNVERIFIED` 拒绝。
+- `EVIDENCE_DOMAIN_TRUST` / `EVIDENCE_FACT_TRUST` 与 `OWNER_TRUST` 是三个独立 Requirement；同一 Descriptor 同时声明 `sourceIdentity` 与 `factIdentity` 时三条并存，Owner 身份不能被其中任何一条替代。
+- `VerifyDevelopment` 现在要求 Evidence 阶段的 `OWNER_TRUST` 的 `selector` 必须是真实引用位置：`/predicates/<p>/evidence/requires/<parameter>/<index>` 或 `/predicates/<p>/evidence/independence/<group>/members/<member>/guarantee`；粗粒度 `/evidence` 指针即使重算 `requirementId` 与外层摘要也会被拒绝。
+- Producer 输出 Schema 的解析改为：先按 Callable 所在 alias 限定解析，失败后按稳定 `$id` 在已锁定闭包内唯一解析。位于传递锁定包的输出 Schema 因此真正参与 Predicate 参数 Schema 比对，而不是被静默跳过；无法解析或与参数 Schema 不兼容仍是 Build FAIL。
+- 新增的定向测试覆盖：Descriptor Authority 精确记录；同一 Descriptor 被多个 Predicate / 多个列表序号引用；多个 Producer 提供同一 Guarantee 且输出 Schema 不同；Producer 输出 Schema 与参数的关联；缺失 / 重复 / 非法 / 未知 Producer / 错误 Owner / Outcome / `provides.path` / 未声明依赖 / Schema 不兼容的负例矩阵；删除 Descriptor `OWNER_TRUST` 与粗粒度 selector 在重封摘要后仍被 Verify 拒绝。
+
 ## 2. 架构与实现差异清单
 
 | 架构契约（PR #48） | 实现（PR #51） | 差异 |
 |---|---|---|
 | 输入只有源码、精确 Interface Package 快照、Dependency Lock；无 `assurance[]` / 可选 Assurance Export | `DevelopmentBuildRequest` 只有 `files/lock/snapshots`；`DevelopmentAssurance` 类型已删除 | 无 |
 | `EvidenceDescriptor` 是正式导出，缺失/重复/非法/Producer 不匹配即 FAIL | `EvidenceDescriptor` 导出索引 + 静态链接；失败即无产物 | 无 |
+| 每个被消费的 Descriptor `authority` 与其他跨包导出一样受 Owner Trust 约束，且不能被 Domain/Fact Trust 替代 | `ownerLinking.Exports` 保留 Descriptor 的声明 Owner 与精确 SourcePath；`recordOwnerTrustRequirements` 按真实消费位置记录 `OWNER_TRUST` | 无（本轮修正） |
+| Producer 输出 Schema 由 Producer 的 Callable 唯一持有并参与 Predicate 参数 Schema 比对 | `producerOutputSchemas` 先按 alias 限定、再按稳定 `$id` 在锁定闭包内唯一解析；不兼容即 `PREDICATE_TYPE_MISMATCH` | 无（本轮修正） |
 | Host Admission 四类 kind + `HOST_VERIFICATION_REQUIRED` | `host-admission-requirements.json` 仅接受四类 | 无 |
 | Runtime 两类 kind + `RUNTIME_EXECUTION_REQUIRED` | `runtime-execution-requirements.json` 仅接受两类 | 无 |
 | 两类共用统一摘要域 `CA-SKILL-DEVELOPMENT-REQUIREMENT\0v1\0`，`kind` 参与类型化键 | `developmentRequirementDigestDomain` 已统一；`kind` 在 `developmentRequirementKey` 内参与 JCS 摘要 | 无（本轮修正） |
@@ -132,6 +145,14 @@
 | 9 | Independence 明细篡改 | `TestDevelopmentVerifyRejectsIndependenceTampering`（成员域名/ID、成员删除、域对增删改、组序号、粗粒度 selector、多组合并；均重算 ID 并重封 manifest） |
 | 10 | 修改 Procedure / Lock / Descriptor 后 Verify FAIL | `TestDevelopmentVerifyRejectsSourceChanges`、`TestDevelopmentVerifyRejectsRequirementClassMigration` |
 | 11 | Native / WASM / Chromium 结果一致 | Chromium parity 门禁（build/status/diagnostics/artifactDigest/outputFiles 全部一致） |
+| 12 | Descriptor `OWNER_TRUST` 精确记录 | `TestDevelopmentEvidenceDescriptorOwnerTrustIsExact`（kind/status/Package Key/Export ID/SourcePath/selector 逐项断言） |
+| 13 | 同一 Descriptor 被多个 Predicate、多个列表序号引用 | `TestDevelopmentEvidenceDescriptorOwnerTrustPerReferencePosition`（3 个真实位置、3 条 Requirement） |
+| 14 | 多个 Producer 提供同一 Guarantee、多个输出 Schema | `TestDevelopmentEvidenceMultipleProducersAndSchemas`、`TestDevelopmentEvidenceProducerSchemaAssociation` |
+| 15 | Descriptor 静态非法矩阵 | `TestDevelopmentEvidenceDescriptorNegativeMatrix`（重复/非法/Producer 缺失/Owner 错误/authority 错误/Outcome/provides.path/未声明依赖/Schema 不兼容） |
+| 16 | 删除或粗粒度化 Descriptor `OWNER_TRUST` 后重封摘要 | `TestDevelopmentVerifyRejectsDeletedDescriptorOwnerTrust`、`TestDevelopmentVerifyRejectsCoarseDescriptorOwnerTrust` |
+| 17 | Owner Trust 不被 Domain / Fact Trust 替代 | `TestDevelopmentEvidenceDescriptorOwnerTrustIsNotReplacedByDomainOrFact`（三条 Requirement ID 互异） |
+| 18 | 无实际 Runtime Evidence / Attestation 的静态 Build | `TestDevelopmentBuildNeedsNoRuntimeEvidenceOrAttestation`（请求信封无这些字段、Build 成功、`NOT_ADMITTED`） |
+| 19 | 多 Owner 快照缺少 Descriptor 精确归属 | `TestWP3B010MultiOwnerEvidenceGuaranteeMissingAttribution`（`DEPENDENCY_EXPORT_OWNER_UNVERIFIED`） |
 
 CI：实现提交 `cf1fbd045df0c64c40fe2d14ad1d5f3673c1d493` 的 GitHub Actions 运行
 <https://github.com/odango-chan/ca-skill-compiler/actions/runs/44698833073>（job `v1alpha5-integration`，PASS，1m8s）。
@@ -141,6 +162,8 @@ PR #48 分支只改文档与图形，现有 workflow 的 path filter 不覆盖 `
 
 - MAS **G0 = NOT_RUN**（没有通过 G0 的真实精确接口快照），**G1 = NOT_RUN**。本报告不宣称 MAS 通过。
 - 所有正例仍为 Compiler 自有的**合成 Interface Package 快照**，不代表真实 Owner 发布或产品资格。
+- Development profile 的 Owner 归属来自每个包的单一 `publisher`，因此 Development 路径本身不构造多 Owner 快照；多 Owner 下 Descriptor 缺少精确归属的负例在共享的 owner-linking 层（`TestWP3B010MultiOwnerEvidenceGuaranteeMissingAttribution`）验证。真实多 Owner Interface Package 发布仍待 Provider/Owner 侧材料。
+- PR #48 本轮只改职责与边界文字：职责/流程未变，故未重绘 Archify 图 01–03，既有图与截图检查保持原样；仅文档提交换了 HEAD。
 - Owner 正式发布（真实 Owner 签名、真实 Interface Package 发布记录）**尚未完成**；本实现只消费调用方提供的精确快照与锁。
 - Development Artifact 恒为 `NOT_ADMITTED`；生产 Host 必须拒收 `DEVELOPMENT` profile。
 - 真实 Commit Proof、实际 Reconcile、运行时 Evidence、Deployment Grant、Provider Binding 与 Invocation 授权仍由 Host/Runtime 负责，本实现只记录其静态位置与契约。
@@ -155,6 +178,7 @@ PR #48 分支只改文档与图形，现有 workflow 的 path filter 不覆盖 `
 |---|---|---|---|---|---|
 | Evidence 声明/引用、参数绑定、SourcePath、Schema 类型 | 执行 | 提供快照 | 复核 | — | — |
 | EvidenceDescriptor 结构与 Producer/路径 | 执行 | 作为正式导出承载 | 复核 | — | 发布声明 |
+| EvidenceDescriptor 的 Owner 身份（`authority`） | 只做静态一致性并记录 `OWNER_TRUST` | 以正式导出声明 | 验证 `OWNER_TRUST`，不得用 Domain/Fact Trust 替代 | — | 承担 |
 | Owner 真实身份、签发权限 | 不判定 | 声明 `publisher` | 验证 `OWNER_TRUST` | — | 承担 |
 | IndependentDomains / CommonFact 授权 | 只检查声明形状 | — | 验证两类 TRUST | — | 授权 |
 | Independence 组静态结构与域对枚举 | 执行 | 提供 Descriptor | 验证 `EVIDENCE_INDEPENDENCE_TRUST` | — | 授权域对 |

@@ -384,12 +384,79 @@ func verifyDevelopmentRequirementLocation(requirement DevelopmentHostRequirement
 		if location.Node == "" || location.Stage != "evidence" {
 			return fmt.Errorf("Development evidence trust requirement has no source Predicate stage: %s", requirement.RequirementID)
 		}
-		wantPrefix := "/predicates/" + v1alpha5JSONPointerToken(location.Node) + "/evidence/"
-		if !strings.HasPrefix(location.Selector, wantPrefix) {
+		if !validDevelopmentEvidenceSelector(location.Node, location.Selector) {
 			return fmt.Errorf("Development evidence trust requirement selector %q is not an exact Evidence position", location.Selector)
+		}
+	case DevelopmentRequirementOwnerTrust:
+		// An EvidenceDescriptor export is consumed from the Predicate Evidence
+		// block, so its OWNER_TRUST must point at the same exact reference
+		// position as the guarantee itself. Callable/Schema Owner requirements
+		// use other stages and are not constrained here.
+		if location.Stage == "evidence" && !validDevelopmentEvidenceSelector(location.Node, location.Selector) {
+			return fmt.Errorf("Development Descriptor Owner Trust selector %q is not an exact Evidence position", location.Selector)
 		}
 	}
 	return nil
+}
+
+// validDevelopmentEvidenceSelector accepts exactly the two released Predicate
+// Evidence reference positions for the Predicate named by node:
+//
+//	/predicates/<predicate>/evidence/requires/<parameter>/<index>
+//	/predicates/<predicate>/evidence/independence/<group>/members/<member>/guarantee
+//
+// It rejects a coarse block pointer, a borrowed Predicate, an unreachable member
+// position and a non-canonical array index.
+func validDevelopmentEvidenceSelector(node, selector string) bool {
+	if node == "" {
+		return false
+	}
+	rest, ok := strings.CutPrefix(selector, "/predicates/"+v1alpha5JSONPointerToken(node)+"/evidence/")
+	if !ok {
+		return false
+	}
+	segments := strings.Split(rest, "/")
+	switch {
+	case len(segments) == 3 && segments[0] == "requires":
+		return validEvidencePointerToken(segments[1]) && validEvidenceIndex(segments[2])
+	case len(segments) == 5 && segments[0] == "independence" && segments[2] == "members" && segments[4] == "guarantee":
+		return validEvidenceIndex(segments[1]) && validEvidenceIndex(segments[3])
+	default:
+		return false
+	}
+}
+
+func validEvidencePointerToken(token string) bool {
+	if token == "" {
+		return false
+	}
+	for i := 0; i < len(token); i++ {
+		if token[i] != '~' {
+			continue
+		}
+		if i+1 >= len(token) || (token[i+1] != '0' && token[i+1] != '1') {
+			return false
+		}
+		i++
+	}
+	return true
+}
+
+func validEvidenceIndex(value string) bool {
+	if value == "" {
+		return false
+	}
+	index := 0
+	for i := 0; i < len(value); i++ {
+		if value[i] < '0' || value[i] > '9' {
+			return false
+		}
+		index = index*10 + int(value[i]-'0')
+		if index > maxDevelopmentRequirements {
+			return false
+		}
+	}
+	return itoa(index) == value
 }
 
 func developmentRequirementIsNormalized(requirement DevelopmentHostRequirement, normalized developmentRequirementKey) bool {

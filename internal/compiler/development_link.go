@@ -682,6 +682,13 @@ func (env *developmentEnvironment) legacyRequest() (BuildRequest, []syntheticDep
 				binding.ExportOwners = append(binding.ExportOwners, ExportOwner{
 					ExportKind: "ingressOperation", ExportID: export.id, Owner: pkg.manifest.publisher,
 				})
+			case "EvidenceDescriptor":
+				// An EvidenceDescriptor is a formal Interface Package export; its
+				// guarantee identity carries the package publisher as the declared
+				// Owner, exactly like a Callable or Schema export.
+				binding.ExportOwners = append(binding.ExportOwners, ExportOwner{
+					ExportKind: "evidenceGuarantee", ExportID: export.id, Owner: pkg.manifest.publisher,
+				})
 			}
 		}
 		sort.Slice(binding.ExportOwners, func(i, j int) bool {

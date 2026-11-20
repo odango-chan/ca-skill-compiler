@@ -106,6 +106,13 @@ func producerOutputSchemas(skill *SkillAST, ownerLinking ownerLinkingResult, reg
 		}
 		resource, problem := registry.resolveReference(export.DependencyAlias + "::" + export.OutputSchemaID)
 		if problem != "" {
+			// The Callable contract names a stable Schema $id. That Schema may be
+			// exported by a transitive locked package rather than the Callable's
+			// own package, so fall back to the unique closure-wide identity. The
+			// qualified lookup stays authoritative when it resolves.
+			resource, problem = registry.resolveReference(export.OutputSchemaID)
+		}
+		if problem != "" {
 			continue
 		}
 		linked[export.DependencyAlias+"::"+export.ExportID] = producerOutput{
