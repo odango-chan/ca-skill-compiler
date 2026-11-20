@@ -49,8 +49,8 @@
     {
       "id": "tools",
       "type": "backend",
-      "label": "Client Tools",
-      "sublabel": "CA-Tools"
+      "label": "CA Client Tools",
+      "sublabel": "Tool Dispatch"
     },
     {
       "id": "smf",
