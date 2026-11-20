@@ -1,7 +1,7 @@
 # CA-SL 工具链与 SCP-only AMF–SMF 架构图（Archify）
 
-本目录是 CA-SL 工具链与 SCP-only MAS 业务架构的正式图形资产。全部图形由本机已安装的
-**Archify 3.2.0** 生成，每张图都保留可编辑的 JSON 源文件，并附真实浏览器验收证据。
+本目录是 CA-SL 工具链与 SCP-only MAS 业务架构的正式图形资产。全部图形由 **Archify 3.2.0** 生成，
+每张图都保留可编辑的 JSON 源文件，并附可追溯的浏览器验收证据。
 
 打开 [index.html](index.html) 浏览全部图形。
 
@@ -43,9 +43,9 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 
 ## 3. 验收结果
 
-12 张图 **12/12 通过全部四道门**（`ok: true`，`diagnostics: []`）。逐图回执见
-`evidence/<figure>.finalize-summary.json` 与 `evidence/<figure>.visual-check.json`。
-完整验收记录见 [evidence/acceptance.md](evidence/acceptance.md)。
+12 张图均有四道门 PASS 记录（`ok: true`，`diagnostics: []`）。其中 **05a–05g 七张业务时序图已于 2026-11-20 按当前源文件重新生成并通过四道门及真实浏览器 `visual-check`**；01–04 与 05a-ops 的源文件未变，沿用此前通过的验收回执。
+
+05a–05g 当前回执见 `evidence/<figure>.finalize-summary.json`；当前截图、接触表与 `visual-check` 回执统一位于 `evidence/sequence-vnext/`。根目录 `evidence/` 中同名旧时序图截图是前一版源文件的历史证据，不作为当前版本截图使用。完整验收记录见 [evidence/acceptance.md](evidence/acceptance.md)。
 
 ## 4. 七张业务时序图的设计表达口径
 
@@ -57,6 +57,7 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 - 05d / 05e 按 r1（optional）→ r2 → r3 → r4 → r5 → r6 表达释放资源结算。
 - 05f 把 Service Request 与 Handover / Path Switch 作为两个互斥分支，始终操作既有 Session。
 - 05g 分开表达有效 callback、重复/迟到 callback，以及 UNKNOWN / exact-original Reconcile。
+- NAS Codec 是 CA Client Tools 内部的只读职责，不属于 Host SBI Decoder；05a / 05b / 05d 共用一条 Client Tools lifeline，并以 `NAS Codec / Dispatch` 副标签和卡片区分内部职责。原始 NAS 字节仍保持不变并交给 Owner。
 
 ## 5. 与绘图简报的两处有意偏差
 
@@ -77,6 +78,7 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
   Callable Ref 放进可见的节点标签，而不是依赖 `tag`。
 - sequence 图在 1440×900 下有纵向滚动（`data-reader-fit="width-first"`）。这是 Archify 对
   sequence 的既定阅读契约：宽度自适应、纵向滚动；横向不溢出。
+- 当前 05a–05g 的四主题截图与接触表位于 `evidence/sequence-vnext/`；根目录中同名旧截图保留为历史快照，避免覆盖无当前 provenance 所有权记录的旧证据。
 
 ## 7. 事实基线
 
