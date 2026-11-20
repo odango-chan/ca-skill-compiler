@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "receiptId": "7d2b7f7b-a948-444d-8b41-4017298cf5e8",
+  "receiptId": "a7acdc67-2d5b-458a-b006-f1956a74a926",
   "status": "current",
   "command": "deliver",
   "type": "sequence",
-  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05e-network-release-sequence.sequence.json",
-  "output": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05e-network-release-sequence.html",
+  "input": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05e-network-release-sequence.sequence.json",
+  "output": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05e-network-release-sequence.html",
   "specification": {
-    "sha256": "d143150152dabd59e0363b9a98978a8153702a88a9b9c4789db588f34b61b7df",
-    "bytes": 7080
+    "sha256": "83e322ab8105f33fe9c989f04c7e375d09bf17c923023213228d32e497f5bd5f",
+    "bytes": 10124
   },
   "artifact": {
-    "sha256": "5927727fe34a921d3e076ec3e4a7c4db834258dcf95858897071337493ffe161",
-    "bytes": 850861
+    "sha256": "d7cebc4eb4bdb220831ae623e50683cb2c7db614da446ad39f8f12aec13d3041",
+    "bytes": 860823
   }
 }

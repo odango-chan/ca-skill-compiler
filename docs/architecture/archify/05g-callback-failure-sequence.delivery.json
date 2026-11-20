@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "receiptId": "b065ef8a-4935-4546-b2cc-621c148b9c70",
+  "receiptId": "83e196ec-c4a0-4712-bc9a-8862caa55535",
   "status": "current",
   "command": "deliver",
   "type": "sequence",
-  "input": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05g-callback-failure-sequence.sequence.json",
-  "output": "C:\\Users\\z00587616\\Documents\\ConnectionAgent\\ca-skill-compiler\\docs\\architecture\\archify\\05g-callback-failure-sequence.html",
+  "input": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05g-callback-failure-sequence.sequence.json",
+  "output": "/home/runner/work/ca-skill-compiler/ca-skill-compiler/docs/architecture/archify/05g-callback-failure-sequence.html",
   "specification": {
-    "sha256": "03d30deb9fee54ddfd7360bbf05dd70ff8a02a5a08d2eadb3f49d5767314c673",
-    "bytes": 5845
+    "sha256": "178886238c396c1759ec41dc071d0d490070e2178442d9bfa5becd570197587b",
+    "bytes": 9193
   },
   "artifact": {
-    "sha256": "8ee8be8ef158ceaeb0607ee3c03dda98891bbf6818931cc8bffa94167c1e3590",
-    "bytes": 843417
+    "sha256": "b5ea01393e4096ab20163400fbc1c53d552ce76cdcbf333950e157f807fc17f1",
+    "bytes": 857117
   }
 }

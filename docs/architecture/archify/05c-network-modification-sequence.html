@@ -5196,7 +5196,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <div class="pulse-dot"></div>
         <h1>05c · 网络 / PCF 触发 Session Modification（SCP-only）</h1>
       </div>
-      <p class="subtitle">F05 设计时序 · 不重建 Session · 受信 Owner 事件桥接未实现</p>
+      <p class="subtitle">F05 · 目标业务时序 · PCF callback 先到 OpenAMSM；Owner scoped event 再进入 CA-Agent Run</p>
     </div>
 
 
@@ -5204,9 +5204,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <!-- Main Diagram -->
     <div class="diagram-container" data-detail-level="read"
          data-preset-badge-editorial-plate="ARCHIFY / 图版 04">
-      <svg viewBox="0 0 920 1010" data-sequence-column-fit="spread" data-reader-fit="width-first" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-motion-choreography="sequence">
+      <svg viewBox="0 0 1085 1432" data-sequence-column-fit="spread" data-reader-fit="width-first" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-motion-choreography="sequence">
         <title id="archify-diagram-title">05c · 网络 / PCF 触发 Session Modification（SCP-only）</title>
-        <desc id="archify-diagram-description">F05 设计时序 · 不重建 Session · 受信 Owner 事件桥接未实现</desc>
+        <desc id="archify-diagram-description">F05 · 目标业务时序 · PCF callback 先到 OpenAMSM；Owner scoped event 再进入 CA-Agent Run</desc>
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -5230,352 +5230,472 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Time Segments -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="0" x="48" y="150" width="824" height="100" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="0" x="48" y="150" width="989" height="128" rx="10" class="c-lane" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="1" x="48" y="258" width="824" height="212" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="1" x="48" y="282" width="989" height="252" rx="10" class="c-lane" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="2" x="48" y="478" width="824" height="212" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="2" x="48" y="538" width="989" height="348" rx="10" class="c-lane" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="3" x="48" y="698" width="824" height="214" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="3" x="48" y="890" width="989" height="316" rx="10" class="c-lane" stroke-width="1"/>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="4" x="48" y="1210" width="989" height="124" rx="10" class="c-lane" stroke-width="1"/>
 
         <!-- Lifelines -->
-        <path d="M 105 142 L 105 914" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 209.57142857142856 142 L 209.57142857142856 914" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 314.1428571428571 142 L 314.1428571428571 914" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 418.7142857142857 142 L 418.7142857142857 914" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 523.2857142857142 142 L 523.2857142857142 914" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 627.8571428571429 142 L 627.8571428571429 914" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 732.4285714285714 142 L 732.4285714285714 914" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 837 142 L 837 914" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 101 142 L 101 1336" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 213 142 L 213 1336" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 325 142 L 325 1336" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 437 142 L 437 1336" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 549 142 L 549 1336" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 661 142 L 661 1336" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 773 142 L 773 1336" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 885 142 L 885 1336" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 997 142 L 997 1336" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
 
         <!-- Activations -->
-        <rect x="204.57142857142856" y="158" width="10" height="754" rx="3" class="c-mask"/>
-        <rect x="204.57142857142856" y="158" width="10" height="754" rx="3" class="c-cloud" stroke-width="1"/>
-        <rect x="309.1428571428571" y="194" width="10" height="718" rx="3" class="c-mask"/>
-        <rect x="309.1428571428571" y="194" width="10" height="718" rx="3" class="c-backend" stroke-width="1"/>
-        <rect x="413.7142857142857" y="226" width="10" height="686" rx="3" class="c-mask"/>
-        <rect x="413.7142857142857" y="226" width="10" height="686" rx="3" class="c-backend" stroke-width="1"/>
-        <rect x="518.2857142857142" y="258" width="10" height="654" rx="3" class="c-mask"/>
-        <rect x="518.2857142857142" y="258" width="10" height="654" rx="3" class="c-backend" stroke-width="1"/>
+
 
         <!-- Messages -->
-        <g data-edge-from="pcf" data-edge-to="scp" data-edge-label="Npcf_SMPolicyControl_Notify" data-edge-key="0" data-edge-id="m01">
-          <path data-composition-edge-from="pcf" data-composition-edge-to="scp" data-composition-edge-id="m01" data-composition-points="112,168;202.57142857142856,168" d="M 112 168 L 202.57142857142856 168" class="a-default" data-animate="edge" style="--step:0" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="pcf" data-edge-to="scp" data-edge-label="PCF Policy Notification" data-edge-key="0" data-edge-id="m01">
+          <path data-composition-edge-from="pcf" data-composition-edge-to="scp" data-composition-edge-id="m01" data-composition-points="108,168;206,168" d="M 108 168 L 206 168" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="62.18571428571428" y="148" width="190.2" height="18" rx="3" class="c-mask"/>
-          <text x="157.28571428571428" y="158" class="t-muted" font-size="11" text-anchor="middle">Npcf_SMPolicyControl_Notify</text>
+          <rect x="75.10000000000001" y="148" width="163.79999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="157" y="158" class="t-edge-emphasis" font-size="11" text-anchor="middle">PCF Policy Notification</text>
         </g>
         </g>
 
-        <g data-edge-from="scp" data-edge-to="smf" data-edge-label="OpenAMSM callback URI" data-edge-key="1" data-edge-id="m02">
-          <path data-composition-edge-from="scp" data-composition-edge-to="smf" data-composition-edge-id="m02" data-composition-points="216.57142857142856,200;307.1428571428571,200" d="M 216.57142857142856 200 L 307.1428571428571 200" class="a-default" data-animate="edge" style="--step:1" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="scp" data-edge-to="smf" data-edge-label="OpenAMSM callback URI / SM Policy event" data-edge-key="1" data-edge-id="m02">
+          <path data-composition-edge-from="scp" data-composition-edge-to="smf" data-composition-edge-id="m02" data-composition-points="220,200;318,200" d="M 220 200 L 318 200" class="a-default" data-animate="edge" style="--step:1" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="186.55714285714282" y="180" width="150.6" height="18" rx="3" class="c-mask"/>
-          <text x="261.85714285714283" y="190" class="t-muted" font-size="11" text-anchor="middle">OpenAMSM callback URI</text>
+          <rect x="134.3" y="180" width="269.4" height="18" rx="3" class="c-mask"/>
+          <text x="269" y="190" class="t-muted" font-size="11" text-anchor="middle">OpenAMSM callback URI / SM Policy event</text>
         </g>
         </g>
 
-        <g data-edge-from="smf" data-edge-to="host" data-edge-label="受信 scoped 事件（未实现）" data-edge-key="2" data-edge-id="m03">
-          <path data-composition-edge-from="smf" data-composition-edge-to="host" data-composition-edge-id="m03" data-composition-points="321.1428571428571,232;411.7142857142857,232" d="M 321.1428571428571 232 L 411.7142857142857 232" class="a-dashed" data-animate="edge" style="--step:2" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-edge-from="smf" data-edge-to="host" data-edge-label="Scoped event · SUPI / PSI / trigger / generation" data-edge-key="2" data-edge-id="m03">
+          <path data-composition-edge-from="smf" data-composition-edge-to="host" data-composition-edge-id="m03" data-composition-points="332,232;430,232" d="M 332 232 L 430 232" class="a-security" data-animate="edge" style="--step:2" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="274.62857142857143" y="212" width="183.6" height="18" rx="3" class="c-mask"/>
-          <text x="366.42857142857144" y="222" class="t-edge-dashed" font-size="11" text-anchor="middle">受信 scoped 事件（未实现）</text>
+          <rect x="216.60000000000002" y="212" width="328.79999999999995" height="18" rx="3" class="c-mask"/>
+          <text x="381" y="222" class="t-edge-security" font-size="11" text-anchor="middle">Scoped event · SUPI / PSI / trigger / generation</text>
         </g>
         </g>
 
-        <g data-edge-from="host" data-edge-to="tools" data-edge-label="Locate Session + Modify Run（DESIGN）" data-edge-key="3" data-edge-id="m04">
-          <path data-composition-edge-from="host" data-composition-edge-to="tools" data-composition-edge-id="m04" data-composition-points="425.7142857142857,264;516.2857142857142,264" d="M 425.7142857142857 264 L 516.2857142857142 264" class="a-dashed" data-animate="edge" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-edge-from="host" data-edge-to="runtime" data-edge-label="Locate existing Session; start or continue Modify Run" data-edge-key="3" data-edge-id="m04">
+          <path data-composition-edge-from="host" data-composition-edge-to="runtime" data-composition-edge-id="m04" data-composition-points="444,264;542,264" d="M 444 264 L 542 264" class="a-default" data-animate="edge" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="342.9" y="244" width="256.2" height="18" rx="3" class="c-mask"/>
-          <text x="471" y="254" class="t-edge-dashed" font-size="11" text-anchor="middle">Locate Session + Modify Run（DESIGN）</text>
+          <rect x="312.1" y="244" width="361.79999999999995" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="254" class="t-muted" font-size="11" text-anchor="middle">Locate existing Session; start or continue Modify Run</text>
         </g>
         </g>
 
-        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="m0 SC.UPDATE_SM_CONTEXT（DESIGN）" data-edge-key="4" data-edge-id="m05">
-          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m05" data-composition-points="516.2857142857142,296;321.1428571428571,296" d="M 516.2857142857142 296 L 321.1428571428571 296" class="a-dashed" data-animate="edge" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="m0 · SC.UPDATE_SM_CONTEXT" data-edge-key="4" data-edge-id="m05">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m05" data-composition-points="556,296;654,296" d="M 556 296 L 654 296" class="a-emphasis" data-animate="edge" style="--step:4" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="303.8142857142857" y="276" width="229.79999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="418.71428571428567" y="286" class="t-edge-dashed" font-size="11" text-anchor="middle">m0 SC.UPDATE_SM_CONTEXT（DESIGN）</text>
+          <rect x="516.5" y="276" width="177" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="286" class="t-edge-emphasis" font-size="11" text-anchor="middle">m0 · SC.UPDATE_SM_CONTEXT</text>
         </g>
         </g>
 
-        <g data-edge-from="smf" data-edge-to="tools" data-edge-label="当前 Owner 状态" data-edge-key="5" data-edge-id="m06">
-          <path data-composition-edge-from="smf" data-composition-edge-to="tools" data-composition-edge-id="m06" data-composition-points="321.1428571428571,328;516.2857142857142,328" d="M 321.1428571428571 328 L 516.2857142857142 328" class="a-default" data-animate="edge" style="--step:5" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="m0 Owner context update" data-edge-key="5" data-edge-id="m06">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m06" data-composition-points="654,328;332,328" d="M 654 328 L 332 328" class="a-security" data-animate="edge" style="--step:5" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="363.21428571428567" y="308" width="111" height="18" rx="3" class="c-mask"/>
-          <text x="418.71428571428567" y="318" class="t-muted" font-size="11" text-anchor="middle">当前 Owner 状态</text>
+          <rect x="411.1" y="308" width="163.79999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="318" class="t-edge-security" font-size="11" text-anchor="middle">m0 Owner context update</text>
         </g>
         </g>
 
-        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="m3 UPN.MODIFY_UP_SESSION（DESIGN）" data-edge-key="6" data-edge-id="m07">
-          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m07" data-composition-points="516.2857142857142,360;321.1428571428571,360" d="M 516.2857142857142 360 L 321.1428571428571 360" class="a-dashed" data-animate="edge" style="--step:6" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="m2 · CA.UPDATE_CHARGING（optional）" data-edge-key="6" data-edge-id="m07">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m07" data-composition-points="556,360;654,360" d="M 556 360 L 654 360" class="a-default" data-animate="edge" style="--step:6" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="300.5142857142857" y="340" width="236.39999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="418.71428571428567" y="350" class="t-edge-dashed" font-size="11" text-anchor="middle">m3 UPN.MODIFY_UP_SESSION（DESIGN）</text>
+          <rect x="483.5" y="340" width="243" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="350" class="t-muted" font-size="11" text-anchor="middle">m2 · CA.UPDATE_CHARGING（optional）</text>
         </g>
         </g>
 
-        <g data-edge-from="smf" data-edge-to="upf" data-edge-label="PFCP Modification Type 52" data-edge-key="7" data-edge-id="m08">
-          <path data-composition-edge-from="smf" data-composition-edge-to="upf" data-composition-edge-id="m08" data-composition-points="321.1428571428571,392;830,392" d="M 321.1428571428571 392 L 830 392" class="a-default" data-animate="edge" style="--step:7" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="m2 optional charging step" data-edge-key="7" data-edge-id="m08">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m08" data-composition-points="654,392;332,392" d="M 654 392 L 332 392" class="a-security" data-animate="edge" style="--step:7" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="487.07142857142856" y="372" width="177" height="18" rx="3" class="c-mask"/>
-          <text x="575.5714285714286" y="382" class="t-muted" font-size="11" text-anchor="middle">PFCP Modification Type 52</text>
+          <rect x="404.5" y="372" width="177" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="382" class="t-edge-security" font-size="11" text-anchor="middle">m2 optional charging step</text>
         </g>
         </g>
 
-        <g data-edge-from="upf" data-edge-to="smf" data-edge-label="PFCP result" data-edge-key="8" data-edge-id="m09">
-          <path data-composition-edge-from="upf" data-composition-edge-to="smf" data-composition-edge-id="m09" data-composition-points="830,424;321.1428571428571,424" d="M 830 424 L 321.1428571428571 424" class="a-default" data-animate="edge" style="--step:8" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="m3 · UPN.MODIFY_UP_SESSION" data-edge-key="8" data-edge-id="m09">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m09" data-composition-points="556,424;654,424" d="M 556 424 L 654 424" class="a-emphasis" data-animate="edge" style="--step:8" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="533.2714285714286" y="404" width="84.6" height="18" rx="3" class="c-mask"/>
-          <text x="575.5714285714286" y="414" class="t-muted" font-size="11" text-anchor="middle">PFCP result</text>
+          <rect x="513.2" y="404" width="183.6" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="414" class="t-edge-emphasis" font-size="11" text-anchor="middle">m3 · UPN.MODIFY_UP_SESSION</text>
         </g>
         </g>
 
-        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="m4 SSM.SIGNAL_UE_AN（DESIGN）" data-edge-key="9" data-edge-id="m10">
-          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m10" data-composition-points="516.2857142857142,456;321.1428571428571,456" d="M 516.2857142857142 456 L 321.1428571428571 456" class="a-dashed" data-animate="edge" style="--step:9" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="m3 Owner N4 modification" data-edge-key="9" data-edge-id="m10">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m10" data-composition-points="654,456;332,456" d="M 654 456 L 332 456" class="a-security" data-animate="edge" style="--step:9" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="317.0142857142857" y="436" width="203.39999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="418.71428571428567" y="446" class="t-edge-dashed" font-size="11" text-anchor="middle">m4 SSM.SIGNAL_UE_AN（DESIGN）</text>
+          <rect x="407.8" y="436" width="170.39999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="446" class="t-edge-security" font-size="11" text-anchor="middle">m3 Owner N4 modification</text>
         </g>
         </g>
 
-        <g data-edge-from="smf" data-edge-to="host" data-edge-label="私有 Namf Relay：N1N2 请求" data-edge-key="10" data-edge-id="m11">
-          <path data-composition-edge-from="smf" data-composition-edge-to="host" data-composition-edge-id="m11" data-composition-points="321.1428571428571,488;411.7142857142857,488" d="M 321.1428571428571 488 L 411.7142857142857 488" class="a-security" data-animate="edge" style="--step:10" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-edge-from="smf" data-edge-to="upf" data-edge-label="PFCP Modification Request · 52" data-edge-key="10" data-edge-id="m11">
+          <path data-composition-edge-from="smf" data-composition-edge-to="upf" data-composition-edge-id="m11" data-composition-points="332,488;990,488" d="M 332 488 L 990 488" class="a-default" data-animate="edge" style="--step:10" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="274.62857142857143" y="468" width="183.6" height="18" rx="3" class="c-mask"/>
-          <text x="366.42857142857144" y="478" class="t-edge-security" font-size="11" text-anchor="middle">私有 Namf Relay：N1N2 请求</text>
+          <rect x="556" y="468" width="210" height="18" rx="3" class="c-mask"/>
+          <text x="661" y="478" class="t-muted" font-size="11" text-anchor="middle">PFCP Modification Request · 52</text>
         </g>
         </g>
 
-        <g data-edge-from="host" data-edge-to="tools" data-edge-label="fixed Namf egress" data-edge-key="11" data-edge-id="m12">
-          <path data-composition-edge-from="host" data-composition-edge-to="tools" data-composition-edge-id="m12" data-composition-points="425.7142857142857,520;516.2857142857142,520" d="M 425.7142857142857 520 L 516.2857142857142 520" class="a-security" data-animate="edge" style="--step:11" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-edge-from="upf" data-edge-to="smf" data-edge-label="PFCP Modification Response · 53" data-edge-key="11" data-edge-id="m12">
+          <path data-composition-edge-from="upf" data-composition-edge-to="smf" data-composition-edge-id="m12" data-composition-points="990,520;332,520" d="M 990 520 L 332 520" class="a-default" data-animate="edge" style="--step:11" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="408.9" y="500" width="124.19999999999999" height="18" rx="3" class="c-mask"/>
-          <text x="471" y="510" class="t-edge-security" font-size="11" text-anchor="middle">fixed Namf egress</text>
+          <rect x="552.7" y="500" width="216.6" height="18" rx="3" class="c-mask"/>
+          <text x="661" y="510" class="t-muted" font-size="11" text-anchor="middle">PFCP Modification Response · 53</text>
         </g>
         </g>
 
-        <g data-edge-from="tools" data-edge-to="scp" data-edge-label="Namf_Communication_N1N2MessageTransfer" data-edge-key="12" data-edge-id="m13">
-          <path data-composition-edge-from="tools" data-composition-edge-to="scp" data-composition-edge-id="m13" data-composition-points="516.2857142857142,552;216.57142857142856,552" d="M 516.2857142857142 552 L 216.57142857142856 552" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="smf" data-edge-to="tools" data-edge-label="m3 result" data-edge-key="12" data-edge-id="m13">
+          <path data-composition-edge-from="smf" data-composition-edge-to="tools" data-composition-edge-id="m13" data-composition-points="332,552;654,552" d="M 332 552 L 654 552" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="235.0285714285714" y="532" width="262.79999999999995" height="18" rx="3" class="c-mask"/>
-          <text x="366.4285714285714" y="542" class="t-edge-emphasis" font-size="11" text-anchor="middle">Namf_Communication_N1N2MessageTransfer</text>
+          <rect x="457.3" y="532" width="71.4" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="542" class="t-muted" font-size="11" text-anchor="middle">m3 result</text>
         </g>
         </g>
 
-        <g data-edge-from="scp" data-edge-to="amf" data-edge-label="N1/N2 修改信息" data-edge-key="13" data-edge-id="m14">
-          <path data-composition-edge-from="scp" data-composition-edge-to="amf" data-composition-edge-id="m14" data-composition-points="216.57142857142856,584;620.8571428571429,584" d="M 216.57142857142856 584 L 620.8571428571429 584" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="m4 · SSM.SIGNAL_UE_AN" data-edge-key="13" data-edge-id="m14">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m14" data-composition-points="556,584;654,584" d="M 556 584 L 654 584" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="366.51428571428573" y="564" width="104.39999999999999" height="18" rx="3" class="c-mask"/>
-          <text x="418.7142857142857" y="574" class="t-edge-emphasis" font-size="11" text-anchor="middle">N1/N2 修改信息</text>
+          <rect x="529.7" y="564" width="150.6" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="574" class="t-edge-emphasis" font-size="11" text-anchor="middle">m4 · SSM.SIGNAL_UE_AN</text>
         </g>
         </g>
 
-        <g data-edge-from="amf" data-edge-to="ue" data-edge-label="转发 NAS / RAN 修改" data-edge-key="14" data-edge-id="m15">
-          <path data-composition-edge-from="amf" data-composition-edge-to="ue" data-composition-edge-id="m15" data-composition-points="634.8571428571429,616;725.4285714285714,616" d="M 634.8571428571429 616 L 725.4285714285714 616" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="m4 Owner AN signaling operation" data-edge-key="14" data-edge-id="m15">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m15" data-composition-points="654,616;332,616" d="M 654 616 L 332 616" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="611.4428571428571" y="596" width="137.39999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="680.1428571428571" y="606" class="t-muted" font-size="11" text-anchor="middle">转发 NAS / RAN 修改</text>
+          <rect x="384.7" y="596" width="216.6" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="606" class="t-edge-security" font-size="11" text-anchor="middle">m4 Owner AN signaling operation</text>
         </g>
         </g>
 
-        <g data-edge-from="ue" data-edge-to="amf" data-edge-label="N1/N2 响应" data-edge-key="15" data-edge-id="m16">
-          <path data-composition-edge-from="ue" data-composition-edge-to="amf" data-composition-edge-id="m16" data-composition-points="725.4285714285714,648;634.8571428571429,648" d="M 725.4285714285714 648 L 634.8571428571429 648" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="smf" data-edge-to="host" data-edge-label="OpenAMSM private Namf Relay request" data-edge-key="15" data-edge-id="m16">
+          <path data-composition-edge-from="smf" data-composition-edge-to="host" data-composition-edge-id="m16" data-composition-points="332,648;430,648" d="M 332 648 L 430 648" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="641.1428571428571" y="628" width="78" height="18" rx="3" class="c-mask"/>
-          <text x="680.1428571428571" y="638" class="t-muted" font-size="11" text-anchor="middle">N1/N2 响应</text>
+          <rect x="259.5" y="628" width="243" height="18" rx="3" class="c-mask"/>
+          <text x="381" y="638" class="t-edge-security" font-size="11" text-anchor="middle">OpenAMSM private Namf Relay request</text>
         </g>
         </g>
 
-        <g data-edge-from="amf" data-edge-to="scp" data-edge-label="Nsmf_PDUSession_UpdateSMContext" data-edge-key="16" data-edge-id="m17">
-          <path data-composition-edge-from="amf" data-composition-edge-to="scp" data-composition-edge-id="m17" data-composition-points="620.8571428571429,680;216.57142857142856,680" d="M 620.8571428571429 680 L 216.57142857142856 680" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="host" data-edge-to="tools" data-edge-label="Fixed Namf egress" data-edge-key="16" data-edge-id="m17">
+          <path data-composition-edge-from="host" data-composition-edge-to="tools" data-composition-edge-id="m17" data-composition-points="444,680;654,680" d="M 444 680 L 654 680" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="310.4142857142857" y="660" width="216.6" height="18" rx="3" class="c-mask"/>
-          <text x="418.7142857142857" y="670" class="t-edge-emphasis" font-size="11" text-anchor="middle">Nsmf_PDUSession_UpdateSMContext</text>
+          <rect x="486.9" y="660" width="124.19999999999999" height="18" rx="3" class="c-mask"/>
+          <text x="549" y="670" class="t-edge-security" font-size="11" text-anchor="middle">Fixed Namf egress</text>
         </g>
         </g>
 
-        <g data-edge-from="scp" data-edge-to="host" data-edge-label="Host Location" data-edge-key="17" data-edge-id="m18">
-          <path data-composition-edge-from="scp" data-composition-edge-to="host" data-composition-edge-id="m18" data-composition-points="216.57142857142856,712;411.7142857142857,712" d="M 216.57142857142856 712 L 411.7142857142857 712" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="tools" data-edge-to="scp" data-edge-label="Namf_Communication_N1N2MessageTransfer" data-edge-key="17" data-edge-id="m18">
+          <path data-composition-edge-from="tools" data-composition-edge-to="scp" data-composition-edge-id="m18" data-composition-points="654,712;220,712" d="M 654 712 L 220 712" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="265.24285714285713" y="692" width="97.8" height="18" rx="3" class="c-mask"/>
-          <text x="314.1428571428571" y="702" class="t-muted" font-size="11" text-anchor="middle">Host Location</text>
+          <rect x="305.6" y="692" width="262.79999999999995" height="18" rx="3" class="c-mask"/>
+          <text x="437" y="702" class="t-edge-emphasis" font-size="11" text-anchor="middle">Namf_Communication_N1N2MessageTransfer</text>
         </g>
         </g>
 
-        <g data-edge-from="host" data-edge-to="tools" data-edge-label="correlate to original Owner" data-edge-key="18" data-edge-id="m19">
-          <path data-composition-edge-from="host" data-composition-edge-to="tools" data-composition-edge-id="m19" data-composition-points="425.7142857142857,744;516.2857142857142,744" d="M 425.7142857142857 744 L 516.2857142857142 744" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="scp" data-edge-to="amf" data-edge-label="N1/N2 modification information" data-edge-key="18" data-edge-id="m19">
+          <path data-composition-edge-from="scp" data-composition-edge-to="amf" data-composition-edge-id="m19" data-composition-points="220,744;766,744" d="M 220 744 L 766 744" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="375.9" y="724" width="190.2" height="18" rx="3" class="c-mask"/>
-          <text x="471" y="734" class="t-muted" font-size="11" text-anchor="middle">correlate to original Owner</text>
+          <rect x="388" y="724" width="210" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="734" class="t-edge-emphasis" font-size="11" text-anchor="middle">N1/N2 modification information</text>
         </g>
         </g>
 
-        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="exact original occurrence" data-edge-key="19" data-edge-id="m20">
-          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m20" data-composition-points="516.2857142857142,776;321.1428571428571,776" d="M 516.2857142857142 776 L 321.1428571428571 776" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-edge-from="amf" data-edge-to="ue" data-edge-label="Forward NAS / RAN modification" data-edge-key="19" data-edge-id="m20">
+          <path data-composition-edge-from="amf" data-composition-edge-to="ue" data-composition-edge-id="m20" data-composition-points="780,776;878,776" d="M 780 776 L 878 776" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="330.21428571428567" y="756" width="177" height="18" rx="3" class="c-mask"/>
-          <text x="418.71428571428567" y="766" class="t-edge-security" font-size="11" text-anchor="middle">exact original occurrence</text>
+          <rect x="724" y="756" width="210" height="18" rx="3" class="c-mask"/>
+          <text x="829" y="766" class="t-muted" font-size="11" text-anchor="middle">Forward NAS / RAN modification</text>
         </g>
         </g>
 
-        <g data-edge-from="smf" data-edge-to="tools" data-edge-label="m5 UPN.MODIFY_UP_SESSION（DESIGN）" data-edge-key="20" data-edge-id="m21">
-          <path data-composition-edge-from="smf" data-composition-edge-to="tools" data-composition-edge-id="m21" data-composition-points="321.1428571428571,808;516.2857142857142,808" d="M 321.1428571428571 808 L 516.2857142857142 808" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-edge-from="ue" data-edge-to="amf" data-edge-label="N1 / N2 response" data-edge-key="20" data-edge-id="m21">
+          <path data-composition-edge-from="ue" data-composition-edge-to="amf" data-composition-edge-id="m21" data-composition-points="878,808;780,808" d="M 878 808 L 780 808" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="300.5142857142857" y="788" width="236.39999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="418.71428571428567" y="798" class="t-edge-dashed" font-size="11" text-anchor="middle">m5 UPN.MODIFY_UP_SESSION（DESIGN）</text>
+          <rect x="770.2" y="788" width="117.6" height="18" rx="3" class="c-mask"/>
+          <text x="829" y="798" class="t-muted" font-size="11" text-anchor="middle">N1 / N2 response</text>
         </g>
         </g>
 
-        <g data-edge-from="tools" data-edge-to="host" data-edge-label="resume same operation 或 UNKNOWN" data-edge-key="21" data-edge-id="m22">
-          <path data-composition-edge-from="tools" data-composition-edge-to="host" data-composition-edge-id="m22" data-composition-points="516.2857142857142,840;425.7142857142857,840" d="M 516.2857142857142 840 L 425.7142857142857 840" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="amf" data-edge-to="scp" data-edge-label="Nsmf_PDUSession_UpdateSMContext · N1/N2 result" data-edge-key="21" data-edge-id="m22">
+          <path data-composition-edge-from="amf" data-composition-edge-to="scp" data-composition-edge-id="m22" data-composition-points="766,840;220,840" d="M 766 840 L 220 840" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="359.4" y="820" width="223.2" height="18" rx="3" class="c-mask"/>
-          <text x="471" y="830" class="t-muted" font-size="11" text-anchor="middle">resume same operation 或 UNKNOWN</text>
+          <rect x="335.20000000000005" y="820" width="315.59999999999997" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="830" class="t-edge-emphasis" font-size="11" text-anchor="middle">Nsmf_PDUSession_UpdateSMContext · N1/N2 result</text>
         </g>
         </g>
 
-        <g data-edge-from="host" data-edge-to="scp" data-edge-label="最终响应" data-edge-key="22" data-edge-id="m23">
-          <path data-composition-edge-from="host" data-composition-edge-to="scp" data-composition-edge-id="m23" data-composition-points="411.7142857142857,872;216.57142857142856,872" d="M 411.7142857142857 872 L 216.57142857142856 872" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="scp" data-edge-to="host" data-edge-label="Existing Host Location" data-edge-key="22" data-edge-id="m23">
+          <path data-composition-edge-from="scp" data-composition-edge-to="host" data-composition-edge-id="m23" data-composition-points="220,872;430,872" d="M 220 872 L 430 872" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="281.74285714285713" y="852" width="64.8" height="18" rx="3" class="c-mask"/>
-          <text x="314.1428571428571" y="862" class="t-muted" font-size="11" text-anchor="middle">最终响应</text>
+          <rect x="246.4" y="852" width="157.2" height="18" rx="3" class="c-mask"/>
+          <text x="325" y="862" class="t-muted" font-size="11" text-anchor="middle">Existing Host Location</text>
         </g>
         </g>
 
-        <g data-edge-from="scp" data-edge-to="amf" data-edge-label="响应" data-edge-key="23" data-edge-id="m24">
-          <path data-composition-edge-from="scp" data-composition-edge-to="amf" data-composition-edge-id="m24" data-composition-points="216.57142857142856,904;620.8571428571429,904" d="M 216.57142857142856 904 L 620.8571428571429 904" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="host" data-edge-to="runtime" data-edge-label="correlate exact m4 occurrence / generation" data-edge-key="23" data-edge-id="m24">
+          <path data-composition-edge-from="host" data-composition-edge-to="runtime" data-composition-edge-id="m24" data-composition-points="444,904;542,904" d="M 444 904 L 542 904" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="399.51428571428573" y="884" width="38.4" height="18" rx="3" class="c-mask"/>
-          <text x="418.7142857142857" y="894" class="t-muted" font-size="11" text-anchor="middle">响应</text>
+          <rect x="348.4" y="884" width="289.2" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="894" class="t-muted" font-size="11" text-anchor="middle">correlate exact m4 occurrence / generation</text>
+        </g>
+        </g>
+
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="continue original m4 Owner operation" data-edge-key="24" data-edge-id="m25">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m25" data-composition-points="556,936;654,936" d="M 556 936 L 654 936" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-detail="context">
+          <rect x="480.2" y="916" width="249.6" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="926" class="t-edge-security" font-size="11" text-anchor="middle">continue original m4 Owner operation</text>
+        </g>
+        </g>
+
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="Owner adopts N1/N2 attachment + typed facts" data-edge-key="25" data-edge-id="m26">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m26" data-composition-points="654,968;332,968" d="M 654 968 L 332 968" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-detail="context">
+          <rect x="345.1" y="948" width="295.8" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="958" class="t-edge-security" font-size="11" text-anchor="middle">Owner adopts N1/N2 attachment + typed facts</text>
+        </g>
+        </g>
+
+        <g data-edge-from="smf" data-edge-to="tools" data-edge-label="AN result adopted / tunnel data" data-edge-key="26" data-edge-id="m27">
+          <path data-composition-edge-from="smf" data-composition-edge-to="tools" data-composition-edge-id="m27" data-composition-points="332,1000;654,1000" d="M 332 1000 L 654 1000" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="384.7" y="980" width="216.6" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="990" class="t-muted" font-size="11" text-anchor="middle">AN result adopted / tunnel data</text>
+        </g>
+        </g>
+
+        <g data-edge-from="tools" data-edge-to="runtime" data-edge-label="resume same Modify Run" data-edge-key="27" data-edge-id="m28">
+          <path data-composition-edge-from="tools" data-composition-edge-to="runtime" data-composition-edge-id="m28" data-composition-points="654,1032;556,1032" d="M 654 1032 L 556 1032" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="526.4" y="1012" width="157.2" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="1022" class="t-muted" font-size="11" text-anchor="middle">resume same Modify Run</text>
+        </g>
+        </g>
+
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="m5 · UPN.MODIFY_UP_SESSION" data-edge-key="28" data-edge-id="m29">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m29" data-composition-points="556,1064;654,1064" d="M 556 1064 L 654 1064" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="513.2" y="1044" width="183.6" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="1054" class="t-edge-emphasis" font-size="11" text-anchor="middle">m5 · UPN.MODIFY_UP_SESSION</text>
+        </g>
+        </g>
+
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="m5 Owner N4 follow-up" data-edge-key="29" data-edge-id="m30">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m30" data-composition-points="654,1096;332,1096" d="M 654 1096 L 332 1096" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-detail="context">
+          <rect x="417.7" y="1076" width="150.6" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="1086" class="t-edge-security" font-size="11" text-anchor="middle">m5 Owner N4 follow-up</text>
+        </g>
+        </g>
+
+        <g data-edge-from="smf" data-edge-to="upf" data-edge-label="PFCP Modification Request · 52" data-edge-key="30" data-edge-id="m31">
+          <path data-composition-edge-from="smf" data-composition-edge-to="upf" data-composition-edge-id="m31" data-composition-points="332,1128;990,1128" d="M 332 1128 L 990 1128" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="556" y="1108" width="210" height="18" rx="3" class="c-mask"/>
+          <text x="661" y="1118" class="t-muted" font-size="11" text-anchor="middle">PFCP Modification Request · 52</text>
+        </g>
+        </g>
+
+        <g data-edge-from="upf" data-edge-to="smf" data-edge-label="PFCP Modification Response · 53" data-edge-key="31" data-edge-id="m32">
+          <path data-composition-edge-from="upf" data-composition-edge-to="smf" data-composition-edge-id="m32" data-composition-points="990,1160;332,1160" d="M 990 1160 L 332 1160" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="552.7" y="1140" width="216.6" height="18" rx="3" class="c-mask"/>
+          <text x="661" y="1150" class="t-muted" font-size="11" text-anchor="middle">PFCP Modification Response · 53</text>
+        </g>
+        </g>
+
+        <g data-edge-from="smf" data-edge-to="tools" data-edge-label="m5 final Owner result / n3_synced" data-edge-key="32" data-edge-id="m33">
+          <path data-composition-edge-from="smf" data-composition-edge-to="tools" data-composition-edge-id="m33" data-composition-points="332,1192;654,1192" d="M 332 1192 L 654 1192" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="378.1" y="1172" width="229.79999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="1182" class="t-muted" font-size="11" text-anchor="middle">m5 final Owner result / n3_synced</text>
+        </g>
+        </g>
+
+        <g data-edge-from="tools" data-edge-to="runtime" data-edge-label="complete or safe stop" data-edge-key="33" data-edge-id="m34">
+          <path data-composition-edge-from="tools" data-composition-edge-to="runtime" data-composition-edge-id="m34" data-composition-points="654,1224;556,1224" d="M 654 1224 L 556 1224" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="529.7" y="1204" width="150.6" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="1214" class="t-muted" font-size="11" text-anchor="middle">complete or safe stop</text>
+        </g>
+        </g>
+
+        <g data-edge-from="runtime" data-edge-to="host" data-edge-label="Final business outcome + response obligation" data-edge-key="34" data-edge-id="m35">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="host" data-composition-edge-id="m35" data-composition-points="542,1256;444,1256" d="M 542 1256 L 444 1256" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="341.8" y="1236" width="302.4" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="1246" class="t-muted" font-size="11" text-anchor="middle">Final business outcome + response obligation</text>
+        </g>
+        </g>
+
+        <g data-edge-from="host" data-edge-to="scp" data-edge-label="Nsmf response when the triggering exchange requires one" data-edge-key="35" data-edge-id="m36">
+          <path data-composition-edge-from="host" data-composition-edge-to="scp" data-composition-edge-id="m36" data-composition-points="430,1288;220,1288" d="M 430 1288 L 220 1288" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="137.5" y="1268" width="375" height="18" rx="3" class="c-mask"/>
+          <text x="325" y="1278" class="t-muted" font-size="11" text-anchor="middle">Nsmf response when the triggering exchange requires one</text>
+        </g>
+        </g>
+
+        <g data-edge-from="scp" data-edge-to="amf" data-edge-label="Response" data-edge-key="36" data-edge-id="m37">
+          <path data-composition-edge-from="scp" data-composition-edge-to="amf" data-composition-edge-id="m37" data-composition-points="220,1320;766,1320" d="M 220 1320 L 766 1320" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="460.6" y="1300" width="64.8" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="1310" class="t-muted" font-size="11" text-anchor="middle">Response</text>
         </g>
         </g>
 
         <!-- Segment Labels -->
         <g data-graph-role="segment-label" data-segment-id="0">
-          <rect x="254.38571428571427" y="134" width="86.8" height="18" rx="3" class="c-mask"/>
-          <text x="260.38571428571424" y="147" class="t-muted" font-size="9" font-weight="600">PCF 通知经 SCP</text>
+          <rect x="240.89999999999998" y="134" width="263.6" height="18" rx="3" class="c-mask"/>
+          <text x="246.89999999999998" y="147" class="t-muted" font-size="9" font-weight="600">PCF trigger · SCP → OpenAMSM → Host scoped event</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="1">
-          <rect x="56" y="236" width="123.2" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="249" class="t-muted" font-size="9" font-weight="600">受信事件与 Modify Run</text>
+          <rect x="56" y="260" width="144" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="273" class="t-muted" font-size="9" font-weight="600">Modify OES · m0 / m2 / m3</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="2">
-          <rect x="56" y="456" width="66" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="469" class="t-muted" font-size="9" font-weight="600">Namf N1/N2</text>
+          <rect x="56" y="516" width="185.6" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="529" class="t-muted" font-size="9" font-weight="600">m4 · Namf relay / UE-RAN exchange</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="3">
-          <rect x="56" y="676" width="55.6" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="689" class="t-muted" font-size="9" font-weight="600">结果关联</text>
+          <rect x="56" y="894" width="180.4" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="907" class="t-muted" font-size="9" font-weight="600">m4 correlation · m5 N4 follow-up</text>
+        </g>
+        <g data-graph-role="segment-label" data-segment-id="4">
+          <rect x="56" y="1188" width="196" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="1201" class="t-muted" font-size="9" font-weight="600">Owner outcome and protocol response</text>
         </g>
 
         <!-- Participants -->
-        <g id="node-pcf" data-node-id="pcf" data-node-label="PCF" tabindex="0" role="button" aria-label="聚焦PCF，时序参与者" aria-pressed="false" data-node-kind="external" data-node-context="时序参与者">
-          <title>PCF · 时序参与者</title>
-          <rect x="62" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="62" y="72" width="86" height="60" rx="6" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(68 78) scale(0.6875)">
+        <g id="node-pcf" data-node-id="pcf" data-node-label="PCF" tabindex="0" role="button" aria-label="聚焦PCF，外部 5GC, 时序参与者" aria-pressed="false" data-node-kind="external" data-node-sublabel="外部 5GC" data-node-context="时序参与者">
+          <title>PCF · 外部 5GC · 时序参与者</title>
+          <rect x="53" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="53" y="72" width="96" height="60" rx="6" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(59 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" x="105" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">PCF</text>
+          <text data-node-label="" data-detail-anchor="" x="101" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">PCF</text>
+          <text data-detail="context" x="101" y="122" class="t-muted" font-size="7" text-anchor="middle">外部 5GC</text>
         </g>
 
-        <g id="node-scp" data-node-id="scp" data-node-label="SCP" tabindex="0" role="button" aria-label="聚焦SCP，时序参与者" aria-pressed="false" data-node-kind="cloud" data-node-context="时序参与者">
-          <title>SCP · 时序参与者</title>
-          <rect x="166.57142857142856" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="166.57142857142856" y="72" width="86" height="60" rx="6" class="c-cloud" data-animate="node" style="--step:1" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(172.57142857142856 78) scale(0.6875)">
-            <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
+        <g id="node-scp" data-node-id="scp" data-node-label="SCP" tabindex="0" role="button" aria-label="聚焦SCP，外部 5GC, 时序参与者" aria-pressed="false" data-node-kind="external" data-node-sublabel="外部 5GC" data-node-context="时序参与者">
+          <title>SCP · 外部 5GC · 时序参与者</title>
+          <rect x="165" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="165" y="72" width="96" height="60" rx="6" class="c-external" data-animate="node" style="--step:1" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(171 78) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" x="209.57142857142856" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">SCP</text>
+          <text data-node-label="" data-detail-anchor="" x="213" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">SCP</text>
+          <text data-detail="context" x="213" y="122" class="t-muted" font-size="7" text-anchor="middle">外部 5GC</text>
         </g>
 
-        <g id="node-smf" data-node-id="smf" data-node-label="OpenAMSM SMF" tabindex="0" role="button" aria-label="聚焦OpenAMSM SMF，时序参与者" aria-pressed="false" data-node-kind="backend" data-node-context="时序参与者">
-          <title>OpenAMSM SMF · 时序参与者</title>
-          <rect x="271.1428571428571" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="271.1428571428571" y="72" width="86" height="60" rx="6" class="c-backend" data-animate="node" style="--step:2" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(277.1428571428571 78) scale(0.6875)">
+        <g id="node-smf" data-node-id="smf" data-node-label="OpenAMSM SMF" tabindex="0" role="button" aria-label="聚焦OpenAMSM SMF，SMF Owner, 时序参与者" aria-pressed="false" data-node-kind="backend" data-node-sublabel="SMF Owner" data-node-context="时序参与者">
+          <title>OpenAMSM SMF · SMF Owner · 时序参与者</title>
+          <rect x="277" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="277" y="72" width="96" height="60" rx="6" class="c-backend" data-animate="node" style="--step:2" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(283 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" x="314.1428571428571" y="108" class="t-primary" font-size="10.8" font-weight="600" text-anchor="middle">OpenAMSM SMF</text>
+          <text data-node-label="" data-detail-anchor="" x="325" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">OpenAMSM SMF</text>
+          <text data-detail="context" x="325" y="122" class="t-muted" font-size="7" text-anchor="middle">SMF Owner</text>
         </g>
 
-        <g id="node-host" data-node-id="host" data-node-label="CA-Agent Host" tabindex="0" role="button" aria-label="聚焦CA-Agent Host，时序参与者" aria-pressed="false" data-node-kind="backend" data-node-context="时序参与者">
-          <title>CA-Agent Host · 时序参与者</title>
-          <rect x="375.7142857142857" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="375.7142857142857" y="72" width="86" height="60" rx="6" class="c-backend" data-animate="node" style="--step:3" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(381.7142857142857 78) scale(0.6875)">
+        <g id="node-host" data-node-id="host" data-node-label="Host" tabindex="0" role="button" aria-label="聚焦Host，CA-Agent, 时序参与者" aria-pressed="false" data-node-kind="backend" data-node-sublabel="CA-Agent" data-node-context="时序参与者">
+          <title>Host · CA-Agent · 时序参与者</title>
+          <rect x="389" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="389" y="72" width="96" height="60" rx="6" class="c-backend" data-animate="node" style="--step:3" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(395 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" x="418.7142857142857" y="108" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">CA-Agent Host</text>
+          <text data-node-label="" data-detail-anchor="" x="437" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Host</text>
+          <text data-detail="context" x="437" y="122" class="t-muted" font-size="7" text-anchor="middle">CA-Agent</text>
         </g>
 
-        <g id="node-tools" data-node-id="tools" data-node-label="Client Tools" tabindex="0" role="button" aria-label="聚焦Client Tools，时序参与者" aria-pressed="false" data-node-kind="backend" data-node-context="时序参与者">
-          <title>Client Tools · 时序参与者</title>
-          <rect x="480.2857142857142" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="480.2857142857142" y="72" width="86" height="60" rx="6" class="c-backend" data-animate="node" style="--step:4" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(486.2857142857142 78) scale(0.6875)">
+        <g id="node-runtime" data-node-id="runtime" data-node-label="Runtime" tabindex="0" role="button" aria-label="聚焦Runtime，CA-Agent, 时序参与者" aria-pressed="false" data-node-kind="backend" data-node-sublabel="CA-Agent" data-node-context="时序参与者">
+          <title>Runtime · CA-Agent · 时序参与者</title>
+          <rect x="501" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="501" y="72" width="96" height="60" rx="6" class="c-backend" data-animate="node" style="--step:4" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(507 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" x="523.2857142857142" y="108" class="t-primary" font-size="10.8" font-weight="600" text-anchor="middle">Client Tools</text>
+          <text data-node-label="" data-detail-anchor="" x="549" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Runtime</text>
+          <text data-detail="context" x="549" y="122" class="t-muted" font-size="7" text-anchor="middle">CA-Agent</text>
         </g>
 
-        <g id="node-amf" data-node-id="amf" data-node-label="AMF" tabindex="0" role="button" aria-label="聚焦AMF，时序参与者" aria-pressed="false" data-node-kind="external" data-node-context="时序参与者">
-          <title>AMF · 时序参与者</title>
-          <rect x="584.8571428571429" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="584.8571428571429" y="72" width="86" height="60" rx="6" class="c-external" data-animate="node" style="--step:5" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(590.8571428571429 78) scale(0.6875)">
+        <g id="node-tools" data-node-id="tools" data-node-label="CA Client Tools" tabindex="0" role="button" aria-label="聚焦CA Client Tools，Tool Dispatch, 时序参与者" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Tool Dispatch" data-node-context="时序参与者">
+          <title>CA Client Tools · Tool Dispatch · 时序参与者</title>
+          <rect x="613" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="613" y="72" width="96" height="60" rx="6" class="c-backend" data-animate="node" style="--step:5" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(619 78) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="661" y="108" class="t-primary" font-size="9.7" font-weight="600" text-anchor="middle">CA Client Tools</text>
+          <text data-detail="context" x="661" y="122" class="t-muted" font-size="7" text-anchor="middle">Tool Dispatch</text>
+        </g>
+
+        <g id="node-amf" data-node-id="amf" data-node-label="AMF" tabindex="0" role="button" aria-label="聚焦AMF，外部 5GC, 时序参与者" aria-pressed="false" data-node-kind="external" data-node-sublabel="外部 5GC" data-node-context="时序参与者">
+          <title>AMF · 外部 5GC · 时序参与者</title>
+          <rect x="725" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="725" y="72" width="96" height="60" rx="6" class="c-external" data-animate="node" style="--step:6" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(731 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" x="627.8571428571429" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AMF</text>
+          <text data-node-label="" data-detail-anchor="" x="773" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AMF</text>
+          <text data-detail="context" x="773" y="122" class="t-muted" font-size="7" text-anchor="middle">外部 5GC</text>
         </g>
 
-        <g id="node-ue" data-node-id="ue" data-node-label="UE / gNB" tabindex="0" role="button" aria-label="聚焦UE / gNB，时序参与者" aria-pressed="false" data-node-kind="external" data-node-context="时序参与者">
-          <title>UE / gNB · 时序参与者</title>
-          <rect x="689.4285714285714" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="689.4285714285714" y="72" width="86" height="60" rx="6" class="c-external" data-animate="node" style="--step:6" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(695.4285714285714 78) scale(0.6875)">
+        <g id="node-ue" data-node-id="ue" data-node-label="UE / gNB" tabindex="0" role="button" aria-label="聚焦UE / gNB，外部 UE / 接入网, 时序参与者" aria-pressed="false" data-node-kind="external" data-node-sublabel="外部 UE / 接入网" data-node-context="时序参与者">
+          <title>UE / gNB · 外部 UE / 接入网 · 时序参与者</title>
+          <rect x="837" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="837" y="72" width="96" height="60" rx="6" class="c-external" data-animate="node" style="--step:7" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(843 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" x="732.4285714285714" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">UE / gNB</text>
+          <text data-node-label="" data-detail-anchor="" x="885" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">UE / gNB</text>
+          <text data-detail="context" x="885" y="122" class="t-muted" font-size="7" text-anchor="middle">外部 UE / 接入网</text>
         </g>
 
-        <g id="node-upf" data-node-id="upf" data-node-label="UPF" tabindex="0" role="button" aria-label="聚焦UPF，时序参与者" aria-pressed="false" data-node-kind="external" data-node-context="时序参与者">
-          <title>UPF · 时序参与者</title>
-          <rect x="794" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="794" y="72" width="86" height="60" rx="6" class="c-external" data-animate="node" style="--step:7" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(800 78) scale(0.6875)">
+        <g id="node-upf" data-node-id="upf" data-node-label="UPF · N4 Peer" tabindex="0" role="button" aria-label="聚焦UPF · N4 Peer，N4 · no SCP, 时序参与者" aria-pressed="false" data-node-kind="external" data-node-sublabel="N4 · no SCP" data-node-context="时序参与者">
+          <title>UPF · N4 Peer · N4 · no SCP · 时序参与者</title>
+          <rect x="949" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="949" y="72" width="96" height="60" rx="6" class="c-external" data-animate="node" style="--step:8" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(955 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" x="837" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">UPF</text>
+          <text data-node-label="" data-detail-anchor="" x="997" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">UPF · N4 Peer</text>
+          <text data-detail="context" x="997" y="122" class="t-muted" font-size="7" text-anchor="middle">N4 · no SCP</text>
         </g>
 
         <!-- Legend -->
         <g data-legend="">
-          <text x="40" y="936" class="t-primary" font-size="12" font-weight="650">图例</text>
-          <g data-legend-semantic-kind="emphasis" data-legend-x="40" data-legend-baseline="956" data-legend-width="105">
-            <path d="M 40 953 L 74 953" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-            <text x="83" y="956" class="t-muted" font-size="10" font-weight="500">主路径请求</text>
+          <text x="40" y="1358" class="t-primary" font-size="12" font-weight="650">图例</text>
+          <g data-legend-semantic-kind="emphasis" data-legend-x="40" data-legend-baseline="1378" data-legend-width="105">
+            <path d="M 40 1375 L 74 1375" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+            <text x="83" y="1378" class="t-muted" font-size="10" font-weight="500">主路径请求</text>
           </g>
-          <g data-legend-semantic-kind="return" data-legend-x="167" data-legend-baseline="956" data-legend-width="68">
-            <path d="M 167 953 L 201 953" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-            <text x="210" y="956" class="t-muted" font-size="10" font-weight="500">返回</text>
+          <g data-legend-semantic-kind="return" data-legend-x="167" data-legend-baseline="1378" data-legend-width="68">
+            <path d="M 167 1375 L 201 1375" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+            <text x="210" y="1378" class="t-muted" font-size="10" font-weight="500">返回</text>
           </g>
-          <g data-legend-semantic-kind="security" data-legend-x="257" data-legend-baseline="956" data-legend-width="68">
-            <path d="M 257 953 L 291 953" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-            <text x="300" y="956" class="t-muted" font-size="10" font-weight="500">安全</text>
+          <g data-legend-semantic-kind="security" data-legend-x="257" data-legend-baseline="1378" data-legend-width="68">
+            <path d="M 257 1375 L 291 1375" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+            <text x="300" y="1378" class="t-muted" font-size="10" font-weight="500">安全</text>
           </g>
-          <g data-legend-semantic-kind="dashed" data-legend-x="347" data-legend-baseline="956" data-legend-width="93">
-            <path d="M 347 953 L 381 953" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-            <text x="390" y="956" class="t-muted" font-size="10" font-weight="500">异步追踪</text>
-          </g>
-          <g data-legend-semantic-kind="default" data-legend-x="462" data-legend-baseline="956" data-legend-width="93">
-            <path d="M 462 953 L 496 953" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-            <text x="505" y="956" class="t-muted" font-size="10" font-weight="500">普通消息</text>
+          <g data-legend-semantic-kind="default" data-legend-x="347" data-legend-baseline="1378" data-legend-width="93">
+            <path d="M 347 1375 L 381 1375" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+            <text x="390" y="1378" class="t-muted" font-size="10" font-weight="500">普通消息</text>
           </g>
         </g>
       </svg>
@@ -5757,39 +5877,41 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <div class="cards">
       <div class="card">
         <div class="card-header">
-          <div class="card-dot emerald"></div>
-          <h3>当前源代码证据</h3>
+          <div class="card-dot cyan"></div>
+          <h3>触发源与事件归属</h3>
         </div>
         <ul>
-          <li>PCF 通知经既有 SCP 路径到达 OpenAMSM（Npcf_SMPolicyControl 回调入口存在）</li>
-          <li>pdu-mod-v3.yaml 无 PA.UPDATE_SM_POLICY 步骤（对照 Establishment 的 s6u 已具备）</li>
-          <li>OpenAMSM 内已有 Namf 作为 producer 的代码路径</li>
+          <li>PCF notification 是 PCF → SCP → OpenAMSM 的既有网络侧回调，不是 AMF → Host 的 Nsmf 请求</li>
+          <li>OpenAMSM 以受信 scoped event 把准确 Session、触发原因和 generation 交给 Host；Host 决定对应 Run 的启动或继续</li>
+          <li>SMF-local timer / decision 是 Owner 内部触发，不应伪装成 PCF 或 AMF 消息</li>
+          <li>PCF callback 的 3GPP Service Operation：Npcf_SMPolicyControl_Notify</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <div class="card-dot rose"></div>
-          <h3>未实现缺口（不得视为已接通）</h3>
+          <div class="card-dot emerald"></div>
+          <h3>Modify 流程</h3>
         </div>
         <ul>
-          <li>Host 受信 scoped 事件桥接：NOT_IMPLEMENTED（虚线即此缺口）</li>
-          <li>ca-skills 尚无冻结的 v1alpha5 Modify Procedure</li>
-          <li>agent_step 对普通业务 Update 的拒绝仍然生效</li>
-          <li>步骤顺序随 QoS / AN 结果变化，不得当作单一固定路径</li>
+          <li>按 OES：m0 → m2（optional）→ m3 → m4 → m5</li>
+          <li>PCF notification 已代表策略侧事件；不重复画一个无依据的 Npcf Update</li>
+          <li>m4 的 N1/N2 结果经 SCP 回到 Host，再按 exact occurrence 交还 OpenAMSM；m5 才消费 AN tunnel 信息</li>
+          <li>m5 的 PFCP Session Modification Request（Type 52）使用 m4 返回的 AN F-TEID / tunnel endpoint</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
           <div class="card-dot slate"></div>
-          <h3>归属与下一步</h3>
+          <h3>四责任域</h3>
         </div>
         <ul>
-          <li>ca-agent-demo W0 / W6：事件证据与桥接判定</li>
-          <li>env-openamsm W4：Owner-private Modify lifecycle</li>
-          <li>ca-skills W2：冻结 Modify Procedure</li>
-          <li>总体状态：DESIGN / NOT_QUALIFIED</li>
+          <li>外部 5GC：PCF / SCP / AMF / UE-gNB / UPF</li>
+          <li>CA-Agent：Host scoped-event ingress、Session Router、Runtime Run</li>
+          <li>CA Client Tools：固定 Owner-private / Namf egress</li>
+          <li>OpenAMSM：SMF Owner、OES、GSM、PFCP；N4 直连 UPF</li>
+          <li>PFCP standard messages：Session Modification Request / Response（Type 52/53）；m5 的 Request 使用 m4 返回的 AN F-TEID。</li>
         </ul>
       </div>
     </div>

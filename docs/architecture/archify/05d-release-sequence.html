@@ -5196,7 +5196,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <div class="pulse-dot"></div>
         <h1>05d · UE / AMF 发起 Session Release（SCP-only）</h1>
       </div>
-      <p class="subtitle">F06 + F07 设计时序 · CA-SL v1alpha5 无 Release Skill · 目标设计，非 E2E 证据</p>
+      <p class="subtitle">F06 + F07 · 目标业务时序 · 区分 UE N1 Release 与 AMF ReleaseSMContext；按 r1–r6 结算</p>
     </div>
 
 
@@ -5204,9 +5204,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <!-- Main Diagram -->
     <div class="diagram-container" data-detail-level="read"
          data-preset-badge-editorial-plate="ARCHIFY / 图版 04">
-      <svg viewBox="0 0 920 1338" data-sequence-column-fit="spread" data-reader-fit="width-first" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-motion-choreography="sequence">
+      <svg viewBox="0 0 1085 1624" data-sequence-column-fit="spread" data-reader-fit="width-first" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-motion-choreography="sequence">
         <title id="archify-diagram-title">05d · UE / AMF 发起 Session Release（SCP-only）</title>
-        <desc id="archify-diagram-description">F06 + F07 设计时序 · CA-SL v1alpha5 无 Release Skill · 目标设计，非 E2E 证据</desc>
+        <desc id="archify-diagram-description">F06 + F07 · 目标业务时序 · 区分 UE N1 Release 与 AMF ReleaseSMContext；按 r1–r6 结算</desc>
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -5230,386 +5230,520 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Time Segments -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="0" x="48" y="150" width="824" height="230" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="0" x="48" y="150" width="989" height="192" rx="10" class="c-lane" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="1" x="48" y="388" width="824" height="252" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="1" x="48" y="346" width="989" height="220" rx="10" class="c-lane" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="2" x="48" y="644" width="824" height="256" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="2" x="48" y="570" width="989" height="444" rx="10" class="c-lane" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="3" x="48" y="908" width="824" height="332" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="3" x="48" y="1018" width="989" height="316" rx="10" class="c-lane" stroke-width="1"/>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="4" x="48" y="1338" width="989" height="188" rx="10" class="c-lane" stroke-width="1"/>
 
         <!-- Lifelines -->
-        <path d="M 105 142 L 105 1242" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 209.57142857142856 142 L 209.57142857142856 1242" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 314.1428571428571 142 L 314.1428571428571 1242" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 418.7142857142857 142 L 418.7142857142857 1242" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 523.2857142857142 142 L 523.2857142857142 1242" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 627.8571428571429 142 L 627.8571428571429 1242" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 732.4285714285714 142 L 732.4285714285714 1242" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 837 142 L 837 1242" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 101 142 L 101 1528" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 213 142 L 213 1528" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 325 142 L 325 1528" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 437 142 L 437 1528" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 549 142 L 549 1528" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 661 142 L 661 1528" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 773 142 L 773 1528" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 885 142 L 885 1528" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 997 142 L 997 1528" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
 
         <!-- Activations -->
-        <rect x="204.57142857142856" y="190" width="10" height="850" rx="3" class="c-mask"/>
-        <rect x="204.57142857142856" y="190" width="10" height="850" rx="3" class="c-external" stroke-width="1"/>
-        <rect x="309.1428571428571" y="196" width="10" height="844" rx="3" class="c-mask"/>
-        <rect x="309.1428571428571" y="196" width="10" height="844" rx="3" class="c-cloud" stroke-width="1"/>
-        <rect x="413.7142857142857" y="232" width="10" height="808" rx="3" class="c-mask"/>
-        <rect x="413.7142857142857" y="232" width="10" height="808" rx="3" class="c-backend" stroke-width="1"/>
-        <rect x="518.2857142857142" y="296" width="10" height="744" rx="3" class="c-mask"/>
-        <rect x="518.2857142857142" y="296" width="10" height="744" rx="3" class="c-backend" stroke-width="1"/>
-        <rect x="622.8571428571429" y="360" width="10" height="680" rx="3" class="c-mask"/>
-        <rect x="622.8571428571429" y="360" width="10" height="680" rx="3" class="c-backend" stroke-width="1"/>
+
 
         <!-- Messages -->
-        <g data-edge-from="ue" data-edge-to="amf" data-edge-label="N1 PDU Session Release Request 0xD1" data-edge-key="0" data-edge-id="m01">
-          <path data-composition-edge-from="ue" data-composition-edge-to="amf" data-composition-edge-id="m01" data-composition-points="112,168;202.57142857142856,168" d="M 112 168 L 202.57142857142856 168" class="a-default" data-animate="edge" style="--step:0" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="ue" data-edge-to="amf" data-edge-label="UE Release Request (5GSM 0xD1)" data-edge-key="0" data-edge-id="m01">
+          <path data-composition-edge-from="ue" data-composition-edge-to="amf" data-composition-edge-id="m01" data-composition-points="108,168;206,168" d="M 108 168 L 206 168" class="a-default" data-animate="edge" style="--step:0" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="35.78571428571428" y="148" width="243" height="18" rx="3" class="c-mask"/>
-          <text x="157.28571428571428" y="158" class="t-muted" font-size="11" text-anchor="middle">N1 PDU Session Release Request 0xD1</text>
+          <rect x="52" y="148" width="210" height="18" rx="3" class="c-mask"/>
+          <text x="157" y="158" class="t-muted" font-size="11" text-anchor="middle">UE Release Request (5GSM 0xD1)</text>
         </g>
         </g>
 
-        <g data-edge-from="amf" data-edge-to="scp" data-edge-label="Nsmf_PDUSession_UpdateSMContext" data-edge-key="1" data-edge-id="m02">
-          <path data-composition-edge-from="amf" data-composition-edge-to="scp" data-composition-edge-id="m02" data-composition-points="216.57142857142856,200;307.1428571428571,200" d="M 216.57142857142856 200 L 307.1428571428571 200" class="a-emphasis" data-animate="edge" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="amf" data-edge-to="scp" data-edge-label="[UE] Nsmf UpdateSMContext · N1 Release" data-edge-key="1" data-edge-id="m02">
+          <path data-composition-edge-from="amf" data-composition-edge-to="scp" data-composition-edge-id="m02" data-composition-points="220,200;318,200" d="M 220 200 L 318 200" class="a-emphasis" data-animate="edge" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="153.55714285714282" y="180" width="216.6" height="18" rx="3" class="c-mask"/>
-          <text x="261.85714285714283" y="190" class="t-edge-emphasis" font-size="11" text-anchor="middle">Nsmf_PDUSession_UpdateSMContext</text>
+          <rect x="137.60000000000002" y="180" width="262.79999999999995" height="18" rx="3" class="c-mask"/>
+          <text x="269" y="190" class="t-edge-emphasis" font-size="11" text-anchor="middle">[UE] Nsmf UpdateSMContext · N1 Release</text>
         </g>
         </g>
 
-        <g data-edge-from="amf" data-edge-to="scp" data-edge-label="Nsmf_PDUSession_ReleaseSMContext" data-edge-key="2" data-edge-id="m03">
-          <path data-composition-edge-from="amf" data-composition-edge-to="scp" data-composition-edge-id="m03" data-composition-points="216.57142857142856,232;307.1428571428571,232" d="M 216.57142857142856 232 L 307.1428571428571 232" class="a-emphasis" data-animate="edge" style="--step:2" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="amf" data-edge-to="scp" data-edge-label="[AMF] Nsmf ReleaseSMContext" data-edge-key="2" data-edge-id="m03">
+          <path data-composition-edge-from="amf" data-composition-edge-to="scp" data-composition-edge-id="m03" data-composition-points="220,232;318,232" d="M 220 232 L 318 232" class="a-emphasis" data-animate="edge" style="--step:2" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="150.25714285714284" y="212" width="223.2" height="18" rx="3" class="c-mask"/>
-          <text x="261.85714285714283" y="222" class="t-edge-emphasis" font-size="11" text-anchor="middle">Nsmf_PDUSession_ReleaseSMContext</text>
+          <rect x="173.9" y="212" width="190.2" height="18" rx="3" class="c-mask"/>
+          <text x="269" y="222" class="t-edge-emphasis" font-size="11" text-anchor="middle">[AMF] Nsmf ReleaseSMContext</text>
         </g>
         </g>
 
-        <g data-edge-from="scp" data-edge-to="host" data-edge-label="已有 Host SM Context 资源" data-edge-key="3" data-edge-id="m04">
-          <path data-composition-edge-from="scp" data-composition-edge-to="host" data-composition-edge-id="m04" data-composition-points="321.1428571428571,264;411.7142857142857,264" d="M 321.1428571428571 264 L 411.7142857142857 264" class="a-default" data-animate="edge" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="scp" data-edge-to="host" data-edge-label="Existing Host SM Context Location" data-edge-key="3" data-edge-id="m04">
+          <path data-composition-edge-from="scp" data-composition-edge-to="host" data-composition-edge-id="m04" data-composition-points="332,264;430,264" d="M 332 264 L 430 264" class="a-default" data-animate="edge" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="277.92857142857144" y="244" width="177" height="18" rx="3" class="c-mask"/>
-          <text x="366.42857142857144" y="254" class="t-muted" font-size="11" text-anchor="middle">已有 Host SM Context 资源</text>
+          <rect x="266.1" y="244" width="229.79999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="381" y="254" class="t-muted" font-size="11" text-anchor="middle">Existing Host SM Context Location</text>
         </g>
         </g>
 
-        <g data-edge-from="host" data-edge-to="tools" data-edge-label="解码校验：生命周期与原始身份" data-edge-key="4" data-edge-id="m05">
-          <path data-composition-edge-from="host" data-composition-edge-to="tools" data-composition-edge-id="m05" data-composition-points="425.7142857142857,296;516.2857142857142,296" d="M 425.7142857142857 296 L 516.2857142857142 296" class="a-default" data-animate="edge" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="host" data-edge-to="tools" data-edge-label="Validate SUPI/PSI/generation · decode UE N1" data-edge-key="4" data-edge-id="m05">
+          <path data-composition-edge-from="host" data-composition-edge-to="tools" data-composition-edge-id="m05" data-composition-points="444,296;654,296" d="M 444 296 L 654 296" class="a-default" data-animate="edge" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="372.6" y="276" width="196.79999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="471" y="286" class="t-muted" font-size="11" text-anchor="middle">解码校验：生命周期与原始身份</text>
+          <rect x="401.1" y="276" width="295.8" height="18" rx="3" class="c-mask"/>
+          <text x="549" y="286" class="t-muted" font-size="11" text-anchor="middle">Validate SUPI/PSI/generation · decode UE N1</text>
         </g>
         </g>
 
-        <g data-edge-from="host" data-edge-to="tools" data-edge-label="Start Release Run（DESIGN）" data-edge-key="5" data-edge-id="m06">
-          <path data-composition-edge-from="host" data-composition-edge-to="tools" data-composition-edge-id="m06" data-composition-points="425.7142857142857,328;516.2857142857142,328" d="M 425.7142857142857 328 L 516.2857142857142 328" class="a-dashed" data-animate="edge" style="--step:5" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-edge-from="tools" data-edge-to="host" data-edge-label="PDU Session Release Request projection" data-edge-key="5" data-edge-id="m06">
+          <path data-composition-edge-from="tools" data-composition-edge-to="host" data-composition-edge-id="m06" data-composition-points="654,328;444,328" d="M 654 328 L 444 328" class="a-default" data-animate="edge" style="--step:5" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="375.9" y="308" width="190.2" height="18" rx="3" class="c-mask"/>
-          <text x="471" y="318" class="t-edge-dashed" font-size="11" text-anchor="middle">Start Release Run（DESIGN）</text>
+          <rect x="417.6" y="308" width="262.79999999999995" height="18" rx="3" class="c-mask"/>
+          <text x="549" y="318" class="t-muted" font-size="11" text-anchor="middle">PDU Session Release Request projection</text>
         </g>
         </g>
 
-        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="r5 SC.RELEASE_SM_CONTEXT（DESIGN）" data-edge-key="6" data-edge-id="m07">
-          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m07" data-composition-points="530.2857142857142,360;620.8571428571429,360" d="M 530.2857142857142 360 L 620.8571428571429 360" class="a-dashed" data-animate="edge" style="--step:6" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-edge-from="host" data-edge-to="runtime" data-edge-label="按触发分支启动或继续 Release Run" data-edge-key="6" data-edge-id="m07">
+          <path data-composition-edge-from="host" data-composition-edge-to="runtime" data-composition-edge-id="m07" data-composition-points="444,360;542,360" d="M 444 360 L 542 360" class="a-default" data-animate="edge" style="--step:6" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="457.37142857142857" y="340" width="236.39999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="575.5714285714286" y="350" class="t-edge-dashed" font-size="11" text-anchor="middle">r5 SC.RELEASE_SM_CONTEXT（DESIGN）</text>
+          <rect x="381.4" y="340" width="223.2" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="350" class="t-muted" font-size="11" text-anchor="middle">按触发分支启动或继续 Release Run</text>
         </g>
         </g>
 
-        <g data-edge-from="smf" data-edge-to="tools" data-edge-label="AGENT_STEP_NSMF_REJECTED（当前阻塞）" data-edge-key="7" data-edge-id="m08">
-          <path data-composition-edge-from="smf" data-composition-edge-to="tools" data-composition-edge-id="m08" data-composition-points="620.8571428571429,392;530.2857142857142,392" d="M 620.8571428571429 392 L 530.2857142857142 392" class="a-dashed" data-animate="edge" style="--step:7" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-edge-from="host" data-edge-to="tools" data-edge-label="Original N1 artifactRef · private binding" data-edge-key="7" data-edge-id="m08">
+          <path data-composition-edge-from="host" data-composition-edge-to="tools" data-composition-edge-id="m08" data-composition-points="444,392;654,392" d="M 444 392 L 654 392" class="a-security" data-animate="edge" style="--step:7" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="450.77142857142854" y="372" width="249.6" height="18" rx="3" class="c-mask"/>
-          <text x="575.5714285714286" y="382" class="t-edge-dashed" font-size="11" text-anchor="middle">AGENT_STEP_NSMF_REJECTED（当前阻塞）</text>
+          <rect x="407.70000000000005" y="372" width="282.59999999999997" height="18" rx="3" class="c-mask"/>
+          <text x="549" y="382" class="t-edge-security" font-size="11" text-anchor="middle">Original N1 artifactRef · private binding</text>
         </g>
         </g>
 
-        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="r2 UPN.DELETE_UP_SESSION（DESIGN）" data-edge-key="8" data-edge-id="m09">
-          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m09" data-composition-points="530.2857142857142,424;620.8571428571429,424" d="M 530.2857142857142 424 L 620.8571428571429 424" class="a-dashed" data-animate="edge" style="--step:8" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="Deliver original N1 bytes unchanged to GSM Handler" data-edge-key="8" data-edge-id="m09">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m09" data-composition-points="668,424;766,424" d="M 668 424 L 766 424" class="a-security" data-animate="edge" style="--step:8" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="457.37142857142857" y="404" width="236.39999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="575.5714285714286" y="414" class="t-edge-dashed" font-size="11" text-anchor="middle">r2 UPN.DELETE_UP_SESSION（DESIGN）</text>
+          <rect x="546" y="404" width="342" height="18" rx="3" class="c-mask"/>
+          <text x="717" y="414" class="t-edge-security" font-size="11" text-anchor="middle">Deliver original N1 bytes unchanged to GSM Handler</text>
         </g>
         </g>
 
-        <g data-edge-from="smf" data-edge-to="upf" data-edge-label="PFCP Deletion Type 54" data-edge-key="9" data-edge-id="m10">
-          <path data-composition-edge-from="smf" data-composition-edge-to="upf" data-composition-edge-id="m10" data-composition-points="634.8571428571429,456;725.4285714285714,456" d="M 634.8571428571429 456 L 725.4285714285714 456" class="a-default" data-animate="edge" style="--step:9" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="r1 · CA.DELETE_CHARGING（optional）" data-edge-key="9" data-edge-id="m10">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m10" data-composition-points="556,456;654,456" d="M 556 456 L 654 456" class="a-default" data-animate="edge" style="--step:9" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="604.8428571428572" y="436" width="150.6" height="18" rx="3" class="c-mask"/>
-          <text x="680.1428571428571" y="446" class="t-muted" font-size="11" text-anchor="middle">PFCP Deletion Type 54</text>
+          <rect x="483.5" y="436" width="243" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="446" class="t-muted" font-size="11" text-anchor="middle">r1 · CA.DELETE_CHARGING（optional）</text>
         </g>
         </g>
 
-        <g data-edge-from="upf" data-edge-to="smf" data-edge-label="PFCP result" data-edge-key="10" data-edge-id="m11">
-          <path data-composition-edge-from="upf" data-composition-edge-to="smf" data-composition-edge-id="m11" data-composition-points="725.4285714285714,488;634.8571428571429,488" d="M 725.4285714285714 488 L 634.8571428571429 488" class="a-default" data-animate="edge" style="--step:10" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="r1 optional Owner charging step" data-edge-key="10" data-edge-id="m11">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m11" data-composition-points="668,488;766,488" d="M 668 488 L 766 488" class="a-security" data-animate="edge" style="--step:10" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="637.8428571428572" y="468" width="84.6" height="18" rx="3" class="c-mask"/>
-          <text x="680.1428571428571" y="478" class="t-muted" font-size="11" text-anchor="middle">PFCP result</text>
+          <rect x="608.7" y="468" width="216.6" height="18" rx="3" class="c-mask"/>
+          <text x="717" y="478" class="t-edge-security" font-size="11" text-anchor="middle">r1 optional Owner charging step</text>
         </g>
         </g>
 
-        <g data-edge-from="smf" data-edge-to="scp" data-edge-label="Npcf_SMPolicyControl_Delete（r4）" data-edge-key="11" data-edge-id="m12">
-          <path data-composition-edge-from="smf" data-composition-edge-to="scp" data-composition-edge-id="m12" data-composition-points="620.8571428571429,520;321.1428571428571,520" d="M 620.8571428571429 520 L 321.1428571428571 520" class="a-default" data-animate="edge" style="--step:11" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="r2 · UPN.DELETE_UP_SESSION" data-edge-key="11" data-edge-id="m12">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m12" data-composition-points="556,520;654,520" d="M 556 520 L 654 520" class="a-emphasis" data-animate="edge" style="--step:11" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="356.1" y="500" width="229.79999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="471" y="510" class="t-muted" font-size="11" text-anchor="middle">Npcf_SMPolicyControl_Delete（r4）</text>
+          <rect x="513.2" y="500" width="183.6" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="510" class="t-edge-emphasis" font-size="11" text-anchor="middle">r2 · UPN.DELETE_UP_SESSION</text>
         </g>
         </g>
 
-        <g data-edge-from="scp" data-edge-to="pcf" data-edge-label="PCF 策略关联删除" data-edge-key="12" data-edge-id="m13">
-          <path data-composition-edge-from="scp" data-composition-edge-to="pcf" data-composition-edge-id="m13" data-composition-points="321.1428571428571,552;830,552" d="M 321.1428571428571 552 L 830 552" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="r2 Owner N4 Session deletion" data-edge-key="12" data-edge-id="m13">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m13" data-composition-points="668,552;766,552" d="M 668 552 L 766 552" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="516.7714285714286" y="532" width="117.6" height="18" rx="3" class="c-mask"/>
-          <text x="575.5714285714286" y="542" class="t-muted" font-size="11" text-anchor="middle">PCF 策略关联删除</text>
+          <rect x="618.6" y="532" width="196.79999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="717" y="542" class="t-edge-security" font-size="11" text-anchor="middle">r2 Owner N4 Session deletion</text>
         </g>
         </g>
 
-        <g data-edge-from="pcf" data-edge-to="scp" data-edge-label="删除结果" data-edge-key="13" data-edge-id="m14">
-          <path data-composition-edge-from="pcf" data-composition-edge-to="scp" data-composition-edge-id="m14" data-composition-points="830,584;321.1428571428571,584" d="M 830 584 L 321.1428571428571 584" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="smf" data-edge-to="upf" data-edge-label="PFCP Deletion Request · 54" data-edge-key="13" data-edge-id="m14">
+          <path data-composition-edge-from="smf" data-composition-edge-to="upf" data-composition-edge-id="m14" data-composition-points="780,584;878,584" d="M 780 584 L 878 584" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="543.1714285714286" y="564" width="64.8" height="18" rx="3" class="c-mask"/>
-          <text x="575.5714285714286" y="574" class="t-muted" font-size="11" text-anchor="middle">删除结果</text>
+          <rect x="737.2" y="564" width="183.6" height="18" rx="3" class="c-mask"/>
+          <text x="829" y="574" class="t-muted" font-size="11" text-anchor="middle">PFCP Deletion Request · 54</text>
         </g>
         </g>
 
-        <g data-edge-from="scp" data-edge-to="smf" data-edge-label="PCF 结果" data-edge-key="14" data-edge-id="m15">
-          <path data-composition-edge-from="scp" data-composition-edge-to="smf" data-composition-edge-id="m15" data-composition-points="321.1428571428571,616;620.8571428571429,616" d="M 321.1428571428571 616 L 620.8571428571429 616" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="upf" data-edge-to="smf" data-edge-label="PFCP Deletion Response · 55" data-edge-key="14" data-edge-id="m15">
+          <path data-composition-edge-from="upf" data-composition-edge-to="smf" data-composition-edge-id="m15" data-composition-points="878,616;780,616" d="M 878 616 L 780 616" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="438.6" y="596" width="64.8" height="18" rx="3" class="c-mask"/>
-          <text x="471" y="606" class="t-muted" font-size="11" text-anchor="middle">PCF 结果</text>
+          <rect x="733.9" y="596" width="190.2" height="18" rx="3" class="c-mask"/>
+          <text x="829" y="606" class="t-muted" font-size="11" text-anchor="middle">PFCP Deletion Response · 55</text>
         </g>
         </g>
 
-        <g data-edge-from="smf" data-edge-to="host" data-edge-label="私有 Namf Relay（r3 释放信令）" data-edge-key="15" data-edge-id="m16">
-          <path data-composition-edge-from="smf" data-composition-edge-to="host" data-composition-edge-id="m16" data-composition-points="620.8571428571429,648;425.7142857142857,648" d="M 620.8571428571429 648 L 425.7142857142857 648" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-edge-from="smf" data-edge-to="tools" data-edge-label="r2 released / Owner result" data-edge-key="15" data-edge-id="m16">
+          <path data-composition-edge-from="smf" data-composition-edge-to="tools" data-composition-edge-id="m16" data-composition-points="766,648;668,648" d="M 766 648 L 668 648" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="418.28571428571433" y="628" width="210" height="18" rx="3" class="c-mask"/>
-          <text x="523.2857142857143" y="638" class="t-edge-security" font-size="11" text-anchor="middle">私有 Namf Relay（r3 释放信令）</text>
+          <rect x="625.2" y="628" width="183.6" height="18" rx="3" class="c-mask"/>
+          <text x="717" y="638" class="t-muted" font-size="11" text-anchor="middle">r2 released / Owner result</text>
         </g>
         </g>
 
-        <g data-edge-from="host" data-edge-to="tools" data-edge-label="fixed Namf egress" data-edge-key="16" data-edge-id="m17">
-          <path data-composition-edge-from="host" data-composition-edge-to="tools" data-composition-edge-id="m17" data-composition-points="425.7142857142857,680;516.2857142857142,680" d="M 425.7142857142857 680 L 516.2857142857142 680" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="r3 · SSM.SIGNAL_UE_AN (release=1; per trigger/profile)" data-edge-key="16" data-edge-id="m17">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m17" data-composition-points="556,680;654,680" d="M 556 680 L 654 680" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="408.9" y="660" width="124.19999999999999" height="18" rx="3" class="c-mask"/>
-          <text x="471" y="670" class="t-edge-security" font-size="11" text-anchor="middle">fixed Namf egress</text>
+          <rect x="420.8" y="660" width="368.4" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="670" class="t-edge-emphasis" font-size="11" text-anchor="middle">r3 · SSM.SIGNAL_UE_AN (release=1; per trigger/profile)</text>
         </g>
         </g>
 
-        <g data-edge-from="tools" data-edge-to="scp" data-edge-label="Namf_Communication_N1N2MessageTransfer" data-edge-key="17" data-edge-id="m18">
-          <path data-composition-edge-from="tools" data-composition-edge-to="scp" data-composition-edge-id="m18" data-composition-points="516.2857142857142,712;321.1428571428571,712" d="M 516.2857142857142 712 L 321.1428571428571 712" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="r3 Owner release signaling operation" data-edge-key="17" data-edge-id="m18">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m18" data-composition-points="668,712;766,712" d="M 668 712 L 766 712" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="287.3142857142857" y="692" width="262.79999999999995" height="18" rx="3" class="c-mask"/>
-          <text x="418.71428571428567" y="702" class="t-edge-emphasis" font-size="11" text-anchor="middle">Namf_Communication_N1N2MessageTransfer</text>
+          <rect x="592.2" y="692" width="249.6" height="18" rx="3" class="c-mask"/>
+          <text x="717" y="702" class="t-edge-security" font-size="11" text-anchor="middle">r3 Owner release signaling operation</text>
         </g>
         </g>
 
-        <g data-edge-from="scp" data-edge-to="amf" data-edge-label="N1/N2 释放信息" data-edge-key="18" data-edge-id="m19">
-          <path data-composition-edge-from="scp" data-composition-edge-to="amf" data-composition-edge-id="m19" data-composition-points="307.1428571428571,744;216.57142857142856,744" d="M 307.1428571428571 744 L 216.57142857142856 744" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="smf" data-edge-to="host" data-edge-label="OpenAMSM private Namf Relay request" data-edge-key="18" data-edge-id="m19">
+          <path data-composition-edge-from="smf" data-composition-edge-to="host" data-composition-edge-id="m19" data-composition-points="766,744;444,744" d="M 766 744 L 444 744" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="209.65714285714284" y="724" width="104.39999999999999" height="18" rx="3" class="c-mask"/>
-          <text x="261.85714285714283" y="734" class="t-edge-emphasis" font-size="11" text-anchor="middle">N1/N2 释放信息</text>
+          <rect x="483.5" y="724" width="243" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="734" class="t-edge-security" font-size="11" text-anchor="middle">OpenAMSM private Namf Relay request</text>
         </g>
         </g>
 
-        <g data-edge-from="amf" data-edge-to="ue" data-edge-label="PDU Session Release Command 0xD3" data-edge-key="19" data-edge-id="m20">
-          <path data-composition-edge-from="amf" data-composition-edge-to="ue" data-composition-edge-id="m20" data-composition-points="202.57142857142856,776;112,776" d="M 202.57142857142856 776 L 112 776" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="host" data-edge-to="tools" data-edge-label="Fixed Namf egress" data-edge-key="19" data-edge-id="m20">
+          <path data-composition-edge-from="host" data-composition-edge-to="tools" data-composition-edge-id="m20" data-composition-points="444,776;654,776" d="M 444 776 L 654 776" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="45.68571428571428" y="756" width="223.2" height="18" rx="3" class="c-mask"/>
-          <text x="157.28571428571428" y="766" class="t-muted" font-size="11" text-anchor="middle">PDU Session Release Command 0xD3</text>
+          <rect x="486.9" y="756" width="124.19999999999999" height="18" rx="3" class="c-mask"/>
+          <text x="549" y="766" class="t-edge-security" font-size="11" text-anchor="middle">Fixed Namf egress</text>
         </g>
         </g>
 
-        <g data-edge-from="ue" data-edge-to="amf" data-edge-label="PDU Session Release Complete 0xD4" data-edge-key="20" data-edge-id="m21">
-          <path data-composition-edge-from="ue" data-composition-edge-to="amf" data-composition-edge-id="m21" data-composition-points="112,808;202.57142857142856,808" d="M 112 808 L 202.57142857142856 808" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="tools" data-edge-to="scp" data-edge-label="Namf_Communication_N1N2MessageTransfer" data-edge-key="20" data-edge-id="m21">
+          <path data-composition-edge-from="tools" data-composition-edge-to="scp" data-composition-edge-id="m21" data-composition-points="654,808;332,808" d="M 654 808 L 332 808" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="42.385714285714286" y="788" width="229.79999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="157.28571428571428" y="798" class="t-muted" font-size="11" text-anchor="middle">PDU Session Release Complete 0xD4</text>
+          <rect x="361.6" y="788" width="262.79999999999995" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="798" class="t-edge-emphasis" font-size="11" text-anchor="middle">Namf_Communication_N1N2MessageTransfer</text>
         </g>
         </g>
 
-        <g data-edge-from="amf" data-edge-to="scp" data-edge-label="Nsmf_PDUSession_UpdateSMContext" data-edge-key="21" data-edge-id="m22">
-          <path data-composition-edge-from="amf" data-composition-edge-to="scp" data-composition-edge-id="m22" data-composition-points="216.57142857142856,840;307.1428571428571,840" d="M 216.57142857142856 840 L 307.1428571428571 840" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="scp" data-edge-to="amf" data-edge-label="Release N1/N2 information" data-edge-key="21" data-edge-id="m22">
+          <path data-composition-edge-from="scp" data-composition-edge-to="amf" data-composition-edge-id="m22" data-composition-points="318,840;220,840" d="M 318 840 L 220 840" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="153.55714285714282" y="820" width="216.6" height="18" rx="3" class="c-mask"/>
-          <text x="261.85714285714283" y="830" class="t-edge-emphasis" font-size="11" text-anchor="middle">Nsmf_PDUSession_UpdateSMContext</text>
+          <rect x="180.5" y="820" width="177" height="18" rx="3" class="c-mask"/>
+          <text x="269" y="830" class="t-edge-emphasis" font-size="11" text-anchor="middle">Release N1/N2 information</text>
         </g>
         </g>
 
-        <g data-edge-from="scp" data-edge-to="host" data-edge-label="已有 Host 资源" data-edge-key="22" data-edge-id="m23">
-          <path data-composition-edge-from="scp" data-composition-edge-to="host" data-composition-edge-id="m23" data-composition-points="321.1428571428571,872;411.7142857142857,872" d="M 321.1428571428571 872 L 411.7142857142857 872" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="amf" data-edge-to="ue" data-edge-label="Release Command (5GSM 0xD3)" data-edge-key="22" data-edge-id="m23">
+          <path data-composition-edge-from="amf" data-composition-edge-to="ue" data-composition-edge-id="m23" data-composition-points="206,872;108,872" d="M 206 872 L 108 872" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="314.22857142857146" y="852" width="104.39999999999999" height="18" rx="3" class="c-mask"/>
-          <text x="366.42857142857144" y="862" class="t-muted" font-size="11" text-anchor="middle">已有 Host 资源</text>
+          <rect x="61.900000000000006" y="852" width="190.2" height="18" rx="3" class="c-mask"/>
+          <text x="157" y="862" class="t-muted" font-size="11" text-anchor="middle">Release Command (5GSM 0xD3)</text>
         </g>
         </g>
 
-        <g data-edge-from="host" data-edge-to="tools" data-edge-label="correlated Owner response" data-edge-key="23" data-edge-id="m24">
-          <path data-composition-edge-from="host" data-composition-edge-to="tools" data-composition-edge-id="m24" data-composition-points="425.7142857142857,904;516.2857142857142,904" d="M 425.7142857142857 904 L 516.2857142857142 904" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="ue" data-edge-to="amf" data-edge-label="Release Complete (5GSM 0xD4)" data-edge-key="23" data-edge-id="m24">
+          <path data-composition-edge-from="ue" data-composition-edge-to="amf" data-composition-edge-id="m24" data-composition-points="108,904;206,904" d="M 108 904 L 206 904" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="382.5" y="884" width="177" height="18" rx="3" class="c-mask"/>
-          <text x="471" y="894" class="t-muted" font-size="11" text-anchor="middle">correlated Owner response</text>
+          <rect x="58.60000000000001" y="884" width="196.79999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="157" y="894" class="t-muted" font-size="11" text-anchor="middle">Release Complete (5GSM 0xD4)</text>
         </g>
         </g>
 
-        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="exact release completion" data-edge-key="24" data-edge-id="m25">
-          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m25" data-composition-points="530.2857142857142,936;620.8571428571429,936" d="M 530.2857142857142 936 L 620.8571428571429 936" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-edge-from="amf" data-edge-to="scp" data-edge-label="Nsmf_PDUSession_UpdateSMContext · Release Complete" data-edge-key="24" data-edge-id="m25">
+          <path data-composition-edge-from="amf" data-composition-edge-to="scp" data-composition-edge-id="m25" data-composition-points="220,936;318,936" d="M 220 936 L 318 936" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="490.37142857142857" y="916" width="170.39999999999998" height="18" rx="3" class="c-mask"/>
-          <text x="575.5714285714286" y="926" class="t-edge-security" font-size="11" text-anchor="middle">exact release completion</text>
+          <rect x="98" y="916" width="342" height="18" rx="3" class="c-mask"/>
+          <text x="269" y="926" class="t-edge-emphasis" font-size="11" text-anchor="middle">Nsmf_PDUSession_UpdateSMContext · Release Complete</text>
         </g>
         </g>
 
-        <g data-edge-from="smf" data-edge-to="tools" data-edge-label="Owner proof 或 UNKNOWN" data-edge-key="25" data-edge-id="m26">
-          <path data-composition-edge-from="smf" data-composition-edge-to="tools" data-composition-edge-id="m26" data-composition-points="620.8571428571429,968;530.2857142857142,968" d="M 620.8571428571429 968 L 530.2857142857142 968" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="scp" data-edge-to="host" data-edge-label="Existing Host Location" data-edge-key="25" data-edge-id="m26">
+          <path data-composition-edge-from="scp" data-composition-edge-to="host" data-composition-edge-id="m26" data-composition-points="332,968;430,968" d="M 332 968 L 430 968" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="496.97142857142853" y="948" width="157.2" height="18" rx="3" class="c-mask"/>
-          <text x="575.5714285714286" y="958" class="t-muted" font-size="11" text-anchor="middle">Owner proof 或 UNKNOWN</text>
+          <rect x="302.4" y="948" width="157.2" height="18" rx="3" class="c-mask"/>
+          <text x="381" y="958" class="t-muted" font-size="11" text-anchor="middle">Existing Host Location</text>
         </g>
         </g>
 
-        <g data-edge-from="host" data-edge-to="scp" data-edge-label="释放结果 / ProblemDetails" data-edge-key="26" data-edge-id="m27">
-          <path data-composition-edge-from="host" data-composition-edge-to="scp" data-composition-edge-id="m27" data-composition-points="411.7142857142857,1000;321.1428571428571,1000" d="M 411.7142857142857 1000 L 321.1428571428571 1000" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="host" data-edge-to="runtime" data-edge-label="correlate exact r3 Owner occurrence" data-edge-key="26" data-edge-id="m27">
+          <path data-composition-edge-from="host" data-composition-edge-to="runtime" data-composition-edge-id="m27" data-composition-points="444,1000;542,1000" d="M 444 1000 L 542 1000" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="277.92857142857144" y="980" width="177" height="18" rx="3" class="c-mask"/>
-          <text x="366.42857142857144" y="990" class="t-muted" font-size="11" text-anchor="middle">释放结果 / ProblemDetails</text>
+          <rect x="371.5" y="980" width="243" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="990" class="t-muted" font-size="11" text-anchor="middle">correlate exact r3 Owner occurrence</text>
         </g>
         </g>
 
-        <g data-edge-from="scp" data-edge-to="amf" data-edge-label="响应" data-edge-key="27" data-edge-id="m28">
-          <path data-composition-edge-from="scp" data-composition-edge-to="amf" data-composition-edge-id="m28" data-composition-points="307.1428571428571,1032;216.57142857142856,1032" d="M 307.1428571428571 1032 L 216.57142857142856 1032" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="continue original r3 operation" data-edge-key="27" data-edge-id="m28">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m28" data-composition-points="556,1032;654,1032" d="M 556 1032 L 654 1032" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="242.65714285714284" y="1012" width="38.4" height="18" rx="3" class="c-mask"/>
-          <text x="261.85714285714283" y="1022" class="t-muted" font-size="11" text-anchor="middle">响应</text>
+          <rect x="500" y="1012" width="210" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="1022" class="t-edge-security" font-size="11" text-anchor="middle">continue original r3 operation</text>
+        </g>
+        </g>
+
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="Owner-private Release Complete update" data-edge-key="28" data-edge-id="m29">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m29" data-composition-points="668,1064;766,1064" d="M 668 1064 L 766 1064" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-detail="context">
+          <rect x="588.9" y="1044" width="256.2" height="18" rx="3" class="c-mask"/>
+          <text x="717" y="1054" class="t-edge-security" font-size="11" text-anchor="middle">Owner-private Release Complete update</text>
+        </g>
+        </g>
+
+        <g data-edge-from="smf" data-edge-to="tools" data-edge-label="Release completion adopted / authoritative result" data-edge-key="29" data-edge-id="m30">
+          <path data-composition-edge-from="smf" data-composition-edge-to="tools" data-composition-edge-id="m30" data-composition-points="766,1096;668,1096" d="M 766 1096 L 668 1096" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="549.3" y="1076" width="335.4" height="18" rx="3" class="c-mask"/>
+          <text x="717" y="1086" class="t-muted" font-size="11" text-anchor="middle">Release completion adopted / authoritative result</text>
+        </g>
+        </g>
+
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="r4 · PA.DELETE_SM_POLICY" data-edge-key="30" data-edge-id="m31">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m31" data-composition-points="556,1128;654,1128" d="M 556 1128 L 654 1128" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="519.8" y="1108" width="170.39999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="1118" class="t-edge-emphasis" font-size="11" text-anchor="middle">r4 · PA.DELETE_SM_POLICY</text>
+        </g>
+        </g>
+
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="r4 Owner policy association deletion" data-edge-key="31" data-edge-id="m32">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m32" data-composition-points="668,1160;766,1160" d="M 668 1160 L 766 1160" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-detail="context">
+          <rect x="592.2" y="1140" width="249.6" height="18" rx="3" class="c-mask"/>
+          <text x="717" y="1150" class="t-edge-security" font-size="11" text-anchor="middle">r4 Owner policy association deletion</text>
+        </g>
+        </g>
+
+        <g data-edge-from="smf" data-edge-to="scp" data-edge-label="Npcf_SMPolicyControl_Delete" data-edge-key="32" data-edge-id="m33">
+          <path data-composition-edge-from="smf" data-composition-edge-to="scp" data-composition-edge-id="m33" data-composition-points="766,1192;332,1192" d="M 766 1192 L 332 1192" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="453.9" y="1172" width="190.2" height="18" rx="3" class="c-mask"/>
+          <text x="549" y="1182" class="t-muted" font-size="11" text-anchor="middle">Npcf_SMPolicyControl_Delete</text>
+        </g>
+        </g>
+
+        <g data-edge-from="scp" data-edge-to="pcf" data-edge-label="PCF policy association delete" data-edge-key="33" data-edge-id="m34">
+          <path data-composition-edge-from="scp" data-composition-edge-to="pcf" data-composition-edge-id="m34" data-composition-points="332,1224;990,1224" d="M 332 1224 L 990 1224" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="559.3" y="1204" width="203.39999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="661" y="1214" class="t-muted" font-size="11" text-anchor="middle">PCF policy association delete</text>
+        </g>
+        </g>
+
+        <g data-edge-from="pcf" data-edge-to="scp" data-edge-label="PCF deletion result" data-edge-key="34" data-edge-id="m35">
+          <path data-composition-edge-from="pcf" data-composition-edge-to="scp" data-composition-edge-id="m35" data-composition-points="990,1256;332,1256" d="M 990 1256 L 332 1256" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="592.3" y="1236" width="137.39999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="661" y="1246" class="t-muted" font-size="11" text-anchor="middle">PCF deletion result</text>
+        </g>
+        </g>
+
+        <g data-edge-from="scp" data-edge-to="smf" data-edge-label="r4 policy deletion result" data-edge-key="35" data-edge-id="m36">
+          <path data-composition-edge-from="scp" data-composition-edge-to="smf" data-composition-edge-id="m36" data-composition-points="332,1288;766,1288" d="M 332 1288 L 766 1288" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="460.5" y="1268" width="177" height="18" rx="3" class="c-mask"/>
+          <text x="549" y="1278" class="t-muted" font-size="11" text-anchor="middle">r4 policy deletion result</text>
+        </g>
+        </g>
+
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="r5 · SC.RELEASE_SM_CONTEXT" data-edge-key="36" data-edge-id="m37">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m37" data-composition-points="556,1320;654,1320" d="M 556 1320 L 654 1320" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="513.2" y="1300" width="183.6" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="1310" class="t-edge-emphasis" font-size="11" text-anchor="middle">r5 · SC.RELEASE_SM_CONTEXT</text>
+        </g>
+        </g>
+
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="r5 Owner SM Context release" data-edge-key="37" data-edge-id="m38">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m38" data-composition-points="668,1352;766,1352" d="M 668 1352 L 766 1352" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-detail="context">
+          <rect x="621.9" y="1332" width="190.2" height="18" rx="3" class="c-mask"/>
+          <text x="717" y="1342" class="t-edge-security" font-size="11" text-anchor="middle">r5 Owner SM Context release</text>
+        </g>
+        </g>
+
+        <g data-edge-from="runtime" data-edge-to="tools" data-edge-label="r6 · SE.EMIT_EVENTS" data-edge-key="38" data-edge-id="m39">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="tools" data-composition-edge-id="m39" data-composition-points="556,1384;654,1384" d="M 556 1384 L 654 1384" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="536.3" y="1364" width="137.39999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="605" y="1374" class="t-muted" font-size="11" text-anchor="middle">r6 · SE.EMIT_EVENTS</text>
+        </g>
+        </g>
+
+        <g data-edge-from="tools" data-edge-to="smf" data-edge-label="r6 local release event result" data-edge-key="39" data-edge-id="m40">
+          <path data-composition-edge-from="tools" data-composition-edge-to="smf" data-composition-edge-id="m40" data-composition-points="668,1416;766,1416" d="M 668 1416 L 766 1416" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="615.3" y="1396" width="203.39999999999998" height="18" rx="3" class="c-mask"/>
+          <text x="717" y="1406" class="t-muted" font-size="11" text-anchor="middle">r6 local release event result</text>
+        </g>
+        </g>
+
+        <g data-edge-from="runtime" data-edge-to="host" data-edge-label="Release settled + final response obligations" data-edge-key="40" data-edge-id="m41">
+          <path data-composition-edge-from="runtime" data-composition-edge-to="host" data-composition-edge-id="m41" data-composition-points="542,1448;444,1448" d="M 542 1448 L 444 1448" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="341.8" y="1428" width="302.4" height="18" rx="3" class="c-mask"/>
+          <text x="493" y="1438" class="t-muted" font-size="11" text-anchor="middle">Release settled + final response obligations</text>
+        </g>
+        </g>
+
+        <g data-edge-from="host" data-edge-to="scp" data-edge-label="Tombstone Host Location; paired responses" data-edge-key="41" data-edge-id="m42">
+          <path data-composition-edge-from="host" data-composition-edge-to="scp" data-composition-edge-id="m42" data-composition-points="430,1480;332,1480" d="M 430 1480 L 332 1480" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="239.70000000000002" y="1460" width="282.59999999999997" height="18" rx="3" class="c-mask"/>
+          <text x="381" y="1470" class="t-muted" font-size="11" text-anchor="middle">Tombstone Host Location; paired responses</text>
+        </g>
+        </g>
+
+        <g data-edge-from="scp" data-edge-to="amf" data-edge-label="Response(s)" data-edge-key="42" data-edge-id="m43">
+          <path data-composition-edge-from="scp" data-composition-edge-to="amf" data-composition-edge-id="m43" data-composition-points="318,1512;220,1512" d="M 318 1512 L 220 1512" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="226.7" y="1492" width="84.6" height="18" rx="3" class="c-mask"/>
+          <text x="269" y="1502" class="t-muted" font-size="11" text-anchor="middle">Response(s)</text>
         </g>
         </g>
 
         <!-- Segment Labels -->
         <g data-graph-role="segment-label" data-segment-id="0">
-          <rect x="280.7857142857143" y="134" width="76.4" height="18" rx="3" class="c-mask"/>
-          <text x="286.7857142857143" y="147" class="t-muted" font-size="9" font-weight="600">alt 释放入口</text>
+          <rect x="264" y="134" width="289.6" height="18" rx="3" class="c-mask"/>
+          <text x="270" y="147" class="t-muted" font-size="9" font-weight="600">Ingress · UE-requested Update vs AMF ReleaseSMContext</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="1">
-          <rect x="56" y="366" width="123.2" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="379" class="t-muted" font-size="9" font-weight="600">Release Run（DESIGN）</text>
+          <rect x="56" y="324" width="242.8" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="337" class="t-muted" font-size="9" font-weight="600">Release OES · r1 optional / r2 PFCP deletion</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="2">
-          <rect x="56" y="622" width="86.8" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="635" class="t-muted" font-size="9" font-weight="600">N4 与 PCF 清理</text>
+          <rect x="56" y="548" width="263.6" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="561" class="t-muted" font-size="9" font-weight="600">r3 · Namf release signaling and exact completion</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="3">
-          <rect x="56" y="886" width="102.4" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="899" class="t-muted" font-size="9" font-weight="600">N1 释放信令与结算</text>
+          <rect x="56" y="996" width="253.20000000000002" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="1009" class="t-muted" font-size="9" font-weight="600">r4 PCF cleanup · r5 context release · r6 event</text>
+        </g>
+        <g data-graph-role="segment-label" data-segment-id="4">
+          <rect x="56" y="1316" width="237.6" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="1329" class="t-muted" font-size="9" font-weight="600">Host resource tombstone and paired response</text>
         </g>
 
         <!-- Participants -->
-        <g id="node-ue" data-node-id="ue" data-node-label="UE / gNB" tabindex="0" role="button" aria-label="聚焦UE / gNB，时序参与者" aria-pressed="false" data-node-kind="external" data-node-context="时序参与者">
-          <title>UE / gNB · 时序参与者</title>
-          <rect x="62" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="62" y="72" width="86" height="60" rx="6" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(68 78) scale(0.6875)">
+        <g id="node-ue" data-node-id="ue" data-node-label="UE / gNB" tabindex="0" role="button" aria-label="聚焦UE / gNB，外部 UE / 接入网, 时序参与者" aria-pressed="false" data-node-kind="external" data-node-sublabel="外部 UE / 接入网" data-node-context="时序参与者">
+          <title>UE / gNB · 外部 UE / 接入网 · 时序参与者</title>
+          <rect x="53" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="53" y="72" width="96" height="60" rx="6" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(59 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" x="105" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">UE / gNB</text>
+          <text data-node-label="" data-detail-anchor="" x="101" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">UE / gNB</text>
+          <text data-detail="context" x="101" y="122" class="t-muted" font-size="7" text-anchor="middle">外部 UE / 接入网</text>
         </g>
 
-        <g id="node-amf" data-node-id="amf" data-node-label="AMF" tabindex="0" role="button" aria-label="聚焦AMF，时序参与者" aria-pressed="false" data-node-kind="external" data-node-context="时序参与者">
-          <title>AMF · 时序参与者</title>
-          <rect x="166.57142857142856" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="166.57142857142856" y="72" width="86" height="60" rx="6" class="c-external" data-animate="node" style="--step:1" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(172.57142857142856 78) scale(0.6875)">
+        <g id="node-amf" data-node-id="amf" data-node-label="AMF" tabindex="0" role="button" aria-label="聚焦AMF，外部 5GC, 时序参与者" aria-pressed="false" data-node-kind="external" data-node-sublabel="外部 5GC" data-node-context="时序参与者">
+          <title>AMF · 外部 5GC · 时序参与者</title>
+          <rect x="165" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="165" y="72" width="96" height="60" rx="6" class="c-external" data-animate="node" style="--step:1" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(171 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" x="209.57142857142856" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AMF</text>
+          <text data-node-label="" data-detail-anchor="" x="213" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AMF</text>
+          <text data-detail="context" x="213" y="122" class="t-muted" font-size="7" text-anchor="middle">外部 5GC</text>
         </g>
 
-        <g id="node-scp" data-node-id="scp" data-node-label="SCP" tabindex="0" role="button" aria-label="聚焦SCP，时序参与者" aria-pressed="false" data-node-kind="cloud" data-node-context="时序参与者">
-          <title>SCP · 时序参与者</title>
-          <rect x="271.1428571428571" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="271.1428571428571" y="72" width="86" height="60" rx="6" class="c-cloud" data-animate="node" style="--step:2" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(277.1428571428571 78) scale(0.6875)">
-            <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
+        <g id="node-scp" data-node-id="scp" data-node-label="SCP" tabindex="0" role="button" aria-label="聚焦SCP，外部 5GC, 时序参与者" aria-pressed="false" data-node-kind="external" data-node-sublabel="外部 5GC" data-node-context="时序参与者">
+          <title>SCP · 外部 5GC · 时序参与者</title>
+          <rect x="277" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="277" y="72" width="96" height="60" rx="6" class="c-external" data-animate="node" style="--step:2" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(283 78) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" x="314.1428571428571" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">SCP</text>
+          <text data-node-label="" data-detail-anchor="" x="325" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">SCP</text>
+          <text data-detail="context" x="325" y="122" class="t-muted" font-size="7" text-anchor="middle">外部 5GC</text>
         </g>
 
-        <g id="node-host" data-node-id="host" data-node-label="CA-Agent Host" tabindex="0" role="button" aria-label="聚焦CA-Agent Host，时序参与者" aria-pressed="false" data-node-kind="backend" data-node-context="时序参与者">
-          <title>CA-Agent Host · 时序参与者</title>
-          <rect x="375.7142857142857" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="375.7142857142857" y="72" width="86" height="60" rx="6" class="c-backend" data-animate="node" style="--step:3" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(381.7142857142857 78) scale(0.6875)">
+        <g id="node-host" data-node-id="host" data-node-label="Host" tabindex="0" role="button" aria-label="聚焦Host，CA-Agent, 时序参与者" aria-pressed="false" data-node-kind="backend" data-node-sublabel="CA-Agent" data-node-context="时序参与者">
+          <title>Host · CA-Agent · 时序参与者</title>
+          <rect x="389" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="389" y="72" width="96" height="60" rx="6" class="c-backend" data-animate="node" style="--step:3" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(395 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" x="418.7142857142857" y="108" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">CA-Agent Host</text>
+          <text data-node-label="" data-detail-anchor="" x="437" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Host</text>
+          <text data-detail="context" x="437" y="122" class="t-muted" font-size="7" text-anchor="middle">CA-Agent</text>
         </g>
 
-        <g id="node-tools" data-node-id="tools" data-node-label="Client Tools" tabindex="0" role="button" aria-label="聚焦Client Tools，时序参与者" aria-pressed="false" data-node-kind="backend" data-node-context="时序参与者">
-          <title>Client Tools · 时序参与者</title>
-          <rect x="480.2857142857142" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="480.2857142857142" y="72" width="86" height="60" rx="6" class="c-backend" data-animate="node" style="--step:4" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(486.2857142857142 78) scale(0.6875)">
+        <g id="node-runtime" data-node-id="runtime" data-node-label="Runtime" tabindex="0" role="button" aria-label="聚焦Runtime，CA-Agent, 时序参与者" aria-pressed="false" data-node-kind="backend" data-node-sublabel="CA-Agent" data-node-context="时序参与者">
+          <title>Runtime · CA-Agent · 时序参与者</title>
+          <rect x="501" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="501" y="72" width="96" height="60" rx="6" class="c-backend" data-animate="node" style="--step:4" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(507 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" x="523.2857142857142" y="108" class="t-primary" font-size="10.8" font-weight="600" text-anchor="middle">Client Tools</text>
+          <text data-node-label="" data-detail-anchor="" x="549" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Runtime</text>
+          <text data-detail="context" x="549" y="122" class="t-muted" font-size="7" text-anchor="middle">CA-Agent</text>
         </g>
 
-        <g id="node-smf" data-node-id="smf" data-node-label="OpenAMSM SMF" tabindex="0" role="button" aria-label="聚焦OpenAMSM SMF，时序参与者" aria-pressed="false" data-node-kind="backend" data-node-context="时序参与者">
-          <title>OpenAMSM SMF · 时序参与者</title>
-          <rect x="584.8571428571429" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="584.8571428571429" y="72" width="86" height="60" rx="6" class="c-backend" data-animate="node" style="--step:5" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(590.8571428571429 78) scale(0.6875)">
+        <g id="node-tools" data-node-id="tools" data-node-label="CA Client Tools" tabindex="0" role="button" aria-label="聚焦CA Client Tools，NAS Codec / Dispatch, 时序参与者" aria-pressed="false" data-node-kind="backend" data-node-sublabel="NAS Codec / Dispatch" data-node-context="时序参与者">
+          <title>CA Client Tools · NAS Codec / Dispatch · 时序参与者</title>
+          <rect x="613" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="613" y="72" width="96" height="60" rx="6" class="c-backend" data-animate="node" style="--step:5" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(619 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" x="627.8571428571429" y="108" class="t-primary" font-size="10.8" font-weight="600" text-anchor="middle">OpenAMSM SMF</text>
+          <text data-node-label="" data-detail-anchor="" x="661" y="108" class="t-primary" font-size="9.7" font-weight="600" text-anchor="middle">CA Client Tools</text>
+          <text data-detail="context" x="661" y="122" class="t-muted" font-size="7" text-anchor="middle">NAS Codec / Dispatch</text>
         </g>
 
-        <g id="node-upf" data-node-id="upf" data-node-label="UPF" tabindex="0" role="button" aria-label="聚焦UPF，时序参与者" aria-pressed="false" data-node-kind="external" data-node-context="时序参与者">
-          <title>UPF · 时序参与者</title>
-          <rect x="689.4285714285714" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="689.4285714285714" y="72" width="86" height="60" rx="6" class="c-external" data-animate="node" style="--step:6" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(695.4285714285714 78) scale(0.6875)">
+        <g id="node-smf" data-node-id="smf" data-node-label="OpenAMSM SMF" tabindex="0" role="button" aria-label="聚焦OpenAMSM SMF，SMF Owner, 时序参与者" aria-pressed="false" data-node-kind="backend" data-node-sublabel="SMF Owner" data-node-context="时序参与者">
+          <title>OpenAMSM SMF · SMF Owner · 时序参与者</title>
+          <rect x="725" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="725" y="72" width="96" height="60" rx="6" class="c-backend" data-animate="node" style="--step:6" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(731 78) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="773" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">OpenAMSM SMF</text>
+          <text data-detail="context" x="773" y="122" class="t-muted" font-size="7" text-anchor="middle">SMF Owner</text>
+        </g>
+
+        <g id="node-upf" data-node-id="upf" data-node-label="UPF · N4 Peer" tabindex="0" role="button" aria-label="聚焦UPF · N4 Peer，N4 · no SCP, 时序参与者" aria-pressed="false" data-node-kind="external" data-node-sublabel="N4 · no SCP" data-node-context="时序参与者">
+          <title>UPF · N4 Peer · N4 · no SCP · 时序参与者</title>
+          <rect x="837" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="837" y="72" width="96" height="60" rx="6" class="c-external" data-animate="node" style="--step:7" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(843 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" x="732.4285714285714" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">UPF</text>
+          <text data-node-label="" data-detail-anchor="" x="885" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">UPF · N4 Peer</text>
+          <text data-detail="context" x="885" y="122" class="t-muted" font-size="7" text-anchor="middle">N4 · no SCP</text>
         </g>
 
-        <g id="node-pcf" data-node-id="pcf" data-node-label="PCF" tabindex="0" role="button" aria-label="聚焦PCF，时序参与者" aria-pressed="false" data-node-kind="external" data-node-context="时序参与者">
-          <title>PCF · 时序参与者</title>
-          <rect x="794" y="72" width="86" height="60" rx="6" class="c-mask"/>
-          <rect x="794" y="72" width="86" height="60" rx="6" class="c-external" data-animate="node" style="--step:7" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(800 78) scale(0.6875)">
+        <g id="node-pcf" data-node-id="pcf" data-node-label="PCF" tabindex="0" role="button" aria-label="聚焦PCF，外部 5GC, 时序参与者" aria-pressed="false" data-node-kind="external" data-node-sublabel="外部 5GC" data-node-context="时序参与者">
+          <title>PCF · 外部 5GC · 时序参与者</title>
+          <rect x="949" y="72" width="96" height="60" rx="6" class="c-mask"/>
+          <rect x="949" y="72" width="96" height="60" rx="6" class="c-external" data-animate="node" style="--step:8" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(955 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" x="837" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">PCF</text>
+          <text data-node-label="" data-detail-anchor="" x="997" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">PCF</text>
+          <text data-detail="context" x="997" y="122" class="t-muted" font-size="7" text-anchor="middle">外部 5GC</text>
         </g>
 
         <!-- Legend -->
         <g data-legend="">
-          <text x="40" y="1264" class="t-primary" font-size="12" font-weight="650">图例</text>
-          <g data-legend-semantic-kind="emphasis" data-legend-x="40" data-legend-baseline="1284" data-legend-width="105">
-            <path d="M 40 1281 L 74 1281" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-            <text x="83" y="1284" class="t-muted" font-size="10" font-weight="500">主路径请求</text>
+          <text x="40" y="1550" class="t-primary" font-size="12" font-weight="650">图例</text>
+          <g data-legend-semantic-kind="emphasis" data-legend-x="40" data-legend-baseline="1570" data-legend-width="105">
+            <path d="M 40 1567 L 74 1567" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+            <text x="83" y="1570" class="t-muted" font-size="10" font-weight="500">主路径请求</text>
           </g>
-          <g data-legend-semantic-kind="return" data-legend-x="167" data-legend-baseline="1284" data-legend-width="68">
-            <path d="M 167 1281 L 201 1281" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-            <text x="210" y="1284" class="t-muted" font-size="10" font-weight="500">返回</text>
+          <g data-legend-semantic-kind="return" data-legend-x="167" data-legend-baseline="1570" data-legend-width="68">
+            <path d="M 167 1567 L 201 1567" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+            <text x="210" y="1570" class="t-muted" font-size="10" font-weight="500">返回</text>
           </g>
-          <g data-legend-semantic-kind="security" data-legend-x="257" data-legend-baseline="1284" data-legend-width="68">
-            <path d="M 257 1281 L 291 1281" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-            <text x="300" y="1284" class="t-muted" font-size="10" font-weight="500">安全</text>
+          <g data-legend-semantic-kind="security" data-legend-x="257" data-legend-baseline="1570" data-legend-width="68">
+            <path d="M 257 1567 L 291 1567" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+            <text x="300" y="1570" class="t-muted" font-size="10" font-weight="500">安全</text>
           </g>
-          <g data-legend-semantic-kind="dashed" data-legend-x="347" data-legend-baseline="1284" data-legend-width="93">
-            <path d="M 347 1281 L 381 1281" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-            <text x="390" y="1284" class="t-muted" font-size="10" font-weight="500">异步追踪</text>
-          </g>
-          <g data-legend-semantic-kind="default" data-legend-x="462" data-legend-baseline="1284" data-legend-width="93">
-            <path d="M 462 1281 L 496 1281" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-            <text x="505" y="1284" class="t-muted" font-size="10" font-weight="500">普通消息</text>
+          <g data-legend-semantic-kind="default" data-legend-x="347" data-legend-baseline="1570" data-legend-width="93">
+            <path d="M 347 1567 L 381 1567" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+            <text x="390" y="1570" class="t-muted" font-size="10" font-weight="500">普通消息</text>
           </g>
         </g>
       </svg>
@@ -5791,40 +5925,52 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <div class="cards">
       <div class="card">
         <div class="card-header">
-          <div class="card-dot emerald"></div>
-          <h3>当前源代码证据</h3>
+          <div class="card-dot cyan"></div>
+          <h3>两个释放入口</h3>
         </div>
         <ul>
-          <li>pdu-rel-v4.yaml：r1 CA.DELETE_CHARGING（可选，不得推断 CHF 已真实释放）/ r2 UPN.DELETE_UP_SESSION / r3 SSM.SIGNAL_UE_AN release=1 / r4 PA.DELETE_SM_POLICY / r5 SC.RELEASE_SM_CONTEXT / r6 SE.EMIT_EVENTS / r7 COMPENSATE_RELEASE 为 skip</li>
-          <li>mas-facade.c 存在 Release 分派；nsmf-handler.c 在 agent_step 分支拒绝标准 ReleaseSMContext</li>
-          <li>CA-SL v1alpha5 只有 Establishment 的可执行 Procedure；本图 Release Run 为目标设计</li>
-          <li>Npcf_SMPolicyControl_Delete 与 PFCP Deletion Type 54 为设计中的既有 Owner 能力</li>
+          <li>UE 请求释放：PDU Session Release Request (0xD1) 经 Nsmf_PDUSession_UpdateSMContext 携带 N1</li>
+          <li>AMF 请求释放：Nsmf_PDUSession_ReleaseSMContext；不伪造成 HTTP DELETE</li>
+          <li>两个入口都定位同一个已存在 Host Location / Owner Session，不创建新 SM Context</li>
+          <li>UE NAS exchange 还包括 PDU Session Release Command（0xD3）与 PDU Session Release Complete（0xD4）；箭头使用短标签</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <div class="card-dot rose"></div>
-          <h3>未实现缺口（不得视为已接通）</h3>
+          <div class="card-dot emerald"></div>
+          <h3>Release OES 顺序</h3>
         </div>
         <ul>
-          <li>无冻结的 CA-SL v1alpha5 Release Procedure：DESIGN / NOT_IMPLEMENTED</li>
-          <li>Host release classification 与 URI tombstone：NOT_IMPLEMENTED</li>
-          <li>r7 COMPENSATE_RELEASE 为 skip，不得改造成自动重试补偿</li>
-          <li>ReleaseSMContext 的 2xx 不代表 UPF / PCF 清理已完成；UNKNOWN 不得盲目重放</li>
+          <li>r1 CA.DELETE_CHARGING（optional）→ r2 UPN.DELETE_UP_SESSION → r3 SSM.SIGNAL_UE_AN → r4 PA.DELETE_SM_POLICY → r5 SC.RELEASE_SM_CONTEXT → r6 SE.EMIT_EVENTS</li>
+          <li>r3 是否需要 UE/RAN 信令由触发场景和 Profile 决定；若发出 Release Command，Release Complete 必须回到原 r3 occurrence</li>
+          <li>r7 COMPENSATE_RELEASE 不作为普通 Skill Mutation；未知副作用通过 exact-original Reconcile 处理</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
           <div class="card-dot slate"></div>
-          <h3>归属与下一步</h3>
+          <h3>资源与协议边界</h3>
         </div>
         <ul>
-          <li>ca-skills W3：冻结 v1alpha5 Release Procedure 与 Request Schema</li>
-          <li>env-openamsm W4：agent_step Release 接线与错误契约</li>
-          <li>ca-agent-demo W0/W6：Host Release Run、Owner Pending 与 URI tombstone</li>
-          <li>总体状态：DESIGN / NOT_QUALIFIED，本图不构成 E2E 证据</li>
+          <li>UPF Session Deletion 使用 PFCP Type 54/55，OpenAMSM 直连 UPF</li>
+          <li>PCF Policy Association Delete 使用 Npcf_SMPolicyControl_Delete，经 SCP</li>
+          <li>只有 Owner 释放与 Host 外部资源结算完成后，Host 才写入 URI Map tombstone</li>
+          <li>PFCP standard messages：Session Deletion Request / Response（Type 54/55）；箭头以 PFCP + procedure + type 简写。</li>
+          <li>NAS Codec 属于 CA Client Tools 内部只读职责；原始 NAS 仍保持不变并交给 OpenAMSM GSM Handler</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot slate"></div>
+          <h3>3GPP Release 入口</h3>
+        </div>
+        <ul>
+          <li>UE-requested release：Nsmf_PDUSession_UpdateSMContext（operationId=UpdateSmContext，携带 N1 PDU Session Release Request）</li>
+          <li>AMF-requested release：Nsmf_PDUSession_ReleaseSMContext（operationId=ReleaseSmContext），不是 HTTP DELETE</li>
+          <li>Host URI Map tombstone 在 Owner 资源结算完成后写入，迟到 Location 不再路由到已释放 Session</li>
         </ul>
       </div>
     </div>
