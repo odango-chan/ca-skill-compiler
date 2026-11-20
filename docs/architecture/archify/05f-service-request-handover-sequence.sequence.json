@@ -31,20 +31,20 @@
     {
       "id": "host",
       "type": "backend",
-      "label": "CA-Agent Host",
-      "sublabel": "CA-Agent · SBI Ingress / Resource Router / URI Map"
+      "label": "Host",
+      "sublabel": "CA-Agent"
     },
     {
       "id": "tools",
       "type": "backend",
-      "label": "Client Tools Provider",
-      "sublabel": "CA Client Tools · 固定 Owner / SBI Egress"
+      "label": "Client Tools",
+      "sublabel": "CA-Tools"
     },
     {
       "id": "smf",
       "type": "backend",
       "label": "OpenAMSM SMF",
-      "sublabel": "OpenAMSM · SM Context / GSM / OES / N4 Owner"
+      "sublabel": "SMF Owner"
     },
     {
       "id": "upf",
@@ -84,7 +84,7 @@
       "from": "amf",
       "to": "scp",
       "y": 200,
-      "label": "Nsmf_PDUSession_UpdateSMContext · operationId=UpdateSmContext · upCnxState=ACTIVATING",
+      "label": "UpdateSMContext · upCnxState=ACTIVATING",
       "variant": "emphasis"
     },
     {
@@ -116,7 +116,7 @@
       "from": "smf",
       "to": "upf",
       "y": 328,
-      "label": "PFCP Session Modification Request (Type 52 · if required)",
+      "label": "PFCP Session Modification Request · Type 52",
       "variant": "default"
     },
     {
@@ -180,7 +180,7 @@
       "from": "amf",
       "to": "scp",
       "y": 584,
-      "label": "Nsmf_PDUSession_UpdateSMContext · operationId=UpdateSmContext · PDU_RES_SETUP_RSP",
+      "label": "UpdateSMContext · PDU_RES_SETUP_RSP",
       "variant": "emphasis"
     },
     {
@@ -196,7 +196,7 @@
       "from": "host",
       "to": "tools",
       "y": 648,
-      "label": "Original N2 attachment + correlate existing Session / AN setup occurrence",
+      "label": "Original N2 attachment · correlate AN setup",
       "variant": "default"
     },
     {
@@ -244,7 +244,7 @@
       "from": "amf",
       "to": "scp",
       "y": 840,
-      "label": "[ALT · F10] Nsmf_PDUSession_UpdateSMContext · operationId=UpdateSmContext · hoState / PATH_SWITCH_REQ",
+      "label": "[ALT · F10] UpdateSMContext · hoState / PATH_SWITCH_REQ",
       "variant": "emphasis"
     },
     {
@@ -276,7 +276,7 @@
       "from": "smf",
       "to": "upf",
       "y": 968,
-      "label": "PFCP Session Modification Request (Type 52 · FAR / F-TEID)",
+      "label": "PFCP Session Modification Request · Type 52",
       "variant": "default"
     },
     {
@@ -346,6 +346,15 @@
         "AMF 的 UpdateSMContext 始终经 SCP 到 Host Location",
         "Host 负责既有资源定位、N2 附件与响应配对；Client Tools 负责固定 Owner 出站绑定",
         "本流程是既有 Session 的协议路由 / Owner 更新，不自动创建新 Skill Invocation"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "3GPP Service Operation 与既有 Session",
+      "items": [
+        "所有 AMF → SMF 请求均为 Nsmf_PDUSession_UpdateSMContext（OpenAPI operationId=UpdateSmContext）",
+        "F09 由 upCnxState=ACTIVATING 识别 Service Request；F10 按 hoState / PATH_SWITCH_REQ 识别 Handover / Path Switch",
+        "两类分支都只更新既有 SM Context，不重跑 Establishment；PFCP Type 52/53 由 OpenAMSM 直连 UPF"
       ]
     }
   ]

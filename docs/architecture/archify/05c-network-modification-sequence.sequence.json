@@ -26,25 +26,25 @@
       "id": "smf",
       "type": "backend",
       "label": "OpenAMSM SMF",
-      "sublabel": "OpenAMSM · SM Context / GSM / OES / N4 Owner"
+      "sublabel": "SMF Owner"
     },
     {
       "id": "host",
       "type": "backend",
-      "label": "CA-Agent Host",
-      "sublabel": "CA-Agent · SBI Ingress / Resource Router / URI Map"
+      "label": "Host",
+      "sublabel": "CA-Agent"
     },
     {
       "id": "runtime",
       "type": "backend",
-      "label": "Host Runtime",
-      "sublabel": "CA-Agent · Run / Procedure / Postcondition"
+      "label": "Runtime",
+      "sublabel": "CA-Agent"
     },
     {
       "id": "tools",
       "type": "backend",
-      "label": "Client Tools Provider",
-      "sublabel": "CA Client Tools · 固定 Owner / SBI Egress"
+      "label": "Client Tools",
+      "sublabel": "CA-Tools"
     },
     {
       "id": "amf",
@@ -114,7 +114,7 @@
       "from": "smf",
       "to": "host",
       "y": 232,
-      "label": "Owner-private scoped event · SUPI / PSI / trigger / generation",
+      "label": "Scoped event · SUPI / PSI / trigger / generation",
       "variant": "security"
     },
     {
@@ -298,7 +298,7 @@
       "from": "tools",
       "to": "smf",
       "y": 968,
-      "label": "Owner-private N1/N2 result update · original attachment + typed facts",
+      "label": "Owner adopts N1/N2 attachment + typed facts",
       "variant": "security"
     },
     {

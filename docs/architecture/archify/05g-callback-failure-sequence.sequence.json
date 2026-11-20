@@ -25,32 +25,32 @@
     {
       "id": "host",
       "type": "backend",
-      "label": "CA-Agent Host",
-      "sublabel": "CA-Agent · SBI Ingress / Resource Router / URI Map"
+      "label": "Host",
+      "sublabel": "CA-Agent"
     },
     {
       "id": "store",
       "type": "database",
-      "label": "Host Durable Run / Occurrence Store",
-      "sublabel": "CA-Agent · callback URI / generation / commit record"
+      "label": "Run Store",
+      "sublabel": "CA-Agent"
     },
     {
       "id": "runtime",
       "type": "backend",
-      "label": "Host Runtime",
-      "sublabel": "CA-Agent · Run / Procedure / Postcondition"
+      "label": "Runtime",
+      "sublabel": "CA-Agent"
     },
     {
       "id": "tools",
       "type": "backend",
-      "label": "Client Tools Provider",
-      "sublabel": "CA Client Tools · 固定 Owner / SBI Egress"
+      "label": "Client Tools",
+      "sublabel": "CA-Tools"
     },
     {
       "id": "smf",
       "type": "backend",
       "label": "OpenAMSM SMF",
-      "sublabel": "OpenAMSM · SM Context / GSM / OES / N4 Owner"
+      "sublabel": "SMF Owner"
     }
   ],
   "segments": [
@@ -76,7 +76,7 @@
       "from": "amf",
       "to": "scp",
       "y": 168,
-      "label": "Namf_Communication_N1N2TransferFailureNotification · operationId=N1N2TransferFailureNotification",
+      "label": "N1N2TransferFailureNotification",
       "variant": "emphasis"
     },
     {
@@ -244,7 +244,7 @@
       "from": "host",
       "to": "runtime",
       "y": 840,
-      "label": "[ALT · timeout / Owner restart] unresolved pending operation",
+      "label": "Timeout / Owner restart · unresolved Pending",
       "variant": "default"
     },
     {
@@ -260,7 +260,7 @@
       "from": "runtime",
       "to": "tools",
       "y": 904,
-      "label": "Authorized exact-original Reconcile · read-only proof query",
+      "label": "Exact-original Reconcile · read-only proof query",
       "variant": "security"
     },
     {
@@ -292,7 +292,7 @@
       "from": "runtime",
       "to": "store",
       "y": 1032,
-      "label": "Commit proof if matched; otherwise retain OUTCOME_UNKNOWN",
+      "label": "Commit proof or retain OUTCOME_UNKNOWN",
       "variant": "default"
     },
     {
@@ -354,6 +354,15 @@
         "本图主线为 Namf_Communication_N1N2TransferFailureNotification；同一 Host Callback Router 还按各自 callback URI 处理 SM Context Status / AMF Status 类通知",
         "HTTP 2xx / N1N2 transfer accepted 不代表 RAN 已采用 N2，也不代表 NAS 成功",
         "Owner receipt、SMF Resource Commit、RAN adoption 与 UE user-plane Postcondition 是不同层次的证据"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Callback 标准名称与安全边界",
+      "items": [
+        "3GPP Service Operation：Namf_Communication_N1N2TransferFailureNotification；本图用短标签显示，完整名称以本卡为准",
+        "Callback URI、NF identity、Session、Run、Owner occurrence 与 generation 必须共同匹配",
+        "UNKNOWN 不等于 NOT_COMMITTED；Reconcile 只查询 exact-original proof，不重放 Mutation"
       ]
     }
   ]
