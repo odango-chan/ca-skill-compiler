@@ -10,15 +10,15 @@ package compiler
 //	connectionagent.io/compiler-development-artifact/v1alpha1
 //	connectionagent.io/interface-package/v1alpha1
 //	connectionagent.io/interface-dependency-lock/v1alpha1
-//	connectionagent.io/assurance-export/v1alpha1
 //
 // The Development profile consumes Skill source, exact Interface Package
-// snapshots, a Resolver-produced Dependency Lock and an optional Assurance
-// Export. It performs the same single Go Core language validation as the frozen
-// v1alpha5 entry, then links the interface closure offline, records every
-// deferred assurance obligation and assembles a deterministic
-// LINKED / BUILT / NOT_ADMITTED artifact. It never downloads, resolves, signs,
-// admits or executes anything.
+// snapshots (including the formal EvidenceDescriptor export kind) and a
+// Resolver-produced Dependency Lock. It performs the same single Go Core
+// language validation as the frozen v1alpha5 entry, then links the interface
+// closure offline, records the external Host Admission facts and the Runtime
+// Execution guarantees that no Compiler input can establish, and assembles a
+// deterministic LINKED / BUILT / NOT_ADMITTED artifact. It never downloads,
+// resolves, signs, admits or executes anything.
 //
 // The frozen v2.0.2 BuildRequest/BuildResult/Artifact contract is unchanged;
 // the Development family is selected explicitly and rejects every other API
@@ -52,12 +52,18 @@ const (
 	// artifact can carry: the artifact is never admitted to execute by Build.
 	DevelopmentExecutionStatus = "NOT_ADMITTED"
 
-	DevelopmentSourceValidated       = "VALIDATED"
-	DevelopmentInterfaceLinked       = "LINKED"
-	DevelopmentArtifactBuilt         = "BUILT"
-	DevelopmentPhaseFailed           = "FAILED"
-	DevelopmentPhaseNotRun           = "NOT_RUN"
+	DevelopmentSourceValidated = "VALIDATED"
+	DevelopmentInterfaceLinked = "LINKED"
+	DevelopmentArtifactBuilt   = "BUILT"
+	DevelopmentPhaseFailed     = "FAILED"
+	DevelopmentPhaseNotRun     = "NOT_RUN"
+	// DevelopmentHostRequirementStatus is the only status of an external fact
+	// that the Host must verify before dispatch. It is never a Compiler verdict
+	// and never a substitute for a static check.
 	DevelopmentHostRequirementStatus = "HOST_VERIFICATION_REQUIRED"
+	// DevelopmentRuntimeRequirementStatus is the only status of an execution-time
+	// guarantee. It cannot be satisfied by Build or by pre-dispatch admission.
+	DevelopmentRuntimeRequirementStatus = "RUNTIME_EXECUTION_REQUIRED"
 
 	DevelopmentRequirementOwnerTrust     = "OWNER_TRUST"
 	DevelopmentRequirementEvidenceDomain = "EVIDENCE_DOMAIN_TRUST"
@@ -66,9 +72,10 @@ const (
 	DevelopmentRequirementCommitProof    = "COMMIT_PROOF"
 	DevelopmentRequirementReconcile      = "RECONCILE"
 
-	developmentRequirementDigestDomain = "CA-SKILL-DEVELOPMENT-HOST-REQUIREMENT\x00v1\x00"
-	developmentManifestFileName        = "manifest.json"
-	developmentRequirementsFileName    = "host-admission-requirements.json"
+	developmentRequirementDigestDomain     = "CA-SKILL-DEVELOPMENT-HOST-REQUIREMENT\x00v1\x00"
+	developmentManifestFileName            = "manifest.json"
+	developmentRequirementsFileName        = "host-admission-requirements.json"
+	developmentRuntimeRequirementsFileName = "runtime-execution-requirements.json"
 
 	// New Development-envelope diagnostics. Static language diagnostics keep
 	// the frozen Appendix H identities.
@@ -119,15 +126,6 @@ type DevelopmentLock struct {
 	APIVersion string                   `json:"apiVersion"`
 	Roots      []DevelopmentLockRoot    `json:"roots"`
 	Packages   []DevelopmentLockPackage `json:"packages"`
-}
-
-// DevelopmentAssurance is one optional Assurance Export carrying only static
-// Evidence Descriptor inputs.
-type DevelopmentAssurance struct {
-	APIVersion string                `json:"apiVersion"`
-	Key        DevelopmentPackageKey `json:"key"`
-	Digest     string                `json:"digest"`
-	Files      []File                `json:"files"`
 }
 
 // DevelopmentBuildRequest is the only accepted Development Build input.
@@ -295,5 +293,32 @@ func developmentDiagnostic(code, path, message string) Diagnostic {
 		Code:     code,
 		Path:     limitDiagnosticPath(path),
 		Message:  limitDiagnosticMessage(message),
+	}
+}
+
+// developmentRequirementClass returns the artifact class of one requirement
+// kind. The two classes are disjoint by construction: an external pre-dispatch
+// fact can never migrate into the runtime document and an execution-time
+// guarantee can never be satisfied by Host Admission.
+func developmentRequirementClass(kind string) string {
+	switch kind {
+	case DevelopmentRequirementOwnerTrust, DevelopmentRequirementEvidenceDomain,
+		DevelopmentRequirementEvidenceFact, DevelopmentRequirementIndependence:
+		return "host"
+	case DevelopmentRequirementCommitProof, DevelopmentRequirementReconcile:
+		return "runtime"
+	default:
+		return ""
+	}
+}
+
+func developmentRequirementStatus(kind string) string {
+	switch developmentRequirementClass(kind) {
+	case "host":
+		return DevelopmentHostRequirementStatus
+	case "runtime":
+		return DevelopmentRuntimeRequirementStatus
+	default:
+		return ""
 	}
 }

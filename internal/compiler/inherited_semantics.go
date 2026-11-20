@@ -173,9 +173,9 @@ func validateSkillPackage(
 		validateRouteKeyEligibility(sourceAST, ownerLinking, procedurePath, errorAt)
 		if opts.development != nil {
 			opts.development.validateDevelopmentEvidence(sourceAST, ownerLinking, procedurePath, errorAt)
-			// Development records typed obligations from the same validated
-			// linking state; descriptor absence is deferred, never filtered from
-			// the statically decidable checks above.
+			// Development records typed Host Admission and Runtime Execution
+			// requirements from the same validated linking state. Descriptor
+			// absence is a Build failure, never a deferred requirement.
 			opts.development.recordOwnerTrustRequirements(sourceAST, ownerLinking)
 
 			opts.development.recordMutationRequirements(sourceAST, ownerLinking, procedurePath)

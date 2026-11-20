@@ -4,7 +4,7 @@ package compiler
 // Development request scope. It groups each legacy dependency snapshot into one
 // Interface Package, derives package.json exports from the actual payload
 // documents, synthesizes a CapabilityCatalog from the deployment bundle and moves
-// Evidence Descriptor documents into the optional Assurance Export. The resulting
+// Evidence Descriptor documents into formal Interface Package exports. The resulting
 // request is synthetic and compiler-owned; it does not claim a real Owner
 // publication.
 
@@ -99,8 +99,13 @@ func developmentRequestFromLegacy(t *testing.T, legacy BuildRequest) Development
 					}
 					export := map[string]any{"kind": "IngressCatalog", "id": id, "path": path}
 					var artifacts, schemas []any
+					aliasArtifacts := map[string]bool{}
 					for _, binding := range legacy.TrustedBuildContext.ArtifactBindings {
 						if binding.DependencyID != alias {
+							continue
+						}
+						aliasArtifacts[binding.ArtifactRef] = true
+						if binding.Dialect != "openapi-3.0" {
 							continue
 						}
 						artifacts = append(artifacts, map[string]any{
@@ -109,6 +114,9 @@ func developmentRequestFromLegacy(t *testing.T, legacy BuildRequest) Development
 						})
 					}
 					for _, binding := range legacy.TrustedBuildContext.SchemaBindings {
+						if !aliasArtifacts[binding.ArtifactRef] {
+							continue
+						}
 						schemas = append(schemas, map[string]any{
 							"exportId": binding.ExportID, "artifactRef": binding.ArtifactRef, "pointer": binding.Pointer,
 						})
@@ -144,7 +152,7 @@ func developmentRequestFromLegacy(t *testing.T, legacy BuildRequest) Development
 		}
 		for _, binding := range legacy.TrustedBuildContext.SchemaBindings {
 			path, exists := artifactPaths[binding.ArtifactRef]
-			if !exists || exported["Schema\x00"+binding.ExportID] {
+			if !exists {
 				continue
 			}
 			dialect := ""
@@ -153,15 +161,36 @@ func developmentRequestFromLegacy(t *testing.T, legacy BuildRequest) Development
 					dialect = artifact.Dialect
 				}
 			}
+			artifactEntry := map[string]any{
+				"artifactRef": binding.ArtifactRef, "dependencyId": "self",
+				"snapshotPath": path, "dialect": dialect,
+			}
+			schemaEntry := map[string]any{
+				"exportId": binding.ExportID, "artifactRef": binding.ArtifactRef, "pointer": binding.Pointer,
+			}
+			if exported["Schema\x00"+binding.ExportID] {
+				// The file-level $id already produced this Schema export; attach the
+				// trusted artifact/Schema bindings to that declaration instead of
+				// declaring a duplicate export.
+				for _, export := range builder.exports {
+					kind, _ := export["kind"].(string)
+					id, _ := export["id"].(string)
+					if kind != "Schema" || id != binding.ExportID {
+						continue
+					}
+					if _, present := export["artifactBindings"]; !present {
+						export["artifactBindings"] = []any{artifactEntry}
+					}
+					if _, present := export["schemaBindings"]; !present {
+						export["schemaBindings"] = []any{schemaEntry}
+					}
+				}
+				continue
+			}
 			builder.exports = append(builder.exports, map[string]any{
 				"kind": "Schema", "id": binding.ExportID, "path": path,
-				"artifactBindings": []any{map[string]any{
-					"artifactRef": binding.ArtifactRef, "dependencyId": "self",
-					"snapshotPath": path, "dialect": dialect,
-				}},
-				"schemaBindings": []any{map[string]any{
-					"exportId": binding.ExportID, "artifactRef": binding.ArtifactRef, "pointer": binding.Pointer,
-				}},
+				"artifactBindings": []any{artifactEntry},
+				"schemaBindings":   []any{schemaEntry},
 			})
 			exported["Schema\x00"+binding.ExportID] = true
 		}

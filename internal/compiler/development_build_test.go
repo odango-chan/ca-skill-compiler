@@ -36,14 +36,15 @@ func TestDevelopmentBuildPositiveFixture(t *testing.T) {
 	for _, file := range result.OutputFiles {
 		paths = append(paths, file.Path)
 	}
-	if !developmentContainsString(paths, developmentManifestFileName) || !developmentContainsString(paths, developmentRequirementsFileName) {
+	if !developmentContainsString(paths, developmentManifestFileName) || !developmentContainsString(paths, developmentRequirementsFileName) ||
+		!developmentContainsString(paths, developmentRuntimeRequirementsFileName) {
 		t.Fatalf("Development artifact files = %v", paths)
 	}
 	if !developmentContainsString(paths, "skills/verify-ue-registration/compiled/procedure.json") {
 		t.Fatalf("Development artifact has no compiled Procedure: %v", paths)
 	}
-	if len(paths) != 4 {
-		t.Fatalf("Development artifact file count = %d, want 4", len(paths))
+	if len(paths) != 5 {
+		t.Fatalf("Development artifact file count = %d, want 5", len(paths))
 	}
 	// The fixture declares a valid Evidence Descriptor export. The static
 	// Evidence checks therefore pass and no Evidence requirement is recorded.
@@ -576,17 +577,34 @@ func TestDevelopmentMutationAndReconcileRequirements(t *testing.T) {
 	}
 	commit, ok := developmentRequirementByKind(t, result, DevelopmentRequirementCommitProof, "example.session.mutate")
 	if !ok {
-		t.Fatal("missing COMMIT_PROOF Host requirement for the Mutation callable")
+		t.Fatal("missing COMMIT_PROOF Runtime Execution requirement for the Mutation callable")
 	}
-	if commit.Status != DevelopmentHostRequirementStatus {
+	if commit.Status != DevelopmentRuntimeRequirementStatus {
 		t.Fatalf("COMMIT_PROOF status = %q", commit.Status)
 	}
 	reconcile, ok := developmentRequirementByKind(t, result, DevelopmentRequirementReconcile, "example.session.reconcile")
 	if !ok {
-		t.Fatal("missing RECONCILE Host requirement for the Reconcile READ callable")
+		t.Fatal("missing RECONCILE Runtime Execution requirement for the Reconcile READ callable")
 	}
-	if reconcile.Status != DevelopmentHostRequirementStatus {
+	if reconcile.Status != DevelopmentRuntimeRequirementStatus {
 		t.Fatalf("RECONCILE status = %q", reconcile.Status)
+	}
+	// COMMIT_PROOF and RECONCILE must never appear in the Host Admission document.
+	for _, requirement := range developmentRequirements(t, result, developmentRequirementsFileName) {
+		if requirement.Kind == DevelopmentRequirementCommitProof || requirement.Kind == DevelopmentRequirementReconcile {
+			t.Fatalf("Host Admission Requirement contains a Runtime Execution kind: %s", requirement.Kind)
+		}
+		if requirement.Status != DevelopmentHostRequirementStatus {
+			t.Fatalf("Host Admission Requirement status = %q", requirement.Status)
+		}
+	}
+	for _, requirement := range developmentRequirements(t, result, developmentRuntimeRequirementsFileName) {
+		if requirement.Kind != DevelopmentRequirementCommitProof && requirement.Kind != DevelopmentRequirementReconcile {
+			t.Fatalf("Runtime Execution Requirement contains a Host Admission kind: %s", requirement.Kind)
+		}
+		if requirement.Status != DevelopmentRuntimeRequirementStatus {
+			t.Fatalf("Runtime Execution Requirement status = %q", requirement.Status)
+		}
 	}
 	// The dual-producer Evidence Descriptor is static input; it must be fully
 	// checked and must not become an external requirement.

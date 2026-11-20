@@ -410,6 +410,12 @@ func validateDevelopmentRequest(req DevelopmentBuildRequest) (*developmentEnviro
 			add(developmentSnapshotInvalid, key.PackageID+"/package.json", problem)
 		}
 	}
+	// Manifest-declared artifact/Schema bindings must point at the exact bound
+	// package snapshot paths and the exact declared Schema identities. A binding
+	// is never accepted merely because its identity is well formed.
+	for _, problem := range validateDevelopmentBindingTargets(env) {
+		add(developmentSnapshotInvalid, "", problem)
+	}
 
 	if len(diagnostics) > 0 {
 		sortDiagnostics(diagnostics)
@@ -889,8 +895,50 @@ func validateDevelopmentPackageExports(pkg *developmentPackage) []string {
 				problems = append(problems, "IngressCatalog export is not valid YAML/JSON: "+export.id)
 				continue
 			}
-			if scalar(child(root, "apiVersion")) != "connectionagent.io/ingresscatalog/v1alpha1" {
+			if scalar(child(root, "apiVersion")) != v1alpha5IngressCatalogAPIVersion {
 				problems = append(problems, "IngressCatalog export does not carry the frozen apiVersion: "+export.id)
+			}
+			if scalar(child(root, "kind")) != v1alpha5IngressCatalogKind {
+				problems = append(problems, "IngressCatalog export does not carry kind IngressCatalog: "+export.id)
+			}
+			owner := scalar(child(child(root, "metadata"), "owner"))
+			if owner != pkg.manifest.publisher {
+				problems = append(problems, "IngressCatalog metadata.owner must equal the package publisher for export: "+export.id)
+			}
+			operations := sequence(child(child(root, "spec"), "operations"))
+			if len(operations) == 0 {
+				problems = append(problems, "IngressCatalog export declares no Operation: "+export.id)
+				continue
+			}
+			operationIDs := map[string]bool{}
+			for index, operation := range operations {
+				operationID := scalar(child(operation, "id"))
+				if !validExportID(operationID) {
+					problems = append(problems, "IngressCatalog spec.operations["+strconv.Itoa(index)+"].id must be an Ingress Operation ID")
+					continue
+				}
+				if operationIDs[operationID] {
+					problems = append(problems, "IngressCatalog Operation ID is duplicated in one catalog file: "+operationID)
+					continue
+				}
+				operationIDs[operationID] = true
+			}
+			if !operationIDs[export.id] {
+				problems = append(problems, "IngressCatalog export id does not name an Operation in the declared catalog file: "+export.id)
+			}
+			// Every Operation in this exact file must be declared as an
+			// IngressCatalog export at this exact path; file existence or a correct
+			// apiVersion alone is never a valid export.
+			declaredAtPath := map[string]bool{}
+			for _, other := range pkg.manifest.exports {
+				if other.kind == "IngressCatalog" && other.path == export.path {
+					declaredAtPath[other.id] = true
+				}
+			}
+			for operationID := range operationIDs {
+				if !declaredAtPath[operationID] {
+					problems = append(problems, "IngressCatalog Operation has no package export declaration at this path: "+operationID)
+				}
 			}
 		case "EvidenceDescriptor":
 			root, err := yaml.Parse(raw)
@@ -905,6 +953,63 @@ func validateDevelopmentPackageExports(pkg *developmentPackage) []string {
 			}
 			if len(descriptors[export.id]) != 1 {
 				problems = append(problems, "EvidenceDescriptor export identity must resolve exactly once in its file: "+export.id)
+			}
+		}
+	}
+	return problems
+}
+
+// validateDevelopmentBindingTargets proves that every manifest-declared
+// artifactBinding and schemaBinding resolves inside the exact locked packages:
+// a non-self dependencyId must be a declared direct dependency of the owning
+// package, the snapshot path must exist in the bound snapshot, a schemaBinding
+// must reference an artifactBinding of the same package and its exportId must be
+// a Schema export declared somewhere in the locked closure.
+func validateDevelopmentBindingTargets(env *developmentEnvironment) []string {
+	var problems []string
+	declaredSchemas := map[string]bool{}
+	for _, key := range sortedDevelopmentKeys(env.packages) {
+		for _, export := range env.packages[key].manifest.exports {
+			if export.kind == "Schema" {
+				declaredSchemas[export.id] = true
+			}
+		}
+	}
+	for _, key := range sortedDevelopmentKeys(env.packages) {
+		pkg := env.packages[key]
+		edges := env.dependencyGraph[key]
+		artifactRefs := map[string]bool{}
+		for _, export := range pkg.manifest.exports {
+			for _, binding := range export.artifactBindings {
+				artifactRefs[binding.artifactRef] = true
+			}
+		}
+		for _, export := range pkg.manifest.exports {
+			for _, binding := range export.artifactBindings {
+				target := pkg
+				if binding.dependencyID != "self" {
+					targetKey, exists := edges[binding.dependencyID]
+					if !exists {
+						problems = append(problems, "artifactBindings dependencyId is not a declared direct dependency: "+binding.dependencyID)
+						continue
+					}
+					target = env.packages[targetKey]
+				}
+				if target == nil {
+					problems = append(problems, "artifactBindings target package is missing from the lock: "+binding.dependencyID)
+					continue
+				}
+				if _, exists := target.filesByName[binding.snapshotPath]; !exists {
+					problems = append(problems, "artifactBindings snapshotPath does not exist in the bound package snapshot: "+binding.snapshotPath)
+				}
+			}
+			for _, binding := range export.schemaBindings {
+				if !artifactRefs[binding.artifactRef] {
+					problems = append(problems, "schemaBindings artifactRef does not identify an artifactBinding of the package: "+binding.artifactRef)
+				}
+				if !declaredSchemas[binding.exportID] {
+					problems = append(problems, "schemaBindings exportId is not a declared Schema export in the locked closure: "+binding.exportID)
+				}
 			}
 		}
 	}

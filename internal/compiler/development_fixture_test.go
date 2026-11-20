@@ -142,8 +142,8 @@ func addDevelopmentSnapshot(t *testing.T, request DevelopmentBuildRequest, snaps
 }
 
 // tamperDevelopmentArtifact mutates artifact files and then recomputes the
-// manifest file digests and artifactDigest, simulating an attacker who removes an
-// obligation or edits a Procedure and re-seals the outer digest.
+// manifest file digests and artifactDigest, simulating an attacker who removes a
+// requirement or edits a Procedure and re-seals the outer digest.
 func tamperDevelopmentArtifact(t *testing.T, result DevelopmentBuildResult, mutate func(files map[string][]byte)) DevelopmentBuildResult {
 	t.Helper()
 	files := map[string][]byte{}
@@ -191,22 +191,34 @@ func hasDevelopmentCode(diagnostics []Diagnostic, code string) bool {
 
 func developmentRequirementByKind(t *testing.T, result DevelopmentBuildResult, kind, subjectID string) (DevelopmentHostRequirement, bool) {
 	t.Helper()
-	raw := developmentOutputFile(t, result, developmentRequirementsFileName)
-	var requirements []DevelopmentHostRequirement
-	if err := json.Unmarshal(raw, &requirements); err != nil {
-		t.Fatalf("decode host-admission requirements: %v", err)
-	}
-	for _, requirement := range requirements {
-		if requirement.Kind != kind {
-			continue
+	for _, document := range []string{developmentRequirementsFileName, developmentRuntimeRequirementsFileName} {
+		raw := developmentOutputFile(t, result, document)
+		var requirements []DevelopmentHostRequirement
+		if err := json.Unmarshal(raw, &requirements); err != nil {
+			t.Fatalf("decode %s: %v", document, err)
 		}
-		for _, subject := range requirement.Subjects {
-			if subject.ID == subjectID {
-				return requirement, true
+		for _, requirement := range requirements {
+			if requirement.Kind != kind {
+				continue
+			}
+			for _, subject := range requirement.Subjects {
+				if subject.ID == subjectID {
+					return requirement, true
+				}
 			}
 		}
 	}
 	return DevelopmentHostRequirement{}, false
+}
+
+func developmentRequirements(t *testing.T, result DevelopmentBuildResult, document string) []DevelopmentHostRequirement {
+	t.Helper()
+	raw := developmentOutputFile(t, result, document)
+	var requirements []DevelopmentHostRequirement
+	if err := json.Unmarshal(raw, &requirements); err != nil {
+		t.Fatalf("decode %s: %v", document, err)
+	}
+	return requirements
 }
 
 func developmentOutputFile(t *testing.T, result DevelopmentBuildResult, path string) []byte {

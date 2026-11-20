@@ -548,6 +548,18 @@ async function main() {
     if (developmentRequirements.some(requirement => requirement.status !== 'HOST_VERIFICATION_REQUIRED')) {
       fail('Development host-admission requirement status is not HOST_VERIFICATION_REQUIRED');
     }
+    if (developmentRequirements.some(requirement => requirement.kind === 'COMMIT_PROOF' || requirement.kind === 'RECONCILE')) {
+      fail('Development host-admission document contains a Runtime Execution requirement');
+    }
+    const developmentRuntimeRequirements = browserArtifactJSON(browserDevelopment, 'runtime-execution-requirements.json');
+    if (!Array.isArray(developmentRuntimeRequirements)) fail('Development artifact has no runtime-execution requirements document');
+    if (developmentRuntimeRequirements.some(requirement =>
+      requirement.kind !== 'COMMIT_PROOF' && requirement.kind !== 'RECONCILE')) {
+      fail('Development runtime-execution document contains a Host Admission requirement');
+    }
+    if (developmentRuntimeRequirements.some(requirement => requirement.status !== 'RUNTIME_EXECUTION_REQUIRED')) {
+      fail('Development runtime-execution requirement status is not RUNTIME_EXECUTION_REQUIRED');
+    }
     console.log('ok: Development LINKED/BUILT/NOT_ADMITTED byte parity (' + browserDevelopment.outputFiles.length + ' files)');
     const reorderedBrowser = await cdpEvaluate('http://127.0.0.1:' + debugPort + '/json/version', 'http://127.0.0.1:' + port + '/parity.html?development=1&request=' + developmentRequests.reordered);
     if (!reorderedBrowser.ok) fail('Chromium Worker Development reordered error: ' + reorderedBrowser.error);

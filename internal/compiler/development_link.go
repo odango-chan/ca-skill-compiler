@@ -396,8 +396,8 @@ func validateDevelopmentReferenceSurface(env *developmentEnvironment, skill *Ski
 				add("SCHEMA_MISSING", reference.path, "Skill reference does not name a declared Schema export: "+reference.alias+"::"+id)
 			}
 		case "evidenceGuarantee":
-			// Evidence descriptors are supplied only by the optional Assurance
-			// Export and are checked by the deferred-obligation pass.
+			// Evidence descriptors are declared EvidenceDescriptor exports and
+			// are checked by the static Evidence pass.
 		}
 	}
 	sortDiagnostics(diagnostics)
@@ -640,6 +640,8 @@ func (env *developmentEnvironment) legacyRequest() (BuildRequest, []syntheticDep
 	keys := sortedDevelopmentKeys(env.packages)
 	synthetic := make([]syntheticDependencyAlias, 0)
 	index := 0
+	seenArtifactBindings := map[string]bool{}
+	seenSchemaBindings := map[string]bool{}
 	for _, key := range keys {
 		if !env.reachable[key] {
 			continue
@@ -693,32 +695,44 @@ func (env *developmentEnvironment) legacyRequest() (BuildRequest, []syntheticDep
 			return a.Owner < b.Owner
 		})
 		context.DependencyBindings = append(context.DependencyBindings, binding)
-		// Manifest-declared artifact/Schema bindings of an IngressCatalog export
-		// are carried through to the frozen WP1/WP5/WP6 link context. "self"
-		// means the export's own package; a direct dependency alias is resolved
-		// through the package's lock edges.
+		// Manifest-declared artifact/Schema bindings are carried through to the
+		// frozen WP1/WP5/WP6 link context. "self" means the export's own package;
+		// a direct dependency alias is resolved through the package's lock edges.
 		for _, export := range pkg.manifest.exports {
-			if export.kind != "IngressCatalog" {
-				continue
-			}
 			for _, artifact := range export.artifactBindings {
 				target := alias
 				if artifact.dependencyID != "self" {
-					if edge, exists := env.dependencyGraph[key][artifact.dependencyID]; exists {
-						if edgeAlias, ok := legacyAliasForPackage(roots, synthetic, edge); ok {
-							target = edgeAlias
-						}
+					edge, exists := env.dependencyGraph[key][artifact.dependencyID]
+					if !exists {
+						continue
 					}
+					edgeAlias, ok := legacyAliasForPackage(roots, synthetic, edge)
+					if !ok {
+						continue
+					}
+					target = edgeAlias
 				}
-				context.ArtifactBindings = append(context.ArtifactBindings, TrustedArtifactBinding{
+				binding := TrustedArtifactBinding{
 					ArtifactRef: artifact.artifactRef, DependencyID: target,
 					SnapshotPath: artifact.snapshotPath, Dialect: artifact.dialect,
-				})
+				}
+				identity := binding.ArtifactRef + "\x00" + binding.DependencyID + "\x00" + binding.SnapshotPath + "\x00" + binding.Dialect
+				if seenArtifactBindings[identity] {
+					continue
+				}
+				seenArtifactBindings[identity] = true
+				context.ArtifactBindings = append(context.ArtifactBindings, binding)
 			}
 			for _, schema := range export.schemaBindings {
-				context.SchemaBindings = append(context.SchemaBindings, TrustedSchemaBinding{
+				binding := TrustedSchemaBinding{
 					ExportID: schema.exportID, ArtifactRef: schema.artifactRef, Pointer: schema.pointer,
-				})
+				}
+				identity := binding.ExportID + "\x00" + binding.ArtifactRef + "\x00" + binding.Pointer
+				if seenSchemaBindings[identity] {
+					continue
+				}
+				seenSchemaBindings[identity] = true
+				context.SchemaBindings = append(context.SchemaBindings, binding)
 			}
 		}
 	}

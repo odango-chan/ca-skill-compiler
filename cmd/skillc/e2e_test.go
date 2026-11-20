@@ -769,7 +769,7 @@ func TestCLIDevelopmentBuildEndToEnd(t *testing.T) {
 	if !result.Success || result.ExecutionStatus != "NOT_ADMITTED" || result.ArtifactDigest == "" {
 		t.Fatalf("unexpected Development result: %+v", result)
 	}
-	for _, path := range []string{"manifest.json", "host-admission-requirements.json", "skills/verify-ue-registration/compiled/procedure.json"} {
+	for _, path := range []string{"manifest.json", "host-admission-requirements.json", "runtime-execution-requirements.json", "skills/verify-ue-registration/compiled/procedure.json"} {
 		if _, err := os.Stat(filepath.Join(out, filepath.FromSlash(path))); err != nil {
 			t.Fatalf("artifact file %s: %v", path, err)
 		}

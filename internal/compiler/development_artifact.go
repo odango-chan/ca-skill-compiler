@@ -6,19 +6,23 @@ package compiler
 //
 //	manifest.json
 //	host-admission-requirements.json
+//	runtime-execution-requirements.json
 //	skills/<skill>/compiled/procedure.json
 //	skills/<skill>/compiled/ingress-links.json
 //
 // manifest.json is JCS, carries the exact normalized lock, every linked export
-// with its package key, the complete file digest list and the fixed NOT_ADMITTED
-// execution status. artifactDigest is the SHA-256 of the JCS manifest bytes. The
-// manifest never embeds itself.
+// with its package key, the complete file digest list, the two requirement
+// document identities and the fixed NOT_ADMITTED execution status.
+// artifactDigest is the SHA-256 of the JCS manifest bytes. The manifest never
+// embeds itself.
 //
 // The compiled Procedure/Ingress files are the same deterministic projections the
 // frozen v1alpha5 artifact produces; the Development manifest wraps them with the
 // linked interface identity. host-admission-requirements.json records only the
-// external facts the Compiler cannot establish; it never substitutes for a static
-// check.
+// external facts the Compiler cannot establish before dispatch.
+// runtime-execution-requirements.json records only the execution-time guarantees
+// (actual Commit Proof and actual Reconcile) that Build and Host Admission can
+// never satisfy. Neither document substitutes for a static check.
 
 import (
 	"crypto/sha256"
@@ -54,17 +58,26 @@ type developmentManifestFile struct {
 	SHA256 string `json:"sha256"`
 }
 
+// developmentManifestRequirementDocuments names the two disjoint requirement
+// artifacts. Host Admission facts and Runtime Execution guarantees are separate
+// contract surfaces: neither file may carry the other class.
+type developmentManifestRequirementDocuments struct {
+	HostAdmission    string `json:"hostAdmission"`
+	RuntimeExecution string `json:"runtimeExecution"`
+}
+
 type developmentArtifactManifest struct {
-	APIVersion      string                       `json:"apiVersion"`
-	LanguageTarget  string                       `json:"languageTarget"`
-	Profile         string                       `json:"profile"`
-	Generator       developmentManifestGenerator `json:"generator"`
-	ExecutionStatus string                       `json:"executionStatus"`
-	SourceDigest    string                       `json:"sourceDigest"`
-	Targets         []string                     `json:"targets"`
-	Lock            developmentManifestLock      `json:"lock"`
-	Links           []DevelopmentLinkRecord      `json:"links"`
-	Files           []developmentManifestFile    `json:"files"`
+	APIVersion      string                                  `json:"apiVersion"`
+	LanguageTarget  string                                  `json:"languageTarget"`
+	Profile         string                                  `json:"profile"`
+	Generator       developmentManifestGenerator            `json:"generator"`
+	ExecutionStatus string                                  `json:"executionStatus"`
+	SourceDigest    string                                  `json:"sourceDigest"`
+	Targets         []string                                `json:"targets"`
+	Lock            developmentManifestLock                 `json:"lock"`
+	Links           []DevelopmentLinkRecord                 `json:"links"`
+	Requirements    developmentManifestRequirementDocuments `json:"requirements"`
+	Files           []developmentManifestFile               `json:"files"`
 }
 
 func canonicalDevelopmentLock(env *developmentEnvironment) developmentManifestLock {
@@ -133,11 +146,16 @@ func assembleDevelopmentArtifact(env *developmentEnvironment, semantics *develop
 	if err != nil {
 		return nil, nil, "", fmt.Errorf("Development source digest: %w", err)
 	}
-	requirementFile, err := canonicalizeValue(semantics.collector.requirements())
+	hostRequirements, err := canonicalizeValue(semantics.collector.hostRequirements())
 	if err != nil {
 		return nil, nil, "", fmt.Errorf("Development host-admission requirements canonicalization: %w", err)
 	}
-	files = append(files, File{Path: developmentRequirementsFileName, Bytes: requirementFile})
+	files = append(files, File{Path: developmentRequirementsFileName, Bytes: hostRequirements})
+	runtimeRequirements, err := canonicalizeValue(semantics.collector.runtimeRequirements())
+	if err != nil {
+		return nil, nil, "", fmt.Errorf("Development runtime-execution requirements canonicalization: %w", err)
+	}
+	files = append(files, File{Path: developmentRuntimeRequirementsFileName, Bytes: runtimeRequirements})
 
 	manifestFiles := make([]developmentManifestFile, 0, len(files))
 	for _, file := range files {
@@ -163,7 +181,11 @@ func assembleDevelopmentArtifact(env *developmentEnvironment, semantics *develop
 		Targets:         targets,
 		Lock:            canonicalDevelopmentLock(env),
 		Links:           links,
-		Files:           manifestFiles,
+		Requirements: developmentManifestRequirementDocuments{
+			HostAdmission:    developmentRequirementsFileName,
+			RuntimeExecution: developmentRuntimeRequirementsFileName,
+		},
+		Files: manifestFiles,
 	}
 	manifestBytes, err := canonicalizeValue(manifest)
 	if err != nil {
@@ -181,7 +203,7 @@ func assembleDevelopmentArtifact(env *developmentEnvironment, semantics *develop
 }
 
 func validDevelopmentArtifactPath(value string) bool {
-	if value == developmentManifestFileName || value == developmentRequirementsFileName {
+	if value == developmentManifestFileName || value == developmentRequirementsFileName || value == developmentRuntimeRequirementsFileName {
 		return true
 	}
 	if value == "" || len(value) > 240 || !strings.HasPrefix(value, "skills/") ||

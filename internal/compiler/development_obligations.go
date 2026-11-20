@@ -1,6 +1,6 @@
 package compiler
 
-// Development Build host-admission requirements.
+// Development Build requirement records and interface-link helpers.
 //
 // The Compiler owns the frozen CA-SL Evidence language semantics: declaration and
 // reference resolution, Descriptor structure, Producer/Consumer identity,
@@ -8,18 +8,25 @@ package compiler
 // decidable Independence and Mutation/Commit-Proof/Reconcile constraints. Those
 // checks either pass or fail the Build; they are never deferred.
 //
-// The following facts cannot be established from Compiler inputs and are owned by
-// the Owner, an Assurance Authority and the Host/Runtime:
+// Two disjoint requirement classes describe what the Compiler cannot establish:
+//
+// Host Admission Requirement (host-admission-requirements.json,
+// HOST_VERIFICATION_REQUIRED) records external pre-dispatch facts:
 //
 //	OWNER_TRUST                  real Owner identity and signing authority
 //	EVIDENCE_DOMAIN_TRUST        sourceIdentity domain authority and real source
-//	EVIDENCE_INDEPENDENCE_TRUST  IndependentDomains authorization and real source
-//	COMMIT_PROOF                 actual Mutation commitment
-//	RECONCILE                    actual recovery conclusion
+//	EVIDENCE_FACT_TRUST          CommonFact authorization
+//	EVIDENCE_INDEPENDENCE_TRUST  IndependentDomains authorization for each group
 //
-// They are recorded as typed Host Admission requirements with status
-// HOST_VERIFICATION_REQUIRED. They are not Compiler obligations and never stand in
-// for a missing static contract.
+// Runtime Execution Requirement (runtime-execution-requirements.json,
+// RUNTIME_EXECUTION_REQUIRED) records execution-time guarantees that no Build or
+// admission step can satisfy:
+//
+//	COMMIT_PROOF                 actual Mutation commitment and proof verification
+//	RECONCILE                    actual exact-original recovery conclusion
+//
+// Neither class is a Compiler obligation and neither ever stands in for a
+// missing static contract.
 
 import (
 	"crypto/sha256"
@@ -44,12 +51,40 @@ type DevelopmentRequirementSubject struct {
 	SchemaIDs  []string              `json:"schemaIds"`
 }
 
-// DevelopmentHostRequirement is one external verification requirement.
+// DevelopmentIndependenceMember is one exact Independence Group member: the
+// declared dependency alias, the exact Interface Package key, the guarantee
+// export ID, the locked Descriptor snapshot path and the declared Source Domain.
+type DevelopmentIndependenceMember struct {
+	DependencyAlias string                `json:"dependencyAlias"`
+	Key             DevelopmentPackageKey `json:"key"`
+	ExportID        string                `json:"exportId"`
+	SourcePath      string                `json:"sourcePath"`
+	Domain          string                `json:"domain"`
+}
+
+// DevelopmentIndependenceGroup is the exact Independence evidence of one
+// source-level group. Each group and each Domain Pair is modelled separately:
+// no single boolean and no env.roots[0]-style identity stand-in is permitted.
+type DevelopmentIndependenceGroup struct {
+	// Predicate identifies the source Predicate for the requirement location. It
+	// is already carried by location.node and is deliberately not serialized: the
+	// contract fixes the independence detail to
+	// {groupIndex,members,domainPairs}.
+	Predicate   string                          `json:"-"`
+	GroupIndex  int                             `json:"groupIndex"`
+	Members     []DevelopmentIndependenceMember `json:"members"`
+	DomainPairs [][]string                      `json:"domainPairs"`
+}
+
+// DevelopmentHostRequirement is one external verification requirement. Host
+// Admission requirements and Runtime Execution requirements share the record
+// shape but never share an artifact, a status or a satisfaction point.
 type DevelopmentHostRequirement struct {
 	RequirementID string                          `json:"requirementId"`
 	Kind          string                          `json:"kind"`
 	Location      DevelopmentRequirementLocation  `json:"location"`
 	Subjects      []DevelopmentRequirementSubject `json:"subjects"`
+	Independence  *DevelopmentIndependenceGroup   `json:"independence,omitempty"`
 	Status        string                          `json:"status"`
 }
 
@@ -66,37 +101,105 @@ type DevelopmentLinkRecord struct {
 }
 
 type developmentRequirementKey struct {
-	Kind     string                          `json:"kind"`
-	Location DevelopmentRequirementLocation  `json:"location"`
-	Subjects []DevelopmentRequirementSubject `json:"subjects"`
+	Kind         string                          `json:"kind"`
+	Location     DevelopmentRequirementLocation  `json:"location"`
+	Subjects     []DevelopmentRequirementSubject `json:"subjects"`
+	Independence *DevelopmentIndependenceGroup   `json:"independence,omitempty"`
 }
 
 type developmentRequirementCollector struct {
-	byID map[string]DevelopmentHostRequirement
+	host    map[string]DevelopmentHostRequirement
+	runtime map[string]DevelopmentHostRequirement
 }
 
 func newDevelopmentRequirementCollector() *developmentRequirementCollector {
-	return &developmentRequirementCollector{byID: map[string]DevelopmentHostRequirement{}}
+	return &developmentRequirementCollector{
+		host:    map[string]DevelopmentHostRequirement{},
+		runtime: map[string]DevelopmentHostRequirement{},
+	}
 }
 
 func (collector *developmentRequirementCollector) add(key developmentRequirementKey) {
-	key.Subjects = normalizeDevelopmentRequirementSubjects(key.Subjects)
-	canonical, err := canonicalizeValue(key)
+	normalized := normalizeDevelopmentRequirementKey(key)
+	canonical, err := canonicalizeValue(normalized)
 	if err != nil {
 		return
 	}
 	sum := sha256.Sum256(append([]byte(developmentRequirementDigestDomain), canonical...))
 	requirementID := "sha256:" + hex.EncodeToString(sum[:])
-	if _, exists := collector.byID[requirementID]; exists {
-		return
-	}
-	collector.byID[requirementID] = DevelopmentHostRequirement{
+	requirement := DevelopmentHostRequirement{
 		RequirementID: requirementID,
-		Kind:          key.Kind,
-		Location:      key.Location,
-		Subjects:      key.Subjects,
-		Status:        DevelopmentHostRequirementStatus,
+		Kind:          normalized.Kind,
+		Location:      normalized.Location,
+		Subjects:      normalized.Subjects,
+		Independence:  normalized.Independence,
+		Status:        developmentRequirementStatus(normalized.Kind),
 	}
+	switch developmentRequirementClass(normalized.Kind) {
+	case "host":
+		if _, exists := collector.host[requirementID]; exists {
+			return
+		}
+		collector.host[requirementID] = requirement
+	case "runtime":
+		if _, exists := collector.runtime[requirementID]; exists {
+			return
+		}
+		collector.runtime[requirementID] = requirement
+	}
+}
+
+// normalizeDevelopmentRequirementKey produces the single canonical requirement
+// key used both when recording and when re-deriving an artifact requirement ID.
+func normalizeDevelopmentRequirementKey(key developmentRequirementKey) developmentRequirementKey {
+	key.Subjects = normalizeDevelopmentRequirementSubjects(key.Subjects)
+	key.Independence = normalizeDevelopmentIndependenceGroup(key.Independence)
+	return key
+}
+
+func normalizeDevelopmentIndependenceGroup(group *DevelopmentIndependenceGroup) *DevelopmentIndependenceGroup {
+	if group == nil {
+		return nil
+	}
+	normalized := &DevelopmentIndependenceGroup{GroupIndex: group.GroupIndex, Predicate: group.Predicate}
+	seen := map[string]DevelopmentIndependenceMember{}
+	for _, member := range group.Members {
+		canonical, err := canonicalizeValue(member)
+		if err != nil {
+			continue
+		}
+		seen[string(canonical)] = member
+	}
+	keys := make([]string, 0, len(seen))
+	for key := range seen {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	normalized.Members = make([]DevelopmentIndependenceMember, 0, len(keys))
+	for _, key := range keys {
+		normalized.Members = append(normalized.Members, seen[key])
+	}
+	pairs := map[string][]string{}
+	for _, pair := range group.DomainPairs {
+		if len(pair) != 2 || pair[0] == "" || pair[1] == "" || pair[0] == pair[1] {
+			continue
+		}
+		left, right := pair[0], pair[1]
+		if right < left {
+			left, right = right, left
+		}
+		pairs[left+"\x00"+right] = []string{left, right}
+	}
+	pairKeys := make([]string, 0, len(pairs))
+	for key := range pairs {
+		pairKeys = append(pairKeys, key)
+	}
+	sort.Strings(pairKeys)
+	normalized.DomainPairs = make([][]string, 0, len(pairKeys))
+	for _, key := range pairKeys {
+		normalized.DomainPairs = append(normalized.DomainPairs, pairs[key])
+	}
+	return normalized
 }
 
 func normalizeDevelopmentRequirementSubjects(subjects []DevelopmentRequirementSubject) []DevelopmentRequirementSubject {
@@ -138,15 +241,23 @@ func dedupeSortedStrings(values []string) []string {
 	return result
 }
 
-func (collector *developmentRequirementCollector) requirements() []DevelopmentHostRequirement {
-	ids := make([]string, 0, len(collector.byID))
-	for id := range collector.byID {
+func (collector *developmentRequirementCollector) hostRequirements() []DevelopmentHostRequirement {
+	return sortedDevelopmentRequirements(collector.host)
+}
+
+func (collector *developmentRequirementCollector) runtimeRequirements() []DevelopmentHostRequirement {
+	return sortedDevelopmentRequirements(collector.runtime)
+}
+
+func sortedDevelopmentRequirements(byID map[string]DevelopmentHostRequirement) []DevelopmentHostRequirement {
+	ids := make([]string, 0, len(byID))
+	for id := range byID {
 		ids = append(ids, id)
 	}
 	sort.Strings(ids)
 	requirements := make([]DevelopmentHostRequirement, 0, len(ids))
 	for _, id := range ids {
-		requirements = append(requirements, collector.byID[id])
+		requirements = append(requirements, byID[id])
 	}
 	return requirements
 }

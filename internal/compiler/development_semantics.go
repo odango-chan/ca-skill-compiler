@@ -6,13 +6,14 @@ package compiler
 // rule. This file adds the Development-profile branches that consume the
 // package-scoped interface scope: capability membership from CapabilityCatalog
 // exports, Evidence Descriptor linking from EvidenceDescriptor exports, and
-// typed Host Admission requirement recording for facts the Compiler cannot
-// establish.
+// typed Host Admission requirement recording for external pre-dispatch facts and
+// typed Runtime Execution requirement recording for execution-time guarantees.
 //
 // Evidence Descriptor absence or malformation is a Build failure: the frozen
 // language semantics require the static contract. Only external trust facts
-// (Owner authority, domain authority, independence authorization, real commit
-// proof, real reconciliation) become Host Admission requirements.
+// (Owner authority, domain authority, independence authorization) become Host
+// Admission requirements; real commit proof and real reconciliation become
+// Runtime Execution requirements.
 
 import (
 	"sort"
@@ -58,11 +59,18 @@ func (semantics *developmentSemantics) validateDevelopmentEvidence(skill *SkillA
 			}
 		}
 	}
-	trustDeferred := map[string]string{}
-	independenceTrustDeferred := false
+	// A descriptor may declare sourceIdentity and factIdentity at the same time.
+	// The two external trust facts are recorded independently and never
+	// overwrite each other.
+	trustDeferred := map[string]map[string]bool{}
 	deferTrust := func(alias, exportID, reason string) {
-		trustDeferred[alias+"::"+exportID] = reason
+		reference := alias + "::" + exportID
+		if trustDeferred[reference] == nil {
+			trustDeferred[reference] = map[string]bool{}
+		}
+		trustDeferred[reference][reason] = true
 	}
+	independenceGroups := make([]*DevelopmentIndependenceGroup, 0)
 	for _, predicateID := range sortedStringMapKeys(skill.Predicates.Definitions) {
 		predicate := skill.Predicates.Definitions[predicateID]
 		if predicate == nil || predicate.Evidence == nil {
@@ -82,24 +90,28 @@ func (semantics *developmentSemantics) validateDevelopmentEvidence(skill *SkillA
 				}
 			}
 		}
-		for _, group := range sequence(child(predicate.Evidence, "independence")) {
+		for index, group := range sequence(child(predicate.Evidence, "independence")) {
 			group = unalias(group)
 			if group == nil {
 				continue
 			}
-			validateDevelopmentIndependenceGroup(group, indexes, add, func() {
-				independenceTrustDeferred = true
-			})
+			if recorded := validateDevelopmentIndependenceGroup(group, indexes, semantics.env.rootByAlias, predicateID, index, add); recorded != nil {
+				independenceGroups = append(independenceGroups, recorded)
+			}
 		}
 	}
 	validateHostRecoveryDualProducer(skill, dependencyIdentityResult{}, ownerLinking, indexes, procedurePath, add)
-	semantics.recordEvidenceTrustRequirements(skill, indexes, trustDeferred, independenceTrustDeferred)
+	semantics.recordEvidenceTrustRequirements(skill, indexes, trustDeferred)
+	semantics.recordIndependenceRequirements(skill, independenceGroups)
 }
 
 // validateDevelopmentIndependenceGroup performs every statically decidable
-// independence check and defers only the external IndependentDomains
-// authorization to Host Admission.
-func validateDevelopmentIndependenceGroup(group *yaml.Node, indexes map[string]snapshotExportIndex, add func(string, *yaml.Node, string, string), deferTrust func()) {
+// independence check and returns the exact group identity, members, Source
+// Domains and Domain Pairs. Only the external IndependentDomains authorization
+// is deferred to Host Admission. A structurally impossible group (fewer than two
+// members, ambiguous Descriptor, missing Source Identity, fewer than two distinct
+// declared domains) fails the Build.
+func validateDevelopmentIndependenceGroup(group *yaml.Node, indexes map[string]snapshotExportIndex, rootByAlias map[string]DevelopmentPackageKey, predicateID string, groupIndex int, add func(string, *yaml.Node, string, string)) *DevelopmentIndependenceGroup {
 	type memberRef struct {
 		alias  string
 		export string
@@ -117,36 +129,74 @@ func validateDevelopmentIndependenceGroup(group *yaml.Node, indexes map[string]s
 		members = append(members, memberRef{alias: alias, export: exportID})
 	}
 	if len(members) < 2 {
-		return
+		add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
+			"Evidence independence group must contain at least two (parameter, guarantee) pairs")
+		return nil
 	}
-	domains := map[string]bool{}
+	recordedMembers := make([]DevelopmentIndependenceMember, 0, len(members))
+	seenMember := map[string]bool{}
 	for _, member := range members {
+		key, keyExists := rootByAlias[member.alias]
+		if !keyExists {
+			add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
+				"Evidence independence member references an unverified dependency alias: "+member.alias)
+			return nil
+		}
 		index, ok := indexes[member.alias]
 		if !ok {
 			add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
 				"Evidence independence member references an unverified dependency alias: "+member.alias)
-			continue
+			return nil
 		}
 		descriptors := index.evidence[member.export]
 		if len(descriptors) != 1 {
-			// The reference check reports the missing/ambiguous descriptor.
 			add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
 				"Evidence independence member does not resolve exactly once: "+member.alias+"::"+member.export)
-			continue
+			return nil
 		}
-		source := descriptors[0].SourceIdentity
-		if source == nil || source.Domain == "" || !strings.HasPrefix(source.Path, "record.") {
+		descriptor := descriptors[0]
+		source := descriptor.SourceIdentity
+		if descriptor.ShapeProblem != "" || source == nil || source.Domain == "" || !strings.HasPrefix(source.Path, "record.") {
 			add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
-				"Evidence independence requires an authorized sourceIdentity (domain + record.* path) for "+member.export)
-			continue
+				"Evidence independence requires a statically valid sourceIdentity (domain + record.* path) for "+member.alias+"::"+member.export)
+			return nil
 		}
-		domains[source.Domain] = true
+		identity := member.alias + "\x00" + member.export + "\x00" + developmentKeyString(key)
+		if seenMember[identity] {
+			add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
+				"Evidence independence member duplicates another member for "+member.alias+"::"+member.export)
+			return nil
+		}
+		seenMember[identity] = true
+		recordedMembers = append(recordedMembers, DevelopmentIndependenceMember{
+			DependencyAlias: member.alias,
+			Key:             key,
+			ExportID:        member.export,
+			SourcePath:      descriptor.SnapshotPath,
+			Domain:          source.Domain,
+		})
 	}
-	if len(domains) >= 2 {
-		// The existence and shape are static; whether the deployment authorizes
-		// the domain pair is an external assurance fact.
-		deferTrust()
+	domains := map[string]bool{}
+	for _, member := range recordedMembers {
+		domains[member.Domain] = true
 	}
+	if len(domains) < 2 {
+		add("", nil, "EVIDENCE_GUARANTEE_LINK_INVALID",
+			"Evidence independence group requires at least two distinct declared source domains")
+		return nil
+	}
+	domainList := make([]string, 0, len(domains))
+	for domain := range domains {
+		domainList = append(domainList, domain)
+	}
+	sort.Strings(domainList)
+	pairs := make([][]string, 0, len(domainList)*(len(domainList)-1)/2)
+	for i := 0; i < len(domainList); i++ {
+		for j := i + 1; j < len(domainList); j++ {
+			pairs = append(pairs, []string{domainList[i], domainList[j]})
+		}
+	}
+	return &DevelopmentIndependenceGroup{GroupIndex: groupIndex, Predicate: predicateID, Members: recordedMembers, DomainPairs: pairs}
 }
 
 func (semantics *developmentSemantics) evidenceIndexes(skill *SkillAST) map[string]snapshotExportIndex {
@@ -251,18 +301,16 @@ func developmentExportSchemaIDs(export linkedExport) []string {
 }
 
 // recordEvidenceTrustRequirements records the external trust facts discovered
-// while the static Descriptor checks ran. Requirement presence never substitutes
-// for a static check: every supplied descriptor was fully validated above.
-func (semantics *developmentSemantics) recordEvidenceTrustRequirements(skill *SkillAST, indexes map[string]snapshotExportIndex, trustDeferred map[string]string, independence bool) {
+// while the static Descriptor checks ran. A descriptor that declares both
+// sourceIdentity and factIdentity yields both requirements. Requirement presence
+// never substitutes for a static check: every supplied descriptor was fully
+// validated above.
+func (semantics *developmentSemantics) recordEvidenceTrustRequirements(skill *SkillAST, indexes map[string]snapshotExportIndex, trustDeferred map[string]map[string]bool) {
 	locations := developmentReferenceLocations(skill)
-	for reference, reason := range trustDeferred {
+	for _, reference := range sortedStringMapKeys(trustDeferred) {
 		alias, exportID, ok := strings.Cut(reference, "::")
 		if !ok {
 			continue
-		}
-		kind := DevelopmentRequirementEvidenceDomain
-		if reason == "factIdentity" {
-			kind = DevelopmentRequirementEvidenceFact
 		}
 		key, exists := semantics.env.rootByAlias[alias]
 		if !exists {
@@ -279,31 +327,55 @@ func (semantics *developmentSemantics) recordEvidenceTrustRequirements(skill *Sk
 				Skill: skill.Name, Path: "skills/" + skill.Name + "/assurance/predicates.yaml", Node: exportID, Stage: "evidence", Selector: "",
 			}}
 		}
-		for _, location := range candidates {
-			semantics.collector.add(developmentRequirementKey{
-				Kind:     kind,
-				Location: location,
-				Subjects: []DevelopmentRequirementSubject{{
-					Key: key, ID: exportID, SourcePath: sourcePath, SchemaIDs: []string{},
-				}},
-			})
+		for _, reason := range sortedStringMapKeys(trustDeferred[reference]) {
+			kind := ""
+			switch reason {
+			case "sourceIdentity":
+				kind = DevelopmentRequirementEvidenceDomain
+			case "factIdentity":
+				kind = DevelopmentRequirementEvidenceFact
+			default:
+				continue
+			}
+			for _, location := range candidates {
+				semantics.collector.add(developmentRequirementKey{
+					Kind:     kind,
+					Location: location,
+					Subjects: []DevelopmentRequirementSubject{{
+						Key: key, ID: exportID, SourcePath: sourcePath, SchemaIDs: []string{},
+					}},
+				})
+			}
 		}
 	}
-	if !independence {
-		return
+}
+
+// recordIndependenceRequirements records every statically valid Independence
+// Group as its own Host Admission requirement. The requirement carries the exact
+// group source position, every member Descriptor, every Source Domain, the
+// Domain Pairs that need external authorization and every exact Interface
+// Package key. No group is collapsed into a single boolean and no representative
+// root is chosen.
+func (semantics *developmentSemantics) recordIndependenceRequirements(skill *SkillAST, groups []*DevelopmentIndependenceGroup) {
+	for _, group := range groups {
+		subjects := make([]DevelopmentRequirementSubject, 0, len(group.Members))
+		for _, member := range group.Members {
+			subjects = append(subjects, DevelopmentRequirementSubject{
+				Key: member.Key, ID: member.ExportID, SourcePath: member.SourcePath, SchemaIDs: []string{},
+			})
+		}
+		detail := normalizeDevelopmentIndependenceGroup(group)
+		semantics.collector.add(developmentRequirementKey{
+			Kind: DevelopmentRequirementIndependence,
+			Location: DevelopmentRequirementLocation{
+				Skill: skill.Name, Path: "skills/" + skill.Name + "/assurance/predicates.yaml",
+				Node: detail.Predicate, Stage: "evidence",
+				Selector: "/predicates/" + detail.Predicate + "/evidence/independence/" + itoa(detail.GroupIndex),
+			},
+			Subjects:     subjects,
+			Independence: detail,
+		})
 	}
-	key := DevelopmentPackageKey{}
-	if len(semantics.env.roots) > 0 {
-		key = semantics.env.roots[0].Key
-	}
-	semantics.collector.add(developmentRequirementKey{
-		Kind: DevelopmentRequirementIndependence,
-		Location: DevelopmentRequirementLocation{
-			Skill: skill.Name, Path: "skills/" + skill.Name + "/assurance/predicates.yaml",
-			Node: "", Stage: "evidence", Selector: "/predicates",
-		},
-		Subjects: []DevelopmentRequirementSubject{{Key: key, ID: "independent-domains", SourcePath: "", SchemaIDs: []string{}}},
-	})
 }
 
 // recordMutationRequirements records the external Mutation facts. The static
