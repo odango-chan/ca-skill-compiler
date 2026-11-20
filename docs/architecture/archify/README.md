@@ -57,7 +57,7 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 - 05b 区分新业务 Modify 与命中既有 Pending 的 N2 结果；按 m0 → m2（optional）→ m3 → m4 → m5 表达。
 - 05c 区分 PCF callback 与 Owner scoped event；不把 PCF 通知误画成 AMF Nsmf 请求。
 - 05d / 05e 按 r1（optional）→ r2 → r3 → r4 → r5 → r6 表达释放资源结算。
-- 05f 把 Service Request 与 Handover / Path Switch 作为两个互斥分支，始终操作既有 Session。
+- 05f 把 Service Request 与 Handover / Path Switch 作为两个互斥分支，始终操作既有 Session；F10 明确显示 gNB → AMF 的 NGAP Path Switch Request，再到 Nsmf UpdateSMContext。
 - 05g 分开表达有效 callback、重复/迟到 callback，以及 UNKNOWN / exact-original Reconcile。
 - NAS Codec 是 CA Client Tools 内部的只读职责，不属于 Host SBI Decoder；05a / 05b / 05d 共用一条 Client Tools lifeline，并以 `NAS Codec / Dispatch` 副标签和卡片区分内部职责。原始 NAS 字节仍保持不变并交给 Owner。
 

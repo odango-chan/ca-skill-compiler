@@ -35,7 +35,7 @@
 6. AMF → SCP → Host 的 Nsmf 正式 SBI；OpenAMSM → Host **内部私有** Namf Relay → Client Tools → SCP → AMF；AMF callbacks → SCP → Host。OpenAMSM SMF → UDM/PCF/CHF/NRF 的 SBI 仍经既有 SCP/NRF；N4/PFCP 独立于 SCP。
 7. 对 AMF 可见的 Nsmf apiRoot 与 201 Location 必须属于 Host；OpenAMSM SMF 是内部 Owner endpoint。Host → OpenAMSM 使用固定、受信、**内部** Client Tools Binding，不重新经 SCP 路回 Host。
 8. HTTP/2 SBI Listener、SBI JSON+multipart Decoder、只读 5GSM Codec、类型化 Host Context、Skill/Runtime、Client Tools Egress、OpenAMSM GSM Handler 是不同节点。
-9. 原始 N1/N2 二进制保留在 Host Artifact Store；只读 Codec 的解码投影给 Skill，**原始 N1**另经 Owner-private 受信绑定到 OpenAMSM。此绑定当前尚未实现，图中用虚线标注。Skill 不接收裸 NAS/NGAP bytes。
+9. 原始 N1/N2 二进制保留在 Host Artifact Store；只读 Codec 的解码投影给 Skill，**原始 N1**另经 Owner-private 受信绑定到 OpenAMSM。此绑定当前尚未实现，图 04 用专门的未实现路径虚线表示；05a–05g 的红色 security 虚线只表示受信私有边界，未实现状态必须由卡片显式标注。Skill 不接收裸 NAS/NGAP bytes。
 10. M0（201 Location 指向 OpenAMSM）仅是历史过渡对照，不作为本轮 E2E 实施/验收 Profile。M1 才是目标。
 11. OpenAMSM 的 Owner SSM /invoke waiter 仍存在进程内状态和 30 秒 Provider 原型限制；Temporal 不能虚构 Owner continuation 或把未知副作用重试为成功。
 12. NRF 注册时必须确认**单一受控 NF Profile 发布者**，禁止 Host 与 OpenAMSM 的冲突 Nsmf Profile 抢注册；stock Open5GS SCP 的按调用方 NF 类型自动分流尚未验证，不能画成既有功能。
@@ -90,7 +90,7 @@ nodes:
 - AMF callback → SCP → Host callback；
 - OpenAMSM → UDM/PCF/CHF/NRF 的常规 SBI（按 local 配置经 SCP），OpenAMSM → UPF 的 N4/PFCP；
 - 201 Host Location + 内外 URI Map、后续 Update 到相同 Host apiRoot 的路由闭环；
-- 原始 N1 binary → Owner-private ingress 未实现，用虚线。
+- 原始 N1 binary → Owner-private ingress 为 NOT_IMPLEMENTED；图 04 可用专门的未实现路径虚线表达，05a–05g 需在卡片标注状态，不能把 security 线型当作状态。
 
 **外行也能理解的紧凑示例（不要构造过度复杂的 3GPP 报文）：**
 
@@ -125,7 +125,7 @@ request:
 | 05c | 网络/PCF 触发 Modification | PCF → OpenAMSM 内部事件 → Host 受信事件 → Modify Run → Namf → SCP → AMF → Update 返回；不重建 Session |
 | 05d | UE/AMF 发起 Release | N1 Release Request 或 ReleaseSMContext → SCP → Host → r1–r6 → OpenAMSM N4/PCF 清理；Host URI tombstone；当前 agent_step Release 拒绝是阻塞 |
 | 05e | 网络触发 Release | SMF/PCF 内部事件 → Host Release Run → Namf → AMF → SBI 回传 → 资源结算；不得把取消当成功 |
-| 05f | Service Request / Handover | upCnxState ACTIVATING / DEACTIVATED、hoState、N2 resource response / AN F-TEID；只更新现有 Session，不调用 Create Skill |
+| 05f | Service Request / Handover | upCnxState ACTIVATING / DEACTIVATED、hoState、N2 resource response / AN F-TEID；F10 显示 gNB → AMF 的 NGAP Path Switch Request，再到 Nsmf UpdateSMContext(PATH_SWITCH_REQ)；只更新现有 Session，不调用 Create Skill |
 | 05g | Callback + Failure / UNKNOWN | Namf N1N2TransferFailureNotification → SCP → Host exact occurrence；晚到/重复/超时/Owner 重启；只有 authorized Reconcile，没有盲重派 |
 
 **重要的真实能力区分：**
@@ -134,10 +134,10 @@ request:
 - `pdu-mod-v3.yaml` 主要包含 m0 SC.UPDATE_SM_CONTEXT、m2 CA.UPDATE_CHARGING（可选）、m3/m5 UPN.MODIFY_UP_SESSION、m4 SSM.SIGNAL_UE_AN。
 - `pdu-rel-v4.yaml` 包含 r1 CA.DELETE_CHARGING（可选）、r2 UPN.DELETE_UP_SESSION、r3 SSM.SIGNAL_UE_AN(release)、r4 PA.DELETE_SM_POLICY、r5 SC.RELEASE_SM_CONTEXT、r6 SE.EMIT_EVENTS；r7 COMPENSATE_RELEASE 在原计划中标为 skip，不能照搬自动重规划。
 - 源码 `env-openamsm/upstream/openamsm/src/smf/nsmf-handler.c` 在 agent_step 下拒绝通用业务 Update 和 Release，但对某些 N2 Setup Result、upCnxState-only 等已有特殊分支。必须画出“目标调用”与“当前阻塞”，不要画成已实现。
-- 5GSM Codec 只读解码并将 Typed Context 给 Skill；原始 N1/N2 Owner-private ingestion 需要单独虚线。
+- 5GSM Codec 只读解码并将 Typed Context 给 Skill；原始 N1/N2 Owner-private ingestion 为 NOT_IMPLEMENTED，需在卡片显式标注；sequence 的 security 虚线只表达受信边界。
 - 已有的 s10 N2 回传必须关联**原始 pending Owner occurrence**，不能绘成另一个新 Skill。
 - PCF/UDM/UPF 的内部行为由 OpenAMSM 执行；对外公开 AMF–SMF SBI 均经过 SCP，内部 Owner-private Binding 是明确例外；PFCP/N4 不走 SCP。
-- 每张序列图按 3GPP 风格按时间由上到下，用请求/响应和可选步骤（opt/alt）表示变化，避免过度使用卡片、口号、装饰性图例或同一图内过多泳道。
+- 每张序列图按 3GPP 风格按时间由上到下；Archify sequence 不支持 UML opt/alt 框，分支用命名 phase segment、消息标签和卡片条件表达。避免过度使用口号、装饰图例或同一图内过多泳道。
 
 请从同一 `session-demo` 的外部 Create 开始，向现有 Session 的 Update、Release、Service Request 延展，并在附页说明一个 Nsmf UpdateSMContext API 为什么会触发不同业务流程。每张图下面附 2–4 行“当前源代码证据 / 未实现缺口 / 下一步归属仓”，不要编造 E2E PASS。
 
@@ -152,7 +152,7 @@ request:
 | **OpenAMSM — SMF Owner（env-openamsm/upstream/openamsm）** | MAS Facade/Operator、OES 计划参考、GSM/NAS Handler、SMF Session/Policy/Charging/UP 资源 Owner、SBI 消费方、PFCP Client、Namf 业务请求生产者 | CA-SL Runtime、Host URI Map、AMF-facing Nsmf apiRoot |
 | **5GC 外部参与者** | UE、gNB、AMF、SCP、NRF、UDM、PCF、CHF、UPF | 不得归入 CA-Agent / OpenAMSM 代码域；UPF 是外部 Peer，即使由 SMF 控制也不能画进 SMF 进程 |
 
-上述是**代码和职责归属**，不表示实际进程部署方式。Client Tools 可独立共部署或部署为 Provider，须从代码/部署配置验证，不能凭分区假设 Client Tools 与 CA-Agent 共进程。
+上述是**代码和职责归属**，不表示实际进程部署方式。Client Tools 可独立共部署或部署为 Provider，须从代码/部署配置验证，不能凭分区假设 Client Tools 与 CA-Agent 共进程。05a–05g 以 lifeline 和 participant sublabel 表达职责域；不强制使用不受 sequence renderer 支持的矩形分区。
 
 **八项强制审图纠错：**
 
@@ -162,12 +162,12 @@ request:
 4. OpenAMSM → UDM/PCF/CHF 的 SBI 走 SCP；OpenAMSM SMF → UPF 的 **PFCP/N4 不走 SCP**。不能把 UDM、PCF、UPF 画在一个“其他 NF”生命线下，尤其不能画成同一种通信协议。
 5. AMF→SCP→CA-Agent Host 为公开 Nsmf；OpenAMSM→CA-Agent Host 私有 Namf Relay→Client Tools→SCP→AMF 为 Namf；AMF callback→SCP→CA-Agent Host→原 Owner/Run。Host→OpenAMSM MAS 是受信私有调用（显式例外），不能经 SCP 再选回 Host。
 6. CA-SL Skill 是**Runtime 读取执行的 Artifact**，不是独立的分布式网元；F02 N2 结果回传继续原 s10 pending，不再创建一个 Modify Skill。
-7. Modify/Release 对应的 OpenAMSM OES Plan 已有源码，但 ca-skills 尚未有对应的可执行 v1alpha5 Procedure；`agent_step` 普通 business Update / Release 仍拒绝。当前为**目标设计**，虚线、文字和验收状态必须同时表达。
+7. Modify/Release 对应的 OpenAMSM OES Plan 已有源码，但 ca-skills 尚未有对应的可执行 v1alpha5 Procedure；`agent_step` 普通 business Update / Release 仍拒绝。当前为**目标设计**，卡片 / 消息文字与验收状态必须同时表达；不得仅靠 sequence 的 security 虚线表示未实现。
 8. 有 7 个业务图并不等于 F01–F13 都已经单独图示；F12 Retrieve/SendMOData、F13 可选 Event/Reachability 必须放入 Feature 盘点/按支持情况单独绘图，缺源码则标 NOT_IMPLEMENTED，不把可选流程凭空画成已实现。
 
 **跨域序列图布局**：推荐自左向右 `UE/RAN, AMF, SCP | CA-Agent Host/Runtime | CA Client Tools | OpenAMSM SMF | UDM/PCF/UPF`；用 Archify 原生 Group/Swimlane/Container 表达 CA-Agent、CA Client Tools、OpenAMSM、外部 5GC。若真实 Archify Skill 不支持一个可编辑 JSON 中的分组，采用分图/组边框加明显标签，但不能用仅靠颜色的区分。
 
-每个跨域消息箭头必须命名接口或数据：`Nsmf Create/Update/Release`、`SBI JSON/multipart`、`typed Provider invoke`、`Owner-private MAS /invoke`、`Namf N1N2`、`N4/PFCP`、`201 Host Location`、`raw N1 Owner binding（未实现）`。用实线表示已经由真实源码验证的调用，用虚线表示待实施接口；整个系统的目标端到端时序必须标为 DESIGN/NOT_QUALIFIED，而不能因为局部 Handler 源码存在就说 E2E PASS。
+每个跨域消息箭头必须命名接口或数据：`Nsmf Create/Update/Release`、`SBI JSON/multipart`、`typed Provider invoke`、`Owner-private MAS /invoke`、`Namf N1N2`、`N4/PFCP`、`201 Host Location`、`raw N1 Owner binding（未实现）`。图 04 的专用虚线表示待实施接口；05a–05g 的 sequence variant 采用默认实线=常规调用、绿色实线=关键步骤、蓝色虚线=返回/响应、红色虚线=security 受信私有边界。sequence 线型不表达实现状态，状态必须用文字 / 卡片标注。整个系统的目标端到端时序必须标为 DESIGN/NOT_QUALIFIED，而不能因为局部 Handler 源码存在就说 E2E PASS。
 
 **新核对后的权威流程文档**：
 [ca-agent-demo AMF–SMF 业务流程全集和责任域复审](https://github.com/odango-chan/ca-agent-demo/blob/docs/mas-v1alpha5-temporal-e2e-review-20261118/docs/design/amf-smf-business-procedure-flowbook-scp-only.zh-CN.md)
@@ -176,11 +176,10 @@ request:
 
 ### 05y — 强制精确标注 CA-SL Capability，而不只是 MAS Operation 名
 
-**新的核对基线（必须先读取）：**
-- [13 个 Establishment Capability 的精确追踪表](https://github.com/odango-chan/ca-agent-demo/blob/docs/mas-v1alpha5-temporal-e2e-review-20261118/docs/design/mas-capability-traceability-scp-only.zh-CN.md)
-- [机器可读 Source-to-Capability 矩阵](https://github.com/odango-chan/ca-agent-demo/blob/docs/mas-v1alpha5-temporal-e2e-review-20261118/docs/design/mas-capability-traceability-scp-only.json)
-- CA-SL 原始依据：`ca-skills/examples/skills/establish-pdu-session-mas/assurance/contract.yaml` 与 `procedure.yaml`
-- Owner 候选：`ca-client-tools/contracts/mas-owner-candidate/v0.2.0/source-map.json`
+**本轮核对结果与可用基线：**
+- 原先点名的 `mas-capability-traceability-scp-only.zh-CN.md` 与 `.json` 在 `ca-agent-demo` 指定分支及 `main` 均不存在，状态为 ABSENT；未将其当作权威来源。
+- Establishment Capability 追踪以 `ca-skills/examples/skills/establish-pdu-session-mas/assurance/contract.yaml`、`procedure.yaml` 与 `ca-client-tools/contracts/mas-owner-candidate/v0.2.0/source-map.json` 机械重建：13 个 Procedure Operation Node / Capability / source-map stepId 一一对应，差异为 0；Owner candidate 仍为 NOT_QUALIFIED。
+- 业务顺序以 `ca-agent-demo` 的 SCP-only flowbook 和 SBI inventory 为准。逐文件提交与 SHA 见 [source-inventory.md](../architecture/archify/evidence/source-inventory.md)。
 
 **协议时序和 Skill 执行必须分为两个层次**：
 
@@ -191,14 +190,16 @@ request:
 5. Host Nsmf、Namf、NAS Codec、SCP、N4/PFCP 是协议或内部 Owner 资源边界，**不能因为图中出现就自动把它们列入该 Skill 的 13 个 Capability**。Owner exact-original Reconcile 也不是通用业务 Tool。
 6. 设计矩阵中的候选接口不得绘为已经正式发布的 Capability Catalog / Grant；Client Tools PR #17 仍开放，Owner/Deployment 正式证明另行验收。
 
-建议增加文件：`05a-ops-establishment-capabilities.html` 和对应可编辑 Archify JSON；`06-appendix-minimal-examples.zh-CN.md` 添加 Capability 对照表和源文件/Schema 追溯。
+建议保留 `05a-ops-establishment-capabilities.html` 和对应可编辑 Archify JSON；附页为 `05-appendix-minimal-examples.zh-CN.md`，记录 Capability 对照表和源文件 / Schema 追溯。
 
 **交付必做静态校验**：从 Procedure 抽取所有 `operation.tool` 和 Node ID，从 `contract.yaml` 读取 `capabilities`，使用受信 ToolCatalog 或明确标记的候选 Source Map 逐项比对。当前基线 13 对 13，差异为 0。未来真实接口发布时用正式 Catalog 重新验收，不能用本次候选映射冒充正式链接。
 
 ### 05z — 统一 3GPP 标准消息名与 OpenAMSM 自有 MAS Operation
 
-**本次新增的唯一命名对照基线：**
-[3GPP ↔ OpenAMSM ↔ CA-SL 命名和消息对照](https://github.com/odango-chan/ca-agent-demo/blob/docs/mas-v1alpha5-temporal-e2e-review-20261118/docs/design/3gpp-openamsm-mas-naming-crosswalk-scp-only.zh-CN.md)。
+**命名核对基线（替代缺失的 crosswalk）：**
+- 原先点名的 `3gpp-openamsm-mas-naming-crosswalk-scp-only.zh-CN.md` 在 `ca-agent-demo` 指定分支及 `main` 均不存在，状态为 ABSENT。
+- 3GPP Service Operation 与 operationId 以 OpenAPI path + operationId 和 SBI inventory 核对；OpenAMSM 私有 MAS 名称以 `Nsmf_MasOrchestration.yaml` 与 OES plans 核对；CA-SL Capability 映射以 `contract.yaml` / `source-map.json` 核对。
+- 文件级依据与版本差异见 [source-inventory.md](../architecture/archify/evidence/source-inventory.md) 和 [version-audit.md](../architecture/archify/evidence/version-audit.md)。
 
 **必须统一全部 05a–05g 流程图和图 04：**
 
@@ -227,21 +228,21 @@ request:
 
 ## 5. 文件与验收
 
-目标目录：`.archify/workflow-ca-sl-toolchain-scp-20261119/`，至少生成四张系统图、七张业务流程图（可以通过统一索引 HTML 访问）和附页：
+正式交付目录：`docs/architecture/archify/`，通过 `index.html` 访问四张系统图、七张业务流程图、05a-ops Capability 追踪图和附页：
 
 - `01-toolchain-panorama.html` + `.architecture.json`
 - `02-offline-build.html` + `.workflow.json`
 - `03-host-admission.html` + `.architecture.json`
 - `04-scp-amf-smf.html` + `.architecture.json`
-- `05a-establishment-sequence.html` + 可编辑 Archify Workflow JSON
+- `05a-establishment-sequence.html` + 可编辑 Archify `sequence` JSON
 - `05a-ops-establishment-capabilities.html` + 可编辑 Archify JSON（13 个 Capability / Callable / Node ID 逐条对照）
-- `05b-ue-modification-sequence.html` + 可编辑 Archify Workflow JSON
-- `05c-network-modification-sequence.html` + 可编辑 Archify Workflow JSON
-- `05d-release-sequence.html` + 可编辑 Archify Workflow JSON
-- `05e-network-release-sequence.html` + 可编辑 Archify Workflow JSON
-- `05f-service-request-handover-sequence.html` + 可编辑 Archify Workflow JSON
-- `05g-callback-failure-sequence.html` + 可编辑 Archify Workflow JSON
-- `06-appendix-minimal-examples.zh-CN.md`（字段解释、流程分类表、跨图摘要追踪表）
+- `05b-ue-modification-sequence.html` + 可编辑 Archify `sequence` JSON
+- `05c-network-modification-sequence.html` + 可编辑 Archify `sequence` JSON
+- `05d-release-sequence.html` + 可编辑 Archify `sequence` JSON
+- `05e-network-release-sequence.html` + 可编辑 Archify `sequence` JSON
+- `05f-service-request-handover-sequence.html` + 可编辑 Archify `sequence` JSON
+- `05g-callback-failure-sequence.html` + 可编辑 Archify `sequence` JSON
+- `05-appendix-minimal-examples.zh-CN.md`（字段解释、流程分类表、跨图摘要追踪表）
 
 若要作为 GitHub PR 中可访问的正式资产，应把生成文件保存到仓库跟踪目录（例如 `docs/architecture/archify/`），而非只存在被 gitignore 的本地 `.archify/`。不得上传原始 NAS、Token、真实 SUPI 或敏感配置。仅修改文档/图形；不更改运行代码、语言契约、Compiler v2.0.2 实现，不合并 PR。
 
