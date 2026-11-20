@@ -1,4 +1,4 @@
-package compiler
+﻿package compiler
 
 // CA-SL v1alpha5 WP8: deterministic successful-Build artifact assembly.
 //
@@ -237,6 +237,12 @@ func assembleSuccessResult(req BuildRequest) (BuildResult, error) {
 // only calls it after zero-error validation, so any diagnostic here is an
 // internal inconsistency reported as an assembly failure.
 func collectV1Alpha5ArtifactSkills(req BuildRequest) ([]v1alpha5ArtifactSkill, error) {
+	return collectV1Alpha5ArtifactSkillsWithDevelopment(req, nil)
+}
+
+// collectV1Alpha5ArtifactSkillsWithDevelopment is the single assembly pass with
+// an optional Development-profile semantic scope.
+func collectV1Alpha5ArtifactSkillsWithDevelopment(req BuildRequest, development *developmentSemantics) ([]v1alpha5ArtifactSkill, error) {
 	skillFiles := make(map[string][]File)
 	skillNames := make(map[string]bool)
 	for _, file := range req.Files {
@@ -387,6 +393,7 @@ func collectV1Alpha5ArtifactSkills(req BuildRequest) ([]v1alpha5ArtifactSkill, e
 			req, name, filesByName, parsedFiles,
 			validationOptions{
 				additionalUsedAliases: v1alpha5IngressDependencyAliases(req, skillAST, parsedFiles),
+				development:           development,
 			},
 			func(string, *yaml.Node, string, string) {},
 		)
@@ -778,3 +785,4 @@ func diagnosticCodes(diagnostics []Diagnostic) []string {
 	}
 	return codes
 }
+

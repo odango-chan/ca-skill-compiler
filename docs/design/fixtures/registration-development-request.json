@@ -1,0 +1,147 @@
+{
+  "apiVersion": "connectionagent.io/compiler-development-build-request/v1alpha1",
+  "languageTarget": "connectionagent.io/v1alpha5",
+  "profile": "DEVELOPMENT",
+  "files": [
+    {
+      "path": "skills/verify-ue-registration/SKILL.md",
+      "bytes": "LS0tCm5hbWU6IHZlcmlmeS11ZS1yZWdpc3RyYXRpb24KZGVzY3JpcHRpb246IFZlcmlmeSBVRSByZWdpc3RyYXRpb24gd2l0aCBhIHRydXN0ZWQgSG9zdCBDb250ZXh0IGFuZCBPYnNlcnZhdGlvbiBUb29sIHNuYXBzaG90Ci0tLQo="
+    },
+    {
+      "path": "skills/verify-ue-registration/assurance/contract.yaml",
+      "bytes": "Z29hbDogdWUucmVnaXN0cmF0aW9uX3ZlcmlmaWVkCmNvbnRleHRTY2hlbWE6IGNhLWNvbnRleHQ6OnVybjpleGFtcGxlOmNhOmludm9jYXRpb24tY29udGV4dDp2MQpkZXBlbmRlbmNpZXM6CiAgY2EtY29udGV4dDogdXJuOmV4YW1wbGU6Y2E6aG9zdC1jb250ZXh0CiAgY2E6IHVybjpleGFtcGxlOmNhOnRvb2xzCmNhcGFiaWxpdGllczoKICAtIGV4YW1wbGUucmVnaXN0cmF0aW9uLXJlYWQK"
+    },
+    {
+      "path": "skills/verify-ue-registration/assurance/predicates.yaml",
+      "bytes": "cHJlZGljYXRlczoKICBleGFtcGxlLnVlLnJlZ2lzdGVyZWQ6CiAgICBwYXJhbWV0ZXJzOgogICAgICAtIHJlZ2lzdHJhdGlvbjogY2E6OnVybjpleGFtcGxlOmNhOnJlZ2lzdHJhdGlvbjp2MQogICAgZXZpZGVuY2U6CiAgICAgIHJlcXVpcmVzOgogICAgICAgIHJlZ2lzdHJhdGlvbjogW2NhOjp1ZS5yZWdpc3RyYXRpb24tc3RhdGVdCiAgICBldmFsdWF0b3I6CiAgICAgIHR5cGU6IGNlbAogICAgICBleHByZXNzaW9uOiA+LQogICAgICAgIHJlZ2lzdHJhdGlvbi5zdGF0ZSA9PSAiUkVHSVNURVJFRCIgJiYKICAgICAgICByZWdpc3RyYXRpb24uYWNjZXNzU3RhdGUgPT0gIkFDVElWRSIK"
+    },
+    {
+      "path": "skills/verify-ue-registration/assurance/procedure.yaml",
+      "bytes": "c3RhcnQ6IGluc3BlY3QtcmVnaXN0cmF0aW9uCm5vZGVzOgogIGluc3BlY3QtcmVnaXN0cmF0aW9uOgogICAgb2JzZXJ2YXRpb246CiAgICAgIHRvb2w6IGNhOjp1ZS5yZWdpc3RyYXRpb24uY3VycmVudAogICAgICBhcmd1bWVudHM6CiAgICAgICAgdWVSZWY6IGNvbnRleHQudWVSZWYKICAgICAgcm91dGVzOgogICAgICAgIEZBSUxFRDogRkFJTEVECiAgICAgICAgVU5LTk9XTjogVU5SRVNPTFZFRAogICAgcG9zdGNvbmRpdGlvbjoKICAgICAgcHJlZGljYXRlczoKICAgICAgICAtIHByZWRpY2F0ZTogZXhhbXBsZS51ZS5yZWdpc3RlcmVkCiAgICAgICAgICBhcmd1bWVudHM6CiAgICAgICAgICAgIC0gaW5zcGVjdC1yZWdpc3RyYXRpb24ub2JzZXJ2YXRpb24ub3V0cHV0CiAgICAgIHJvdXRlczoKICAgICAgICBQQVNTOiBTVUNDRUVERUQKICAgICAgICBGQUlMOiBGQUlMRUQKICAgICAgICBVTktOT1dOOiBVTlJFU09MVkVECg=="
+    }
+  ],
+  "targets": [
+    "verify-ue-registration"
+  ],
+  "lock": {
+    "apiVersion": "connectionagent.io/interface-dependency-lock/v1alpha1",
+    "roots": [
+      {
+        "alias": "ca",
+        "key": {
+          "packageId": "urn:example:ca:tools",
+          "version": "1.0.0",
+          "snapshotDigest": "sha256:8fa9ade4f17a30bdd0be186c556a09d83be49ebed01b1282d3c6c97be74c3ac2"
+        }
+      },
+      {
+        "alias": "ca-context",
+        "key": {
+          "packageId": "urn:example:ca:host-context",
+          "version": "1.0.0",
+          "snapshotDigest": "sha256:8030601f2de6094e2f46d8e77fb51366f58e666b5008ff022a2794ed0ea03467"
+        }
+      }
+    ],
+    "packages": [
+      {
+        "key": {
+          "packageId": "urn:example:ca:host-context",
+          "version": "1.0.0",
+          "snapshotDigest": "sha256:8030601f2de6094e2f46d8e77fb51366f58e666b5008ff022a2794ed0ea03467"
+        },
+        "dependencies": []
+      },
+      {
+        "key": {
+          "packageId": "urn:example:ca:tools",
+          "version": "1.0.0",
+          "snapshotDigest": "sha256:8fa9ade4f17a30bdd0be186c556a09d83be49ebed01b1282d3c6c97be74c3ac2"
+        },
+        "dependencies": [
+          {
+            "alias": "types",
+            "key": {
+              "packageId": "urn:example:ca:types",
+              "version": "1.0.0",
+              "snapshotDigest": "sha256:f5049df1809f1661c6d96bff9fb5de6e846da06ad3e1e77b529126b8efac4df7"
+            }
+          }
+        ]
+      },
+      {
+        "key": {
+          "packageId": "urn:example:ca:types",
+          "version": "1.0.0",
+          "snapshotDigest": "sha256:f5049df1809f1661c6d96bff9fb5de6e846da06ad3e1e77b529126b8efac4df7"
+        },
+        "dependencies": []
+      }
+    ]
+  },
+  "snapshots": [
+    {
+      "key": {
+        "packageId": "urn:example:ca:host-context",
+        "version": "1.0.0",
+        "snapshotDigest": "sha256:8030601f2de6094e2f46d8e77fb51366f58e666b5008ff022a2794ed0ea03467"
+      },
+      "files": [
+        {
+          "path": "invocation-context.schema.yaml",
+          "bytes": "JHNjaGVtYTogaHR0cHM6Ly9qc29uLXNjaGVtYS5vcmcvZHJhZnQvMjAyMC0xMi9zY2hlbWEKJGlkOiB1cm46ZXhhbXBsZTpjYTppbnZvY2F0aW9uLWNvbnRleHQ6djEKdHlwZTogb2JqZWN0CmFkZGl0aW9uYWxQcm9wZXJ0aWVzOiBmYWxzZQpyZXF1aXJlZDogW3VlUmVmXQpwcm9wZXJ0aWVzOgogIHVlUmVmOgogICAgdHlwZTogc3RyaW5nCiAgICBtaW5MZW5ndGg6IDEK"
+        },
+        {
+          "path": "package.json",
+          "bytes": "ewogICJhcGlWZXJzaW9uIjogImNvbm5lY3Rpb25hZ2VudC5pby9pbnRlcmZhY2UtcGFja2FnZS92MWFscGhhMSIsCiAgInBhY2thZ2VJZCI6ICJ1cm46ZXhhbXBsZTpjYTpob3N0LWNvbnRleHQiLAogICJ2ZXJzaW9uIjogIjEuMC4wIiwKICAibGFuZ3VhZ2VUYXJnZXQiOiAiY29ubmVjdGlvbmFnZW50LmlvL3YxYWxwaGE1IiwKICAicHVibGlzaGVyIjogImV4YW1wbGUtaG9zdC1vd25lciIsCiAgImRlcGVuZGVuY2llcyI6IFtdLAogICJleHBvcnRzIjogWwogICAgewogICAgICAia2luZCI6ICJTY2hlbWEiLAogICAgICAiaWQiOiAidXJuOmV4YW1wbGU6Y2E6aW52b2NhdGlvbi1jb250ZXh0OnYxIiwKICAgICAgInBhdGgiOiAiaW52b2NhdGlvbi1jb250ZXh0LnNjaGVtYS55YW1sIgogICAgfQogIF0sCiAgImZpbGVzIjogWwogICAgewogICAgICAicGF0aCI6ICJpbnZvY2F0aW9uLWNvbnRleHQuc2NoZW1hLnlhbWwiLAogICAgICAic2hhMjU2IjogInNoYTI1NjpmMDM3YjMxM2VjMjA0MzIzZGJkZDczMmZiNjNjOWExMGRlNTU1OTFlOGJiMGY0ZmRjN2RiNTRkZDQzOWNkMmU0IgogICAgfQogIF0KfQo="
+        }
+      ]
+    },
+    {
+      "key": {
+        "packageId": "urn:example:ca:tools",
+        "version": "1.0.0",
+        "snapshotDigest": "sha256:8fa9ade4f17a30bdd0be186c556a09d83be49ebed01b1282d3c6c97be74c3ac2"
+      },
+      "files": [
+        {
+          "path": "capabilities.json",
+          "bytes": "ewogICJjYXBhYmlsaXRpZXMiOiBbCiAgICB7CiAgICAgICJpZCI6ICJleGFtcGxlLnJlZ2lzdHJhdGlvbi1yZWFkIiwKICAgICAgIm1lbWJlcnMiOiBbCiAgICAgICAgewogICAgICAgICAgImNhbGxhYmxlSWQiOiAidWUucmVnaXN0cmF0aW9uLmN1cnJlbnQiCiAgICAgICAgfQogICAgICBdCiAgICB9CiAgXQp9Cg=="
+        },
+        {
+          "path": "package.json",
+          "bytes": "ewogICJhcGlWZXJzaW9uIjogImNvbm5lY3Rpb25hZ2VudC5pby9pbnRlcmZhY2UtcGFja2FnZS92MWFscGhhMSIsCiAgInBhY2thZ2VJZCI6ICJ1cm46ZXhhbXBsZTpjYTp0b29scyIsCiAgInZlcnNpb24iOiAiMS4wLjAiLAogICJsYW5ndWFnZVRhcmdldCI6ICJjb25uZWN0aW9uYWdlbnQuaW8vdjFhbHBoYTUiLAogICJwdWJsaXNoZXIiOiAiZXhhbXBsZS11ZS1vd25lciIsCiAgImRlcGVuZGVuY2llcyI6IFsKICAgIHsKICAgICAgImFsaWFzIjogInR5cGVzIiwKICAgICAgInBhY2thZ2VJZCI6ICJ1cm46ZXhhbXBsZTpjYTp0eXBlcyIsCiAgICAgICJ2ZXJzaW9uIjogIjEuMC4wIgogICAgfQogIF0sCiAgImV4cG9ydHMiOiBbCiAgICB7CiAgICAgICJraW5kIjogIkNhbGxhYmxlQ2F0YWxvZyIsCiAgICAgICJpZCI6ICJ1ZS5yZWdpc3RyYXRpb24uY3VycmVudCIsCiAgICAgICJwYXRoIjogInRvb2wtY2F0YWxvZy55YW1sIgogICAgfSwKICAgIHsKICAgICAgImtpbmQiOiAiQ2FwYWJpbGl0eUNhdGFsb2ciLAogICAgICAiaWQiOiAiZXhhbXBsZS5yZWdpc3RyYXRpb24tcmVhZCIsCiAgICAgICJwYXRoIjogImNhcGFiaWxpdGllcy5qc29uIgogICAgfSwKICAgIHsKICAgICAgImtpbmQiOiAiU2NoZW1hIiwKICAgICAgImlkIjogInVybjpleGFtcGxlOmNhOnJlZ2lzdHJhdGlvbjp2MSIsCiAgICAgICJwYXRoIjogInJlZ2lzdHJhdGlvbi5zY2hlbWEueWFtbCIKICAgIH0sCiAgICB7CiAgICAgICJraW5kIjogIlNjaGVtYSIsCiAgICAgICJpZCI6ICJ1cm46ZXhhbXBsZTpjYTpyZWdpc3RyYXRpb24tcXVlcnk6djEiLAogICAgICAicGF0aCI6ICJyZWdpc3RyYXRpb24tcXVlcnkuc2NoZW1hLnlhbWwiCiAgICB9CiAgXSwKICAiZmlsZXMiOiBbCiAgICB7CiAgICAgICJwYXRoIjogImNhcGFiaWxpdGllcy5qc29uIiwKICAgICAgInNoYTI1NiI6ICJzaGEyNTY6YzlhNmJiNDI2MTQ4Nzk4NTE5YzY1NTExNWQ4YTkwYTFmMjQwYjFiOTY0M2JkOWRkMDBhMzYxZmIxYTAzZTZiOCIKICAgIH0sCiAgICB7CiAgICAgICJwYXRoIjogInJlZ2lzdHJhdGlvbi1xdWVyeS5zY2hlbWEueWFtbCIsCiAgICAgICJzaGEyNTYiOiAic2hhMjU2OjYyMzgwNThlODZhMjEzNWEwMmVmMmM4NzBmZGU1M2ZkMjQzYjEwYjQ4MjFkY2EzOGU4YjNjODljYjZjODZiYjIiCiAgICB9LAogICAgewogICAgICAicGF0aCI6ICJyZWdpc3RyYXRpb24uc2NoZW1hLnlhbWwiLAogICAgICAic2hhMjU2IjogInNoYTI1NjoxYjE0NTIzZWNhMmMwYzBiYjZhYmFkNjhkMDY3Yzc1MzFlYTU3MGIxMzk0YTc4YTgyYzMwYTFiYTI4MjQ3MmJkIgogICAgfSwKICAgIHsKICAgICAgInBhdGgiOiAidG9vbC1jYXRhbG9nLnlhbWwiLAogICAgICAic2hhMjU2IjogInNoYTI1Njo2YzVjYmRlZTY3ZTllNmY2MzZiNGVhMjQyMDUxNTE1MzFmZmE1Y2NlMTE5YjlkMTYyZmI3NTViM2I3ZjQxMDNiIgogICAgfQogIF0KfQo="
+        },
+        {
+          "path": "registration-query.schema.yaml",
+          "bytes": "JHNjaGVtYTogaHR0cHM6Ly9qc29uLXNjaGVtYS5vcmcvZHJhZnQvMjAyMC0xMi9zY2hlbWEKJGlkOiB1cm46ZXhhbXBsZTpjYTpyZWdpc3RyYXRpb24tcXVlcnk6djEKdHlwZTogb2JqZWN0CmFkZGl0aW9uYWxQcm9wZXJ0aWVzOiBmYWxzZQpyZXF1aXJlZDogW3VlUmVmXQpwcm9wZXJ0aWVzOgogIHVlUmVmOgogICAgJHJlZjogdXJuOmV4YW1wbGU6Y2E6cmVnaXN0cmF0aW9uLXVlLXJlZmVyZW5jZTp2MQo="
+        },
+        {
+          "path": "registration.schema.yaml",
+          "bytes": "JHNjaGVtYTogaHR0cHM6Ly9qc29uLXNjaGVtYS5vcmcvZHJhZnQvMjAyMC0xMi9zY2hlbWEKJGlkOiB1cm46ZXhhbXBsZTpjYTpyZWdpc3RyYXRpb246djEKdHlwZTogb2JqZWN0CmFkZGl0aW9uYWxQcm9wZXJ0aWVzOiBmYWxzZQpyZXF1aXJlZDogW3N0YXRlLCBhY2Nlc3NTdGF0ZV0KcHJvcGVydGllczoKICBzdGF0ZToKICAgIHR5cGU6IHN0cmluZwogICAgZW51bTogW1JFR0lTVEVSRUQsIERFUkVHSVNURVJFRF0KICBhY2Nlc3NTdGF0ZToKICAgIHR5cGU6IHN0cmluZwogICAgZW51bTogW0FDVElWRSwgSURMRV0K"
+        },
+        {
+          "path": "tool-catalog.yaml",
+          "bytes": "YXBpVmVyc2lvbjogY29ubmVjdGlvbmFnZW50LmlvL3Rvb2xjYXRhbG9nL3YxYWxwaGE0CmtpbmQ6IFRvb2xDYXRhbG9nCm1ldGFkYXRhOgogIG5hbWU6IGV4YW1wbGUtdWUtcXVlcmllcwogIG93bmVyOiBleGFtcGxlLXVlLW93bmVyCnNwZWM6CiAgY29udHJhY3RzOgogICAgLSBraW5kOiBvYnNlcnZhdGlvbgogICAgICBpZDogdWUucmVnaXN0cmF0aW9uLmN1cnJlbnQKICAgICAgZWZmZWN0OiBSRUFECiAgICAgIG93bmVyT3V0Y29tZXM6IFtTVUNDRUVERUQsIEZBSUxFRF0KICAgICAgYWRhcHRlcjogZXhhbXBsZS11ZS1xdWVyeQogICAgICBxdWVyeUNvbnRleHRTY2hlbWE6CiAgICAgICAgJHJlZjogdXJuOmV4YW1wbGU6Y2E6cmVnaXN0cmF0aW9uLXF1ZXJ5OnYxCiAgICAgIG91dHB1dFNjaGVtYToKICAgICAgICAkcmVmOiB1cm46ZXhhbXBsZTpjYTpyZWdpc3RyYXRpb246djEKICAgICAgZ3VhcmFudGVlczoKICAgICAgICBldmlkZW5jZToKICAgICAgICAgIHByb3ZpZGVzOgogICAgICAgICAgICAtIGd1YXJhbnRlZTogdWUucmVnaXN0cmF0aW9uLXN0YXRlCiAgICAgICAgICAgICAgcGF0aDogb3V0cHV0Cg=="
+        }
+      ]
+    },
+    {
+      "key": {
+        "packageId": "urn:example:ca:types",
+        "version": "1.0.0",
+        "snapshotDigest": "sha256:f5049df1809f1661c6d96bff9fb5de6e846da06ad3e1e77b529126b8efac4df7"
+      },
+      "files": [
+        {
+          "path": "package.json",
+          "bytes": "ewogICJhcGlWZXJzaW9uIjogImNvbm5lY3Rpb25hZ2VudC5pby9pbnRlcmZhY2UtcGFja2FnZS92MWFscGhhMSIsCiAgInBhY2thZ2VJZCI6ICJ1cm46ZXhhbXBsZTpjYTp0eXBlcyIsCiAgInZlcnNpb24iOiAiMS4wLjAiLAogICJsYW5ndWFnZVRhcmdldCI6ICJjb25uZWN0aW9uYWdlbnQuaW8vdjFhbHBoYTUiLAogICJwdWJsaXNoZXIiOiAiZXhhbXBsZS11ZS1vd25lciIsCiAgImRlcGVuZGVuY2llcyI6IFtdLAogICJleHBvcnRzIjogWwogICAgewogICAgICAia2luZCI6ICJTY2hlbWEiLAogICAgICAiaWQiOiAidXJuOmV4YW1wbGU6Y2E6cmVnaXN0cmF0aW9uLXVlLXJlZmVyZW5jZTp2MSIsCiAgICAgICJwYXRoIjogInVlLXJlZmVyZW5jZS5zY2hlbWEuanNvbiIKICAgIH0KICBdLAogICJmaWxlcyI6IFsKICAgIHsKICAgICAgInBhdGgiOiAidWUtcmVmZXJlbmNlLnNjaGVtYS5qc29uIiwKICAgICAgInNoYTI1NiI6ICJzaGEyNTY6ZWVjY2NmOTc1MzE2Y2NmZDg1Y2VhMzI2NDM1ZjZiYzVmYmU4YjZlMWIwN2I2NmQxODBkNTA2YzQ2OTlhOThkNCIKICAgIH0KICBdCn0K"
+        },
+        {
+          "path": "ue-reference.schema.json",
+          "bytes": "ewogICIkc2NoZW1hIjogImh0dHBzOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LzIwMjAtMTIvc2NoZW1hIiwKICAiJGlkIjogInVybjpleGFtcGxlOmNhOnJlZ2lzdHJhdGlvbi11ZS1yZWZlcmVuY2U6djEiLAogICJ0eXBlIjogInN0cmluZyIsCiAgIm1pbkxlbmd0aCI6IDEKfQo="
+        }
+      ]
+    }
+  ]
+}

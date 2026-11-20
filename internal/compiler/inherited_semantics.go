@@ -33,6 +33,11 @@ type validationOptions struct {
 	// IngressCatalog export) so the inherited UNUSED_DEPENDENCY warning is not
 	// raised for a genuinely used dependency.
 	additionalUsedAliases map[string]bool
+	// development selects the Development Build profile semantics: declared
+	// package identity instead of deployment-trusted identity, package-scoped
+	// CapabilityCatalog membership, deferred Evidence Descriptor assurance and
+	// typed obligation recording. It is nil for the frozen v1alpha5 entry.
+	development *developmentSemantics
 }
 
 // validateSkillPackage runs the inherited Skill package, dependency identity,
@@ -71,6 +76,9 @@ func validateSkillPackage(
 
 	sourceAST := parseSkillAST(name, parsedFiles)
 	identity := validateDependencyIdentityWithUsed(req, sourceAST, opts.additionalUsedAliases)
+	if opts.development != nil {
+		identity = opts.development.env.extendIdentity(identity, opts.development.synthetic)
+	}
 	// Derive the Python Script ABI and input Schemas once per Skill so Procedure
 	// argument typing and Predicate Script checks share them.
 	scriptSchemas := validateScriptABI(req, identity, sourceAST, files, procedurePath, predicatesPath, errorAt)
@@ -125,10 +133,19 @@ func validateSkillPackage(
 		// trusted Owner attribution for the references the Skill uses.
 		ownerLinking := validateOwnerLinking(req, sourceAST, identity)
 		diagnostics = append(diagnostics, ownerLinking.Diagnostics...)
+		if opts.development != nil {
+			diagnostics = append(diagnostics, validateDevelopmentReferenceSurface(opts.development.env, sourceAST, opts.development.scope)...)
+			diagnostics = append(diagnostics, validateDevelopmentSchemaClosure(opts.development.env, sourceAST, opts.development.scope)...)
+		}
 		// Bind exact callable membership and Effect against the trusted
 		// deployment CapabilityContracts input. A Skill Grant is not proof of
 		// authorization; missing trusted deployment input fails closed.
-		capabilityLinking := validateCapabilityLinking(req, sourceAST, ownerLinking)
+		var capabilityLinking capabilityLinkingResult
+		if opts.development != nil {
+			capabilityLinking = validateDevelopmentCapabilityLinking(sourceAST, ownerLinking, opts.development.scope)
+		} else {
+			capabilityLinking = validateCapabilityLinking(req, sourceAST, ownerLinking)
+		}
 		diagnostics = append(diagnostics, capabilityLinking.Diagnostics...)
 		// Resolve the exact Schema reference closure and enforce the
 		// Request/Context root shape. Unresolvable references never guess.
@@ -154,7 +171,17 @@ func validateSkillPackage(
 		validateReconcileContracts(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
 		validateRetryMutationFamilies(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
 		validateRouteKeyEligibility(sourceAST, ownerLinking, procedurePath, errorAt)
-		validateEvidenceDescriptors(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
+		if opts.development != nil {
+			opts.development.validateDevelopmentEvidence(sourceAST, ownerLinking, procedurePath, errorAt)
+			// Development records typed obligations from the same validated
+			// linking state; descriptor absence is deferred, never filtered from
+			// the statically decidable checks above.
+			opts.development.recordOwnerTrustObligations(sourceAST, ownerLinking)
+			opts.development.recordEvidenceObligations(sourceAST, ownerLinking, procedurePath, nil)
+			opts.development.recordMutationObligations(sourceAST, ownerLinking, procedurePath)
+		} else {
+			validateEvidenceDescriptors(req, sourceAST, identity, ownerLinking, procedurePath, errorAt)
+		}
 		validatePredicateEvidence(req, sourceAST, ownerLinking, procedurePath, errorAt)
 		validateMutationPositiveContracts(req, sourceAST, identity, ownerLinking, capabilityLinking, procedurePath, errorAt)
 		input.ownerLinking = ownerLinking

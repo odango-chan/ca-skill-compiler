@@ -41,6 +41,13 @@ import (
 // file is consumed by WP2; the other YAML files are still parsed once so
 // malformed YAML and duplicate keys surface as YAML_PARSE_ERROR.
 func checkSources(req BuildRequest) []Diagnostic {
+	return checkSourcesWithDevelopment(req, nil)
+}
+
+// checkSourcesWithDevelopment is the single static pipeline with an optional
+// Development-profile semantic scope. The frozen v1alpha5 entry passes nil, so
+// its behavior is byte-identical.
+func checkSourcesWithDevelopment(req BuildRequest, development *developmentSemantics) []Diagnostic {
 	var diagnostics []Diagnostic
 	add := func(file string, n *yaml.Node, code, message string) {
 		line, column := 0, 0
@@ -133,6 +140,7 @@ func checkSources(req BuildRequest) []Diagnostic {
 			req, name, files, parsedFiles,
 			validationOptions{
 				additionalUsedAliases: v1alpha5IngressDependencyAliases(req, skill, parsedFiles),
+				development:           development,
 			},
 			add,
 		)
