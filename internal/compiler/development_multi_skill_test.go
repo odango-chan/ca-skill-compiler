@@ -232,6 +232,36 @@ func TestDevelopmentSingleSkillRootsUnchanged(t *testing.T) {
 func TestDevelopmentMultiSkillSharedPackageWithDifferentAliases(t *testing.T) {
 	request := addDevelopmentSecondSkill(t, loadDevelopmentFixture(t),
 		"  ca-context: urn:example:ca:host-context\n  provider: urn:example:ca:tools\n")
+	request = replaceDevelopmentContract(t, request, developmentSecondSkill,
+		"goal: ue.context_only\n"+
+			"contextSchema: ca-context::urn:example:ca:invocation-context:v1\n"+
+			"dependencies:\n"+
+			"  ca-context: urn:example:ca:host-context\n"+
+			"  provider: urn:example:ca:tools\n"+
+			"capabilities:\n"+
+			"  - example.registration-read\n")
+	request = replaceDevelopmentSkillFileBytes(t, request,
+		"skills/"+developmentSecondSkill+"/assurance/procedure.yaml", []byte(
+			"start: inspect-context\n"+
+				"nodes:\n"+
+				"  inspect-context:\n"+
+				"    observation:\n"+
+				"      tool: provider::ue.registration.current\n"+
+				"      arguments:\n"+
+				"        ueRef: context.ueRef\n"+
+				"      routes:\n"+
+				"        SUCCEEDED: check-context\n"+
+				"        FAILED: FAILED\n"+
+				"        UNKNOWN: UNRESOLVED\n"+
+				"  check-context:\n"+
+				"    postcondition:\n"+
+				"      predicates:\n"+
+				"        - predicate: example.context-present\n"+
+				"          arguments: []\n"+
+				"      routes:\n"+
+				"        PASS: SUCCEEDED\n"+
+				"        FAIL: FAILED\n"+
+				"        UNKNOWN: UNRESOLVED\n"))
 	request = cloneDevelopmentRequest(t, request)
 	for _, root := range request.Lock.Roots {
 		if root.Alias == "ca" {
@@ -242,7 +272,7 @@ func TestDevelopmentMultiSkillSharedPackageWithDifferentAliases(t *testing.T) {
 	}
 	result := BuildDevelopment(request)
 	if !result.Success {
-		t.Fatalf("different Root aliases for the same Package must build: %#v", result.Diagnostics)
+		t.Fatalf("different used Root aliases for the same Package must build: %#v", result.Diagnostics)
 	}
 	if err := VerifyDevelopment(request, result); err != nil {
 		t.Fatalf("VerifyDevelopment: %v", err)
@@ -265,18 +295,19 @@ func TestDevelopmentSyntheticAliasNeverOverwritesRoot(t *testing.T) {
 			request.Lock.Roots[index].Alias = "locked_0"
 		}
 	}
-	request = replaceDevelopmentContract(t, request, "verify-ue-registration",
-		"goal: ue.registration_verified\n"+
-			"contextSchema: ca-context::urn:example:ca:invocation-context:v1\n"+
-			"dependencies:\n"+
-			"  ca-context: urn:example:ca:host-context\n"+
-			"  locked_0: urn:example:ca:tools\n"+
-			"capabilities:\n"+
-			"  - example.registration-read\n")
-	// The source uses the original alias 'ca'; the exact diagnostic must be
-	// an undeclared reference, never an internal synthetic alias collision.
+	for index := range request.Files {
+		content := string(request.Files[index].Bytes)
+		if strings.HasSuffix(request.Files[index].Path, "/assurance/contract.yaml") {
+			content = strings.ReplaceAll(content, "  ca: ", "  locked_0: ")
+		}
+		content = strings.ReplaceAll(content, "ca::", "locked_0::")
+		request.Files[index].Bytes = []byte(content)
+	}
 	result := BuildDevelopment(request)
-	if result.Success || !hasDevelopmentCode(result.Diagnostics, "DEPENDENCY_ALIAS_MISSING") {
-		t.Fatalf("author alias mismatch must fail with a language diagnostic: %#v", result.Diagnostics)
+	if !result.Success {
+		t.Fatalf("declared locked_0 root must not collide with a generated alias: %#v", result.Diagnostics)
+	}
+	if err := VerifyDevelopment(request, result); err != nil {
+		t.Fatalf("VerifyDevelopment: %v", err)
 	}
 }
