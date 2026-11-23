@@ -5,6 +5,20 @@
 
 打开 [index.html](index.html) 浏览全部图形。
 
+## Active-tree evidence retention policy (2026-11-23)
+
+The checked-in **current** diagram sources, generated HTML views and latest
+browser/visual acceptance receipts remain in this directory. The old
+`evidence/history/` folder (110 duplicate assets, ~12.6 MB) was removed
+from the active tree. Its exact bytes remain recoverable in
+[the pre-prune source commit](https://github.com/odango-chan/ca-skill-compiler/tree/72b41548a9c4d29c6c49abed117a04a963454f22/docs/architecture/archify/evidence/history).
+
+Future Archify CI runs update current receipts **in place**, rather than
+copying previous runs into the repository. Previous generations remain in Git
+commit history. The current rendering and provenance verification gates are
+unchanged, and diagrams are still **design evidence, not proof of a live 5GC
+E2E**.
+
 ## 1. 图形清单
 
 | 编号 | 主题 | 类型 | 可编辑源 | 成品 | 状态 |
@@ -43,7 +57,7 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 
 > 历史说明：本轮早期在禁止管道子进程的受限沙箱里只跑通前三道门并留下 `spawn EPERM` 的
 > NOT_RUN 回执。随后在允许子进程的环境中用上面的**原样命令**重跑，四道门与 `visual-check`
-> 全部通过；旧回执与旧截图归档在 `evidence/history/freeze-20261120/`，不再作为当前证据。
+> 全部通过；旧回执与旧截图可在[清理前固定提交](https://github.com/odango-chan/ca-skill-compiler/tree/72b41548a9c4d29c6c49abed117a04a963454f22/docs/architecture/archify/evidence/history/freeze-20261120)中查阅，不再作为当前证据。
 
 ## 3. 验收结果
 
@@ -53,7 +67,7 @@ node "$ARCHIFY" visual-check <out>.html --require-provenance --out-dir <dir> --s
 
 最新 Push CI：[run #44663313398](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44660862083)。
 
-05a–05g 当前回执见 `evidence/<figure>.finalize-summary.json`；当前截图、接触表与 `visual-check` 回执统一位于 `evidence/sequence-vnext/`。每次重新生成前，工作流会把上一版 `sequence-vnext/` 与根目录 05a–05g `browser-check` 回执归档到 `evidence/history/<run-id>/`；旧证据保留不覆盖，当前截图只以 `evidence/sequence-vnext/` 为准。01–03 的上一版截图与回执已归档到 `evidence/history/freeze-20261120/`。完整验收记录见 [evidence/acceptance.md](evidence/acceptance.md)。
+05a–05g 当前回执见 `evidence/<figure>.finalize-summary.json`；当前截图、接触表与 `visual-check` 回执统一位于 `evidence/sequence-vnext/`。后续渲染只更新当前 `evidence/sequence-vnext/`、根目录 05a–05g 回执，旧证据由 Git 提交历史保留，不再持续生成 `evidence/history/<run-id>/` 重复副本。01–03 旧截图与回执位于[清理前固定提交](https://github.com/odango-chan/ca-skill-compiler/tree/72b41548a9c4d29c6c49abed117a04a963454f22/docs/architecture/archify/evidence/history/freeze-20261120)。完整验收记录见 [evidence/acceptance.md](evidence/acceptance.md)。
 
 ## 4. 七张业务时序图的设计表达口径
 

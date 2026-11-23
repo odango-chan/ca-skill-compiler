@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - "docs/architecture/archify/*.sequence.json"
-      - ".github/workflows/archify-sequences.yml"
 
 permissions:
   contents: write
@@ -47,21 +46,8 @@ jobs:
           test -f package/package/skills/archify/bin/archify.mjs
           echo "ARCHIFY_CLI=$RUNNER_TEMP/archify-package/package/package/skills/archify/bin/archify.mjs" >> "$GITHUB_ENV"
 
-      - name: Archive stale sequence evidence before regeneration
-        run: |
-          set -euo pipefail
-          evidence_root="docs/architecture/archify/evidence"
-          history_dir="$evidence_root/history/${GITHUB_RUN_ID}"
-          mkdir -p "$history_dir"
-          for receipt in docs/architecture/archify/05{a,b,c,d,e,f,g}-*.browser-check.json; do
-            if [ -f "$receipt" ]; then
-              mv "$receipt" "$history_dir/"
-            fi
-          done
-          if [ -d "$evidence_root/sequence-vnext" ]; then
-            mv "$evidence_root/sequence-vnext" "$history_dir/sequence-vnext"
-          fi
-          mkdir -p "$evidence_root/sequence-vnext"
+      - name: Prepare current (replaceable) sequence evidence
+        run: mkdir -p docs/architecture/archify/evidence/sequence-vnext
 
       - name: Finalize, check and capture seven target sequences
         run: |

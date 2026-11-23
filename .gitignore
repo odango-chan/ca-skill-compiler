@@ -7,3 +7,6 @@
 
 # Archify local working directory (source of truth is docs/architecture/archify)
 .archify/
+
+# Do not recommit generated historical screenshot copies. Git history is the archive.
+/docs/architecture/archify/evidence/history/
