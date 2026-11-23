@@ -16,7 +16,7 @@
 | Source interfaces | [Frozen v1alpha5 contracts](../contracts/v1alpha5/README.md) · [Development v1alpha1 schemas](../contracts/development/v1alpha1/README.md) |
 | Architecture and diagrams | [Design index](design/README.md) · [Archify diagrams](architecture/archify/README.md) |
 | Positive test fixtures | [Examples](../examples/README.md) |
-| Historical plans, prior versions | [Workstreams archive index](workstreams/README.md) · [historical work log](WORK-history.md) |
+| Historical plans, prior versions | [Workstreams archive index](workstreams/README.md) · [historical work log](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/WORK-history.md) |
 
 ## Normative order
 

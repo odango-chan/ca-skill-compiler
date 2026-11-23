@@ -70,4 +70,4 @@ CGO_ENABLED=0 GOWORK=off go build ./...
 CHROMIUM_PARITY=1 GOWORK=off go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v
 ```
 
-The Chromium command needs Node and a real Chrome/Chromium browser; CI installs the browser. v1alpha4 historical CLI docs are [archived here](cli-v1alpha4.md) and do **not** describe the v2.1.0 CLI.
+The Chromium command needs Node and a real Chrome/Chromium browser; CI installs the browser. v1alpha4 historical CLI docs are [archived here](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/cli-v1alpha4.md) and do **not** describe the v2.1.0 CLI.
