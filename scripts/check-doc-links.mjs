@@ -110,6 +110,35 @@ for (const file of tracked) {
   }
 }
 
+// This is a curated active tree, not a place to replicate old releases and
+// every historical Archify screenshot. Prior evidence remains at the pinned
+// archive commit linked from docs/archive/README.md.
+for (const file of tracked) {
+  if (file.startsWith('docs/architecture/archify/evidence/history/')) {
+    errors.push(`${file}: historical screenshot duplicates must remain in Git history, not the active tree`);
+  }
+  if (/^docs\/workstreams\/.*\.md$/.test(file) &&
+      !/^docs\/workstreams\/README(?:\.zh-CN)?\.md$/.test(file) &&
+      file !== 'docs/workstreams/wp7-conformance-v1alpha5.md') {
+    errors.push(`${file}: completed WP prose belongs in the pinned archive, not the active tree`);
+  }
+}
+// Ensure the public docs index does not silently point at missing machine
+// contracts or historical release-note files after a documentation pruning.
+const docsManifest = 'docs/public-docs.yaml';
+if (tracked.has(docsManifest)) {
+  const manifest = readFileSync(path.join(root, docsManifest), 'utf8');
+  if (!manifest.includes('ca-skill-compiler-v2-1-0')) {
+    errors.push(`${docsManifest}: missing current released v2.1.0 product`);
+  }
+  for (const match of manifest.matchAll(/^\s+path:\s+([^\s#]+)\s*$/gm)) {
+    const target = match[1];
+    if (!tracked.has(target)) {
+      errors.push(`${docsManifest}: public source/contract path is not tracked: ${target}`);
+    }
+  }
+}
+
 for (const warning of warnings) console.warn('WARN:', warning);
 for (const error of errors) console.error('ERROR:', error);
 console.log(`documentation integrity: ${files} Markdown files; ${checkedLinks} local links; ${errors.length} errors, ${warnings.length} warnings`);
