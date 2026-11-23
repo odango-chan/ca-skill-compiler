@@ -61,7 +61,7 @@ func verifyV1Alpha5ArtifactTree(result BuildResult, files []File) error {
 	if manifest.LanguageTarget != V1Alpha5LanguageTarget {
 		return fmt.Errorf("v1alpha5 manifest languageTarget = %q", manifest.LanguageTarget)
 	}
-	if manifest.Generator.Name != v1alpha5ArtifactGeneratorName || manifest.Generator.Version != CompilerVersion {
+	if manifest.Generator.Name != v1alpha5ArtifactGeneratorName || manifest.Generator.Version != V1Alpha5FrozenGeneratorVersion {
 		return fmt.Errorf("v1alpha5 manifest generator identity is invalid")
 	}
 

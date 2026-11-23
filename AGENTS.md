@@ -1,6 +1,6 @@
 # CA Skill Compiler — Repository Instructions
 
-- **Product version (this line):** CA Skill Compiler v2.0.0
+- **Product version (this line):** CA Skill Compiler v2.1.0 (release candidate)
 - **Only language target:** released CA-SL v1alpha5 (`connectionagent.io/v1alpha5`), which inherits the released v1alpha4 normative semantics
 - **Published v1.0.0 release commit (immutable):** `252fd6c6dab15fb92806426aeb19d49a36b08d5e`
 
@@ -18,7 +18,8 @@ Historical v0.1/v0.2 documents and fixtures are not current authority. Do not ad
 
 ## 2. Release and version boundary
 
-- v1.0.0 is published and its tag/release assets are immutable.
+- v1.0.0 and v2.0.0–v2.0.2 are published; their tags and release assets are immutable.
+- The v2.1.0 product adds the separate Development v1alpha1 profile, always NOT_ADMITTED. The previously frozen v1alpha5 Artifact generator stamp remains v2.0.2 to preserve byte-identical legacy-entry artifacts. This is an artifact contract identity, not the product CLI binary version.
 - Product version and language version are independent.
 - CA-SL v1alpha5 is the only supported language target. There is no v1alpha4 build entry, CLI target, API identity or compatibility layer; a v1alpha4 `apiVersion` or `languageTarget` fails closed.
 - The v1alpha5 language inherits the released v1alpha4 semantics; those inherited obligations are implemented by the single v1alpha5 pipeline.

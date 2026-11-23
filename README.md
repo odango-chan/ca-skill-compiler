@@ -13,7 +13,7 @@ or Runtime dispatch.
 
 | Item | Value |
 |---|---|
-| Compiler product version | **v2.0.2** (producer output availability hotfix) |
+| Compiler product version | **v2.1.0** (Development Build contract family) |
 | Language target | **`connectionagent.io/v1alpha5`** — the only supported target |
 | BuildRequest API | `connectionagent.io/compiler-build-request/v1alpha5` |
 | BuildResult API | `connectionagent.io/compiler-build-result/v1alpha5` |
@@ -22,7 +22,7 @@ or Runtime dispatch.
 | Static validation scope | `FULL_LANGUAGE_VALIDATION` (Compiler-owned obligations only) |
 | Compiler acceptance boundary | **Independent** — static Compiler correctness / parity / deterministic artifacts / product release only; see [scope and acceptance](docs/COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md) |
 | External system qualification | Owner / Deployment / Host / Runtime / 5GC / MAS: **not a Compiler release gate** |
-| Development Build on `main` | **MERGED / UNRELEASED** — [architecture #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) and [implementation #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) |
+| Development Build | **v2.1.0 release candidate** — [architecture #48](https://github.com/odango-chan/ca-skill-compiler/pull/48), [implementation #51](https://github.com/odango-chan/ca-skill-compiler/pull/51), [conformance #56](https://github.com/odango-chan/ca-skill-compiler/pull/56) |
 | Development artifact execution | **NOT_ADMITTED**; production Host must reject the `DEVELOPMENT` profile |
 
 CA-SL v1alpha5 inherits the released v1alpha4 language semantics. Those
@@ -31,22 +31,24 @@ Compiler no longer exposes a v1alpha4 build entry, CLI target or compatibility
 mode. A v1alpha4 `apiVersion` or `languageTarget` fails closed like any other
 unsupported version.
 
+The historical v1alpha5 Build/Verify artifact generator identity remains pinned to `v2.0.2` so existing outputs retain identical bytes; this is **not** the current CLI binary version. Development manifests use the new product version `v2.1.0`.
+
 v2.0.2 fixes producer output availability across Procedure stages. v2.0.1 fixed a false YAML indentation-depth rejection. Prior releases remain immutable and the v1alpha5 input/output contract is unchanged. The earlier **v1.0.0** product (v1alpha4 target) remains an
 immutable historical release. It is documented under
 [docs/release-notes-v1.0.0.md](docs/release-notes-v1.0.0.md).
 
-## Development Build (merged on main, not released)
+## Development Build (v2.1.0 release candidate)
 
 The next-generation **Compile → Interface Link → Build → Verify** development profile is now implemented on `main`. It consumes CA-SL v1alpha5 Skill source, exact Interface Package snapshots and a Dependency Lock, resolves package-scoped Schema references, and emits a deterministic artifact with static `capabilityRequirements[]` and separate Host Admission / Runtime Execution requirement files. It does **not** accept or verify actual Deployment Grants, Runtime Evidence, Provider Bindings or Commit Proof. Those remain Host / Runtime responsibilities.
 
-The code is available from the merged source branch; **it is not included in the published v2.0.2 release** and is not a production admission format. Development artifacts are always `NOT_ADMITTED`, by design; this is not a Compiler failure. Formal MAS G0/G1 and real Owner/Provider/Host qualification are tracked by their respective integration owners, **not as Compiler completion or release gates**. The real MAS-source offline static regression is tracked separately in [Issue #53](https://github.com/odango-chan/ca-skill-compiler/issues/53).
+The Development profile first ships in v2.1.0; **it is not part of the historical v2.0.2 release** and is never a production admission format. Development artifacts are always `NOT_ADMITTED`, by design; this is not a Compiler failure. Formal MAS G0/G1 and real Owner/Provider/Host qualification are tracked by their respective integration owners, **not as Compiler completion or release gates**. The real MAS-source offline static regression is tracked separately in [Issue #53](https://github.com/odango-chan/ca-skill-compiler/issues/53).
 
 ```bash
 skillc build-development --request <DEVELOPMENT_REQUEST.json> --out <DIR> --json
 skillc verify-development --request <DEVELOPMENT_REQUEST.json> --result <BUILD_RESULT.json>
 ```
 
-See the [Development Build contract](docs/design/compiler-development-build-pilot.zh-CN.md) and [implementation/acceptance report](docs/design/compiler-development-build-implementation-report.zh-CN.md). The merge checkpoints are architecture `22860a2` and implementation `1d7ea81`; integration acceptance of the implementation PR head passed [GitHub Actions run #83](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44719522516).
+See the [Development machine contracts](contracts/development/v1alpha1/README.md), [Development Build implementation contract](docs/design/compiler-development-build-pilot.zh-CN.md), and [release record](docs/releases/ca-skill-compiler-v2.1.0.md). The merge checkpoints are architecture `22860a2` and implementation `1d7ea81`; integration acceptance of the implementation PR head passed [GitHub Actions run #83](https://github.com/odango-chan/ca-skill-compiler/actions/runs/44719522516).
 
 ## Normative authority
 

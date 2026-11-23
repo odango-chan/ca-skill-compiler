@@ -109,7 +109,7 @@ func TestV1Alpha5BuildAssemblesTrustedArtifact(t *testing.T) {
 	if manifest.APIVersion != V1Alpha5ArtifactAPIVersion || manifest.LanguageTarget != V1Alpha5Target {
 		t.Fatalf("unexpected manifest identity: %#v", manifest)
 	}
-	if manifest.Generator.Name != v1alpha5ArtifactGeneratorName || manifest.Generator.Version != CompilerVersion {
+	if manifest.Generator.Name != v1alpha5ArtifactGeneratorName || manifest.Generator.Version != V1Alpha5FrozenGeneratorVersion {
 		t.Fatalf("unexpected manifest generator: %#v", manifest.Generator)
 	}
 	if len(manifest.DependencyClosure) != 2 {

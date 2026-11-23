@@ -5,7 +5,14 @@ package compiler
 // the language target stays connectionagent.io/v1alpha5 while the product
 // version advances per release.
 //
-// The v2.0.x product line is the single-version v1alpha5 Compiler. v1alpha4
-// BuildRequest/CLI input is rejected, which is a breaking public-API change
-// relative to the v1.0.0 product release.
-const CompilerVersion = "v2.0.2"
+// v2.1.0 adds the independent Development Build contract family without
+// changing the previously frozen CA-SL v1alpha5 Build/Verify artifact bytes.
+// Product version and frozen artifact-format generator identity are deliberately
+// independent; do not substitute CompilerVersion in v1alpha5 manifest creation.
+const CompilerVersion = "v2.1.0"
+
+// V1Alpha5FrozenGeneratorVersion preserves byte-for-byte v2.0.2 output for
+// the already-released v1alpha5 Build/Verify API, including the generator stamp.
+// It is an output contract identity, NOT the version of the installed binary.
+// New Development manifests use CompilerVersion (v2.1.0) instead.
+const V1Alpha5FrozenGeneratorVersion = "v2.0.2"
