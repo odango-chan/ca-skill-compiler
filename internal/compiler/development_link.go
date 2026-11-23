@@ -613,14 +613,15 @@ func validateDevelopmentSchemaClosure(env *developmentEnvironment, skill *SkillA
 	for _, export := range usedDevelopmentCallables(skill, env, scope) {
 		ids := []string{export.inputSchemaID, export.querySchemaID, export.outputSchemaID, export.receiptSchemaID,
 			export.mutation.CommitProofSchemaID, export.mutation.ReconcileProofSchemaID, export.mutation.RecoverableSchemaID}
-		for _, id := range ids {
+		for index, id := range ids {
 			if id == "" {
 				continue
 			}
 			resource, problem := scope.resolveSchemaInPackage(export.packageKey, id)
 			if problem != "" {
-				add("", "Callable "+export.exportID+" references Schema "+id+" which "+problem+
-					" (Package "+export.packageKey.PackageID+")")
+				field := []string{"inputSchema", "queryContextSchema", "outputSchema", "receiptSchema", "commitProofSchema", "reconcileProofSchema", "recoverableSchema"}[index]
+				add(export.path, "Callable "+export.exportID+" declares "+field+" reference "+id+" which "+problem+
+					" (Package "+export.packageKey.PackageID+", Catalog "+export.path+")")
 				continue
 			}
 			walk(resource, nil)
@@ -773,8 +774,17 @@ func (env *developmentEnvironment) legacyRequest() (BuildRequest, []syntheticDep
 	}
 	context := &TrustedBuildContext{}
 	roots := map[DevelopmentPackageKey]string{}
+	rootAliases := map[DevelopmentPackageKey][]string{}
+	usedAliases := map[string]bool{}
 	for _, root := range env.roots {
-		roots[root.Key] = root.Alias
+		// More than one root alias may bind to the same immutable Package key.
+		// Keep every alias for the inherited per-Skill identity check; this
+		// map remains only the canonical package-to-alias projection.
+		if _, exists := roots[root.Key]; !exists {
+			roots[root.Key] = root.Alias
+		}
+		rootAliases[root.Key] = append(rootAliases[root.Key], root.Alias)
+		usedAliases[root.Alias] = true
 	}
 	keys := sortedDevelopmentKeys(env.packages)
 	synthetic := make([]syntheticDependencyAlias, 0)
@@ -790,8 +800,16 @@ func (env *developmentEnvironment) legacyRequest() (BuildRequest, []syntheticDep
 		if rootAlias, exists := roots[key]; exists {
 			alias = rootAlias
 		} else {
-			alias = newSyntheticDependencyAlias(index)
-			index++
+			// Generated aliases must never collide with a caller-declared Root,
+			// including one named locked_0.
+			for {
+				alias = newSyntheticDependencyAlias(index)
+				index++
+				if !usedAliases[alias] {
+					break
+				}
+			}
+			usedAliases[alias] = true
 			synthetic = append(synthetic, syntheticDependencyAlias{Alias: alias, Key: key})
 		}
 		req.ResolvedDependencies = append(req.ResolvedDependencies, ResolvedDependency{
@@ -841,6 +859,22 @@ func (env *developmentEnvironment) legacyRequest() (BuildRequest, []syntheticDep
 			return a.Owner < b.Owner
 		})
 		context.DependencyBindings = append(context.DependencyBindings, binding)
+		// A second Skill can use a distinct Root alias for these exact same
+		// snapshot bytes. Preserve that alias in the synthetic legacy request,
+		// instead of discarding it in the package-key map above.
+		for _, additionalAlias := range rootAliases[key] {
+			if additionalAlias == alias {
+				continue
+			}
+			req.ResolvedDependencies = append(req.ResolvedDependencies, ResolvedDependency{
+				DependencyID: additionalAlias,
+				Digest:       key.SnapshotDigest,
+				Files:        append([]File(nil), pkg.files...),
+			})
+			otherBinding := binding
+			otherBinding.DependencyID = additionalAlias
+			context.DependencyBindings = append(context.DependencyBindings, otherBinding)
+		}
 		// Manifest-declared artifact/Schema bindings are carried through to the
 		// frozen WP1/WP5/WP6 link context. "self" means the export's own package;
 		// a direct dependency alias is resolved through the package's lock edges.

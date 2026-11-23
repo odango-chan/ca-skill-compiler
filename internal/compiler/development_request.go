@@ -585,7 +585,11 @@ func parseDevelopmentPackageManifest(raw []byte, key DevelopmentPackageKey) (dev
 		problems = append(problems, "package.json publisher must be a non-empty publisher identity")
 	}
 	dependencies := unalias(child(root, "dependencies"))
-	if dependencies != nil {
+	if dependencies == nil {
+		// Empty direct dependencies are represented explicitly by [].
+		// Omitting the property is not equivalent to having no dependencies.
+		problems = append(problems, "package.json is missing required dependencies array")
+	} else {
 		if dependencies.Kind != yaml.SequenceNode {
 			problems = append(problems, "package.json dependencies must be an ordered list")
 		} else {
@@ -967,17 +971,27 @@ func validateDevelopmentPackageExports(pkg *developmentPackage) []string {
 // a Schema export declared somewhere in the locked closure.
 func validateDevelopmentBindingTargets(env *developmentEnvironment) []string {
 	var problems []string
-	declaredSchemas := map[string]bool{}
 	for _, key := range sortedDevelopmentKeys(env.packages) {
-		for _, export := range env.packages[key].manifest.exports {
+		pkg := env.packages[key]
+		edges := env.dependencyGraph[key]
+		// Schema bindings are authored by this Package. A Schema exported by
+		// an unrelated Package elsewhere in the Lock Closure cannot satisfy one.
+		// Use precisely this Package and its declared direct dependencies.
+		declaredSchemas := map[string]bool{}
+		for _, export := range pkg.manifest.exports {
 			if export.kind == "Schema" {
 				declaredSchemas[export.id] = true
 			}
 		}
-	}
-	for _, key := range sortedDevelopmentKeys(env.packages) {
-		pkg := env.packages[key]
-		edges := env.dependencyGraph[key]
+		for _, dependencyKey := range edges {
+			if dependency := env.packages[dependencyKey]; dependency != nil {
+				for _, export := range dependency.manifest.exports {
+					if export.kind == "Schema" {
+						declaredSchemas[export.id] = true
+					}
+				}
+			}
+		}
 		artifactRefs := map[string]bool{}
 		for _, export := range pkg.manifest.exports {
 			for _, binding := range export.artifactBindings {
@@ -1008,7 +1022,7 @@ func validateDevelopmentBindingTargets(env *developmentEnvironment) []string {
 					problems = append(problems, "schemaBindings artifactRef does not identify an artifactBinding of the package: "+binding.artifactRef)
 				}
 				if !declaredSchemas[binding.exportID] {
-					problems = append(problems, "schemaBindings exportId is not a declared Schema export in the locked closure: "+binding.exportID)
+					problems = append(problems, "schemaBindings exportId is not a Schema export of this Package or a declared direct dependency: "+binding.exportID)
 				}
 			}
 		}

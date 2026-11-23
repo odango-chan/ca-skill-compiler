@@ -223,3 +223,60 @@ func TestDevelopmentSingleSkillRootsUnchanged(t *testing.T) {
 		t.Fatalf("single-Skill fixture must still build: %#v", result.Diagnostics)
 	}
 }
+
+
+// TestDevelopmentMultiSkillSharedPackageWithDifferentAliases proves the Lock
+// models alias -> Package key, not a bijection between aliases and Packages.
+// Different Skills may use different aliases for exactly the same immutable
+// Interface Package snapshot without silently losing one of the bindings.
+func TestDevelopmentMultiSkillSharedPackageWithDifferentAliases(t *testing.T) {
+	request := addDevelopmentSecondSkill(t, loadDevelopmentFixture(t),
+		"  ca-context: urn:example:ca:host-context\n  provider: urn:example:ca:tools\n")
+	request = cloneDevelopmentRequest(t, request)
+	for _, root := range request.Lock.Roots {
+		if root.Alias == "ca" {
+			request.Lock.Roots = append(request.Lock.Roots,
+				DevelopmentLockRoot{Alias: "provider", Key: root.Key})
+			break
+		}
+	}
+	result := BuildDevelopment(request)
+	if !result.Success {
+		t.Fatalf("different Root aliases for the same Package must build: %#v", result.Diagnostics)
+	}
+	if err := VerifyDevelopment(request, result); err != nil {
+		t.Fatalf("VerifyDevelopment: %v", err)
+	}
+	permuted := cloneDevelopmentRequest(t, request)
+	reverseRoots(permuted.Lock.Roots)
+	again := BuildDevelopment(permuted)
+	if !again.Success || again.ArtifactDigest != result.ArtifactDigest {
+		t.Fatalf("Root order changed a shared-package build: %#v", again.Diagnostics)
+	}
+	assertDevelopmentFilesEqual(t, result, again)
+}
+
+// TestDevelopmentSyntheticAliasNeverOverwritesRoot makes the legacy projection
+// collision-safe when an author uses the reserved-looking alias locked_0.
+func TestDevelopmentSyntheticAliasNeverOverwritesRoot(t *testing.T) {
+	request := cloneDevelopmentRequest(t, loadDevelopmentFixture(t))
+	for index := range request.Lock.Roots {
+		if request.Lock.Roots[index].Alias == "ca" {
+			request.Lock.Roots[index].Alias = "locked_0"
+		}
+	}
+	request = replaceDevelopmentContract(t, request, "verify-ue-registration",
+		"goal: ue.registration_verified\n"+
+			"contextSchema: ca-context::urn:example:ca:invocation-context:v1\n"+
+			"dependencies:\n"+
+			"  ca-context: urn:example:ca:host-context\n"+
+			"  locked_0: urn:example:ca:tools\n"+
+			"capabilities:\n"+
+			"  - example.registration-read\n")
+	// The source uses the original alias 'ca'; the exact diagnostic must be
+	// an undeclared reference, never an internal synthetic alias collision.
+	result := BuildDevelopment(request)
+	if result.Success || !hasDevelopmentCode(result.Diagnostics, "DEPENDENCY_ALIAS_MISSING") {
+		t.Fatalf("author alias mismatch must fail with a language diagnostic: %#v", result.Diagnostics)
+	}
+}
