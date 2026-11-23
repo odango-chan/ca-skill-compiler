@@ -1,11 +1,13 @@
-# CA Skill Compiler Development v1alpha1 — v2.1.0 release candidate contracts
+# CA Skill Compiler Development v1alpha1 — FROZEN with v2.1.0
 
 These five JSON Schema (Draft 2020-12) documents describe the Development Build
 family introduced by CA Skill Compiler v2.1.0. Their code-defined identities
-remain v1alpha1; this candidate becomes the frozen product contract surface **only
-when v2.1.0 is successfully published from the reviewed release commit**. Before
-that release, they remain candidates. This is never a Host admission, Owner trust,
-or product qualification claim.
+remain v1alpha1. These exact machine-contract bytes were released and frozen
+with tag `v2.1.0` at source commit
+`b67fbb56c34d15b8d5a0903c8a7ca93d608f8f65` (Release acceptance run
+[#45100406980](https://github.com/odango-chan/ca-skill-compiler/actions/runs/45100406980)).
+FROZEN describes the Compiler product contract only; it never implies Host
+admission, Owner trust, or product qualification of external systems.
 
 | Schema | Purpose |
 | --- | --- |
@@ -25,7 +27,7 @@ Deployment Grants and Runtime Evidence belong to Host/Runtime, not Compiler.
 Schema validation checks wire shapes, while the Compiler's code performs the
 stronger cross-file, digest, closure, alias and semantic checks.
 
-The v2.1.0 release gates must test these schemas together with the Go decoder,
-exact package bytes, candidate Artifact, frozen v2.0.2 golden baseline, and real
-Chromium Worker parity. The source SHA is the tag's commit after publication.
+The v2.1.0 release gates tested these schemas together with the Go decoder,
+exact package bytes, Development Artifact, frozen v2.0.2 golden baseline, and
+real Chromium Worker parity. The source SHA is the published tag's commit.
 Existing v2.0.2 artifacts and machine contracts remain unchanged.
