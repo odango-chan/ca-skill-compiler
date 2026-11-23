@@ -22,7 +22,7 @@ or Runtime dispatch.
 | Static validation scope | `FULL_LANGUAGE_VALIDATION` (Compiler-owned obligations only) |
 | Compiler acceptance boundary | **Independent** — static Compiler correctness / parity / deterministic artifacts / product release only; see [scope and acceptance](docs/COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md) |
 | External system qualification | Owner / Deployment / Host / Runtime / 5GC / MAS: **not a Compiler release gate** |
-| Development Build | **v2.1.0 release candidate** — [architecture #48](https://github.com/odango-chan/ca-skill-compiler/pull/48), [implementation #51](https://github.com/odango-chan/ca-skill-compiler/pull/51), [conformance #56](https://github.com/odango-chan/ca-skill-compiler/pull/56) |
+| Development Build | **RELEASED v2.1.0** ([GitHub Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0)) — [architecture #48](https://github.com/odango-chan/ca-skill-compiler/pull/48), [implementation #51](https://github.com/odango-chan/ca-skill-compiler/pull/51), [conformance #56](https://github.com/odango-chan/ca-skill-compiler/pull/56) |
 | Development artifact execution | **NOT_ADMITTED**; production Host must reject the `DEVELOPMENT` profile |
 
 CA-SL v1alpha5 inherits the released v1alpha4 language semantics. Those
@@ -37,7 +37,7 @@ v2.0.2 fixes producer output availability across Procedure stages. v2.0.1 fixed 
 immutable historical release. It is documented under
 [docs/release-notes-v1.0.0.md](docs/release-notes-v1.0.0.md).
 
-## Development Build (v2.1.0 release candidate)
+## Development Build (released in v2.1.0)
 
 The next-generation **Compile → Interface Link → Build → Verify** development profile is now implemented on `main`. It consumes CA-SL v1alpha5 Skill source, exact Interface Package snapshots and a Dependency Lock, resolves package-scoped Schema references, and emits a deterministic artifact with static `capabilityRequirements[]` and separate Host Admission / Runtime Execution requirement files. It does **not** accept or verify actual Deployment Grants, Runtime Evidence, Provider Bindings or Commit Proof. Those remain Host / Runtime responsibilities.
 

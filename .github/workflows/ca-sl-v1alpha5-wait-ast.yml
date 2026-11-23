@@ -1,27 +1,24 @@
-name: CA-SL v1alpha5 Compiler integration acceptance
+name: CA Skill Compiler integration acceptance (v1alpha5 and Development)
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - "internal/compiler/**"
-      - "internal/ingresscatalog/**"
+      - "internal/**"
       - "cmd/**"
       - "scripts/**"
       - "web/**"
       - "contracts/**"
-      - ".github/workflows/ca-sl-v1alpha5-wait-ast.yml"
+      - ".github/workflows/**"
   push:
-    branches:
-      - feat/compiler-v1alpha5-integration-20261117
+    branches: [main]
     paths:
-      - "internal/compiler/**"
-      - "internal/ingresscatalog/**"
+      - "internal/**"
       - "cmd/**"
       - "scripts/**"
       - "web/**"
       - "contracts/**"
-      - ".github/workflows/ca-sl-v1alpha5-wait-ast.yml"
+      - ".github/workflows/**"
 
 permissions:
   contents: read

@@ -29,7 +29,7 @@ func BuildDevelopment(req DevelopmentBuildRequest) DevelopmentBuildResult {
 }
 
 func buildDevelopmentInternal(req DevelopmentBuildRequest) DevelopmentBuildResult {
-	env, _, diagnostics := validateDevelopmentRequest(req)
+	env, diagnostics := validateDevelopmentRequest(req)
 	if len(diagnostics) > 0 {
 		if developmentSourceFailure(diagnostics) {
 			return failedDevelopmentResult(diagnostics, DevelopmentPhaseFailed, DevelopmentPhaseNotRun, DevelopmentPhaseNotRun)
