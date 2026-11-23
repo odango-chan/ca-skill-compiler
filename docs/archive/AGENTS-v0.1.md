@@ -10,9 +10,9 @@ This is a clean, stateless Compiler repo. The active implementation is **breakin
 
 Read and reconcile authoritative sources in this order:
 1. Pinned `ca-skills` Skill Language v0.2, Script Contract, Schema Ownership and Authoring Model; the exact commit is recorded in `docs/workstreams/language-alignment-v0.1.md`.
-2. [Compiler v0.1 Language & Linking Contract](../design/compiler-contract-v0.1.md) and its machine schemas.
-3. [Strict Script Output Contract](../design/script-contract-v0.md) and [Procedure Link baseline](../design/procedure-link-v0.md), as reconciled with the pinned ca-skills contract.
-4. [v0.1 Language Alignment](../workstreams/language-alignment-v0.1.md), Studio ABI and current acceptance/work status.
+2. [Compiler v0.1 Language & Linking Contract](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/design/compiler-contract-v0.1.md) and its machine schemas.
+3. [Strict Script Output Contract](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/design/script-contract-v0.md) and [Procedure Link baseline](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/design/procedure-link-v0.md), as reconciled with the pinned ca-skills contract.
+4. [v0.1 Language Alignment](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/workstreams/language-alignment-v0.1.md), Studio ABI and current acceptance/work status.
 
 The Compiler follows ca-skills v0.2: Procedure Script input comes from call-site `with`; Predicate Script input is the Host-created Predicate Evaluation Context; Script output is a strict nonempty `TypedDict`. No legacy metadata, `localTools`, manifests or guessed schemas are valid fallbacks. Keep missing authoritative Owner inputs visible as diagnostics.
 

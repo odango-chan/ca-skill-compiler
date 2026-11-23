@@ -11,7 +11,7 @@
 - [tool-catalog.schema.json](tool-catalog.schema.json) — existing imported ToolCatalog YAML data model (`ca-agent-demo.tool/v1`).
 - [library-inspection.schema.json](library-inspection.schema.json) — read-only ToolCatalog inspection result.
 
-Normative responsibilities and boundaries: [Skill Compiler Language & Linking Contract v0.1](../../docs/design/compiler-contract-v0.1.md).
+Normative responsibilities and boundaries: [Skill Compiler Language & Linking Contract v0.1](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/design/compiler-contract-v0.1.md).
 
 The imported ToolCatalog contract requires operation-level `inputSchema`, `outputSchema`, and `reconcileOutputSchema` roots to be objects. Local `x-common` entries are Schema fragments and may be objects or boolean Schemas; they can be used in nested subschema positions. The generic Schema shape validator also accepts boolean roots, but that does not widen the ToolCatalog operation envelope.
 

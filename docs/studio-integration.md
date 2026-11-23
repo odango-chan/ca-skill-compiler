@@ -1,8 +1,8 @@
-> **HISTORICAL — SUPERSEDED FOR NEW DEVELOPMENT.** This Studio integration note describes Compiler v0.1 and the former Skill Language v0.2 contract. The active integration target is [Studio ↔ Compiler v1alpha4](studio-integration-v1alpha4.md), with [BuildRequest v1alpha4](design/build-request-v1alpha4.md). Retained only as design history.
+> **HISTORICAL — SUPERSEDED FOR NEW DEVELOPMENT.** This Studio integration note describes Compiler v0.1 and the former Skill Language v0.2 contract. The active integration target is [Studio ↔ Compiler v1alpha4](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/studio-integration-v1alpha4.md), with [BuildRequest v1alpha4](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/design/build-request-v1alpha4.md). Retained only as design history.
 
 ---
 
-> **v0.1 implementation status: PARTIAL.** The design contract is [Compiler Language & Linking Contract v0.1](design/compiler-contract-v0.1.md), aligned to official ca-skills Skill Language v0.2. Synthetic Native/WASM/Chromium smoke passed on 2026-11-11; see [WORK status](WORK.md). This is not a full Language-conformance or Runtime-readiness claim.
+> **v0.1 implementation status: PARTIAL.** The design contract is [Compiler Language & Linking Contract v0.1](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/design/compiler-contract-v0.1.md), aligned to official ca-skills Skill Language v0.2. Synthetic Native/WASM/Chromium smoke passed on 2026-11-11; see [WORK status](WORK.md). This is not a full Language-conformance or Runtime-readiness claim.
 
 # Skill Studio ↔ Skill Compiler v0.1 · Browser Integration
 

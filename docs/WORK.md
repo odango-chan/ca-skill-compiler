@@ -27,4 +27,4 @@ The v2.1.0 release contains [five Development machine contracts](../contracts/de
 - The actual MAS Create/Modify/Release author-source offline integration test remains in [#53](https://github.com/odango-chan/ca-skill-compiler/issues/53); it is not interchangeable with Owner/Provider qualification.
 - Package discovery, Registry, version resolution, signing, Publisher identity trust, Deployment Grants, Host Admission and live Tool invocation remain **outside Compiler**.
 
-This file records the **current** released baseline only. The prior design and work-package diary is preserved in [WORK-history.md](WORK-history.md) and the [workstreams archive](workstreams/README.md).
+This file records the **current** released baseline only. The prior design and work-package diary is preserved in [WORK-history.md](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/WORK-history.md) and the [workstreams archive](workstreams/README.md).

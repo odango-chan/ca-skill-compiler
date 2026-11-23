@@ -7,6 +7,11 @@ title:
 
 sources:
   - kind: markdown
+    path: README.zh-CN.md
+    role: overview
+    language: zh
+    publish: [metadata, body]
+  - kind: markdown
     path: README.md
     role: overview
     language: en
@@ -18,6 +23,62 @@ sources:
     publish: [metadata, body]
 
 releases:
+  - releaseId: ca-skill-compiler-v2-1-0
+    releaseRecord:
+      path: docs/releases/ca-skill-compiler-v2.1.0.md
+      ref: 72b41548a9c4d29c6c49abed117a04a963454f22
+    contracts:
+      - contractId: compiler-development-build-request
+        version: v1alpha1
+        lifecycleStatus: FROZEN
+        source:
+          ref: b67fbb56c34d15b8d5a0903c8a7ca93d608f8f65
+        artifacts:
+          - kind: json-schema
+            path: contracts/development/v1alpha1/build-request.schema.json
+            mediaType: application/schema+json
+            publish: [download, render]
+      - contractId: compiler-development-build-result
+        version: v1alpha1
+        lifecycleStatus: FROZEN
+        source:
+          ref: b67fbb56c34d15b8d5a0903c8a7ca93d608f8f65
+        artifacts:
+          - kind: json-schema
+            path: contracts/development/v1alpha1/build-result.schema.json
+            mediaType: application/schema+json
+            publish: [download, render]
+      - contractId: compiler-development-artifact
+        version: v1alpha1
+        lifecycleStatus: FROZEN
+        source:
+          ref: b67fbb56c34d15b8d5a0903c8a7ca93d608f8f65
+        artifacts:
+          - kind: json-schema
+            path: contracts/development/v1alpha1/artifact-manifest.schema.json
+            mediaType: application/schema+json
+            publish: [download, render]
+      - contractId: compiler-interface-package
+        version: v1alpha1
+        lifecycleStatus: FROZEN
+        source:
+          ref: b67fbb56c34d15b8d5a0903c8a7ca93d608f8f65
+        artifacts:
+          - kind: json-schema
+            path: contracts/development/v1alpha1/interface-package.schema.json
+            mediaType: application/schema+json
+            publish: [download, render]
+      - contractId: compiler-interface-dependency-lock
+        version: v1alpha1
+        lifecycleStatus: FROZEN
+        source:
+          ref: b67fbb56c34d15b8d5a0903c8a7ca93d608f8f65
+        artifacts:
+          - kind: json-schema
+            path: contracts/development/v1alpha1/interface-dependency-lock.schema.json
+            mediaType: application/schema+json
+            publish: [download, render]
+
   - releaseId: ca-skill-compiler-v2-0-2
     releaseRecord:
       path: docs/releases/ca-skill-compiler-v2.0.2.md

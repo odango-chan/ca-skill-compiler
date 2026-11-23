@@ -20,13 +20,8 @@
 - [Compiler-only roadmap and external integration boundary](compiler-evolution-roadmap-vnext.zh-CN.md)
 - [Archify source and diagrams](../architecture/archify/README.md) · [5GC profile review snapshot](../profiles/5gc-smf-procedure-profile.md)
 
-## Historical specifications — read only
+## Historical design provenance
 
-The files named `*-v1alpha4.md`, `*-v0.md`, and `*-v0.1.md` document earlier released or prototyped versions, not currently accepted Compiler input formats. Inherited v1alpha4 *language semantics* remain implemented in the single v1alpha5 pipeline, but a v1alpha4 BuildRequest or language target is rejected. Historic materials were retained for auditability rather than deleted or silently rewritten.
+The 14 pre-v1alpha5 design-prose documents are **not** active Compiler inputs and no longer crowd this directory. They remain available at the [immutable historical-design snapshot](https://github.com/odango-chan/ca-skill-compiler/tree/72b41548a9c4d29c6c49abed117a04a963454f22/docs/design) together with their original citations. Frozen **machine** contracts in `/contracts/` remain in the active tree, as do the current v1alpha5/Development design documents.
 
-- [v1alpha4 Compiler contract](compiler-contract-v1alpha4.md) · [BuildRequest](build-request-v1alpha4.md) · [Output](compiler-output-contract-v1alpha4.md)
-- [v1alpha4 Artifact](compiler-artifact-v1alpha4.md) · [Dependency digest](dependency-snapshot-digest-v1alpha4.md)
-- [v1alpha4 Owner/Procedure/Script](owner-contracts-v1alpha4.md) · [Procedure](procedure-link-v1alpha4.md) · [Script](script-contract-v1alpha4.md)
-- [v0 architecture brief](skill-compiler-v0.md) · [v0.1 contract](compiler-contract-v0.1.md)
-
-For current product delivery, use the [v2.1.0 release record](../releases/ca-skill-compiler-v2.1.0.md); historic work-package status belongs in the [workstreams archive](../workstreams/README.md).
+Current product evidence: [v2.1.0 release](../releases/ca-skill-compiler-v2.1.0.md). Past WP records: [historical index](../workstreams/README.md).

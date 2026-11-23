@@ -16,7 +16,7 @@
 | 接入机器 API | [冻结 v1alpha5 契约](../contracts/v1alpha5/README.md) · [Development v1alpha1 契约](../contracts/development/v1alpha1/README.md) |
 | 查架构/流程图 | [设计文档索引](design/README.zh-CN.md) · [Archify 图形索引](architecture/archify/README.md) |
 | 找测试正例 | [示例索引](../examples/README.zh-CN.md) |
-| 查历史工作包与旧版本 | [历史工作索引](workstreams/README.zh-CN.md) · [旧工作日志](WORK-history.md) |
+| 查历史工作包与旧版本 | [历史工作索引](workstreams/README.zh-CN.md) · [旧工作日志](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/WORK-history.md) |
 
 ## 权威顺序
 

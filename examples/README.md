@@ -12,7 +12,7 @@ Build sample set.
   BuildRequest, Procedure fixtures and the invalid Wait fixture used by the
   v1alpha5 acceptance tests.
 
-For further Compiler tests, consult the [v1alpha5 conformance workstream](../docs/workstreams/wp7-conformance-v1alpha5.md), [Development fixture](../docs/design/fixtures/registration-development-request.json) and the [exact v2.1.0 release acceptance](../docs/releases/ca-skill-compiler-v2.1.0.md).
+For further Compiler tests, consult the [v1alpha5 conformance workstream](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/workstreams/wp7-conformance-v1alpha5.md), [Development fixture](../docs/design/fixtures/registration-development-request.json) and the [exact v2.1.0 release acceptance](../docs/releases/ca-skill-compiler-v2.1.0.md).
 
 ## Historical examples
 
