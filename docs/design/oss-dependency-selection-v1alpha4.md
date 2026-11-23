@@ -1,3 +1,7 @@
+> **HISTORICAL / NOT CURRENT INPUT (v2.1.0).** This design/work-package document is retained for original source and acceptance provenance only. The active Compiler accepts **CA-SL v1alpha5**; earlier versions are not compatibility modes. Original status statements and instructions below describe their historical snapshot. See [documentation](../README.md), [v2.1.0 Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0), [Development contracts](../../contracts/development/v1alpha1/README.md). <!-- historical-docs-v2.1.0 -->
+
+---
+
 > **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
 
 # Open-source Dependency Selection — Compiler v1alpha4

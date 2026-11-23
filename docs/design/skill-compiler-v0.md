@@ -1,3 +1,7 @@
+> **HISTORICAL / NOT CURRENT INPUT (v2.1.0).** This design/work-package document is retained for original source and acceptance provenance only. The active Compiler accepts **CA-SL v1alpha5**; earlier versions are not compatibility modes. Original status statements and instructions below describe their historical snapshot. See [documentation](../README.md), [v2.1.0 Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0), [Development contracts](../../contracts/development/v1alpha1/README.md). <!-- historical-docs-v2.1.0 -->
+
+---
+
 # Skill Compiler · Product and Architecture Brief
 
 **Status:** Product boundary accepted; v0 implementation remains partial. The normative v0.1 contract is [compiler-contract-v0.1.md](compiler-contract-v0.1.md). The normative Skill language is owned by [ca-skills](https://github.com/odango-chan/ca-skills).
