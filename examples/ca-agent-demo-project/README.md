@@ -35,4 +35,4 @@ go run ./cmd/skillc check ./examples/ca-agent-demo-project
 
 This command is **not** a universal zero-exit gate. A nonzero exit with accurate source-backed migration diagnostics can be correct under new strict semantics. Do not hide errors by falling back to old Script/Schema behavior.
 
-This directory is a historical migration input, not a current v1alpha4 acceptance fixture. See [Examples Guide](../README.md) and the current [Compiler Acceptance](../../docs/COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md).
+This directory is a historical migration input, not a current v1alpha4 acceptance fixture. See [Examples Guide](../README.md) and the current [Compiler Acceptance](https://github.com/odango-chan/ca-skill-compiler/blob/72b41548a9c4d29c6c49abed117a04a963454f22/docs/COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md).
