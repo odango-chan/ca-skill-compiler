@@ -699,7 +699,7 @@ func buildV1Alpha5ArtifactFiles(skills []v1alpha5ArtifactSkill) ([]v1alpha5Artif
 			ValidatedPasses: append([]string(nil), v1alpha5ManifestValidatedPasses...),
 			NotValidated:    append([]string(nil), v1alpha5ManifestNotValidated...),
 		},
-		Generator:         v1alpha5ManifestGenerator{Name: v1alpha5ArtifactGeneratorName, Version: CompilerVersion},
+		Generator:         v1alpha5ManifestGenerator{Name: v1alpha5ArtifactGeneratorName, Version: V1Alpha5FrozenGeneratorVersion},
 		DependencyClosure: closure,
 		Skills:            manifestSkills,
 		OutputFiles:       outputFiles,

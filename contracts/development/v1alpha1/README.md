@@ -1,10 +1,11 @@
-# CA Skill Compiler Development v1alpha1 — draft machine contracts
+# CA Skill Compiler Development v1alpha1 — v2.1.0 release candidate contracts
 
-These five JSON Schema (Draft 2020-12) documents describe the **unreleased**
-Development Build family, independent of the already frozen v1alpha5 product
-entry. Their code-defined identities remain v1alpha1. They are a review and
-regression baseline, **not** a declaration of contract freeze, Host admission,
-Owner trust, or product qualification.
+These five JSON Schema (Draft 2020-12) documents describe the Development Build
+family introduced by CA Skill Compiler v2.1.0. Their code-defined identities
+remain v1alpha1; this candidate becomes the frozen product contract surface **only
+when v2.1.0 is successfully published from the reviewed release commit**. Before
+that release, they remain candidates. This is never a Host admission, Owner trust,
+or product qualification claim.
 
 | Schema | Purpose |
 | --- | --- |
@@ -24,6 +25,7 @@ Deployment Grants and Runtime Evidence belong to Host/Runtime, not Compiler.
 Schema validation checks wire shapes, while the Compiler's code performs the
 stronger cross-file, digest, closure, alias and semantic checks.
 
-Before an official v2.1.0 release, the v1alpha1 schemas and Go implementation
-must be reviewed and frozen together at an exact source SHA. Existing
-v2.0.2 artifacts and machine contracts remain unchanged.
+The v2.1.0 release gates must test these schemas together with the Go decoder,
+exact package bytes, candidate Artifact, frozen v2.0.2 golden baseline, and real
+Chromium Worker parity. The source SHA is the tag's commit after publication.
+Existing v2.0.2 artifacts and machine contracts remain unchanged.

@@ -1,0 +1,305 @@
+name: CA Skill Compiler v2.1.0 official release
+
+# One-time Development Build release: main push of this workflow triggers publication.
+# The exact triggering merge commit is pinned by the immutable GitHub event SHA.
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/release-v2.1.0.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ca-skill-compiler-v2.1.0-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Validate, build, publish, and verify v2.1.0
+    if: github.repository == 'odango-chan/ca-skill-compiler' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      APPROVED_SHA: ${{ github.sha }}
+      TAG: v2.1.0
+      GOWORK: "off"
+      CGO_ENABLED: "0"
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout exact approved Compiler source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Confirm source identity and published-version boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$APPROVED_SHA"
+          test "$(grep -Eo 'const CompilerVersion = "v2.1.0"' internal/compiler/version.go)" = 'const CompilerVersion = "v2.1.0"'
+          echo "Approved release source: $APPROVED_SHA"
+          echo "Historical v1.0.0 tags/releases will not be modified."
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.27.4"
+          cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install headless Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Full Go test suite
+        run: go test ./... -count=1
+
+      - name: Go vet
+        run: go vet ./...
+
+      - name: CGO-free Native build smoke test
+        run: go build ./...
+
+      - name: Frozen v2.0.2 API and Artifact golden baseline
+        run: go test ./internal/compiler -count=1 -run '^TestLegacyEntryGoldenBaseline
+
+      - name: Real Chromium Worker parity
+        env:
+          CHROMIUM_PARITY: "1"
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v
+
+      - name: Diff whitespace check
+        run: git diff --check
+
+      - name: Build all official release binaries and self-contained Worker bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist dist/web
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o dist/skillc-v2.1.0-linux-amd64 ./cmd/skillc
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -o dist/skillc-v2.1.0-darwin-amd64 ./cmd/skillc
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -trimpath -o dist/skillc-v2.1.0-darwin-arm64 ./cmd/skillc
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -o dist/skillc-v2.1.0-windows-amd64.exe ./cmd/skillc
+          CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -trimpath -o dist/skillc-v2.1.0.wasm ./cmd/skillc-wasm
+          test -s dist/skillc-v2.1.0-linux-amd64
+          test -s dist/skillc-v2.1.0-darwin-amd64
+          test -s dist/skillc-v2.1.0-darwin-arm64
+          test -s dist/skillc-v2.1.0-windows-amd64.exe
+          test -s dist/skillc-v2.1.0.wasm
+          # The web Worker needs exactly these three adjacent file names; a
+          # versioned wasm without its Go runtime and bridge is not usable.
+          cp dist/skillc-v2.1.0.wasm dist/web/skillc.wasm
+          cp web/skillc-worker.js dist/web/skillc-worker.js
+          cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" dist/web/wasm_exec.js
+          (cd dist/web && tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -cf - skillc-worker.js skillc.wasm wasm_exec.js) | gzip -n > dist/skillc-v2.1.0-web-worker.tar.gz
+          (cd contracts/development/v1alpha1 && tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -cf - README.md *.schema.json) | gzip -n > dist/skillc-v2.1.0-development-contracts.tar.gz
+          (cd dist && sha256sum skillc-v2.1.0-linux-amd64 skillc-v2.1.0-darwin-amd64 skillc-v2.1.0-darwin-arm64 skillc-v2.1.0-windows-amd64.exe skillc-v2.1.0.wasm skillc-v2.1.0-web-worker.tar.gz skillc-v2.1.0-development-contracts.tar.gz > SHA256SUMS && sha256sum -c SHA256SUMS)
+          test -s dist/skillc-v2.1.0-web-worker.tar.gz
+          test -s dist/skillc-v2.1.0-development-contracts.tar.gz
+          echo "Official release build complete at $APPROVED_SHA"
+
+      - name: Prepare release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/release-v2.1.0.md <<'EOF'
+          # CA Skill Compiler v2.1.0
+
+          **Release source:** `__APPROVED_SHA__`
+          **Language target:** CA-SL v1alpha5 (`connectionagent.io/v1alpha5`).
+
+          - Adds independent Development Build v1alpha1 (`build-development`, `verify-development`, Native Go and Go/WASM Worker), using exact Interface Package snapshots and a Resolver-supplied Dependency Lock.
+          - Emits deterministic `LINKED / BUILT / NOT_ADMITTED` artifacts with static Capability requirements, package-scoped Schema linking, and disjoint Host Admission / Runtime Execution requirement files.
+          - Includes five frozen Development v1alpha1 Draft 2020-12 machine contracts and Go DTO parity/negative conformance tests.
+          - Retains v2.0.2 byte-identical frozen CA-SL v1alpha5 Build/Verify Artifact outputs. Their embedded `generator.version=v2.0.2` is a fixed frozen artifact identity, **not** the current CLI product version.
+          - Development manifests correctly stamp `generator.version=v2.1.0`. Development artifacts are *never* production-admitted; production Hosts must reject the DEVELOPMENT profile.
+          - One Go Core, CGO-free Native + Go/WASM, real Chromium Worker parity, reproducible file digests and deterministic verification.
+
+          **Assets:** Linux amd64, macOS amd64/arm64, Windows amd64 native binaries, standalone wasm, browser-ready Worker bundle containing `skillc.wasm`/`wasm_exec.js`/`skillc-worker.js`, five Development JSON Schemas + README archive, and `SHA256SUMS`. Verify with `sha256sum -c SHA256SUMS`.
+
+          **Boundary:** Not Owner publication/attestation, Host/Runtime authorization, Deployment Grant, Commit Proof, 5GC E2E, or MAS Qualification. Real MAS author-source integration #53 is tracked independently and is not a Compiler release gate.
+
+          **Immutable history:** v2.0.2, v2.0.1, v2.0.0, and v1.0.0 tags/releases/assets remain unchanged.
+          EOF
+          sed -i "s/__APPROVED_SHA__/$APPROVED_SHA/g" /tmp/release-v2.1.0.md
+
+      - name: Create or verify the annotated v2.1.0 tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "refs/tags/$TAG:refs/tags/$TAG" || true
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            test "$(git rev-parse "$TAG^{commit}")" = "$APPROVED_SHA" || {
+              echo "ERROR: existing $TAG points to an unapproved commit" >&2
+              exit 1
+            }
+            echo "Existing tag has the approved source identity; will not rewrite it."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG" "$APPROVED_SHA" -m "CA Skill Compiler v2.1.0"
+            git push origin "refs/tags/$TAG"
+          fi
+
+      - name: Publish GitHub Release with eight release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Existing release detected; no assets will be overwritten."
+          else
+            gh release create "$TAG" \
+              dist/skillc-v2.1.0-linux-amd64 \
+              dist/skillc-v2.1.0-darwin-amd64 \
+              dist/skillc-v2.1.0-darwin-arm64 \
+              dist/skillc-v2.1.0-windows-amd64.exe \
+              dist/skillc-v2.1.0.wasm \
+              dist/skillc-v2.1.0-web-worker.tar.gz \
+              dist/skillc-v2.1.0-development-contracts.tar.gz \
+              dist/SHA256SUMS \
+              --repo "$GITHUB_REPOSITORY" \
+              --verify-tag \
+              --title "CA Skill Compiler v2.1.0" \
+              --notes-file /tmp/release-v2.1.0.md
+          fi
+
+      - name: Independently download and verify published assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/release-download
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir /tmp/release-download
+          (
+            cd /tmp/release-download
+            for name in skillc-v2.1.0-linux-amd64 skillc-v2.1.0-darwin-amd64 skillc-v2.1.0-darwin-arm64 skillc-v2.1.0-windows-amd64.exe skillc-v2.1.0.wasm skillc-v2.1.0-web-worker.tar.gz skillc-v2.1.0-development-contracts.tar.gz SHA256SUMS; do
+              test -s "$name" || { echo "Missing release asset $name" >&2; exit 1; }
+            done
+            sha256sum -c SHA256SUMS
+          )
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json tagName,url,isDraft,isPrerelease,assets \
+            --jq '{tag: .tagName, url: .url, draft: .isDraft, prerelease: .isPrerelease, assets: [.assets[].name]}'
+ -v
+
+      - name: Development v1alpha1 contract, linker, Evidence and Verify gates
+        run: go test ./internal/compiler -count=1 -run 'TestDevelopment' -v
+
+      - name: CLI end-to-end
+        run: go test ./cmd/skillc -count=1 -run TestCLIEndToEnd -v
+
+      - name: Real Chromium Worker parity
+        env:
+          CHROMIUM_PARITY: "1"
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v
+
+      - name: Diff whitespace check
+        run: git diff --check
+
+      - name: Build all official release binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o dist/skillc-v2.1.0-linux-amd64 ./cmd/skillc
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -o dist/skillc-v2.1.0-darwin-amd64 ./cmd/skillc
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -trimpath -o dist/skillc-v2.1.0-darwin-arm64 ./cmd/skillc
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -o dist/skillc-v2.1.0-windows-amd64.exe ./cmd/skillc
+          CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -trimpath -o dist/skillc-v2.1.0.wasm ./cmd/skillc-wasm
+          test -s dist/skillc-v2.1.0-linux-amd64
+          test -s dist/skillc-v2.1.0-darwin-amd64
+          test -s dist/skillc-v2.1.0-darwin-arm64
+          test -s dist/skillc-v2.1.0-windows-amd64.exe
+          test -s dist/skillc-v2.1.0.wasm
+          (cd dist && sha256sum skillc-v2.1.0-* skillc-v2.1.0.wasm > SHA256SUMS && sha256sum -c SHA256SUMS)
+          echo "Official release build complete at $APPROVED_SHA"
+
+      - name: Prepare release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/release-v2.1.0.md <<'EOF'
+          # CA Skill Compiler v2.1.0
+
+          **Release source:** `__APPROVED_SHA__`
+
+          **Language target:** CA-SL v1alpha5 (`connectionagent.io/v1alpha5`).
+
+          - A single Go Compiler Core supports the native CLI and Go/WASM Worker.
+          - Removes the v1alpha4 build, CLI, and artifact compatibility paths.
+          - Implements the complete Compiler-owned static CA-SL v1alpha5 scope, including inherited Package/Contract/Predicate, Tool/Capability/Owner linking, Schema/CEL, Procedure Graph, SourcePath, Evidence, Mutation/Reconcile/retry, and Wait/Ingress linking.
+          - Ships unchanged FROZEN BuildRequest, BuildResult, DependencyInspection, and Artifact Manifest v1alpha5 contracts.
+          - Patch fix: producer outputs remain available after a successful later stage. Paths that bypass or fail the producer still reject those outputs.
+          - Compiled artifacts are deterministic, self-verifiable, and use canonical RFC 8785 JCS serialization.
+
+          **API compatibility:** Same v1alpha5 BuildRequest, BuildResult, ToolCatalog/CapabilityContracts and Artifact API identities as v2.0.1. Prior release assets remain immutable.
+
+          **Validation:** This release is gated on Go unit tests, vet, CGO-free build, CLI end-to-end, and real Chromium Worker parity executed by this workflow. Production Owner/Deployment/Host/Runtime/5GC/MAS qualification remains NOT_QUALIFIED.
+
+          **Assets:** Native CLI for Linux amd64, macOS amd64/arm64, Windows amd64; Go/WASM module; SHA256SUMS. Verify downloaded assets with `sha256sum -c SHA256SUMS`.
+
+          **Historical releases:** v2.0.1, v2.0.0 and v1.0.0 remain unchanged.
+          EOF
+          sed -i "s/__APPROVED_SHA__/$APPROVED_SHA/g" /tmp/release-v2.1.0.md
+
+      - name: Create or verify the annotated v2.1.0 tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "refs/tags/$TAG:refs/tags/$TAG" || true
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            test "$(git rev-parse "$TAG^{commit}")" = "$APPROVED_SHA" || {
+              echo "ERROR: existing $TAG points to an unapproved commit" >&2
+              exit 1
+            }
+            echo "Existing tag has the approved source identity; will not rewrite it."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG" "$APPROVED_SHA" -m "CA Skill Compiler v2.1.0"
+            git push origin "refs/tags/$TAG"
+          fi
+
+      - name: Publish GitHub Release with six release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Existing release detected; no assets will be overwritten."
+          else
+            gh release create "$TAG" \
+              dist/skillc-v2.1.0-linux-amd64 \
+              dist/skillc-v2.1.0-darwin-amd64 \
+              dist/skillc-v2.1.0-darwin-arm64 \
+              dist/skillc-v2.1.0-windows-amd64.exe \
+              dist/skillc-v2.1.0.wasm \
+              dist/SHA256SUMS \
+              --repo "$GITHUB_REPOSITORY" \
+              --verify-tag \
+              --title "CA Skill Compiler v2.1.0" \
+              --notes-file /tmp/release-v2.1.0.md
+          fi
+
+      - name: Independently download and verify published assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/release-download
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir /tmp/release-download
+          (
+            cd /tmp/release-download
+            for name in skillc-v2.1.0-linux-amd64 skillc-v2.1.0-darwin-amd64 skillc-v2.1.0-darwin-arm64 skillc-v2.1.0-windows-amd64.exe skillc-v2.1.0.wasm SHA256SUMS; do
+              test -s "$name" || { echo "Missing release asset $name" >&2; exit 1; }
+            done
+            sha256sum -c SHA256SUMS
+          )
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json tagName,url,isDraft,isPrerelease,assets \
+            --jq '{tag: .tagName, url: .url, draft: .isDraft, prerelease: .isPrerelease, assets: [.assets[].name]}'
