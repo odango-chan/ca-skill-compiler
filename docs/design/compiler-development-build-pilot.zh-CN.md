@@ -1,6 +1,8 @@
-# Development Build 实施契约
+# Development Build 实施契约（v2.1.0 已发布）
 
-**状态（2026-11-20）：Development Build 已通过最终审查并随 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 合并到 `main`（`1d7ea81`）；设计 [PR #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 亦已合并（`22860a2`）。** 本文是试验接口与首轮验收的实现契约；已合并不等于新版本发布或生产资格。正式公开契约未另行冻结，未打 Tag，MAS G0/G1 仍为 NOT_RUN，Development Artifact 恒为 `NOT_ADMITTED`。上位设计见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，任务历史见[交接任务](compiler-development-build-harness.zh-CN.md)，职责边界见[职责审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。
+**现行状态：FROZEN / RELEASED（2026-11-23）。** Compiler v2.1.0 已将 Development v1alpha1 独立发布；[五份机器契约](../../contracts/development/v1alpha1/README.md)与 [Release 固定 SHA、验收及资产](../releases/ca-skill-compiler-v2.1.0.md)为产品权威。本文来自已完成的设计 [#48](https://github.com/odango-chan/ca-skill-compiler/pull/48)、实施 [#51](https://github.com/odango-chan/ca-skill-compiler/pull/51)、一致性修复 [#56](https://github.com/odango-chan/ca-skill-compiler/pull/56)，保留首轮测试背景，但不应再将其视为“尚待发布”候选。正式 Owner/Host 资格不属于 Compiler；Development Artifact 恒为 `NOT_ADMITTED`。
+
+上位架构见[工具链](ca-toolchain-architecture-vnext.zh-CN.md)，历史实现证据见[报告](compiler-development-build-implementation-report.zh-CN.md)，严格职责边界见[Evidence 审计](compiler-evidence-assurance-responsibility-audit.zh-CN.md)。
 
 ## 1. 入口与输入
 

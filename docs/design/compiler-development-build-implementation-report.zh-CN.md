@@ -1,3 +1,5 @@
+> **历史实现报告（2026-11-20），不是现行 Release 状态。** 后续 PR #56 修正架构一致性并补五份 Development 机器契约；[v2.1.0 正式发布](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0)，固定源码 `b67fbb56c34d15b8d5a0903c8a7ca93d608f8f65`、发布验收 [Run #45100406980](https://github.com/odango-chan/ca-skill-compiler/actions/runs/45100406980)。本文保留当时的固定测试证据和 PR HEAD，不将其改写为 v2.1.0 发布时的验收。
+
 # Development Build 最终架构一致性收敛：实现与验收报告
 
 **状态（2026-11-20）：Development Build 已评审通过并随 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 合并到 `main`（`1d7ea81`），依赖的架构 [PR #48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 已合并（`22860a2`）。** 本页保留合并前实现分支、固定 SHA、测试与责任审计证据作为历史记录；未另行打 Tag、发布新版本或获得生产 Qualification。MAS G0/G1 仍 NOT_RUN。

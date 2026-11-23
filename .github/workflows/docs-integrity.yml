@@ -1,0 +1,38 @@
+name: Documentation integrity
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "README*"
+      - "docs/**"
+      - "examples/**"
+      - "contracts/**"
+      - "scripts/check-doc-links.mjs"
+      - ".github/workflows/docs-integrity.yml"
+  push:
+    branches: [main]
+    paths:
+      - "README*"
+      - "docs/**"
+      - "examples/**"
+      - "contracts/**"
+      - "scripts/check-doc-links.mjs"
+      - ".github/workflows/docs-integrity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  documentation-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Local Markdown links and maintained-document state
+        run: node scripts/check-doc-links.mjs
+      - name: Diff whitespace check
+        run: git diff --check

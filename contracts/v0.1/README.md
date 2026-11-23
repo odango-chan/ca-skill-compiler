@@ -1,4 +1,4 @@
-> **HISTORICAL — NOT A v1alpha4 CONTRACT.** The schemas in this directory remain for reproducibility of the former v0.1 design only. New integrations MUST use [contracts/v1alpha4](../v1alpha4/README.md). No v0.1 fallback or automatic conversion is supported.
+> **HISTORICAL — NOT A v1alpha4 CONTRACT.** The schemas in this directory remain for reproducibility of the former v0.1 design only. New integrations MUST use the [current v1alpha5 contracts](../v1alpha5/README.md), or [Development v1alpha1](../development/v1alpha1/README.md). No v0.1 fallback or automatic conversion is supported.
 
 ---
 

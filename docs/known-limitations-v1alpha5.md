@@ -1,3 +1,5 @@
+> **Current product baseline (2026-11-23):** Compiler [v2.1.0 RELEASED](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0), CA-SL v1alpha5 only, plus separate Development v1alpha1 Build/Verify. Historical discussion of candidate gaps further down this document must not override the [release record](releases/ca-skill-compiler-v2.1.0.md) or the [Compiler-only qualification boundary](COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md).
+
 # Known Limitations — CA-SL v1alpha5 Compiler implementation
 
 **Language status:** FROZEN / RELEASED.
@@ -10,7 +12,7 @@ Normative authorities:
 - [IngressCatalog v1alpha1 logical contract](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/integration-ingress-operation-contract-vnext.zh-CN.md), released by ca-skills PR #62.
 - [Ingress diagnostic registry v1alpha1](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/ingress-diagnostic-registry-v1alpha1.md).
 
-## 1. What the current candidate Build actually validates
+## 1. What the released v2.1.0 Build validates
 
 The v1alpha5 path is one pipeline. It validates and assembles:
 
@@ -68,7 +70,7 @@ Every released Compiler-owned EW/IN case is implemented and covered by at least 
 
 The public wire DTOs (`BuildRequest`, `BuildResult`, `Diagnostic`, `DependencyInspection`, inspection rows), the strict JSON transport decoder and the four public entries (`Check`, `Build`, `InspectDependencies`, `VerifyBuildResult`) live in `internal/compiler/api.go`. Admission is single-version (`admission.go`); the internal semantic model is version-neutral (`SkillAST`, linking results, `artifactInput`): one parser, one pipeline, one artifact path and no compatibility adapter.
 
-`connectionagent.io/v1alpha5` is the only supported language target. The retired v1alpha4 API identity, CLI target, artifact generator and verifier are removed; a v1alpha4 `apiVersion` or `languageTarget` fails closed. The v1alpha4 language semantics remain implemented because v1alpha5 inherits them. The published v1.0.0 tag/release remains immutable historical evidence. See [Compiler core and public API](../design/compiler-core-v1alpha5.md).
+`connectionagent.io/v1alpha5` is the only supported language target. The retired v1alpha4 API identity, CLI target, artifact generator and verifier are removed; a v1alpha4 `apiVersion` or `languageTarget` fails closed. The v1alpha4 language semantics remain implemented because v1alpha5 inherits them. The published v1.0.0 tag/release remains immutable historical evidence. See [Compiler core and public API](design/compiler-core-v1alpha5.md).
 ## 7. Other boundaries
 
 - **Studio:** v1alpha5 successful-Build rendering is not included in the current Compiler integration candidate. Studio/LSP integration requires a separate acceptance.

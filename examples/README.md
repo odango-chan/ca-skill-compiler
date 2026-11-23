@@ -12,8 +12,7 @@ Build sample set.
   BuildRequest, Procedure fixtures and the invalid Wait fixture used by the
   v1alpha5 acceptance tests.
 
-For broader compiler tests, use the fixtures referenced by the acceptance
-matrix and `docs/workstreams/wp7-conformance-v1alpha5.json`.
+For further Compiler tests, consult the [v1alpha5 conformance workstream](../docs/workstreams/wp7-conformance-v1alpha5.md), [Development fixture](../docs/design/fixtures/registration-development-request.json) and the [exact v2.1.0 release acceptance](../docs/releases/ca-skill-compiler-v2.1.0.md).
 
 ## Historical examples
 
@@ -33,5 +32,5 @@ examples or as evidence that the Compiler accepts legacy syntax.
 - Current language target: `connectionagent.io/v1alpha5` (only).
 - The Compiler accepts no v0.1/v0.2 or v1alpha4 compatibility, translation or
   fallback.
-- Compiler product version v2.0.0 does not execute Python and does not own
+- Compiler product version v2.1.0 does not execute Python and does not own
   Runtime event/Wait behaviour.

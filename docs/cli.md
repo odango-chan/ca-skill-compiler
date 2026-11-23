@@ -1,120 +1,73 @@
-# skillc CLI
+# skillc CLI — v2.1.0
 
-**Status:** implemented reference CLI for CA Skill Compiler v2.0.0.
-**Language target:** `connectionagent.io/v1alpha5` only.
+[中文](cli.zh-CN.md) · [Documentation](README.md) · [Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0)
 
-The CLI is a thin adapter over the same `compiler.Check`, `compiler.Build`,
-`compiler.InspectDependencies` and `compiler.VerifyBuildResult` calls used by the
-Go/WASM Worker. It contains no second parser, linker, digest implementation or
-analysis pipeline.
+**Product:** v2.1.0 (RELEASED). **Only language target:** `connectionagent.io/v1alpha5`. The CLI is a thin adapter over the single Go Compiler Core and never performs network acquisition, tool execution, package publishing or Host admission.
 
-## Commands
+## Commands and contract
 
-| Command | Purpose | Core call |
+| Command | Input | Result |
 |---|---|---|
-| `skillc check` | static analysis only; never writes artifacts | `Check` |
-| `skillc build` | compile, verify and write the deterministic artifact tree | `Build` + `VerifyBuildResult` |
-| `skillc inspect` | read-only dependency snapshot/binding inventory | `InspectDependencies` |
-| `skillc version` | product version, language target and API versions | constants |
-| `skillc help` | usage text | — |
+| `skillc check PROJECT` or `--request F` | Frozen v1alpha5 BuildRequest / project loader | Static diagnostics, no artifact |
+| `skillc inspect PROJECT` or `--request F` | Frozen v1alpha5 BuildRequest | Read-only DependencyInspection |
+| `skillc build PROJECT --out DIR` or `--request F --out DIR` | Frozen v1alpha5 BuildRequest | Deterministic frozen Artifact; automatically verified |
+| `skillc build-development --request F --out DIR` | Development v1alpha1 BuildRequest | Deterministic `NOT_ADMITTED` Artifact |
+| `skillc verify-development --request F --result R` | Same Development request + complete BuildResult bytes | Strict rebuild-and-byte comparison |
+| `skillc version` / `skillc help` | None | Version/API details / CLI help |
 
-No other subcommands exist: no dependency resolver, package manager, network
-fetch, release publisher or Runtime dispatcher.
+The Development commands accept only `--request` plus their respective `--out` or `--result` (and optional `--json`), no positional project path and no `--skill`. The normal `check`/`inspect`/`build` path accepts repeated `--skill NAME` selectors, and `--json` output; `--skill` cannot override explicit nonempty request `targets`.
 
-## Options
+**Exit codes:** `0` success; `1` compilation, artifact or verification failure; `2` malformed input/usage/I/O error.
 
-| Option | Applies to | Meaning |
-|---|---|---|
-| `--request FILE` | all | read a complete BuildRequest JSON document with strict decoding (unknown fields rejected); replaces `PROJECT` |
-| `--out DIR` | `build` | artifact destination; must be absent or empty. Defaults to `<PROJECT>/output` in project mode; required with `--request` |
-| `--skill NAME` | all | select one Skill package; repeatable. Cannot be combined with `targets` already present in `--request` |
-| `--json` | all | machine-readable output on stdout |
-
-Flags may appear before or after `PROJECT`; `--` ends flag parsing.
-
-## Exit codes
-
-| Code | Meaning |
-|---|---|
-| 0 | success |
-| 1 | compilation failure (diagnostics were reported) or artifact verification/write failure |
-| 2 | usage, input or I/O error |
-
-## Project input
+## Project input (frozen v1alpha5 path)
 
 ```text
 PROJECT/
-  skills/...                        author Skill source (required)
-  # or: files/skills/...            equivalent layout used by parity/Studio fixtures
-  snapshots/<dependencyId>/...      immutable dependency snapshot per declared Alias
-  trusted.json                      trusted bindings and deployment/artifact configuration
-  <capabilityDirectory>/...         trusted CapabilityContracts file set
-  <evidenceDirectory>/...           trusted EvidenceTrustBindings file set
+  skills/...                     or files/skills/...
+  snapshots/<dependencyId>/...   immutable dependency byte sets
+  trusted.json                   local bindings / Owner / capability / evidence config
 ```
 
-`trusted.json` fields:
-
-```json
-{
-  "dependencyBindings": [
-    {"dependencyId": "tools", "stablePackageId": "urn:...", "authorizedOwners": ["owner"], "exportOwners": []}
-  ],
-  "deployment": {
-    "deploymentId": "urn:...",
-    "publisherId": "urn:...",
-    "authorizationRef": "urn:...",
-    "capabilityDirectory": "capability",
-    "evidenceDirectory": "evidence"
-  },
-  "snapshotBaseURI": "https://snapshots.example/build/",
-  "artifactBindings": [
-    {"artifactRef": "urn:...", "dependencyId": "integration", "snapshotPath": "presentation/openapi/x.json", "dialect": "openapi-3.0"}
-  ],
-  "schemaBindings": [
-    {"exportId": "urn:...", "artifactRef": "urn:...", "pointer": "#"}
-  ]
-}
-```
-
-All snapshot digests are computed by the loader; the Compiler re-verifies them
-and every trusted artifact digest from the raw bytes. A missing snapshot,
-binding, digest or Owner attribution is a hard failure, never inferred.
-
-`trusted.json` is a local convenience description for trusted callers, not a
-wire contract. Machine callers holding a complete BuildRequest should use
-`--request`.
-
-## Request input
+`trusted.json` is a local convenience description, not a public wire contract. The project loader computes the dependency snapshot digests from bytes; no missing Owner/binding/digest can be inferred. Use `--request` for machine clients.
 
 ```bash
-skillc check   --request request.json
-skillc build   --request request.json --out ./artifact
-skillc inspect --request request.json
+skillc check web/parity-success
+skillc inspect web/parity-success --json
+skillc build web/parity-success --out ./dist/frozen-artifact
+skillc build --request request.json --out ./dist/frozen-from-json --json
 ```
 
-The document must carry `apiVersion = connectionagent.io/compiler-build-request/v1alpha5`
-and `languageTarget = connectionagent.io/v1alpha5`. The contract is
-[contracts/v1alpha5/build-request.schema.json](../contracts/v1alpha5/build-request.schema.json).
+Frozen request contract: [BuildRequest v1alpha5](../contracts/v1alpha5/build-request.schema.json). Successful Artifact is self-verified before writing; nonempty/unsafe/symlinked destinations fail closed. The frozen output's `generator.version=v2.0.2` remains unchanged in v2.1.0 by contract.
 
-## Output
+## Development v1alpha1 input and output
 
-- `check --json` writes a `Diagnostic[]`.
-- `inspect --json` writes one `DependencyInspection`, including the independent
-  `ingressOperations` array.
-- `build --json` writes the `BuildResult`; human mode reports diagnostics and a
-  one-line summary.
-- Successful output is written atomically only after `VerifyBuildResult` passes.
-  Existing nonempty destinations and unsafe or symlinked paths are refused.
+`build-development` receives exactly the CA-SL `files[]`, `targets[]`, exact immutable Interface Package `snapshots[]`, and a `lock` with declared package dependencies. It **does not** accept trusted Owner attestations, live Evidence, Provider data or deployment credentials. Omitted required fields, unknown JSON keys and broken closure are rejected.
 
-Artifact layout:
+```bash
+mkdir -p ./dist
+skillc build-development --request docs/design/fixtures/registration-development-request.json --out ./dist/development --json > ./dist/development-result.json
+skillc verify-development --request docs/design/fixtures/registration-development-request.json --result ./dist/development-result.json --json
+```
+
+The complete result JSON from `build-development --json` (including Base64 Artifact file bytes) is required for `verify-development`; a standalone manifest is not enough. Output files include:
 
 ```text
 manifest.json
+host-admission-requirements.json
+runtime-execution-requirements.json
 skills/<skill>/compiled/procedure.json
 skills/<skill>/compiled/ingress-links.json
 ```
 
-## Historical note
+The manifest contains `capabilityRequirements[]` and `executionStatus=NOT_ADMITTED`. A successful `BUILT` Artifact is **never a deployment authorization or Host admission decision**. All five published Development JSON Schema contracts: [Development v1alpha1](../contracts/development/v1alpha1/README.md).
 
-The v1alpha4 CLI documentation is retained as historical evidence at
-[cli-v1alpha4.md](cli-v1alpha4.md). It does not describe this Compiler version.
+## Build and CI
+
+```bash
+GOWORK=off go test ./... -count=1
+GOWORK=off go vet ./...
+CGO_ENABLED=0 GOWORK=off go build ./...
+CHROMIUM_PARITY=1 GOWORK=off go test ./internal/parity -count=1 -run TestChromiumWorkerParity -v
+```
+
+The Chromium command needs Node and a real Chrome/Chromium browser; CI installs the browser. v1alpha4 historical CLI docs are [archived here](cli-v1alpha4.md) and do **not** describe the v2.1.0 CLI.

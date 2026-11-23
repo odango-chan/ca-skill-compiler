@@ -1,3 +1,5 @@
+> **Product status:** Compiler v2.1.0 RELEASED. This document describes the frozen CA-SL v1alpha5 entry. The [Development v1alpha1](../../contracts/development/v1alpha1/README.md) API has a separate request/manifest and remains `NOT_ADMITTED`, using the same Compiler Core. [Release record](../releases/ca-skill-compiler-v2.1.0.md).
+
 # Compiler Core and Public API — CA-SL v1alpha5
 
 **Status:** implemented architecture record for the single supported language
@@ -10,10 +12,13 @@ normative semantics) and the IngressCatalog v1alpha1 release commit
 
 ## 1. One compiler core
 
-The Compiler has exactly one public API identity set, one admission path, one
-static pipeline and one deterministic artifact path. Appendix L node-entry Wait
-passes compose with the inherited semantic pipeline on the same normalized YAML
-parse result and the same `[]compiler.Diagnostic` stream.
+For the **frozen v1alpha5 Build/Verify profile**, the Compiler has one API
+identity set, one admission path and one deterministic artifact path. Since
+**v2.1.0**, a separately versioned Development v1alpha1 Build/Verify profile
+adds exact Interface Package/Lock linking and `NOT_ADMITTED` artifacts, while
+reusing the **same Go Core and language semantic implementation**; it is not a
+second CA-SL language target. Appendix L Wait passes compose with inherited
+semantics on the same normalized YAML parse result and diagnostic stream.
 
 ```
 Source bytes

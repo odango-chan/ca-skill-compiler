@@ -1,61 +1,30 @@
 # CA Skill Compiler — Current State
 
-- **Product:** CA Skill Compiler **v2.0.2 — RELEASED** ([release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.0.2), 2026-11-19).
-- **Release source:** e98a7b26acabfa2a5e1587974ab9be5742e70bf7.
-- **Language:** CA-SL connectionagent.io/v1alpha5 — **FROZEN / RELEASED**; the only supported language target.
-- **Current compiler scope:** single Go core, native CLI and Go/WASM Worker; static validation, dependency linking, deterministic Artifact assembly and self-verification.
-- **Product qualification:** **NOT_QUALIFIED** for real Owner / Deployment / Host / Runtime / 5GC / MAS execution. This does not invalidate the released Compiler's static acceptance.
+**Snapshot:** 2026-11-23 · [中文索引](README.zh-CN.md) · [release record](releases/ca-skill-compiler-v2.1.0.md)
 
-## Current released baseline
-
-- [v2.0.2 release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.0.2), published 2026-11-19.
-- Release source commit: e98a7b26acabfa2a5e1587974ab9be5742e70bf7.
-- Release assets include native CLI builds for Linux amd64, macOS amd64/arm64, Windows amd64, the Go/WASM module and SHA256SUMS.
-- v2.0.2 retains the v1alpha5 BuildRequest, BuildResult, ToolCatalog / CapabilityContracts and Artifact API identities from v2.0.1. Its patch fixes producer output availability after a successful later Procedure stage.
-- Previous release assets and tags remain immutable.
-
-## Current language and architecture authority
-
-- CA-SL v1alpha5 specification: [ca-skills release source](https://github.com/odango-chan/ca-skills/blob/main/docs/skill-language-spec.v1alpha5.zh-CN.md).
-- IngressCatalog v1alpha1: [ca-skills design/release source](https://github.com/odango-chan/ca-skills/blob/main/docs/design/integration-ingress-operation-contract-vnext.zh-CN.md).
-- Compiler Artifact Contract: [compiler-artifact-v1alpha5.md](design/compiler-artifact-v1alpha5.md).
-- Compiler Core: [compiler-core-v1alpha5.md](design/compiler-core-v1alpha5.md).
-- Full local / release acceptance: [COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md](COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
-
-## Status
-
-| Area | Status |
+| Track | Verified state |
 |---|---|
-| CA-SL v1alpha5 language target | FROZEN / RELEASED |
-| Compiler v2.0.2 | RELEASED |
-| Compiler-owned v1alpha5 static validation | Implemented and release-verified |
-| Deterministic Artifact assembly / verification | Implemented |
-| Native / WASM / real Chromium Worker parity | Release acceptance PASS |
-| Real Owner / Deployment / Host / Runtime / 5GC / MAS qualification | NOT_QUALIFIED |
-| Interface-only Development Build without Evidence / Deployment | **PROPOSED; NOT IMPLEMENTED** |
-| Separate Capability Catalog and Deployment Grant | **PROPOSED; NOT IMPLEMENTED** |
-| Package Publisher / Registry / Resolver | External responsibility; not a Compiler subsystem |
+| Compiler product | **v2.1.0 RELEASED** — [GitHub Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0) |
+| Immutable release source | `b67fbb56c34d15b8d5a0903c8a7ca93d608f8f65` |
+| Release acceptance | [Run #45100406980](https://github.com/odango-chan/ca-skill-compiler/actions/runs/45100406980) **PASS**; eight published assets independently re-downloaded and SHA-256 verified |
+| Current language | CA-SL `connectionagent.io/v1alpha5` **FROZEN**; only supported target |
+| Frozen v1alpha5 Compiler API/Artifact | **RELEASED**, byte-identical v2.0.2 Artifact golden baseline on v2.1.0 |
+| Development v1alpha1 | **RELEASED** API family; exact Interface Package snapshots and Dependency Lock |
+| Development execution status | **NOT_ADMITTED** by design; Host admission is external |
+| Real MAS author source | [#53](https://github.com/odango-chan/ca-skill-compiler/issues/53) separate offline integration regression, **not** a Compiler release gate |
+| Owner, Provider, Deployment Grant, Host/Runtime/5GC qualification | External systems; Compiler release makes **no qualification claim** |
 
-## Current MAS integration status
+## Compiler-owned scope
 
-- Canonical Skill source: ca-skills/examples/skills/establish-pdu-session-mas/.
-- The source defines 13 MAS Operation callables for the fixed policy-first profile.
-- ca-client-tools PR #11 merged the source mapping; PR #16 merged the 25 candidate Schema ID / filename migration.
-- ca-client-tools PR #14 remains an open Draft Typed Provider prototype; it is not a published trusted Owner package or production Provider release.
-- ca-skills #71 tracks source-to-Owner contract closure.
-- ca-agent-demo #215 tracks the actual MAS E2E; #216 tracks Temporal integration and generic Node-entry Wait conformance.
-- Current MAS formal Build with Compiler v2.0.2 remains blocked by missing formal dependency / Owner / Evidence / Deployment closure. The next-generation interface-only build proposal is intended to remove Evidence and Deployment from the development Artifact prerequisite, not to claim production qualification.
+One deterministic Go Core runs Native CLI and Go/WASM, with real Chromium Worker parity. It validates CA-SL source, static Tool/Capability/Schema/Evidence obligations, immutable snapshot closure, package-scoped Schema linking, exact Capability selections, two disjoint requirement classes and Artifact digest/bytes. A failed static check emits no authoritative artifact; Development Verify rebuilds and compares.
 
-## Maintenance rules
+The v2.1.0 release contains [five Development machine contracts](../contracts/development/v1alpha1/README.md). The [v1alpha5 frozen contracts](../contracts/v1alpha5/README.md) and their artifact bytes remain unchanged. Historical frozen artifacts retain `generator.version=v2.0.2`; that is an artifact identity, not the current binary version.
 
-- Keep CA-SL v1alpha5 semantics and Compiler v2.0.2 contracts immutable.
-- Do not introduce a second language target or compatibility layer.
-- Compiler consumes exact dependency snapshots supplied by Studio / CI / callers; it does not own package discovery, download, version selection, Registry, Provider deployment, Qualification or Runtime dispatch.
-- Compiler may verify supplied bytes and generate deterministic Artifact integrity data; this is not Package Registry or release ownership.
-- Keep static language / interface proof separate from Assurance, Host Admission and real product qualification.
-- New development Artifact behavior must use a versioned Build API / Artifact Contract; do not silently relax the v1alpha5 frozen Build path.
+## Architecture and remaining work
 
-## Next design documents
+- [Compiler-only acceptance boundary](COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md), [current design](design/ca-toolchain-architecture-vnext.zh-CN.md), [Architecture diagrams](architecture/archify/README.md).
+- [v2.1.0 release record](releases/ca-skill-compiler-v2.1.0.md), [v1alpha5 integration acceptance](COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
+- The actual MAS Create/Modify/Release author-source offline integration test remains in [#53](https://github.com/odango-chan/ca-skill-compiler/issues/53); it is not interchangeable with Owner/Provider qualification.
+- Package discovery, Registry, version resolution, signing, Publisher identity trust, Deployment Grants, Host Admission and live Tool invocation remain **outside Compiler**.
 
-- [CA-SL toolchain architecture — Compile / Link / Build / Admission](design/ca-toolchain-architecture-vnext.zh-CN.md)
-- [Compiler next-stage evolution roadmap](design/compiler-evolution-roadmap-vnext.zh-CN.md)
+This file records the **current** released baseline only. The prior design and work-package diary is preserved in [WORK-history.md](WORK-history.md) and the [workstreams archive](workstreams/README.md).

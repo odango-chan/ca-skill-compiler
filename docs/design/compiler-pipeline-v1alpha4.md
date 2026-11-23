@@ -1,3 +1,7 @@
+> **HISTORICAL / NOT CURRENT INPUT (v2.1.0).** Retained at its original path as frozen older-version or design evidence, not an active BuildRequest, syntax or CLI target. The current Compiler accepts **only CA-SL v1alpha5**; v1alpha4 inherited *semantics* remain implemented, but v1alpha4 API inputs are rejected. See [documentation](../README.md), [Development contracts](../../contracts/development/v1alpha1/README.md) and [v2.1.0 Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0). Statements below about old implementation states are historical. <!-- historical-docs-v2.1.0 -->
+
+---
+
 > **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
 
 # Compiler Pipeline v1alpha4 (implementation map)
@@ -8,9 +12,9 @@ executable evidence that implement them in this repository. It is descriptive
 only; the contract and the frozen CA-SL specification remain the authority.
 
 The active pipeline is `validateV1Alpha4` in
-[`internal/compiler/v1alpha4.go`](../../internal/compiler/v1alpha4.go). `Check`,
+[`internal/compiler/v1alpha4.go` at the v1.0.0 release](https://github.com/odango-chan/ca-skill-compiler/blob/252fd6c6dab15fb92806426aeb19d49a36b08d5e/internal/compiler/v1alpha4.go). `Check`,
 `Build` and `InspectDependencies` enter through
-[`internal/compiler/api_v1alpha4.go`](../../internal/compiler/api_v1alpha4.go);
+[`internal/compiler/api_v1alpha4.go` at the v1.0.0 release](https://github.com/odango-chan/ca-skill-compiler/blob/252fd6c6dab15fb92806426aeb19d49a36b08d5e/internal/compiler/api_v1alpha4.go);
 `Check` and `Build` run the same semantic pipeline, and `Build` additionally
 assembles the artifact only when no `C_STATIC` error exists.
 

@@ -1,3 +1,7 @@
+> **HISTORICAL / NOT CURRENT INPUT (v2.1.0).** This design/work-package document is retained for original source and acceptance provenance only. The active Compiler accepts **CA-SL v1alpha5**; earlier versions are not compatibility modes. Original status statements and instructions below describe their historical snapshot. See [documentation](../README.md), [v2.1.0 Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0), [Development contracts](../../contracts/development/v1alpha1/README.md). <!-- historical-docs-v2.1.0 -->
+
+---
+
 > **HISTORICAL — SUPERSEDED FOR NEW DEVELOPMENT.** This Script note targets the former Script Contract v0. The active contract is [Script Contract v1alpha4](script-contract-v1alpha4.md), subordinate to the frozen CA-SL v1alpha4 specification. Retained only as design history.
 
 ---

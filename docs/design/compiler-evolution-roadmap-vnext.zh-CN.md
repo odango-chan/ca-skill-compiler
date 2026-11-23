@@ -1,8 +1,6 @@
-# CA Skill Compiler 下一阶段演进路线
+# CA Skill Compiler 工具链演进路线
 
-> **状态（2026-11-20）：Compiler Development Build 首轮已实现并合入 `main`（架构 #48、实现 #51）。** Owner/Provider 正式发布、Host Admission、MAS G0–G5、生产 Qualification 是**外部系统各自的交付轨道，不是 Compiler 的剩余完成或独立发版门槛**。Compiler 自身验收边界见[独立验收规则](../COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md)。
->
-> 已发布产品仍为 Compiler v2.0.2、冻结语言仍为 CA-SL v1alpha5。v2.1.x 只是候选产品规划，不能因源码已合并就宣称新版本已发布。本页后续尚未实施的阶段与验收门槛保持有效，契约见[工具链架构](ca-toolchain-architecture-vnext.zh-CN.md)，MAS G0–G5 见 [ca-agent-demo #217](https://github.com/odango-chan/ca-agent-demo/pull/217)。
+**更新（2026-11-23）：Compiler 自有阶段 V3（Development v1alpha1）已正式随 v2.1.0 RELEASED**，[发布记录](../releases/ca-skill-compiler-v2.1.0.md)提供固定源码、契约与真实验收。V0 是已完成的架构评审，V1/V2/V4/V5 分属工具链外部 Owner、Resolver、Host、Provider 和 MAS 集成事项，**不得作为 Compiler 发版门禁**。真实 MAS author 源离线静态回归由 [#53](https://github.com/odango-chan/ca-skill-compiler/issues/53) 独立跟踪；没有该输入不能断言 MAS 端到端通过。下文沿用原设计阶段 V0–V5 编号以保持历史可追溯性。
 
 ## 1. 交付顺序与退出条件
 
@@ -11,7 +9,7 @@
 | V0 — 契约评审 | Compiler、Skills、Host 与 Provider Owner 核对接口快照、锁、两类 Requirement、独立发布、授权与准入 | 对照冻结规范逐项标记静态检查和外部要求；批准新入口、正反样例和生产拒绝规则后定版 |
 | V1 — 外部正式接口发布（MAS 轨道） | ca-client-tools / Owner 发布 MAS Interface Package；ca-context 提供 Subject Context；相关 Owner 提供 Ingress 导出 | 这是 MAS 正式 G0 的输入准备条件，**不是 Compiler Build / Release 的必要条件**；Compiler 能以格式正确、静态语义完整且锁定的测试快照做离线构建 |
 | V2 — 外部 Resolver 与锁分发 | Studio / CI / 调用方准备精确快照与 Lock；调用方单独进行可信发行源验证 | 可与 Compiler 并行；Compiler 只接受输入并静态核对锁与包闭包，不负责 Registry/签名信任根；合成测试快照允许独立复验 |
-| V3 — Compiler Development Build（已合并） | Compiler 显式版本化 Build / Verify；按 Host Admission 与 Runtime Execution 两类记录 Requirement | **Compiler 自身已实现并合并**；离线测试只需调用方提供语义完整、锁定的接口快照（可为合成测试材料），不依赖 V1 的正式 Owner 发布。正式 MAS G1 是单独跨仓验收，不能用合成 PASS 冒充 |
+| V3 — Compiler Development Build（已发布 v2.1.0） | Compiler 显式版本化 Build / Verify；按 Host Admission 与 Runtime Execution 两类记录 Requirement | **Compiler 自身已实现、验收并发布**；离线测试只需调用方提供语义完整、锁定的接口快照（可为合成测试材料），不依赖 V1 的正式 Owner 发布。正式 MAS G1 是单独跨仓验收，不能用合成 PASS 冒充 |
 | V4 — Host Admission | ca-agent-demo 增加显式新产物入口，复用现有 Procedure Runtime；ca-client-tools 独立发布 Provider | 可与 V3 并行设计；G2 验收要求真实 V3 产物、同摘要闭包重验、精确 Provider Binding、测试授权、拒绝与恢复用例；G3 是独立运行时门槛 |
 | V5 — MAS 集成 | ca-agent-demo + ca-client-tools + env-openamsm 验收 Provider、Mock AMF，再验证真实 AMF / UERANSIM | G4 依赖 G0–G3 和独立 Provider；G5 依赖 G4、持久化 Owner continuation、真实协议关联、可信 Evidence 及目标授权；各阶段分别记录实际证据 |
 

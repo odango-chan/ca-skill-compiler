@@ -1,3 +1,7 @@
+> **HISTORICAL / NOT CURRENT INPUT (v2.1.0).** This design/work-package document is retained for original source and acceptance provenance only. The active Compiler accepts **CA-SL v1alpha5**; earlier versions are not compatibility modes. Original status statements and instructions below describe their historical snapshot. See [documentation](../README.md), [v2.1.0 Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0), [Development contracts](../../contracts/development/v1alpha1/README.md). <!-- historical-docs-v2.1.0 -->
+
+---
+
 > **HISTORICAL — SUPERSEDED FOR NEW DEVELOPMENT.** This linker note targets the former v0.1 / Skill Language v0.2 contract. The active linker contract is [Procedure Linker v1alpha4](procedure-link-v1alpha4.md). Retained only as design history; no legacy syntax is accepted by the v1alpha4 target.
 
 ---
