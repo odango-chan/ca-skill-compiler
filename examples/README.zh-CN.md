@@ -13,6 +13,7 @@
 ```bash
 skillc check web/parity-success
 skillc build web/parity-success --out ./dist/example
+mkdir -p ./dist
 skillc build-development --request docs/design/fixtures/registration-development-request.json --out ./dist/dev --json > ./dist/dev-result.json
 skillc verify-development --request docs/design/fixtures/registration-development-request.json --result ./dist/dev-result.json
 ```

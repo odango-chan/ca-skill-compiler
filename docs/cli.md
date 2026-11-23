@@ -44,6 +44,7 @@ Frozen request contract: [BuildRequest v1alpha5](../contracts/v1alpha5/build-req
 `build-development` receives exactly the CA-SL `files[]`, `targets[]`, exact immutable Interface Package `snapshots[]`, and a `lock` with declared package dependencies. It **does not** accept trusted Owner attestations, live Evidence, Provider data or deployment credentials. Omitted required fields, unknown JSON keys and broken closure are rejected.
 
 ```bash
+mkdir -p ./dist
 skillc build-development --request docs/design/fixtures/registration-development-request.json --out ./dist/development --json > ./dist/development-result.json
 skillc verify-development --request docs/design/fixtures/registration-development-request.json --result ./dist/development-result.json --json
 ```

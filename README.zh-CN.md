@@ -32,6 +32,7 @@ CGO_ENABLED=0 GOWORK=off go build -o skillc ./cmd/skillc
 Development 正例（仓内可复验的合成测试请求）：
 
 ```bash
+mkdir -p ./dist
 ./skillc build-development --request docs/design/fixtures/registration-development-request.json --out ./dist/dev-artifact --json > ./dist/dev-result.json
 ./skillc verify-development --request docs/design/fixtures/registration-development-request.json --result ./dist/dev-result.json
 ```

@@ -32,6 +32,7 @@ Use a new or empty output directory. The `web/parity-success` fixture is synthet
 Development example using the committed synthetic, complete request:
 
 ```bash
+mkdir -p ./dist
 ./skillc build-development --request docs/design/fixtures/registration-development-request.json --out ./dist/dev-artifact --json > ./dist/dev-result.json
 ./skillc verify-development --request docs/design/fixtures/registration-development-request.json --result ./dist/dev-result.json
 ```

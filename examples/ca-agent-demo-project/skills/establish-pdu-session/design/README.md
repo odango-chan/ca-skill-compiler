@@ -1,4 +1,4 @@
-> **HISTORICAL EXAMPLE / NOT A CURRENT CA-SL v1alpha5 BUILD INPUT.** This is a pinned, pre-migration ca-agent-demo source snapshot; its experimental LLM and legacy Procedure wording does not define the current Compiler or Host architecture. See the [examples index](../../../../../README.md) and [Compiler documentation](../../../../../../docs/README.md).
+> **HISTORICAL EXAMPLE / NOT A CURRENT CA-SL v1alpha5 BUILD INPUT.** This is a pinned, pre-migration ca-agent-demo source snapshot; its experimental LLM and legacy Procedure wording does not define the current Compiler or Host architecture. See the [examples index](../../../../README.md) and [Compiler documentation](../../../../../docs/README.md).
 
 # CreatedSession authoring principles
 

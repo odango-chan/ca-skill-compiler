@@ -44,6 +44,7 @@ skillc build --request request.json --out ./dist/frozen-from-json --json
 请求必须显式提供 `files[]`、`targets[]`、`lock`、`snapshots[]` 及版本身份；依赖快照精确包含 `package.json`、导出文件和直接依赖闭包。此接口不会接收实际 Owner 信任根、Provider、Deployment Grant 或运行时 Evidence。
 
 ```bash
+mkdir -p ./dist
 skillc build-development --request docs/design/fixtures/registration-development-request.json --out ./dist/development --json > ./dist/development-result.json
 skillc verify-development --request docs/design/fixtures/registration-development-request.json --result ./dist/development-result.json --json
 ```
