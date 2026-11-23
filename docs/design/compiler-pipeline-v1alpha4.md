@@ -1,3 +1,7 @@
+> **HISTORICAL / NOT CURRENT INPUT (v2.1.0).** Retained at its original path as frozen older-version or design evidence, not an active BuildRequest, syntax or CLI target. The current Compiler accepts **only CA-SL v1alpha5**; v1alpha4 inherited *semantics* remain implemented, but v1alpha4 API inputs are rejected. See [documentation](../README.md), [Development contracts](../../contracts/development/v1alpha1/README.md) and [v2.1.0 Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0). Statements below about old implementation states are historical. <!-- historical-docs-v2.1.0 -->
+
+---
+
 > **HISTORICAL RECORD.** This document describes a past implementation, release or planning state (CA-SL v1alpha4 or an earlier v1alpha5 work package). It is retained for traceability and is not the current Compiler behaviour. Current status: [v1alpha5 single-version acceptance](../COMPILER-V1ALPHA5-INTEGRATION-ACCEPTANCE.md).
 
 # Compiler Pipeline v1alpha4 (implementation map)

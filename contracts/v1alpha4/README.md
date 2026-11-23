@@ -1,3 +1,7 @@
+> **HISTORICAL / NOT CURRENT INPUT (v2.1.0).** Retained at its original path as frozen older-version or design evidence, not an active BuildRequest, syntax or CLI target. The current Compiler accepts **only CA-SL v1alpha5**; v1alpha4 inherited *semantics* remain implemented, but v1alpha4 API inputs are rejected. See [documentation](../../docs/README.md), [Development contracts](../development/v1alpha1/README.md) and [v2.1.0 Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0). Statements below about old implementation states are historical. <!-- historical-docs-v2.1.0 -->
+
+---
+
 # Compiler v1alpha4 machine contracts
 
 **Status:** FROZEN Compiler-owned machine-contract schemas for implementation. These schemas do not change CA-SL language semantics.
