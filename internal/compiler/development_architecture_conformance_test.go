@@ -74,3 +74,71 @@ func TestDevelopmentSchemaBindingNeedsDirectDependency(t *testing.T) {
 		t.Fatalf("Schema in a declared direct dependency must link: %v", problems)
 	}
 }
+
+
+func TestDevelopmentPackageManifestWireShapeIsStrict(t *testing.T) {
+	key := DevelopmentPackageKey{
+		PackageID: "urn:test:manifest", Version: "1.0.0",
+		SnapshotDigest: "sha256:" + strings.Repeat("1", 64),
+	}
+	baseline := map[string]any{
+		"apiVersion": InterfacePackageAPIVersion,
+		"packageId": key.PackageID, "version": key.Version,
+		"languageTarget": V1Alpha5Target, "publisher": "test-owner",
+		"dependencies": []any{}, "exports": []any{},
+		"files": []any{map[string]any{"path":"example.json","sha256":"sha256:"+strings.Repeat("2",64)}},
+	}
+	tests := []struct {
+		name string
+		change func(map[string]any)
+	}{
+		{"dependency-extra",func(m map[string]any) {
+			m["dependencies"]=[]any{map[string]any{
+				"alias":"types","packageId":"urn:test:types","version":"1.0.0","unexpected":true,
+			}}
+		}},
+		{"file-extra",func(m map[string]any) {
+			m["files"]=[]any{map[string]any{"path":"example.json",
+				"sha256":"sha256:"+strings.Repeat("2",64),"unexpected":true}}
+		}},
+		{"artifact-binding-extra",func(m map[string]any) {
+			m["exports"]=[]any{map[string]any{"kind":"Schema","id":"urn:test:schema",
+				"path":"example.json","artifactBindings":[]any{map[string]any{
+					"artifactRef":"urn:test:artifact","dependencyId":"self",
+					"snapshotPath":"example.json","dialect":"json-schema","unexpected":true,
+				}}}}
+		}},
+		{"schema-binding-extra",func(m map[string]any) {
+			m["exports"]=[]any{map[string]any{"kind":"Schema","id":"urn:test:schema",
+				"path":"example.json","schemaBindings":[]any{map[string]any{
+					"exportId":"urn:test:schema","artifactRef":"urn:test:artifact",
+					"pointer":"#","unexpected":true,
+				}}}}
+		}},
+	}
+	for _,tc:=range tests {
+		t.Run(tc.name,func(t *testing.T) {
+			manifest:=map[string]any{}
+			for k,v:=range baseline { manifest[k]=v }
+			tc.change(manifest)
+			raw,err:=json.Marshal(manifest)
+			if err!=nil {t.Fatal(err)}
+			_,problems:=parseDevelopmentPackageManifest(raw,key)
+			if !strings.Contains(strings.Join(problems," | "),"unsupported field: unexpected") {
+				t.Fatalf("unexpected extension must fail closed: %v",problems)
+			}
+		})
+	}
+	for name,raw:=range map[string][]byte{
+		"yaml-only": []byte("apiVersion: connectionagent.io/interface-package/v1alpha1\n"),
+		"duplicate": []byte(`{"apiVersion":"one","apiVersion":"two"}`),
+		"trailing": []byte(`{"apiVersion":"one"} {"apiVersion":"two"}`),
+	} {
+		t.Run(name,func(t *testing.T) {
+			_,problems:=parseDevelopmentPackageManifest(raw,key)
+			if len(problems)==0 || !strings.Contains(strings.Join(problems," | "),"strict JSON") {
+				t.Fatalf("%s must fail as invalid package JSON: %v",name,problems)
+			}
+		})
+	}
+}

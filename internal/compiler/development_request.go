@@ -546,6 +546,12 @@ func validSemVerIdentifier(value string, allowNumeric bool) bool {
 func parseDevelopmentPackageManifest(raw []byte, key DevelopmentPackageKey) (developmentPackageManifest, []string) {
 	manifest := developmentPackageManifest{}
 	var problems []string
+	// The package manifest is a JSON wire contract, not a permissive YAML
+	// source file. Reject YAML-only syntax, duplicate keys and trailing JSON
+	// values before interpreting any package identity or export.
+	if err := rejectDuplicateJSONKeys(raw); err != nil {
+		return manifest, []string{"package.json must be strict JSON with unique keys: " + err.Error()}
+	}
 	root, err := yaml.Parse(raw)
 	if err != nil {
 		return manifest, []string{"package.json is not valid JSON/YAML: " + err.Error()}
@@ -601,6 +607,12 @@ func parseDevelopmentPackageManifest(raw []byte, key DevelopmentPackageKey) (dev
 					problems = append(problems, label+" must be a mapping with alias/packageId/version")
 					continue
 				}
+				for j := 0; j+1 < len(node.Content); j += 2 {
+					field := scalar(unalias(node.Content[j]))
+					if field != "alias" && field != "packageId" && field != "version" {
+						problems = append(problems, label+" contains an unsupported field: "+field)
+					}
+				}
 				dependency := developmentPackageDependency{
 					alias:     scalar(child(node, "alias")),
 					packageID: scalar(child(node, "packageId")),
@@ -636,6 +648,12 @@ func parseDevelopmentPackageManifest(raw []byte, key DevelopmentPackageKey) (dev
 			if node == nil || node.Kind != yaml.MappingNode {
 				problems = append(problems, label+" must be a mapping with path/sha256")
 				continue
+			}
+			for j := 0; j+1 < len(node.Content); j += 2 {
+				field := scalar(unalias(node.Content[j]))
+				if field != "path" && field != "sha256" {
+					problems = append(problems, label+" contains an unsupported field: "+field)
+				}
 			}
 			entry := developmentPackageFile{path: scalar(child(node, "path")), sha256: scalar(child(node, "sha256"))}
 			if !validRelativeSnapshotPath(entry.path) {
@@ -721,6 +739,12 @@ func parseDevelopmentExport(node *yaml.Node, index int) (developmentExport, []st
 					problems = append(problems, bindingLabel+" must be a mapping with artifactRef/dependencyId/snapshotPath/dialect")
 					continue
 				}
+				for j := 0; j+1 < len(bindingNode.Content); j += 2 {
+					field := scalar(unalias(bindingNode.Content[j]))
+					if field != "artifactRef" && field != "dependencyId" && field != "snapshotPath" && field != "dialect" {
+						problems = append(problems, bindingLabel+" contains an unsupported field: "+field)
+					}
+				}
 				binding := developmentArtifactBinding{
 					artifactRef:  scalar(child(bindingNode, "artifactRef")),
 					dependencyID: scalar(child(bindingNode, "dependencyId")),
@@ -747,6 +771,12 @@ func parseDevelopmentExport(node *yaml.Node, index int) (developmentExport, []st
 				if bindingNode == nil || bindingNode.Kind != yaml.MappingNode {
 					problems = append(problems, bindingLabel+" must be a mapping with exportId/artifactRef/pointer")
 					continue
+				}
+				for j := 0; j+1 < len(bindingNode.Content); j += 2 {
+					field := scalar(unalias(bindingNode.Content[j]))
+					if field != "exportId" && field != "artifactRef" && field != "pointer" {
+						problems = append(problems, bindingLabel+" contains an unsupported field: "+field)
+					}
 				}
 				binding := developmentSchemaBinding{
 					exportID:    scalar(child(bindingNode, "exportId")),
