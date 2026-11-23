@@ -23,12 +23,6 @@ import (
 	yaml "github.com/odango-chan/ca-skill-compiler/internal/compiler/yamlast"
 )
 
-const (
-	developmentStageSource = 0
-	developmentStageLink   = 1
-	developmentStageBuild  = 2
-)
-
 type developmentPackage struct {
 	key         DevelopmentPackageKey
 	files       []File
@@ -95,7 +89,7 @@ type developmentEnvironment struct {
 
 // validateDevelopmentRequest returns the admitted request scope and the stage at
 // which admission failed. Diagnostics are sorted and never partial.
-func validateDevelopmentRequest(req DevelopmentBuildRequest) (*developmentEnvironment, int, []Diagnostic) {
+func validateDevelopmentRequest(req DevelopmentBuildRequest) (*developmentEnvironment, []Diagnostic) {
 	var diagnostics []Diagnostic
 	add := func(code, path, message string) {
 		diagnostics = append(diagnostics, developmentDiagnostic(code, path, message))
@@ -419,9 +413,9 @@ func validateDevelopmentRequest(req DevelopmentBuildRequest) (*developmentEnviro
 
 	if len(diagnostics) > 0 {
 		sortDiagnostics(diagnostics)
-		return nil, developmentStageLink, diagnostics
+		return nil, diagnostics
 	}
-	return env, developmentStageSource, nil
+	return env, nil
 }
 
 func sortedDevelopmentKeys(packages map[DevelopmentPackageKey]*developmentPackage) []DevelopmentPackageKey {

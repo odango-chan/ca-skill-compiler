@@ -587,13 +587,9 @@ func developmentReferenceLocations(skill *SkillAST) map[string][]DevelopmentRequ
 	return locations
 }
 
-func (semantics *developmentSemantics) legacyRequestForSkill(skill *SkillAST) BuildRequest {
-	req, _ := semantics.env.legacyRequest()
-	return req
-}
-
 func (semantics *developmentSemantics) extendedIdentity(skill *SkillAST) dependencyIdentityResult {
-	identity := validateDependencyIdentityWithUsed(semantics.legacyRequestForSkill(skill), skill, nil)
+	req, _ := semantics.env.legacyRequest()
+	identity := validateDependencyIdentityWithUsed(req, skill, nil)
 	if identity.Closure == nil {
 		identity.Closure = []string{}
 	}
