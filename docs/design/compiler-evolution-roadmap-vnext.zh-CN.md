@@ -1,3 +1,5 @@
+> **现行里程碑（2026-11-23）：Compiler Development Build v1alpha1 已随 v2.1.0 正式发布**；下文对 v2.1.x “候选、未发布”的叙述是 11-20 设计时的历史记录。Compiler 自身发布门禁已由 [#55](https://github.com/odango-chan/ca-skill-compiler/issues/55) 验收关闭，真实 MAS author 源离线回归 [#53](https://github.com/odango-chan/ca-skill-compiler/issues/53) 仍是独立、非阻塞集成测试。Owner/Provider/Host/5GC 资格不属于 Compiler 产品发布门禁。
+
 # CA Skill Compiler 下一阶段演进路线
 
 > **状态（2026-11-20）：Compiler Development Build 首轮已实现并合入 `main`（架构 #48、实现 #51）。** Owner/Provider 正式发布、Host Admission、MAS G0–G5、生产 Qualification 是**外部系统各自的交付轨道，不是 Compiler 的剩余完成或独立发版门槛**。Compiler 自身验收边界见[独立验收规则](../COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md)。

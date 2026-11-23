@@ -1,3 +1,5 @@
+> **Current product baseline (2026-11-23):** Compiler [v2.1.0 RELEASED](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0), CA-SL v1alpha5 only, plus separate Development v1alpha1 Build/Verify. Historical discussion of candidate gaps further down this document must not override the [release record](releases/ca-skill-compiler-v2.1.0.md) or the [Compiler-only qualification boundary](COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md).
+
 # Known Limitations — CA-SL v1alpha5 Compiler implementation
 
 **Language status:** FROZEN / RELEASED.
@@ -10,7 +12,7 @@ Normative authorities:
 - [IngressCatalog v1alpha1 logical contract](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/integration-ingress-operation-contract-vnext.zh-CN.md), released by ca-skills PR #62.
 - [Ingress diagnostic registry v1alpha1](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/ingress-diagnostic-registry-v1alpha1.md).
 
-## 1. What the current candidate Build actually validates
+## 1. What the released v2.1.0 Build validates
 
 The v1alpha5 path is one pipeline. It validates and assembles:
 

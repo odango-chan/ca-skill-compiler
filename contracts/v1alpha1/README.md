@@ -1,3 +1,5 @@
+> **MIRROR / HISTORICAL CANDIDATE PROVENANCE.** This directory holds a pinned local IngressCatalog v1alpha1 structural-schema copy used for Compiler tests, not the current Compiler BuildRequest version or an independently owned language spec. The normative [released IngressCatalog v1alpha1](https://github.com/odango-chan/ca-skills/blob/9412be9894ef36acf846c757a5870dc0c48b33ac/docs/design/integration-ingress-operation-contract-vnext.zh-CN.md) belongs to ca-skills. The historical PR-head/candidate wording below describes the provenance of this mirror, not today's v2.1.0 product status. [Current contracts](../v1alpha5/README.md) · [Development v1alpha1](../development/v1alpha1/README.md).
+
 # v1alpha5 candidate contracts
 
 This directory contains **candidate, DRAFT** machine contracts for the next

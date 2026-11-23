@@ -1,3 +1,5 @@
+> **现行状态更新（2026-11-23）：Compiler v2.1.0 已正式发布，Development v1alpha1 机器契约已随该版本冻结。** [正式 Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0) · [固定源码与验收](../releases/ca-skill-compiler-v2.1.0.md)。下文 2026-11-20 的“尚未发布”“候选”“PENDING”等叙述是**设计评审当时的状态快照**，不应覆盖现行版本事实。正式 Owner/Provider、Host Admission、Runtime/5GC Qualification 仍为外部系统边界，Development Artifact 始终 `NOT_ADMITTED`。
+
 # CA-SL 工具链架构：编译、接口链接与执行资格分离
 
 > **状态（2026-11-20）：架构评审通过，PR #48 已合并（`22860a2`），Development Build 实现 PR #51 已合并（`1d7ea81`）。** 本页已经进入 `main`，但**尚未独立冻结或正式发布新一代公开契约**；生产 Host 仍须拒绝 `DEVELOPMENT` Artifact。
