@@ -12,9 +12,9 @@ executable evidence that implement them in this repository. It is descriptive
 only; the contract and the frozen CA-SL specification remain the authority.
 
 The active pipeline is `validateV1Alpha4` in
-[`internal/compiler/v1alpha4.go`](../../internal/compiler/v1alpha4.go). `Check`,
+[`internal/compiler/v1alpha4.go` at the v1.0.0 release](https://github.com/odango-chan/ca-skill-compiler/blob/252fd6c6dab15fb92806426aeb19d49a36b08d5e/internal/compiler/v1alpha4.go). `Check`,
 `Build` and `InspectDependencies` enter through
-[`internal/compiler/api_v1alpha4.go`](../../internal/compiler/api_v1alpha4.go);
+[`internal/compiler/api_v1alpha4.go` at the v1.0.0 release](https://github.com/odango-chan/ca-skill-compiler/blob/252fd6c6dab15fb92806426aeb19d49a36b08d5e/internal/compiler/api_v1alpha4.go);
 `Check` and `Build` run the same semantic pipeline, and `Build` additionally
 assembles the artifact only when no `C_STATIC` error exists.
 

@@ -70,7 +70,7 @@ Every released Compiler-owned EW/IN case is implemented and covered by at least 
 
 The public wire DTOs (`BuildRequest`, `BuildResult`, `Diagnostic`, `DependencyInspection`, inspection rows), the strict JSON transport decoder and the four public entries (`Check`, `Build`, `InspectDependencies`, `VerifyBuildResult`) live in `internal/compiler/api.go`. Admission is single-version (`admission.go`); the internal semantic model is version-neutral (`SkillAST`, linking results, `artifactInput`): one parser, one pipeline, one artifact path and no compatibility adapter.
 
-`connectionagent.io/v1alpha5` is the only supported language target. The retired v1alpha4 API identity, CLI target, artifact generator and verifier are removed; a v1alpha4 `apiVersion` or `languageTarget` fails closed. The v1alpha4 language semantics remain implemented because v1alpha5 inherits them. The published v1.0.0 tag/release remains immutable historical evidence. See [Compiler core and public API](../design/compiler-core-v1alpha5.md).
+`connectionagent.io/v1alpha5` is the only supported language target. The retired v1alpha4 API identity, CLI target, artifact generator and verifier are removed; a v1alpha4 `apiVersion` or `languageTarget` fails closed. The v1alpha4 language semantics remain implemented because v1alpha5 inherits them. The published v1.0.0 tag/release remains immutable historical evidence. See [Compiler core and public API](design/compiler-core-v1alpha5.md).
 ## 7. Other boundaries
 
 - **Studio:** v1alpha5 successful-Build rendering is not included in the current Compiler integration candidate. Studio/LSP integration requires a separate acceptance.

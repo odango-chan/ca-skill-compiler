@@ -1,3 +1,5 @@
+> **HISTORICAL EXAMPLE / NOT A CURRENT CA-SL v1alpha5 BUILD INPUT.** This is a pinned, pre-migration ca-agent-demo source snapshot; its experimental LLM and legacy Procedure wording does not define the current Compiler or Host architecture. See the [examples index](../../../../../README.md) and [Compiler documentation](../../../../../../docs/README.md).
+
 # CreatedSession authoring principles
 
 **Status: AUTHORING MODEL / NOT YET RUNTIME-COMPATIBLE**
@@ -13,8 +15,10 @@ The Skill also has an **experimental LLM-driven execution view**. `../SKILL.md` 
 model-facing CreatedSession business guide for that experiment; it is not a second graph
 and does not copy deterministic next-edges.
 
-Repository-wide executor/context placement rules live in
-[`../../../docs/design/llm-skill-execution.md`](../../../docs/design/llm-skill-execution.md).
+The original upstream ca-agent-demo authoring notes referred to
+`docs/design/llm-skill-execution.md`, which is **not included in this pinned
+historical snapshot**. That upstream design file must not be treated as an
+available Compiler-local contract.
 The CreatedSession-specific experiment plan is recorded in
 [`llm-execution-experiment.md`](llm-execution-experiment.md).
 
