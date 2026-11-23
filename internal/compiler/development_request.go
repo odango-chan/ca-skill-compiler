@@ -546,6 +546,12 @@ func validSemVerIdentifier(value string, allowNumeric bool) bool {
 func parseDevelopmentPackageManifest(raw []byte, key DevelopmentPackageKey) (developmentPackageManifest, []string) {
 	manifest := developmentPackageManifest{}
 	var problems []string
+	// The package manifest is a JSON wire contract, not a permissive YAML
+	// source file. Reject YAML-only syntax, duplicate keys and trailing JSON
+	// values before interpreting any package identity or export.
+	if err := rejectDuplicateJSONKeys(raw); err != nil {
+		return manifest, []string{"package.json must be strict JSON with unique keys: " + err.Error()}
+	}
 	root, err := yaml.Parse(raw)
 	if err != nil {
 		return manifest, []string{"package.json is not valid JSON/YAML: " + err.Error()}
@@ -585,7 +591,11 @@ func parseDevelopmentPackageManifest(raw []byte, key DevelopmentPackageKey) (dev
 		problems = append(problems, "package.json publisher must be a non-empty publisher identity")
 	}
 	dependencies := unalias(child(root, "dependencies"))
-	if dependencies != nil {
+	if dependencies == nil {
+		// Empty direct dependencies are represented explicitly by [].
+		// Omitting the property is not equivalent to having no dependencies.
+		problems = append(problems, "package.json is missing required dependencies array")
+	} else {
 		if dependencies.Kind != yaml.SequenceNode {
 			problems = append(problems, "package.json dependencies must be an ordered list")
 		} else {
@@ -596,6 +606,12 @@ func parseDevelopmentPackageManifest(raw []byte, key DevelopmentPackageKey) (dev
 				if node == nil || node.Kind != yaml.MappingNode {
 					problems = append(problems, label+" must be a mapping with alias/packageId/version")
 					continue
+				}
+				for j := 0; j+1 < len(node.Content); j += 2 {
+					field := scalar(unalias(node.Content[j]))
+					if field != "alias" && field != "packageId" && field != "version" {
+						problems = append(problems, label+" contains an unsupported field: "+field)
+					}
 				}
 				dependency := developmentPackageDependency{
 					alias:     scalar(child(node, "alias")),
@@ -632,6 +648,12 @@ func parseDevelopmentPackageManifest(raw []byte, key DevelopmentPackageKey) (dev
 			if node == nil || node.Kind != yaml.MappingNode {
 				problems = append(problems, label+" must be a mapping with path/sha256")
 				continue
+			}
+			for j := 0; j+1 < len(node.Content); j += 2 {
+				field := scalar(unalias(node.Content[j]))
+				if field != "path" && field != "sha256" {
+					problems = append(problems, label+" contains an unsupported field: "+field)
+				}
 			}
 			entry := developmentPackageFile{path: scalar(child(node, "path")), sha256: scalar(child(node, "sha256"))}
 			if !validRelativeSnapshotPath(entry.path) {
@@ -717,6 +739,12 @@ func parseDevelopmentExport(node *yaml.Node, index int) (developmentExport, []st
 					problems = append(problems, bindingLabel+" must be a mapping with artifactRef/dependencyId/snapshotPath/dialect")
 					continue
 				}
+				for j := 0; j+1 < len(bindingNode.Content); j += 2 {
+					field := scalar(unalias(bindingNode.Content[j]))
+					if field != "artifactRef" && field != "dependencyId" && field != "snapshotPath" && field != "dialect" {
+						problems = append(problems, bindingLabel+" contains an unsupported field: "+field)
+					}
+				}
 				binding := developmentArtifactBinding{
 					artifactRef:  scalar(child(bindingNode, "artifactRef")),
 					dependencyID: scalar(child(bindingNode, "dependencyId")),
@@ -743,6 +771,12 @@ func parseDevelopmentExport(node *yaml.Node, index int) (developmentExport, []st
 				if bindingNode == nil || bindingNode.Kind != yaml.MappingNode {
 					problems = append(problems, bindingLabel+" must be a mapping with exportId/artifactRef/pointer")
 					continue
+				}
+				for j := 0; j+1 < len(bindingNode.Content); j += 2 {
+					field := scalar(unalias(bindingNode.Content[j]))
+					if field != "exportId" && field != "artifactRef" && field != "pointer" {
+						problems = append(problems, bindingLabel+" contains an unsupported field: "+field)
+					}
 				}
 				binding := developmentSchemaBinding{
 					exportID:    scalar(child(bindingNode, "exportId")),
@@ -967,17 +1001,27 @@ func validateDevelopmentPackageExports(pkg *developmentPackage) []string {
 // a Schema export declared somewhere in the locked closure.
 func validateDevelopmentBindingTargets(env *developmentEnvironment) []string {
 	var problems []string
-	declaredSchemas := map[string]bool{}
 	for _, key := range sortedDevelopmentKeys(env.packages) {
-		for _, export := range env.packages[key].manifest.exports {
+		pkg := env.packages[key]
+		edges := env.dependencyGraph[key]
+		// Schema bindings are authored by this Package. A Schema exported by
+		// an unrelated Package elsewhere in the Lock Closure cannot satisfy one.
+		// Use precisely this Package and its declared direct dependencies.
+		declaredSchemas := map[string]bool{}
+		for _, export := range pkg.manifest.exports {
 			if export.kind == "Schema" {
 				declaredSchemas[export.id] = true
 			}
 		}
-	}
-	for _, key := range sortedDevelopmentKeys(env.packages) {
-		pkg := env.packages[key]
-		edges := env.dependencyGraph[key]
+		for _, dependencyKey := range edges {
+			if dependency := env.packages[dependencyKey]; dependency != nil {
+				for _, export := range dependency.manifest.exports {
+					if export.kind == "Schema" {
+						declaredSchemas[export.id] = true
+					}
+				}
+			}
+		}
 		artifactRefs := map[string]bool{}
 		for _, export := range pkg.manifest.exports {
 			for _, binding := range export.artifactBindings {
@@ -1008,7 +1052,7 @@ func validateDevelopmentBindingTargets(env *developmentEnvironment) []string {
 					problems = append(problems, "schemaBindings artifactRef does not identify an artifactBinding of the package: "+binding.artifactRef)
 				}
 				if !declaredSchemas[binding.exportID] {
-					problems = append(problems, "schemaBindings exportId is not a declared Schema export in the locked closure: "+binding.exportID)
+					problems = append(problems, "schemaBindings exportId is not a Schema export of this Package or a declared direct dependency: "+binding.exportID)
 				}
 			}
 		}

@@ -223,3 +223,91 @@ func TestDevelopmentSingleSkillRootsUnchanged(t *testing.T) {
 		t.Fatalf("single-Skill fixture must still build: %#v", result.Diagnostics)
 	}
 }
+
+
+// TestDevelopmentMultiSkillSharedPackageWithDifferentAliases proves the Lock
+// models alias -> Package key, not a bijection between aliases and Packages.
+// Different Skills may use different aliases for exactly the same immutable
+// Interface Package snapshot without silently losing one of the bindings.
+func TestDevelopmentMultiSkillSharedPackageWithDifferentAliases(t *testing.T) {
+	request := addDevelopmentSecondSkill(t, loadDevelopmentFixture(t),
+		"  ca-context: urn:example:ca:host-context\n  provider: urn:example:ca:tools\n")
+	request = replaceDevelopmentContract(t, request, developmentSecondSkill,
+		"goal: ue.context_only\n"+
+			"contextSchema: ca-context::urn:example:ca:invocation-context:v1\n"+
+			"dependencies:\n"+
+			"  ca-context: urn:example:ca:host-context\n"+
+			"  provider: urn:example:ca:tools\n"+
+			"capabilities:\n"+
+			"  - example.registration-read\n")
+	request = replaceDevelopmentSkillFileBytes(t, request,
+		"skills/"+developmentSecondSkill+"/assurance/procedure.yaml", []byte(
+			"start: inspect-context\n"+
+				"nodes:\n"+
+				"  inspect-context:\n"+
+				"    observation:\n"+
+				"      tool: provider::ue.registration.current\n"+
+				"      arguments:\n"+
+				"        ueRef: context.ueRef\n"+
+				"      routes:\n"+
+				"        SUCCEEDED: check-context\n"+
+				"        FAILED: FAILED\n"+
+				"        UNKNOWN: UNRESOLVED\n"+
+				"  check-context:\n"+
+				"    postcondition:\n"+
+				"      predicates:\n"+
+				"        - predicate: example.context-present\n"+
+				"          arguments: []\n"+
+				"      routes:\n"+
+				"        PASS: SUCCEEDED\n"+
+				"        FAIL: FAILED\n"+
+				"        UNKNOWN: UNRESOLVED\n"))
+	request = cloneDevelopmentRequest(t, request)
+	for _, root := range request.Lock.Roots {
+		if root.Alias == "ca" {
+			request.Lock.Roots = append(request.Lock.Roots,
+				DevelopmentLockRoot{Alias: "provider", Key: root.Key})
+			break
+		}
+	}
+	result := BuildDevelopment(request)
+	if !result.Success {
+		t.Fatalf("different used Root aliases for the same Package must build: %#v", result.Diagnostics)
+	}
+	if err := VerifyDevelopment(request, result); err != nil {
+		t.Fatalf("VerifyDevelopment: %v", err)
+	}
+	permuted := cloneDevelopmentRequest(t, request)
+	reverseRoots(permuted.Lock.Roots)
+	again := BuildDevelopment(permuted)
+	if !again.Success || again.ArtifactDigest != result.ArtifactDigest {
+		t.Fatalf("Root order changed a shared-package build: %#v", again.Diagnostics)
+	}
+	assertDevelopmentFilesEqual(t, result, again)
+}
+
+// TestDevelopmentSyntheticAliasNeverOverwritesRoot makes the legacy projection
+// collision-safe when an author uses the reserved-looking alias locked_0.
+func TestDevelopmentSyntheticAliasNeverOverwritesRoot(t *testing.T) {
+	request := cloneDevelopmentRequest(t, loadDevelopmentFixture(t))
+	for index := range request.Lock.Roots {
+		if request.Lock.Roots[index].Alias == "ca" {
+			request.Lock.Roots[index].Alias = "locked_0"
+		}
+	}
+	for index := range request.Files {
+		content := string(request.Files[index].Bytes)
+		if strings.HasSuffix(request.Files[index].Path, "/assurance/contract.yaml") {
+			content = strings.ReplaceAll(content, "  ca: ", "  locked_0: ")
+		}
+		content = strings.ReplaceAll(content, "ca::", "locked_0::")
+		request.Files[index].Bytes = []byte(content)
+	}
+	result := BuildDevelopment(request)
+	if !result.Success {
+		t.Fatalf("declared locked_0 root must not collide with a generated alias: %#v", result.Diagnostics)
+	}
+	if err := VerifyDevelopment(request, result); err != nil {
+		t.Fatalf("VerifyDevelopment: %v", err)
+	}
+}

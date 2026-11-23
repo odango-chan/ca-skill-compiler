@@ -173,7 +173,15 @@ func DecodeDevelopmentBuildRequestJSON(data []byte) (DevelopmentBuildRequest, er
 	if object == nil {
 		return DevelopmentBuildRequest{}, fmt.Errorf("development BuildRequest must be a JSON object")
 	}
-	if err := rejectJSONNullProperties(object, "files", "targets", "lock", "snapshots"); err != nil {
+	// Explicit presence is part of the independent Development wire contract:
+	// in particular, omitted targets must not silently mean targets: [].
+	required := []string{"apiVersion", "languageTarget", "profile", "files", "targets", "lock", "snapshots"}
+	for _, name := range required {
+		if _, exists := object[name]; !exists {
+			return DevelopmentBuildRequest{}, fmt.Errorf("development BuildRequest is missing required property %q", name)
+		}
+	}
+	if err := rejectJSONNullProperties(object, required...); err != nil {
 		return DevelopmentBuildRequest{}, err
 	}
 	if err := rejectJSONNullArrayElements(object["snapshots"], "snapshots"); err != nil {

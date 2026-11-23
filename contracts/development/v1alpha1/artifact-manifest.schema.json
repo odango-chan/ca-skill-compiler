@@ -1,0 +1,418 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:connectionagent:ca-skill-compiler:development:artifact-manifest:v1alpha1",
+  "title": "CA Skill Compiler Development artifact-manifest v1alpha1 (DRAFT)",
+  "description": "Deterministic Development Artifact manifest, always executionStatus NOT_ADMITTED. Links and capability requirements represent static interface selection, not a deployment grant.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "languageTarget",
+    "profile",
+    "generator",
+    "executionStatus",
+    "sourceDigest",
+    "targets",
+    "lock",
+    "links",
+    "capabilityRequirements",
+    "requirements",
+    "files"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "connectionagent.io/compiler-development-artifact/v1alpha1"
+    },
+    "languageTarget": {
+      "const": "connectionagent.io/v1alpha5"
+    },
+    "profile": {
+      "const": "DEVELOPMENT"
+    },
+    "generator": {
+      "$ref": "#/$defs/generator"
+    },
+    "executionStatus": {
+      "const": "NOT_ADMITTED"
+    },
+    "sourceDigest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "lock": {
+      "$ref": "#/$defs/manifestLock"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/link"
+      }
+    },
+    "capabilityRequirements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/capRequirement"
+      }
+    },
+    "requirements": {
+      "$ref": "#/$defs/requirements"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/manifestFile"
+      },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "packageKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageId",
+        "version",
+        "snapshotDigest"
+      ],
+      "properties": {
+        "packageId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "snapshotDigest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "lockRoot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alias",
+        "key"
+      ],
+      "properties": {
+        "alias": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "$ref": "#/$defs/packageKey"
+        }
+      }
+    },
+    "lockEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alias",
+        "key"
+      ],
+      "properties": {
+        "alias": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "$ref": "#/$defs/packageKey"
+        }
+      }
+    },
+    "lockPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "dependencies"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/packageKey"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/lockEdge"
+          }
+        }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "const": "ca-skill-compiler"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "manifestLock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "apiVersion",
+        "roots",
+        "packages"
+      ],
+      "properties": {
+        "apiVersion": {
+          "const": "connectionagent.io/interface-dependency-lock/v1alpha1"
+        },
+        "roots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/lockRoot"
+          }
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/manifestLockPackage"
+          }
+        }
+      }
+    },
+    "manifestLockPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "dependencies"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/packageKey"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/lockEdge"
+          }
+        }
+      }
+    },
+    "link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "skill",
+        "package",
+        "exportKind",
+        "exportId",
+        "owner",
+        "sourcePath",
+        "schemaIds"
+      ],
+      "properties": {
+        "skill": {
+          "type": "string",
+          "minLength": 1
+        },
+        "package": {
+          "$ref": "#/$defs/packageKey"
+        },
+        "exportKind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exportId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "capRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "skill",
+        "capabilityId",
+        "catalog",
+        "callables",
+        "declaration"
+      ],
+      "properties": {
+        "skill": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capabilityId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "catalog": {
+          "$ref": "#/$defs/capCatalog"
+        },
+        "callables": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/capCallable"
+          },
+          "minItems": 1
+        },
+        "declaration": {
+          "$ref": "#/$defs/sourceDecl"
+        }
+      }
+    },
+    "capCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "owner",
+        "exportId",
+        "sourcePath",
+        "pointer"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/packageKey"
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exportId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pointer": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "capCallable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "owner",
+        "exportId",
+        "kind",
+        "effect",
+        "sourcePath"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/packageKey"
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exportId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "operation",
+            "observation"
+          ]
+        },
+        "effect": {
+          "enum": [
+            "READ",
+            "MUTATION"
+          ]
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "sourceDecl": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "pointer"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pointer": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hostAdmission",
+        "runtimeExecution"
+      ],
+      "properties": {
+        "hostAdmission": {
+          "const": "host-admission-requirements.json"
+        },
+        "runtimeExecution": {
+          "const": "runtime-execution-requirements.json"
+        }
+      }
+    },
+    "manifestFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

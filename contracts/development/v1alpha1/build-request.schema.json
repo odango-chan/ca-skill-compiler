@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:connectionagent:ca-skill-compiler:development:build-request:v1alpha1",
+  "title": "CA Skill Compiler Development build-request v1alpha1 (DRAFT)",
+  "description": "Exact CA-SL source plus immutable Interface Package snapshots and Resolver-generated lock. No Owner attestation, live Evidence, Deployment Grant, or Provider is admitted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "languageTarget",
+    "profile",
+    "files",
+    "targets",
+    "lock",
+    "snapshots"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "connectionagent.io/compiler-development-build-request/v1alpha1"
+    },
+    "languageTarget": {
+      "const": "connectionagent.io/v1alpha5"
+    },
+    "profile": {
+      "const": "DEVELOPMENT"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/file"
+      },
+      "minItems": 1,
+      "maxItems": 512
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "maxItems": 256,
+      "uniqueItems": true
+    },
+    "lock": {
+      "$ref": "#/$defs/lock"
+    },
+    "snapshots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/snapshot"
+      },
+      "minItems": 1,
+      "maxItems": 128
+    }
+  },
+  "$defs": {
+    "packageKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageId",
+        "version",
+        "snapshotDigest"
+      ],
+      "properties": {
+        "packageId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "snapshotDigest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "lockRoot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alias",
+        "key"
+      ],
+      "properties": {
+        "alias": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "$ref": "#/$defs/packageKey"
+        }
+      }
+    },
+    "lockEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alias",
+        "key"
+      ],
+      "properties": {
+        "alias": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "$ref": "#/$defs/packageKey"
+        }
+      }
+    },
+    "lockPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "dependencies"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/packageKey"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/lockEdge"
+          }
+        }
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes": {
+          "type": "string",
+          "contentEncoding": "base64"
+        }
+      }
+    },
+    "lock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "apiVersion",
+        "roots",
+        "packages"
+      ],
+      "properties": {
+        "apiVersion": {
+          "const": "connectionagent.io/interface-dependency-lock/v1alpha1"
+        },
+        "roots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/lockRoot"
+          },
+          "minItems": 1
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/lockPackage"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "files"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/packageKey"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/file"
+          },
+          "minItems": 1
+        }
+      }
+    }
+  }
+}
