@@ -20,13 +20,8 @@
 - [架构演进与外部责任边界](compiler-evolution-roadmap-vnext.zh-CN.md)
 - [Archify 架构图](../architecture/archify/README.md) · [5GC Profile 历史评审](../profiles/5gc-smf-procedure-profile.md)
 
-## 历史规范（只读）
+## 历史设计资料
 
-名称含 `v1alpha4`、`v0`、`v0.1` 的设计文件保留用于追溯，不是当前 Compiler 支持的 BuildRequest/语言目标。v1alpha4 语言**语义**由唯一的 v1alpha5 Pipeline 继承；但旧版本 API 输入仍应直接拒绝。
+14 份 v0/v0.1/v1alpha4 的旧设计正文已从活动目录移出，避免被误读为当前 Compiler 输入契约。全部原文仍可在[固定历史提交的设计文档目录](https://github.com/odango-chan/ca-skill-compiler/tree/72b41548a9c4d29c6c49abed117a04a963454f22/docs/design)查看。冻结的**机器**契约（`/contracts/`）仍在 main，当前 v1alpha5 与 Development 设计文档也未删除。
 
-- [v1alpha4 编译器契约](compiler-contract-v1alpha4.md) · [BuildRequest](build-request-v1alpha4.md) · [Output](compiler-output-contract-v1alpha4.md)
-- [Artifact](compiler-artifact-v1alpha4.md) · [快照摘要](dependency-snapshot-digest-v1alpha4.md)
-- [Owner](owner-contracts-v1alpha4.md) · [Procedure](procedure-link-v1alpha4.md) · [Script](script-contract-v1alpha4.md)
-- [v0 架构简报](skill-compiler-v0.md) · [v0.1 契约](compiler-contract-v0.1.md)
-
-产品发布结论见 [v2.1.0 发布记录](../releases/ca-skill-compiler-v2.1.0.md)，旧实施工作包见[历史任务索引](../workstreams/README.zh-CN.md)。
+现行发布事实以 [v2.1.0 发布记录](../releases/ca-skill-compiler-v2.1.0.md)为准；旧任务包见[历史工作包索引](../workstreams/README.zh-CN.md)。
