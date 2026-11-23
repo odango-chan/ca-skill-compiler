@@ -1,12 +1,8 @@
-> **现行状态更新（2026-11-23）：Compiler v2.1.0 已正式发布，Development v1alpha1 机器契约已随该版本冻结。** [正式 Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0) · [固定源码与验收](../releases/ca-skill-compiler-v2.1.0.md)。下文 2026-11-20 的“尚未发布”“候选”“PENDING”等叙述是**设计评审当时的状态快照**，不应覆盖现行版本事实。正式 Owner/Provider、Host Admission、Runtime/5GC Qualification 仍为外部系统边界，Development Artifact 始终 `NOT_ADMITTED`。
-
 # CA-SL 工具链架构：编译、接口链接与执行资格分离
 
-> **状态（2026-11-20）：架构评审通过，PR #48 已合并（`22860a2`），Development Build 实现 PR #51 已合并（`1d7ea81`）。** 本页已经进入 `main`，但**尚未独立冻结或正式发布新一代公开契约**；生产 Host 仍须拒绝 `DEVELOPMENT` Artifact。
->
-> 现行冻结语言仍为 CA-SL v1alpha5，已发布产品仍为 Compiler v2.0.2。本页是下一代接口链接与 Artifact 生命周期的设计基线；其评审阶段的 SHA、图形验收记录与 `PENDING` 项为历史证据，正文中如有“等待最终评审”的表述，应以本状态块为准。实现与证据见 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 和[实现报告](compiler-development-build-implementation-report.zh-CN.md)。MAS G0/G1 未运行、正式 Owner/Provider 发布与真实 Host Admission 仍待完成。
+**现行状态（2026-11-23）：Compiler v2.1.0 RELEASED。** Development v1alpha1 机器契约已随 [正式 Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0) 冻结，[正式发布源码、资产及验收](../releases/ca-skill-compiler-v2.1.0.md)可复核。设计 [PR #48](https://github.com/odango-chan/ca-skill-compiler/pull/48)、实现 [PR #51](https://github.com/odango-chan/ca-skill-compiler/pull/51)、契约一致性 [PR #56](https://github.com/odango-chan/ca-skill-compiler/pull/56) 均已合入。现行规范为 [CA-SL v1alpha5](https://github.com/odango-chan/ca-skills/blob/0abfd0e1ab99f481a4ae01f3f47efc54783dd5e5/docs/skill-language-spec.v1alpha5.zh-CN.md)。
 
-> **Compiler 交付边界**：下文 Owner 正式发布、Provider、Qualification、Host Admission 与 Runtime 是端到端工具链的职责设计，不是 Compiler 独立完成、合并或发版的共同门槛。Compiler 可以使用调用方提供的、静态闭合并锁定的测试快照完成离线构建；它不验证外部签发者真实性或允许运行。详见[独立验收边界](../COMPILER-ACCEPTANCE-BOUNDARY.zh-CN.md)与[真实 MAS 源码离线回归 #53](https://github.com/odango-chan/ca-skill-compiler/issues/53)。
+本文是架构与职责边界，含 2026-11-20 设计图及评审假设，不代表已经完成外部系统的正式 Owner/Provider 发布、Host Admission、Runtime 或 5GC/MAS Qualification。Compiler 能针对调用方提供的精确闭合快照离线 Build/Verify；即使成功，Development Artifact 仍然 **`NOT_ADMITTED`**。严格机器形状以 [Development v1alpha1 JSON Schema](../../contracts/development/v1alpha1/README.md) 为准。真实 MAS author 源静态集成另见 [Issue #53](https://github.com/odango-chan/ca-skill-compiler/issues/53)，不是 Compiler 自有发布阻塞。
 
 ## 1. 已批准的原则
 

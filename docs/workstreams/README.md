@@ -4,11 +4,11 @@
 
 This directory is an archive of implementation plans, merged work packages and prior release decisions. It is **not** the live task queue, contract authority, or current CLI guide. Current product: [v2.1.0 RELEASED](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0); only language target CA-SL v1alpha5.
 
-## Current release status
+## Historical v1.0.0 acceptance snapshot
 
 These are **v1.0.0 historical files**, not the current v2.1.0 product baseline. For current status use [current state](../WORK.md), [v2.1.0 release](../releases/ca-skill-compiler-v2.1.0.md) and [current limitations](../known-limitations-v1alpha5.md). This index maps earlier implementation work:
 
-- [Compiler implementation and acceptance](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) — authoritative implementation status, local verification evidence, E-case dispositions and qualification boundary.
+- [Compiler implementation and acceptance](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) — historical v1alpha4 implementation status, local verification evidence, E-case dispositions and qualification boundary.
 - [v1alpha4 known limitations](../known-limitations-v1alpha4.md) — historical fail-closed behaviour, **not current limitations**.
 - [Remaining-work inventory](REMAINING-WORK-v1alpha4.json) — machine-readable inventory. `implementableInRepo` is empty; remaining entries require external publications or normative clarification. It is not an active implementation queue.
 - [Conformance plan](conformance-v1alpha4.md) — frozen test strategy, not a live progress report. Use the acceptance record and `tests/conformance/v1alpha4/e-coverage.json` for current dispositions.

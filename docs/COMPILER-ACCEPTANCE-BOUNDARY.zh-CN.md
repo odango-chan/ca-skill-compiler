@@ -31,7 +31,7 @@ Compiler 的输入是 CA-SL 源码、调用方提供的准确接口声明与 Sch
 ### 当前确定的状态
 
 - **已发布 Compiler**：v2.1.0，目标 `connectionagent.io/v1alpha5`；既有冻结入口与 Artifact 不因 Development Build 合并而改变。
-- **Development Build 已发布**：架构 [#48](https://github.com/odango-chan/ca-skill-compiler/pull/48) 与实现 [#51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 已合并 `main`，实现 PR 的 GitHub Actions 验收通过；此新入口**尚未另行发布版本**。
+- **Development Build 已正式发布**：架构 [#48](https://github.com/odango-chan/ca-skill-compiler/pull/48)、实现 [#51](https://github.com/odango-chan/ca-skill-compiler/pull/51) 与一致性修复 [#56](https://github.com/odango-chan/ca-skill-compiler/pull/56) 已合并；Development v1alpha1 随 [v2.1.0 Release](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0) 发布并冻结，固定 SHA 和完整发布验收见[记录](releases/ca-skill-compiler-v2.1.0.md)。
 - **Development 执行状态**：`NOT_ADMITTED` 是预期契约输出，不是编译失败。
 - **MAS 真实源离线测试**：[Issue #53](https://github.com/odango-chan/ca-skill-compiler/issues/53) 独立跟踪；没有实跑记录就标 `NOT_RUN`，不能由合成 Compiler fixture 的 PASS 替代。
 - **正式 MAS G0/G1**：在本次收敛前记录为 `NOT_RUN`；即使 Issue #53 的 synthetic test 通过，也不能直接改写正式 G0/G1 结论。

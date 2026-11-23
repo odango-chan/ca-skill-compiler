@@ -1,3 +1,5 @@
+> **Frozen output compatibility:** v2.1.0 keeps the prior v1alpha5 Build/Verify Artifact byte-identical to v2.0.2, including `generator.version=v2.0.2`. This embedded generator is a frozen *Artifact identity*, not the v2.1.0 binary version. The separate [Development v1alpha1 Artifact](../../contracts/development/v1alpha1/README.md) stamps v2.1.0 and remains `NOT_ADMITTED`. [Release evidence](../releases/ca-skill-compiler-v2.1.0.md).
+
 # Compiler Artifact Contract v1alpha5 (FROZEN)
 
 **Status: FROZEN for the v2.0.0 product line — compiler-owned.** This document

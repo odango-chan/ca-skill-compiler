@@ -4,11 +4,11 @@
 
 本目录归档已完成的编译器任务包、早期设计和迁移报告。**不是**当前任务队列、规范发布源或 CLI 手册。现行产品为 [v2.1.0（已发布）](https://github.com/odango-chan/ca-skill-compiler/releases/tag/v2.1.0)，唯一语言目标是 CA-SL v1alpha5。
 
-## 当前发布状态
+## v1.0.0 历史验收快照
 
 下列是 **v1.0.0 历史资料**，不是 v2.1.0 的当前状态。当前发布和验收请参阅[当前状态](../WORK.md)、[v2.1.0 发布记录](../releases/ca-skill-compiler-v2.1.0.md)与[现行限制](../known-limitations-v1alpha5.md)：
 
-- [Compiler 实施与验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) — 权威的实现状态、本地验证证据、E-case 处置结果和产品符合性边界。
+- [Compiler 实施与验收记录](../COMPILER-V1ALPHA4-FINAL-ACCEPTANCE.md) — v1alpha4 历史实现状态、本地验证证据、E-case 处置结果和资格边界。
 - [旧版本限制](../known-limitations-v1alpha4.md) — v1alpha4 历史状态，**不代表当前限制**。
 - [剩余工作清单](REMAINING-WORK-v1alpha4.json) — 机器可读清单。当前 `implementableInRepo` 为空；剩余项目需要外部发布物或规范澄清，不是待执行的代码任务。
 - [符合性测试计划](conformance-v1alpha4.md) — 已冻结的测试策略，不是实时进度表。当前执行结果以最终验收记录和 `tests/conformance/v1alpha4/e-coverage.json` 为准。
