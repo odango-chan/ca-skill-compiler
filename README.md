@@ -31,7 +31,9 @@ Compiler no longer exposes a v1alpha4 build entry, CLI target or compatibility
 mode. A v1alpha4 `apiVersion` or `languageTarget` fails closed like any other
 unsupported version.
 
-The historical v1alpha5 Build/Verify artifact generator identity remains pinned to `v2.0.2` so existing outputs retain identical bytes; this is **not** the current CLI binary version. Development manifests use the new product version `v2.1.0`.\n\nv2.0.2 fixes producer output availability across Procedure stages. v2.0.1 fixed a false YAML indentation-depth rejection. Prior releases remain immutable and the v1alpha5 input/output contract is unchanged. The earlier **v1.0.0** product (v1alpha4 target) remains an
+The historical v1alpha5 Build/Verify artifact generator identity remains pinned to `v2.0.2` so existing outputs retain identical bytes; this is **not** the current CLI binary version. Development manifests use the new product version `v2.1.0`.
+
+v2.0.2 fixes producer output availability across Procedure stages. v2.0.1 fixed a false YAML indentation-depth rejection. Prior releases remain immutable and the v1alpha5 input/output contract is unchanged. The earlier **v1.0.0** product (v1alpha4 target) remains an
 immutable historical release. It is documented under
 [docs/release-notes-v1.0.0.md](docs/release-notes-v1.0.0.md).
 
