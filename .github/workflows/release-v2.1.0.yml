@@ -268,7 +268,7 @@ jobs:
             git push origin "refs/tags/$TAG"
           fi
 
-      - name: Publish GitHub Release with six release assets
+      - name: Publish GitHub Release with eight release assets
         shell: bash
         run: |
           set -euo pipefail
@@ -281,6 +281,8 @@ jobs:
               dist/skillc-v2.1.0-darwin-arm64 \
               dist/skillc-v2.1.0-windows-amd64.exe \
               dist/skillc-v2.1.0.wasm \
+              dist/skillc-v2.1.0-web-worker.tar.gz \
+              dist/skillc-v2.1.0-development-contracts.tar.gz \
               dist/SHA256SUMS \
               --repo "$GITHUB_REPOSITORY" \
               --verify-tag \
@@ -296,7 +298,7 @@ jobs:
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir /tmp/release-download
           (
             cd /tmp/release-download
-            for name in skillc-v2.1.0-linux-amd64 skillc-v2.1.0-darwin-amd64 skillc-v2.1.0-darwin-arm64 skillc-v2.1.0-windows-amd64.exe skillc-v2.1.0.wasm SHA256SUMS; do
+            for name in skillc-v2.1.0-linux-amd64 skillc-v2.1.0-darwin-amd64 skillc-v2.1.0-darwin-arm64 skillc-v2.1.0-windows-amd64.exe skillc-v2.1.0.wasm skillc-v2.1.0-web-worker.tar.gz skillc-v2.1.0-development-contracts.tar.gz SHA256SUMS; do
               test -s "$name" || { echo "Missing release asset $name" >&2; exit 1; }
             done
             sha256sum -c SHA256SUMS
